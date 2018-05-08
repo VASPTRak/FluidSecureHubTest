@@ -1,0 +1,877 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    android:orientation="vertical"
+    tools:context="com.TrakEngineering.FluidSecureHubTest.WelcomeActivity">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+
+            <!--BT demo start     -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="5dp"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:visibility="gone">
+
+                        <TextView
+                            android:id="@+id/textView01"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/status_change_notifications"
+                            android:textAppearance="?android:attr/textAppearanceMedium" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
+
+                            <TextView
+                                android:id="@+id/textView02"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/connection_status" />
+
+                            <TextView
+                                android:id="@+id/textView_ReaderState"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
+
+                            <TextView
+                                android:id="@+id/textView03"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/card_status_2" />
+
+                            <TextView
+                                android:id="@+id/textView_IccState"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
+
+                            <TextView
+                                android:id="@+id/textView04"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/battery_level" />
+
+                            <TextView
+                                android:id="@+id/textView_BatteryLevel"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
+
+                            <TextView
+                                android:id="@+id/textview05"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/battery_status" />
+
+                            <TextView
+                                android:id="@+id/textView_BatteryStatus"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:visibility="gone">
+
+                        <TextView
+                            android:id="@+id/textView06"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/authentication_key"
+                            android:textAppearance="?android:attr/textAppearanceMedium" />
+
+                        <EditText
+                            android:id="@+id/editText_Master_Key"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:ems="10"
+                            android:hint="@string/authentication_key">
+
+                            <requestFocus />
+                        </EditText>
+
+                        <TextView
+                            android:id="@+id/textView_Authentication"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content" />
+                    </LinearLayout>
+
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:visibility="visible">
+
+                        <TextView
+                            android:id="@+id/textView08"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/apdu_command"
+                            android:textAppearance="?android:attr/textAppearanceMedium" />
+
+                        <EditText
+                            android:id="@+id/editText_ADPU"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:ems="10"
+                            android:hint="@string/apdu_command" />
+
+
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/textView_Response"
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="20dp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:visibility="visible">
+
+                        <TextView
+                            android:id="@+id/textView09"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/escape_command"
+                            android:textAppearance="?android:attr/textAppearanceMedium" />
+
+                        <EditText
+                            android:id="@+id/editText_Escape"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:ems="10"
+                            android:hint="@string/escape_command" />
+
+                        <TextView
+                            android:id="@+id/textView_EscapeResponse"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content" />
+                    </LinearLayout>
+
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                        <Button
+                            android:id="@+id/button_Clear"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/clear" />
+
+                        <Button
+                            android:id="@+id/button_Authenticate"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/authenticate" />
+
+                        <Button
+                            android:id="@+id/button_TransmitADPU"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/transmit_apdu" />
+
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical">
+
+                            <Button
+                                android:id="@+id/button_StartPolling"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="@string/start_polling" />
+
+
+                        </LinearLayout>
+
+
+                    </LinearLayout>
+                </LinearLayout>
+
+            </LinearLayout>
+            <!--BT demo end     -->
+
+            <TextView
+                android:id="@+id/textView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/colorFluid"
+                android:gravity="left"
+                android:padding="20dp"
+                android:paddingLeft="40dp"
+                android:text="Welcome"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:textColor="#fff"
+                android:textSize="20sp" />
+
+            <TextView
+                android:id="@+id/tv_test"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="20dp"
+                android:layout_marginRight="20dp"
+                android:orientation="vertical">
+
+
+                <Button
+                    android:id="@+id/btn_disconnect"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:text="Disconnect" />
+
+                <ImageView
+                    android:id="@+id/imageView"
+                    android:layout_width="270sp"
+                    android:layout_height="100sp"
+                    android:layout_gravity="center_horizontal"
+                    android:src="@drawable/fuel_secure_lock" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:layout_marginTop="0dp"
+                    android:gravity="center_horizontal"
+                    android:padding="2sp"
+                    android:text="Select hose to use"
+                    android:textAppearance="?android:attr/textAppearanceLarge"
+                    android:textSize="30dp"
+                    android:textStyle="bold" />
+
+
+            </LinearLayout>
+
+
+            <LinearLayout
+                android:id="@+id/linearHose"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:layout_marginLeft="40dp"
+                android:layout_marginRight="40dp"
+                android:background="@color/colorPrimary"
+                android:gravity="center"
+                android:onClick="selectHoseAction"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/tvSSIDName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="#00000000"
+                    android:gravity="center_vertical"
+                    android:padding="10dp"
+                    android:text="Select"
+                    android:textAppearance="?android:attr/textAppearanceLarge"
+                    android:textColor="#FFF"
+                    android:textSize="30dp"
+                    android:textStyle="bold" />
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="20dp"
+                    android:layout_marginRight="10dp"
+                    android:src="@drawable/arrow_white" />
+
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/btnGo"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginLeft="40dp"
+                android:layout_marginRight="40dp"
+                android:layout_marginTop="20dp"
+                android:background="@color/colorFluid"
+                android:clickable="true"
+                android:onClick="goButtonAction"
+                android:text="GO"
+                android:textColor="#fff"
+                android:textSize="@dimen/go_button_text"
+                android:textStyle="bold" />
+
+            <Button
+                android:id="@+id/btnRetryWifi"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginLeft="40dp"
+                android:layout_marginRight="40dp"
+                android:layout_marginTop="20dp"
+                android:background="@color/colorFluid"
+                android:clickable="true"
+                android:text="Reconnect to WiFI"
+                android:textColor="#fff"
+                android:textSize="@dimen/go_button_text"
+                android:textStyle="bold"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/tvLatLng"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:gravity="center" />
+
+
+            <Button
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:onClick="onChangeWifiAction"
+                android:padding="5sp"
+                android:text="Refresh List"
+                android:textColor="@color/colorPrimary"
+                android:visibility="gone" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginLeft="20dp"
+                android:layout_marginRight="20dp"
+                android:gravity="bottom"
+                android:orientation="vertical">
+
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:gravity="bottom"
+                    android:orientation="horizontal"
+                    android:visibility="gone">
+
+                    <ImageView
+                        android:id="@+id/imgFuelLogo"
+                        android:layout_width="150dp"
+                        android:layout_height="100dp"
+                        android:src="@drawable/trak_logo_small" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="8dp"
+                        android:gravity="left|center_vertical"
+                        android:text="@string/add"
+                        android:textAppearance="?android:attr/textAppearanceMedium"
+                        android:textSize="14sp" />
+
+                </LinearLayout>
+
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="26dp"
+                    android:layout_marginTop="12dp"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/textDateTime"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Date: 11.30 May 02, 2016 "
+                            android:textColor="#000"
+                            android:textSize="18sp" />
+
+                        <TextView
+                            android:id="@+id/tvVersionNum"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="15dp"
+                            android:text="Version: "
+                            android:textColor="#000"
+                            android:textSize="18sp" />
+
+                    </LinearLayout>
+
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Support: support@trakeng.com or 850-878-4585"
+                        android:textColor="#000"
+                        android:textSize="18sp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="20dp"
+                android:layout_marginRight="20dp"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:weightSum="2">
+
+                    <LinearLayout
+                        android:id="@+id/linear_fs_1"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginRight="5dp"
+                        android:layout_weight="1"
+                        android:background="@color/Dashboard_background"
+                        android:orientation="vertical"
+                        android:padding="0dp">
+
+                        <TableLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
+
+                            <TableRow>
+
+                                <TextView
+                                    android:id="@+id/tv_FS1_hoseName"
+                                    style="@style/TextViewStyleDashboard"
+                                    android:layout_width="match_parent"
+                                    android:text="Hose One"
+                                    android:textColor="@color/black" />
+
+                                <TextView
+                                    android:id="@+id/tv_NFS1"
+                                    style="@style/TextViewStyleDashboard"
+                                    android:layout_width="0dp"
+                                    android:layout_height="0dp"
+                                    android:text="Hose 1:"
+                                    android:textColor="@color/black" />
+
+
+                            </TableRow>
+
+
+                        </TableLayout>
+
+                        <TableLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
+
+                            <TableRow>
+
+                                <TextView
+                                    android:id="@+id/tv_fs1QTN"
+                                    style="@style/TextViewStyleQuantity"
+                                    android:text="Quantity:"
+                                    android:textColor="@color/black" />
+
+                                <TextView
+                                    android:id="@+id/tv_fs1_Qty"
+                                    style="@style/TextViewStyleQuantity"
+                                    android:layout_width="match_parent"
+                                    android:layout_weight="1"
+                                    android:gravity="right"
+                                    android:text=""
+                                    android:textColor="@color/black" />
+
+                            </TableRow>
+
+                            <TableRow>
+
+                                <TextView
+                                    android:id="@+id/tv_fs1_pulseTxt"
+                                    style="@style/TextViewStylePulse"
+                                    android:text="Pulse:"
+                                    android:textColor="@color/black" />
+
+                                <TextView
+                                    android:id="@+id/tv_fs1_Pulse"
+                                    style="@style/TextViewStylePulse"
+                                    android:layout_width="match_parent"
+                                    android:layout_weight="1"
+                                    android:gravity="right"
+                                    android:text=""
+                                    android:textColor="@color/black" />
+
+
+                            </TableRow>
+
+                            <TextView
+                                android:id="@+id/tv_fs1_stop"
+                                style="@style/TextViewStyleDashboard"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:background="@drawable/selector_button"
+                                android:gravity="center"
+                                android:padding="10dp"
+                                android:text="STOP"
+                                android:textColor="@color/black" />
+
+
+                        </TableLayout>
+
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/linear_fs_2"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="5dp"
+                        android:layout_weight="1"
+                        android:background="@color/Dashboard_background"
+                        android:orientation="vertical"
+                        android:padding="0dp">
+
+                        <TableLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
+
+                            <TableRow>
+
+                                <TextView
+                                    android:id="@+id/tv_FS2_hoseName"
+                                    style="@style/TextViewStyleDashboard"
+                                    android:layout_width="match_parent"
+                                    android:text="Hose Two"
+                                    android:textColor="@color/black" />
+
+                                <TextView
+                                    android:id="@+id/tv_NFS2"
+                                    style="@style/TextViewStyleDashboard"
+                                    android:layout_width="0dp"
+                                    android:layout_height="0dp"
+                                    android:text="Hose 2:"
+                                    android:textColor="@color/black" />
+
+
+                            </TableRow>
+
+                        </TableLayout>
+
+                        <TableLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
+
+                            <TableRow>
+
+                                <TextView
+                                    android:id="@+id/tv_fs2QTN"
+                                    style="@style/TextViewStyleQuantity"
+                                    android:text="Quantity:"
+                                    android:textColor="@color/black" />
+
+                                <TextView
+                                    android:id="@+id/tv_fs2_Qty"
+                                    style="@style/TextViewStyleQuantity"
+                                    android:layout_width="match_parent"
+                                    android:layout_weight="1"
+                                    android:gravity="right"
+                                    android:text=""
+                                    android:textColor="@color/black" />
+
+                            </TableRow>
+
+                            <TableRow>
+
+                                <TextView
+                                    android:id="@+id/tv_fs2_pulseTxt"
+                                    style="@style/TextViewStylePulse"
+                                    android:text="Pulse:"
+                                    android:textColor="@color/black" />
+
+                                <TextView
+                                    android:id="@+id/tv_fs2_Pulse"
+                                    style="@style/TextViewStylePulse"
+                                    android:layout_width="match_parent"
+                                    android:layout_weight="1"
+                                    android:gravity="right"
+                                    android:text=""
+                                    android:textColor="@color/black" />
+
+                            </TableRow>
+
+                            <TextView
+                                android:id="@+id/tv_fs2_stop"
+                                style="@style/TextViewStyleDashboard"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:background="@color/Dashboard_presstostop_btn"
+                                android:gravity="center"
+                                android:padding="10dp"
+                                android:text="STOP"
+                                android:textColor="@color/black" />
+
+
+                        </TableLayout>
+
+                    </LinearLayout>
+
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:orientation="horizontal"
+                    android:weightSum="2">
+
+                    <LinearLayout
+                        android:id="@+id/linear_fs_3"
+
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginRight="5dp"
+                        android:layout_weight="1"
+                        android:background="@color/Dashboard_background"
+                        android:orientation="vertical"
+                        android:padding="0dp">
+
+                        <TableLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
+
+                            <TableRow
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent">
+
+                                <TextView
+                                    android:id="@+id/tv_FS3_hoseName"
+                                    style="@style/TextViewStyleDashboard"
+                                    android:layout_width="match_parent"
+                                    android:text="Hose Three"
+                                    android:textColor="@color/black" />
+
+                                <TextView
+                                    android:id="@+id/tv_NFS3"
+                                    style="@style/TextViewStyleDashboard"
+                                    android:layout_width="0dp"
+                                    android:layout_height="0dp"
+                                    android:text="Hose 3:"
+                                    android:textColor="@color/black" />
+
+
+                            </TableRow>
+
+
+                        </TableLayout>
+
+                        <TableLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
+
+                            <TableRow>
+
+                                <TextView
+                                    android:id="@+id/tv_fs3QTN"
+                                    style="@style/TextViewStyleQuantity"
+                                    android:text="Quantity:"
+                                    android:textColor="@color/black" />
+
+
+                                <TextView
+                                    android:id="@+id/tv_fs3_Qty"
+                                    style="@style/TextViewStyleQuantity"
+                                    android:layout_width="match_parent"
+                                    android:layout_weight="1"
+                                    android:gravity="right"
+                                    android:text=""
+                                    android:textColor="@color/black" />
+
+                            </TableRow>
+
+                            <TableRow>
+
+                                <TextView
+                                    android:id="@+id/tv_fs3_pulseTxt"
+                                    style="@style/TextViewStylePulse"
+                                    android:text="Pulse:"
+                                    android:textColor="@color/black" />
+
+                                <TextView
+                                    android:id="@+id/tv_fs3_Pulse"
+                                    style="@style/TextViewStylePulse"
+                                    android:layout_width="match_parent"
+                                    android:layout_weight="1"
+                                    android:gravity="right"
+                                    android:text=""
+                                    android:textColor="@color/black" />
+
+
+                            </TableRow>
+
+
+                        </TableLayout>
+
+                        <TextView
+                            android:id="@+id/tv_fs3_stop"
+                            style="@style/TextViewStyleDashboard"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:background="@color/Dashboard_presstostop_btn"
+                            android:gravity="center"
+                            android:padding="10dp"
+                            android:text="STOP"
+                            android:textColor="@color/black" />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/linear_fs_4"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="5dp"
+                        android:layout_weight="1"
+                        android:background="@color/Dashboard_background"
+                        android:orientation="vertical"
+                        android:padding="0dp">
+
+                        <TableLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
+
+
+                            <TableRow>
+
+                                <TextView
+                                    android:id="@+id/tv_FS4_hoseName"
+                                    style="@style/TextViewStyleDashboard"
+                                    android:layout_width="match_parent"
+                                    android:text="Hose Four"
+                                    android:textColor="@color/black" />
+
+                                <TextView
+                                    android:id="@+id/tv_NFS4"
+                                    style="@style/TextViewStyleDashboard"
+                                    android:layout_width="0dp"
+                                    android:layout_height="0dp"
+                                    android:text="Hose 4:"
+                                    android:textColor="@color/black" />
+
+
+                            </TableRow>
+
+                        </TableLayout>
+
+                        <TableLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
+
+
+                            <TableRow>
+
+                                <TextView
+                                    android:id="@+id/tv_fs4QTN"
+                                    style="@style/TextViewStyleQuantity"
+                                    android:text="Quantity:"
+                                    android:textColor="@color/black" />
+
+                                <TextView
+                                    android:id="@+id/tv_fs4_Qty"
+                                    style="@style/TextViewStyleQuantity"
+                                    android:layout_width="match_parent"
+                                    android:layout_weight="1"
+                                    android:gravity="right"
+                                    android:text=""
+                                    android:textColor="@color/black" />
+
+                            </TableRow>
+
+                            <TableRow>
+
+                                <TextView
+                                    android:id="@+id/tv_fs4_pulseTxt"
+                                    style="@style/TextViewStylePulse"
+                                    android:text="Pulse:"
+                                    android:textColor="@color/black" />
+
+                                <TextView
+                                    android:id="@+id/tv_fs4_Pulse"
+                                    style="@style/TextViewStylePulse"
+                                    android:layout_width="match_parent"
+                                    android:layout_weight="1"
+                                    android:gravity="right"
+                                    android:text=""
+                                    android:textColor="@color/black" />
+
+
+                            </TableRow>
+
+                            <TextView
+                                android:id="@+id/tv_fs4_stop"
+                                style="@style/TextViewStyleDashboard"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:background="@color/Dashboard_presstostop_btn"
+                                android:gravity="center"
+                                android:padding="10dp"
+                                android:text="STOP"
+                                android:textColor="@color/black" />
+
+                        </TableLayout>
+
+                    </LinearLayout>
+
+
+                </LinearLayout>
+
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </ScrollView>
+
+</LinearLayout>
