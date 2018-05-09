@@ -2322,6 +2322,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     // wifiManager.saveConfiguration();
                 }
             }catch (NullPointerException e){System.out.println(e);}*/
+            AppConstants.WriteinFile("welcomeActivity ~~~~~~~~~" + "WiFiConnectTask  IndoInBackground");
             connectToWifiMarsh(AppConstants.CURRENT_SELECTED_SSID);
             // connectCustom(AppConstants.CURRENT_SELECTED_SSID);
 
@@ -2332,6 +2333,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         @Override
         protected void onPostExecute(String s) {
 
+            AppConstants.WriteinFile("welcomeActivity ~~~~~~~~~" + "WiFiConnectTask  InOnPostExecute");
 
             new Handler().postDelayed(new Runnable() {
                 @Override
@@ -2452,6 +2454,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                                 } catch (Exception e) {
                                     e.printStackTrace();
+                                    loading.dismiss();
                                     AppConstants.WriteinFile("welcomeActivity ~~~~~~~~~" + "WiFiConnectTask  OnPostExecution --Exception " + e);
                                 }
                             }
@@ -2518,6 +2521,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             wifiManager.reconnect();
         } catch (Exception e) {
             e.printStackTrace();
+            loading.dismiss();
+            AppConstants.WriteinFile("welcomeActivity ~~~~~~~~~" + "connectToWifiMarsh --Exception " + e);
         }
     }
 

@@ -35,6 +35,7 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.TrakEngineering.FluidSecureHubTest.AcceptDeptActivity;
 import com.TrakEngineering.FluidSecureHubTest.AcceptHoursAcitvity;
@@ -85,6 +86,8 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
     private TextView mDataField, tv_fobkey;
     private String mDeviceName;
     private String mDeviceAddress;
+    private String HFDeviceName;
+    private String HFDeviceAddress;
     private BluetoothLeService_vehicle mBluetoothLeServiceVehicle;
     private boolean mConnected = false;
     private BluetoothGattCharacteristic mNotifyCharacteristic;
@@ -132,7 +135,18 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
                 finish();
             }
             // Automatically connects to the device upon successful start-up initialization.
-            mBluetoothLeServiceVehicle.connect(mDeviceAddress);
+            if (mDeviceName != null && mDeviceAddress.contains(":")) {
+                final boolean result = mBluetoothLeServiceVehicle.connect(mDeviceAddress);
+                Log.d(TAG, "Connect request result=" + result);
+            }else{
+
+                if (!HFDeviceAddress.contains(":")) {
+                    tv_enter_vehicle_no.setText("");
+                } else {
+                    tv_enter_vehicle_no.setText("Present Fob key to reader");
+                }
+
+            }
         }
 
         @Override
@@ -187,7 +201,8 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
 
         mDeviceName = sharedPre2.getString("LFBluetoothCardReader", "");
         mDeviceAddress = sharedPre2.getString("LFBluetoothCardReaderMacAddress", "");
-
+        HFDeviceName = sharedPre2.getString("BluetoothCardReader", "");
+        HFDeviceAddress = sharedPre2.getString("BTMacAddress", "");
         // Sets up UI references.
         tv_fobkey = (TextView) findViewById(R.id.tv_fobkey);
         etInput = (EditText) findViewById(R.id.etInput);
@@ -310,8 +325,20 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
 
         registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter());
         if (mBluetoothLeServiceVehicle != null) {
-            final boolean result = mBluetoothLeServiceVehicle.connect(mDeviceAddress);
-            Log.d(TAG, "Connect request result=" + result);
+
+            if (mDeviceName != null && mDeviceAddress.contains(":")) {
+                final boolean result = mBluetoothLeServiceVehicle.connect(mDeviceAddress);
+                Log.d(TAG, "Connect request result=" + result);
+            } else {
+
+                if (!HFDeviceAddress.contains(":")) {
+                    tv_enter_vehicle_no.setText("");
+                } else {
+                    tv_enter_vehicle_no.setText("Present Fob key to reader");
+                }
+
+            }
+
         }
 
         tv_fobkey.setText("");
@@ -396,7 +423,18 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.menu_connect:
-                mBluetoothLeServiceVehicle.connect(mDeviceAddress);
+                if (mDeviceName != null && mDeviceAddress.contains(":")) {
+                    final boolean result = mBluetoothLeServiceVehicle.connect(mDeviceAddress);
+                    Log.d(TAG, "Connect request result=" + result);
+                }else{
+
+                    if ( !HFDeviceAddress.contains(":")) {
+                        tv_enter_vehicle_no.setText("");
+                    } else {
+                        tv_enter_vehicle_no.setText("Present Fob key to reader");
+                    }
+
+                }
                 return true;
             case R.id.menu_disconnect:
                 mBluetoothLeServiceVehicle.disconnect();
