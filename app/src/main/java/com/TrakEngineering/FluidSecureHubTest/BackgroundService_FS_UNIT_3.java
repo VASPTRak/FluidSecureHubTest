@@ -582,12 +582,11 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
 
                 } else {
 
-                    System.out.println("OUTPUT"+result);
+                    System.out.println("OUTPUT001"+result);
 
                     if (stopTimer)
                         pulsarQtyLogic(result);
                 }
-
 
             } catch (Exception e) {
                 AppConstants.WriteinFile("BackgroundService_FS_UNIT_3 ~~~~~~~~~" + "GETPulsarQuantity onPostExecute Execption " + e);
@@ -602,7 +601,7 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
         int secure_status = 0;
 
         try {
-            if (result.contains("4")) {
+            if (result.contains("pulsar_status")) {
                 JSONObject jsonObject = new JSONObject(result);
                 JSONObject joPulsarStat = jsonObject.getJSONObject("pulsar_status");
                 String counts = joPulsarStat.getString("counts");
@@ -998,6 +997,8 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
         DecimalFormat precision = new DecimalFormat("0.00");
         Constants.FS_3Gallons =  (precision.format(fillqty));
         Constants.FS_3Pulse  = outputQuantity;
+
+        System.out.println("testing update ui Back : Gallons"+Constants.FS_3Gallons+"pulse"+Constants.FS_3Pulse);
 
         ////////////////////////////////////-Update transaction ---
         TrazComp authEntityClass = new TrazComp();

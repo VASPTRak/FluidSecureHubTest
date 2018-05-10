@@ -348,9 +348,9 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
         //Delete Log file Older then month
         File file = new File(Environment.getExternalStorageDirectory() + "/FSTimeStamp");
-        if (file.exists()) {
+         if (file.exists()) {
             AppConstants.getAllFilesInDir(file);
-        }
+         }
 
 
         new GetConnectedDevicesIP().execute(); //getListOfConnectedDevice();
@@ -532,7 +532,6 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     }
                 });
 
-
         //////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -565,7 +564,11 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     private void DeleteOldLogFiles(){
 
         File file = new File(Environment.getExternalStorageDirectory() + "/FSLog");
-        CommonUtils.getAllFilesInDir(file);
+        boolean exists = file.exists();
+        if (exists){
+            CommonUtils.getAllFilesInDir(file);
+        }
+
 
     }
 
@@ -3583,6 +3586,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             tv_fs3_Qty.setText(Constants.FS_3Gallons);
             tv_fs3_Pulse.setText(Constants.FS_3Pulse);
             tv_fs3_stop.setClickable(false);
+
+            System.out.println("testing update ui Welcome : Gallons"+Constants.FS_3Gallons+"pulse"+Constants.FS_3Pulse);
 
             if (Constants.FS_3Gallons.equals("") || Constants.FS_3Gallons.equals("0.00")) {
                 Constants.FS_3Gallons = String.valueOf("0.00");
