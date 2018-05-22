@@ -47,11 +47,12 @@ public class BluetoothLeService_Pin extends Service {
 
     public int cnt123 = 0;
 
-     private String bolong_UUID_service="0000180a-0000-1000-8000-00805f9b34fb"; //ACS_UUID_char
-     private String bolong_UUID_char="00002a23-0000-1000-8000-00805f9b34fb"; //ACS_UUID_char
+//     private String bolong_UUID_service="0000180a-0000-1000-8000-00805f9b34fb"; //ACS_UUID_char
+//     private String bolong_UUID_char="00002a23-0000-1000-8000-00805f9b34fb"; //ACS_UUID_char
 
-//     private String bolong_UUID_service="000000ff-0000-1000-8000-00805f9b34fb"; //bolong_UUID_service
-//     private String bolong_UUID_char="0000ff01-0000-1000-8000-00805f9b34fb"; //bolong_UUID_char
+     private String bolong_UUID_service="000000ff-0000-1000-8000-00805f9b34fb"; //bolong_UUID_service
+     private String bolong_UUID_char="0000ff01-0000-1000-8000-00805f9b34fb"; //bolong_UUID_char
+
     private BluetoothLeService_Pin mBluetoothLeServicePin;
     private BluetoothManager mBluetoothManager;
     private BluetoothAdapter mBluetoothAdapter;
