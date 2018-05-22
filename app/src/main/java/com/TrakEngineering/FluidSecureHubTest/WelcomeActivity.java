@@ -137,7 +137,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     double minFuelLimit = 0, numPulseRatio = 0;
     double fillqty = 0;
     ProgressDialog loading = null;
-    String IpAddress = "";
+    String IpAddress = "", IsDefective = "False";
 
     String HTTP_URL = "";//"http://192.168.43.153:80/";//for pipe
     String URL_GET_PULSAR_FS1, URL_SET_PULSAR_FS1, URL_WIFI_FS1, URL_RELAY_FS1, URL_GET_PULSAR_FS2, URL_SET_PULSAR_FS2, URL_WIFI_FS2, URL_RELAY_FS2, URL_GET_PULSAR_FS3, URL_SET_PULSAR_FS3, URL_WIFI_FS3, URL_RELAY_FS3, URL_GET_PULSAR_FS4, URL_SET_PULSAR_FS4, URL_WIFI_FS4, URL_RELAY_FS4;
@@ -279,7 +279,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     @Override
     protected void onDestroy() {
         super.onDestroy();
-          /* Stop to monitor bond state change */
+        /* Stop to monitor bond state change */
         unregisterReceiver(mBroadcastReceiver);
 
         /* Disconnect Bluetooth reader */
@@ -318,7 +318,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
         InItGUI();
 
-          /* Connect the reader. */
+        /* Connect the reader. */
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -348,9 +348,9 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
         //Delete Log file Older then month
         File file = new File(Environment.getExternalStorageDirectory() + "/FSTimeStamp");
-         if (file.exists()) {
+        if (file.exists()) {
             AppConstants.getAllFilesInDir(file);
-         }
+        }
 
 
         new GetConnectedDevicesIP().execute(); //getListOfConnectedDevice();
@@ -561,17 +561,16 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     }
 
     //Delete log files older than 1 month
-    private void DeleteOldLogFiles(){
+    private void DeleteOldLogFiles() {
 
         File file = new File(Environment.getExternalStorageDirectory() + "/FSLog");
         boolean exists = file.exists();
-        if (exists){
+        if (exists) {
             CommonUtils.getAllFilesInDir(file);
         }
 
 
     }
-
 
 
     public void UpdateFSUI_seconds() {
@@ -1452,6 +1451,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                 String IsBusy = c.getString("IsBusy");
                                 String IsUpgrade = c.getString("IsUpgrade");
                                 String PulserTimingAdjust = c.getString("PulserTimingAdjust");
+                                String IsDefective = c.getString("IsDefective");
 
                                 String FilePath = c.getString("FilePath");
                                 AppConstants.UP_FilePath = FilePath;
@@ -1470,6 +1470,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                 map.put("IsBusy", IsBusy);
                                 map.put("IsUpgrade", IsUpgrade);
                                 map.put("PulserTimingAdjust", PulserTimingAdjust);
+                                map.put("IsDefective", IsDefective);
 
                                 if (ResponceMessage.equalsIgnoreCase("success")) {
                                     if (isNotNULL(SiteId) && isNotNULL(HoseId) && isNotNULL(WifiSSId)) {
@@ -1625,6 +1626,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                 String IsUpgrade = c.getString("IsUpgrade");
                                 String PulserTimingAdjust = c.getString("PulserTimingAdjust");
                                 String BluetoothCardReaderHF = c.getString("BluetoothCardReaderHF");
+                                String IsDefective = c.getString("IsDefective");
 
                                 AppConstants.BT_READER_NAME = BluetoothCardReaderHF;
 
@@ -1754,7 +1756,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 //OnHoseSelected_OnClick(Integer.toString(position));
                 //new GetConnectedDevicesIP().execute();//Refreshed donnected devices list on hose selection.
-
+                IsDefective = "False";
                 IpAddress = "";
                 SelectedItemPos = position;
                 String selSSID = serverSSIDList.get(SelectedItemPos).get("WifiSSId");
@@ -1770,6 +1772,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 String IsHoseNameReplaced = serverSSIDList.get(SelectedItemPos).get("IsHoseNameReplaced");
                 String ReplaceableHoseName = serverSSIDList.get(SelectedItemPos).get("ReplaceableHoseName");
                 String PulserTimingAd = serverSSIDList.get(SelectedItemPos).get("PulserTimingAdjust");
+                IsDefective = serverSSIDList.get(SelectedItemPos).get("IsDefective");
                 AppConstants.PulserTimingAdjust = PulserTimingAd;
 
                 //Firmware upgrade
@@ -1823,178 +1826,187 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     AppConstants.REPLACEBLE_WIFI_NAME_FS_ON_UPDATE_MAC = ReplaceableHoseName;
                 }
 
-                if (selMacAddress.trim().equals("")) {  //MacAddress on server is null
+                if (IsDefective.equalsIgnoreCase("True")) {
 
-                    if (Constants.FS_1STATUS.equalsIgnoreCase("FREE") && Constants.FS_2STATUS.equalsIgnoreCase("FREE") && Constants.FS_3STATUS.equalsIgnoreCase("FREE") && Constants.FS_4STATUS.equalsIgnoreCase("FREE")) {
-
-                        try {
-
-                            loading = new ProgressDialog(WelcomeActivity.this);
-                            loading.setCancelable(true);
-                            loading.setMessage("Updating mac address please wait..");
-                            loading.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-                            loading.setCancelable(false);
-                            loading.show();
-
-                            //Do not enable hotspot.
-                            Constants.hotspotstayOn = false;
-
-                            //AppConstants.colorToast(WelcomeActivity.this, "Updating mac address please wait..", Color.RED);
-                            wifiApManager.setWifiApEnabled(null, false);  //Hotspot disabled
-
-                            // Toast.makeText(getApplicationContext(),"Enabled WIFI connecting to "+AppConstants.CURRENT_SELECTED_SSID,Toast.LENGTH_LONG).show();
-
-                            WifiManager wifiManagerMM = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
-                            if (!wifiManagerMM.isWifiEnabled()) {
-                                wifiManagerMM.setWifiEnabled(true);
-                            }
-
-                            new Handler().postDelayed(new Runnable() {
-                                @Override
-                                public void run() {
-                                    //new ChangeSSIDofHubStation().execute(); //Connect to selected (SSID) and Rename UserName and password of Fs unit
-                                    new WiFiConnectTask().execute(); //1)Connect to selected (SSID) wifi network and 2)change the ssid and password settings to connect to Hub's hotspot 3)Update MackAddress
-                                }
-                            }, 1000);
-
-                        }catch (Exception e){
-                         loading.dismiss();
-                         AppConstants.WriteinFile("welcomeActivity ~~~~~~~~~" + "Updating mac address please wait.. --Exception " + e);
-
-                        }
-
-
-                    } else {
-                        AppConstants.colorToastBigFont(WelcomeActivity.this, "Can't update mac address,Hose is busy please retry later.", Color.RED);
-                        btnGo.setVisibility(View.GONE);
-                    }
+                    tvSSIDName.setText("Hose out of order");
+                    btnGo.setVisibility(View.GONE);
 
                 } else {
 
-                    try {
-                        for (int i = 0; i < AppConstants.DetailsListOfConnectedDevices.size(); i++) {
-                            String MA_ConnectedDevices = AppConstants.DetailsListOfConnectedDevices.get(i).get("macAddress");
-                            if (selMacAddress.equalsIgnoreCase(MA_ConnectedDevices)) {
-                                IpAddress = AppConstants.DetailsListOfConnectedDevices.get(i).get("ipAddress");
-                            }
-                        }
-                    } catch (Exception e) {
-                        System.out.println(e);
-                        AppConstants.WriteinFile("welcomeActivity ~~~~~~~~~" + "DetailsListOfConnectedDevices --Empty ");
-                    }
+                    if (selMacAddress.trim().equals("")) {  //MacAddress on server is null
 
-                    if (IpAddress.equals("")) {
-                        tvSSIDName.setText("Can't select this Hose not connected");
-                        btnGo.setVisibility(View.GONE);
+                        if (Constants.FS_1STATUS.equalsIgnoreCase("FREE") && Constants.FS_2STATUS.equalsIgnoreCase("FREE") && Constants.FS_3STATUS.equalsIgnoreCase("FREE") && Constants.FS_4STATUS.equalsIgnoreCase("FREE")) {
+
+                            try {
+
+                                loading = new ProgressDialog(WelcomeActivity.this);
+                                loading.setCancelable(true);
+                                loading.setMessage("Updating mac address please wait..");
+                                loading.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+                                loading.setCancelable(false);
+                                loading.show();
+
+                                //Do not enable hotspot.
+                                Constants.hotspotstayOn = false;
+
+                                //AppConstants.colorToast(WelcomeActivity.this, "Updating mac address please wait..", Color.RED);
+                                wifiApManager.setWifiApEnabled(null, false);  //Hotspot disabled
+
+                                // Toast.makeText(getApplicationContext(),"Enabled WIFI connecting to "+AppConstants.CURRENT_SELECTED_SSID,Toast.LENGTH_LONG).show();
+
+                                WifiManager wifiManagerMM = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
+                                if (!wifiManagerMM.isWifiEnabled()) {
+                                    wifiManagerMM.setWifiEnabled(true);
+                                }
+
+                                new Handler().postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        //new ChangeSSIDofHubStation().execute(); //Connect to selected (SSID) and Rename UserName and password of Fs unit
+                                        new WiFiConnectTask().execute(); //1)Connect to selected (SSID) wifi network and 2)change the ssid and password settings to connect to Hub's hotspot 3)Update MackAddress
+                                    }
+                                }, 1000);
+
+                            } catch (Exception e) {
+                                loading.dismiss();
+                                AppConstants.WriteinFile("welcomeActivity ~~~~~~~~~" + "Updating mac address please wait.. --Exception " + e);
+
+                            }
+
+
+                        } else {
+                            AppConstants.colorToastBigFont(WelcomeActivity.this, "Can't update mac address,Hose is busy please retry later.", Color.RED);
+                            btnGo.setVisibility(View.GONE);
+                        }
 
                     } else {
 
-                        //Selected position
-                        //Toast.makeText(getApplicationContext(), "FS Position" + position, Toast.LENGTH_SHORT).show();
-                        AppConstants.FS_selected = String.valueOf(position);
-                        if (String.valueOf(position).equalsIgnoreCase("0")) {
-
-                            if (Constants.FS_1STATUS.equalsIgnoreCase("FREE") && IsBusy.equalsIgnoreCase("N")) {
-                                // linear_fs_1.setBackgroundColor(getResources().getColor(android.R.color.holo_red_light));
-
-                                //Rename SSID from cloud
-                                if (IsHoseNameReplaced.equalsIgnoreCase("Y")) {
-                                    AppConstants.NeedToRenameFS1 = false;
-                                    AppConstants.REPLACEBLE_WIFI_NAME_FS1 = "";
-                                } else {
-                                    AppConstants.NeedToRenameFS1 = true;
-                                    AppConstants.REPLACEBLE_WIFI_NAME_FS1 = ReplaceableHoseName;
+                        try {
+                            for (int i = 0; i < AppConstants.DetailsListOfConnectedDevices.size(); i++) {
+                                String MA_ConnectedDevices = AppConstants.DetailsListOfConnectedDevices.get(i).get("macAddress");
+                                if (selMacAddress.equalsIgnoreCase(MA_ConnectedDevices)) {
+                                    IpAddress = AppConstants.DetailsListOfConnectedDevices.get(i).get("ipAddress");
                                 }
-
-                                Constants.AccPersonnelPIN = "";
-                                tvSSIDName.setText(selSSID);
-                                AppConstants.FS1_CONNECTED_SSID = selSSID;
-                                Constants.CurrentSelectedHose = "FS1";
-                                btnGo.setVisibility(View.VISIBLE);
-                            } else {
-                                tvSSIDName.setText("Hose in use.\nPlease try again later");
-                                btnGo.setVisibility(View.GONE);
-
                             }
-                        } else if (String.valueOf(position).equalsIgnoreCase("1")) {
-                            if (Constants.FS_2STATUS.equalsIgnoreCase("FREE") && IsBusy.equalsIgnoreCase("N")) {
-                                // linear_fs_1.setBackgroundColor(getResources().getColor(android.R.color.holo_red_light));
-
-                                //Rename SSID from cloud
-                                if (IsHoseNameReplaced.equalsIgnoreCase("Y")) {
-                                    AppConstants.NeedToRenameFS2 = false;
-                                    AppConstants.REPLACEBLE_WIFI_NAME_FS2 = "";
-                                } else {
-                                    AppConstants.NeedToRenameFS2 = true;
-                                    AppConstants.REPLACEBLE_WIFI_NAME_FS2 = ReplaceableHoseName;
-                                }
-
-                                Constants.AccPersonnelPIN = "";
-                                tvSSIDName.setText(selSSID);
-                                AppConstants.FS2_CONNECTED_SSID = selSSID;
-                                Constants.CurrentSelectedHose = "FS2";
-                                btnGo.setVisibility(View.VISIBLE);
-                            } else {
-                                tvSSIDName.setText("Hose in use.\nPlease try again later");
-                                btnGo.setVisibility(View.GONE);
-                            }
-
-                        } else if (String.valueOf(position).equalsIgnoreCase("2")) {
+                        } catch (Exception e) {
+                            System.out.println(e);
+                            AppConstants.WriteinFile("welcomeActivity ~~~~~~~~~" + "DetailsListOfConnectedDevices --Empty ");
+                        }
 
 
-                            if (Constants.FS_3STATUS.equalsIgnoreCase("FREE") && IsBusy.equalsIgnoreCase("N")) {
-                                // linear_fs_1.setBackgroundColor(getResources().getColor(android.R.color.holo_red_light));
+                        if (IpAddress.equals("")) {
+                            tvSSIDName.setText("Can't select this Hose not connected");
+                            btnGo.setVisibility(View.GONE);
 
-                                //Rename SSID from cloud
-                                if (IsHoseNameReplaced.equalsIgnoreCase("Y")) {
-                                    AppConstants.NeedToRenameFS3 = false;
-                                    AppConstants.REPLACEBLE_WIFI_NAME_FS3 = "";
-                                } else {
-                                    AppConstants.NeedToRenameFS3 = true;
-                                    AppConstants.REPLACEBLE_WIFI_NAME_FS3 = ReplaceableHoseName;
-                                }
-
-                                Constants.AccPersonnelPIN = "";
-                                tvSSIDName.setText(selSSID);
-                                AppConstants.FS3_CONNECTED_SSID = selSSID;
-                                Constants.CurrentSelectedHose = "FS3";
-                                btnGo.setVisibility(View.VISIBLE);
-                            } else {
-                                tvSSIDName.setText("Hose in use.\nPlease try again later");
-                                btnGo.setVisibility(View.GONE);
-                            }
-
-
-                        } else if (String.valueOf(position).equalsIgnoreCase("3")) {
-
-
-                            if (Constants.FS_4STATUS.equalsIgnoreCase("FREE") && IsBusy.equalsIgnoreCase("N")) {
-                                // linear_fs_1.setBackgroundColor(getResources().getColor(android.R.color.holo_red_light));
-                                //Rename SSID from cloud
-                                if (IsHoseNameReplaced.equalsIgnoreCase("Y")) {
-                                    AppConstants.NeedToRenameFS4 = false;
-                                    AppConstants.REPLACEBLE_WIFI_NAME_FS4 = "";
-                                } else {
-                                    AppConstants.NeedToRenameFS4 = true;
-                                    AppConstants.REPLACEBLE_WIFI_NAME_FS4 = ReplaceableHoseName;
-                                }
-
-                                Constants.AccPersonnelPIN = "";
-                                tvSSIDName.setText(selSSID);
-                                AppConstants.FS4_CONNECTED_SSID = selSSID;
-                                Constants.CurrentSelectedHose = "FS4";
-                                btnGo.setVisibility(View.VISIBLE);
-                            } else {
-                                tvSSIDName.setText("Hose in use.\nPlease try again later");
-                                btnGo.setVisibility(View.GONE);
-                            }
                         } else {
 
-                            tvSSIDName.setText("Can't select this Hose for current version");
-                            btnGo.setVisibility(View.GONE);
-                        }
-                    }
+                            //Selected position
+                            //Toast.makeText(getApplicationContext(), "FS Position" + position, Toast.LENGTH_SHORT).show();
+                            AppConstants.FS_selected = String.valueOf(position);
+                            if (String.valueOf(position).equalsIgnoreCase("0")) {
 
+                                if (Constants.FS_1STATUS.equalsIgnoreCase("FREE") && IsBusy.equalsIgnoreCase("N")) {
+                                    // linear_fs_1.setBackgroundColor(getResources().getColor(android.R.color.holo_red_light));
+
+                                    //Rename SSID from cloud
+                                    if (IsHoseNameReplaced.equalsIgnoreCase("Y")) {
+                                        AppConstants.NeedToRenameFS1 = false;
+                                        AppConstants.REPLACEBLE_WIFI_NAME_FS1 = "";
+                                    } else {
+                                        AppConstants.NeedToRenameFS1 = true;
+                                        AppConstants.REPLACEBLE_WIFI_NAME_FS1 = ReplaceableHoseName;
+                                    }
+
+                                    Constants.AccPersonnelPIN = "";
+                                    tvSSIDName.setText(selSSID);
+                                    AppConstants.FS1_CONNECTED_SSID = selSSID;
+                                    Constants.CurrentSelectedHose = "FS1";
+                                    btnGo.setVisibility(View.VISIBLE);
+                                } else {
+                                    tvSSIDName.setText("Hose in use.\nPlease try again later");
+                                    btnGo.setVisibility(View.GONE);
+
+                                }
+                            } else if (String.valueOf(position).equalsIgnoreCase("1")) {
+                                if (Constants.FS_2STATUS.equalsIgnoreCase("FREE") && IsBusy.equalsIgnoreCase("N")) {
+                                    // linear_fs_1.setBackgroundColor(getResources().getColor(android.R.color.holo_red_light));
+
+                                    //Rename SSID from cloud
+                                    if (IsHoseNameReplaced.equalsIgnoreCase("Y")) {
+                                        AppConstants.NeedToRenameFS2 = false;
+                                        AppConstants.REPLACEBLE_WIFI_NAME_FS2 = "";
+                                    } else {
+                                        AppConstants.NeedToRenameFS2 = true;
+                                        AppConstants.REPLACEBLE_WIFI_NAME_FS2 = ReplaceableHoseName;
+                                    }
+
+                                    Constants.AccPersonnelPIN = "";
+                                    tvSSIDName.setText(selSSID);
+                                    AppConstants.FS2_CONNECTED_SSID = selSSID;
+                                    Constants.CurrentSelectedHose = "FS2";
+                                    btnGo.setVisibility(View.VISIBLE);
+                                } else {
+                                    tvSSIDName.setText("Hose in use.\nPlease try again later");
+                                    btnGo.setVisibility(View.GONE);
+                                }
+
+                            } else if (String.valueOf(position).equalsIgnoreCase("2")) {
+
+
+                                if (Constants.FS_3STATUS.equalsIgnoreCase("FREE") && IsBusy.equalsIgnoreCase("N")) {
+                                    // linear_fs_1.setBackgroundColor(getResources().getColor(android.R.color.holo_red_light));
+
+                                    //Rename SSID from cloud
+                                    if (IsHoseNameReplaced.equalsIgnoreCase("Y")) {
+                                        AppConstants.NeedToRenameFS3 = false;
+                                        AppConstants.REPLACEBLE_WIFI_NAME_FS3 = "";
+                                    } else {
+                                        AppConstants.NeedToRenameFS3 = true;
+                                        AppConstants.REPLACEBLE_WIFI_NAME_FS3 = ReplaceableHoseName;
+                                    }
+
+                                    Constants.AccPersonnelPIN = "";
+                                    tvSSIDName.setText(selSSID);
+                                    AppConstants.FS3_CONNECTED_SSID = selSSID;
+                                    Constants.CurrentSelectedHose = "FS3";
+                                    btnGo.setVisibility(View.VISIBLE);
+                                } else {
+                                    tvSSIDName.setText("Hose in use.\nPlease try again later");
+                                    btnGo.setVisibility(View.GONE);
+                                }
+
+
+                            } else if (String.valueOf(position).equalsIgnoreCase("3")) {
+
+
+                                if (Constants.FS_4STATUS.equalsIgnoreCase("FREE") && IsBusy.equalsIgnoreCase("N")) {
+                                    // linear_fs_1.setBackgroundColor(getResources().getColor(android.R.color.holo_red_light));
+                                    //Rename SSID from cloud
+                                    if (IsHoseNameReplaced.equalsIgnoreCase("Y")) {
+                                        AppConstants.NeedToRenameFS4 = false;
+                                        AppConstants.REPLACEBLE_WIFI_NAME_FS4 = "";
+                                    } else {
+                                        AppConstants.NeedToRenameFS4 = true;
+                                        AppConstants.REPLACEBLE_WIFI_NAME_FS4 = ReplaceableHoseName;
+                                    }
+
+                                    Constants.AccPersonnelPIN = "";
+                                    tvSSIDName.setText(selSSID);
+                                    AppConstants.FS4_CONNECTED_SSID = selSSID;
+                                    Constants.CurrentSelectedHose = "FS4";
+                                    btnGo.setVisibility(View.VISIBLE);
+                                } else {
+                                    tvSSIDName.setText("Hose in use.\nPlease try again later");
+                                    btnGo.setVisibility(View.GONE);
+                                }
+                            } else {
+
+                                tvSSIDName.setText("Can't select this Hose for current version");
+                                btnGo.setVisibility(View.GONE);
+                            }
+                        }
+
+                    }
                 }
                 dialog.dismiss();
 
@@ -3587,7 +3599,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             tv_fs3_Pulse.setText(Constants.FS_3Pulse);
             tv_fs3_stop.setClickable(false);
 
-            System.out.println("testing update ui Welcome : Gallons"+Constants.FS_3Gallons+"pulse"+Constants.FS_3Pulse);
+            System.out.println("testing update ui Welcome : Gallons" + Constants.FS_3Gallons + "pulse" + Constants.FS_3Pulse);
 
             if (Constants.FS_3Gallons.equals("") || Constants.FS_3Gallons.equals("0.00")) {
                 Constants.FS_3Gallons = String.valueOf("0.00");
@@ -4029,9 +4041,9 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     //========================BT start=========================================
 
     /*
-    * Listen to Bluetooth bond status change event. And turns on reader's
-    * notifications once the card reader is bonded.
-    */
+     * Listen to Bluetooth bond status change event. And turns on reader's
+     * notifications once the card reader is bonded.
+     */
     private final BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
 
         @Override
@@ -4806,22 +4818,22 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         }
     }
 
-    public void transmitEscapeCommend(){
+    public void transmitEscapeCommend() {
 
-            /* Check for detected reader. */
+        /* Check for detected reader. */
         if (mBluetoothReader == null) {
             System.out.println("card_reader_not_ready");
             return;
         }
 
-           /* Retrieve escape command from edit box. */
-        byte escapeCommand[] =  CommonUtils.toByteArray(DEFAULT_1255_ESCAPE_COMMAND);
+        /* Retrieve escape command from edit box. */
+        byte escapeCommand[] = CommonUtils.toByteArray(DEFAULT_1255_ESCAPE_COMMAND);
 
         if (escapeCommand != null && escapeCommand.length > 0) {
-                    /* Clear response field for result of escape command. */
+            /* Clear response field for result of escape command. */
             System.out.println("No Sleep EscapeCommand");
 
-                    /* Transmit escape command. */
+            /* Transmit escape command. */
             if (!mBluetoothReader.transmitEscapeCommand(escapeCommand)) {
                 System.out.println("card_reader_not_ready");
             }
