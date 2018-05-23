@@ -46,6 +46,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -1281,15 +1282,15 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
         try {
 
             SharedPreferences sharedPref = this.getSharedPreferences(Constants.PREF_VehiFuel, Context.MODE_PRIVATE);
-            TransactionId = sharedPref.getString("TransactionId_FS1", "");
+            TransactionId = sharedPref.getString("TransactionId_FS3", "");
 
-            ServerDate = sharedPref.getString("ServerDate_FS1", "");
-            PrintDate = sharedPref.getString("PrintDate_FS1", "");
+            ServerDate = sharedPref.getString("ServerDate_FS3", "");
+            PrintDate = sharedPref.getString("PrintDate_FS3", "");
 
             //Get TankMonitoring details from FluidSecure Link
-            String response1 = new CommandsGET().execute(URL_TDL_info).get();
-           // String response1 = "{  \"tld\":{ \"level\":\"180, 212, 11, 34, 110, 175, 1, 47, 231, 15, 78, 65\"  }  }";
-
+              String response1 = new CommandsGET().execute(URL_TDL_info).get();
+            // String response1 = "{  \"tld\":{ \"level\":\"180, 212, 11, 34, 110, 175, 1, 47, 231, 15, 78, 65\"  }  }";
+            AppConstants.WriteinFile("\n"+TAG + "Backgroundservice_FS_UNIT_3 TankMonitorReading ~~~URL_TDL_info_Resp~~" + response1);
             try {
                 JSONObject reader = null;
                 reader = new JSONObject(response1);
@@ -1297,7 +1298,9 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
                 JSONObject tld = reader.getJSONObject("tld");
                 String level = tld.getString("level");
 
-                mac_address = GetMacAddressOfProbe(level);
+                String mac_str = GetMacAddressOfProbe(level);
+
+                mac_address = ConvertToMacAddressFormat(mac_str);
 
                 //Calculate probe reading
                 probe_reading = GetProbeReading(level);
@@ -1731,42 +1734,73 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
     public String GetMacAddressOfProbe(String level){
 
         String MacAddress = "";
-        String[] Seperate = level.split(",");
+        try {
+            String[] Seperate = level.split(",");
 
-        for (int i= 0; i< 6 ;i++){
+            for (int i = 0; i < 6; i++) {
 
-            String pd = CommonUtils.decimal2hex(Integer.parseInt(Seperate[i].trim()));
-            MacAddress  = MacAddress+pd;
+                String pd = CommonUtils.decimal2hex(Integer.parseInt(Seperate[i].trim()));
+                MacAddress = MacAddress + pd;
 
+            }
+
+            System.out.println("MacAddress of probe: " + MacAddress);
+        }catch (Exception e){
+            AppConstants.WriteinFile("\n" + TAG + "Backgroundservice_FS_UNIT_3 GetMacAddressOfProbe ~~~Exception~~" + e);
         }
-
-        System.out.println("MacAddress of probe: "+MacAddress);
-
         return MacAddress;
     }
 
     public String GetProbeReading(String level) {
 
         String MacAddress = "";
-        String[] Seperate = level.split(",");
         double prove = 0;
-        for (int i = 0; i <= Seperate.length; i++) {
+        try {
+            String[] Seperate = level.split(",");
+            for (int i = 0; i <= Seperate.length; i++) {
 
-            if (i == 8) {
-                String pd = CommonUtils.decimal2hex(Integer.parseInt(Seperate[i].trim()));
-                MacAddress = MacAddress + pd;
-            } else if (i == 9) {
-                String pd = CommonUtils.decimal2hex(Integer.parseInt(Seperate[i].trim()));
-                MacAddress = pd + MacAddress;
+                if (i == 8) {
+                    String pd = CommonUtils.decimal2hex(Integer.parseInt(Seperate[i].trim()));
+                    MacAddress = MacAddress + pd;
+                } else if (i == 9) {
+                    String pd = CommonUtils.decimal2hex(Integer.parseInt(Seperate[i].trim()));
+                    MacAddress = pd + MacAddress;
+                }
+
+                int finalpd = CommonUtils.hex2decimal(MacAddress);
+                prove = finalpd / 128;
+
+            }
+        }catch (Exception e){
+            AppConstants.WriteinFile("\n" + TAG + "Backgroundservice_FS_UNITE_3 GetProbeReading ~~~Exception~~" + e);
+        }
+        return String.valueOf(prove);
+    }
+
+    public String ConvertToMacAddressFormat(String mac_str) {
+
+        String str = mac_str;
+        String mac_address = "";
+
+        List<String> strings = new ArrayList<String>();
+        int index = 0;
+
+        while (index < str.length()) {
+            strings.add(str.substring(index, Math.min(index + 2, str.length())));
+
+            if (index < 2) {
+                mac_address = mac_address + str.substring(index, Math.min(index + 2, str.length()));
+            } else {
+                mac_address = mac_address + ":" + str.substring(index, Math.min(index + 2, str.length()));
             }
 
-            int finalpd = CommonUtils.hex2decimal(MacAddress);
-            prove = finalpd / 128;
+            index += 2;
 
         }
 
-        return String.valueOf(prove);
+        return mac_address;
     }
+
 
     public String CalculateTemperature(String level) {
 

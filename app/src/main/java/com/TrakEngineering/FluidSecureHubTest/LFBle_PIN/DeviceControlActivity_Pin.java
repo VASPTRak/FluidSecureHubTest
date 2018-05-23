@@ -387,7 +387,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
 
             }
         };
-        t.schedule(tt, 3000, 3000);
+        t.schedule(tt, 1000, 1000);
 
     }
 
@@ -476,6 +476,9 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
             //tv_enter_pin_no.setText("Fob Read Successfully");
             tv_fob_number.setText("");//"Fob No: " + LF_FobKey
             AppConstants.APDU_FOB_KEY = LF_FobKey;
+            if (mBluetoothLeServicePin != null) {
+                mBluetoothLeServicePin.writeCustomCharacteristic(0x01, etInput.getText().toString().trim());
+            }
             //On LF Fob read success
             etPersonnelPin.setText("");
         }
@@ -641,7 +644,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                         public void run() {
                             CallSaveButtonFunctionality();//Press Enter fun
                         }
-                    }, 2000);
+                    }, 1000);
 
 
                 } else {

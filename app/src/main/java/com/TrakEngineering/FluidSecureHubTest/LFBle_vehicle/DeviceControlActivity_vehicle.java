@@ -377,7 +377,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
             }
 
         };
-        t.schedule(tt, 3000, 3000);
+        t.schedule(tt, 1000, 1000);
 
 
     }
@@ -504,7 +504,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
             public void run() {
                 CallSaveButtonFunctionality();//Press Enter fun
             }
-        }, 2000);
+        }, 1000);
 
 
     }

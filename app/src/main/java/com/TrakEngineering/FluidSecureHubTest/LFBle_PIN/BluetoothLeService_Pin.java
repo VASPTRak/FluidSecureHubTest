@@ -366,7 +366,7 @@ public class BluetoothLeService_Pin extends Service {
         /*check if the service is available on the device*/
         BluetoothGattService mCustomService = mBluetoothGatt.getService(UUID.fromString(bolong_UUID_service));//"00001110-0000-1000-8000-00805f9b34fb"
         if(mCustomService == null){
-            //Toast.makeText(getApplicationContext(),"Not found: "+bolong_UUID_char, Toast.LENGTH_LONG).show();
+            Toast.makeText(getApplicationContext(),"Not found: "+bolong_UUID_char, Toast.LENGTH_LONG).show();
             AppConstants.WriteinFile("BluetoothLeService_Pin ~~~~~~~~~" + "writeCustomCharacteristic Char Not found:" + bolong_UUID_char);
             return;
         }
@@ -381,7 +381,7 @@ public class BluetoothLeService_Pin extends Service {
         //mWriteCharacteristic.setValue(bleBytes);
 
         if(mBluetoothGatt.writeCharacteristic(mWriteCharacteristic)){
-            //Toast.makeText(getApplicationContext(),"Write Characteristics successfully!", Toast.LENGTH_LONG).show();
+            Toast.makeText(getApplicationContext(),"Write Characteristics successfully!", Toast.LENGTH_LONG).show();
             AppConstants.WriteinFile("BluetoothLeService_Pin ~~~~~~~~~" + "Write Characteristics successfully!");
         }
         else {

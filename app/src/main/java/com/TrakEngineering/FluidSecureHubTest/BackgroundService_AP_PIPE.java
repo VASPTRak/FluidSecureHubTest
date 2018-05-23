@@ -50,6 +50,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -1022,7 +1023,7 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
         Gson gson = new Gson();
         String jsonData = gson.toJson(authEntityClass);
 
-        AppConstants.WriteinFile("\n"+"BackgroundService_AP_PIPE~~~~~~~~~" + "InConvertCountToQuantity jsonData " + jsonData);
+        AppConstants.WriteinFile("\n" + "BackgroundService_AP_PIPE~~~~~~~~~" + "InConvertCountToQuantity jsonData " + jsonData);
 
         String userEmail = CommonUtils.getCustomerDetails_backgroundService_PIPE(BackgroundService_AP_PIPE.this).Email;
         String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(BackgroundService_AP_PIPE.this) + ":" + userEmail + ":" + "TransactionComplete");
@@ -1243,7 +1244,7 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
             Gson gson = new Gson();
             String jsonData = gson.toJson(authEntityClass);
 
-            AppConstants.WriteinFile("\n"+"BackgroundService_AP_PIPE~~~~~~~~~" + "InTransactionComplete jsonData " + jsonData);
+            AppConstants.WriteinFile("\n" + "BackgroundService_AP_PIPE~~~~~~~~~" + "InTransactionComplete jsonData " + jsonData);
             System.out.println("AP_FS_PIPE TrazComp......" + jsonData);
 
             String userEmail = CommonUtils.getCustomerDetails_backgroundService_PIPE(this).PersonEmail;
@@ -1346,29 +1347,32 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
             PrintDate = sharedPref.getString("PrintDate_FS1", "");
 
             //Get TankMonitoring details from FluidSecure Link
-             String response1 = new CommandsGET().execute(URL_TDL_info).get();
+            String response1 = new CommandsGET().execute(URL_TDL_info).get();
             //String response1 = "{  \"tld\":{ \"level\":\"180, 212, 11, 34, 110, 175, 1, 47, 231, 15, 78, 65\"  }  }";
-
+            AppConstants.WriteinFile("\n" + TAG + "Backgroundservice_AP_PIPE TankMonitorReading ~~~URL_TDL_info_Resp~~" + response1);
             try {
-            JSONObject reader = null;
-            reader = new JSONObject(response1);
+                JSONObject reader = null;
+                reader = new JSONObject(response1);
 
-            JSONObject tld = reader.getJSONObject("tld");
-            String level = tld.getString("level");
+                JSONObject tld = reader.getJSONObject("tld");
+                String level = tld.getString("level");
 
-            System.out.println("level"+level);
+                System.out.println("level" + level);
 
-            //Get mac address of probe
-            mac_address = GetMacAddressOfProbe(level);
-            //Calculate probe reading
-            probe_reading = GetProbeReading(level);
-            probe_temperature = CalculateTemperature(level);
+                //Get mac address of probe
+                String mac_str = GetMacAddressOfProbe(level);
 
-            System.out.println("level1"+mac_address);
+                mac_address = ConvertToMacAddressFormat(mac_str);
+
+                //Calculate probe reading
+                probe_reading = GetProbeReading(level);
+                probe_temperature = CalculateTemperature(level);
+
+                System.out.println("level1" + mac_address);
 
             } catch (JSONException e) {
                 e.printStackTrace();
-                AppConstants.WriteinFile("\n"+TAG + "TankMonitorReading ~~~JSONException~~" + e);
+                AppConstants.WriteinFile("\n" + TAG + "TankMonitorReading ~~~JSONException~~" + e);
             }
 
             //-----------------------------------------------------------
@@ -1386,12 +1390,12 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
 
             String serverRes = TestAsynTask.response;
 
-            AppConstants.WriteinFile("\n"+TAG + "TankMonitorReading ~~~serverRes~~" + serverRes);
+            AppConstants.WriteinFile("\n" + TAG + "TankMonitorReading ~~~serverRes~~" + serverRes);
 
 
         } catch (Exception e) {
             e.printStackTrace();
-            AppConstants.WriteinFile("\n"+TAG + "TankMonitorReading ~~~Execption~~" + e);
+            AppConstants.WriteinFile("\n" + TAG + "TankMonitorReading ~~~Execption~~" + e);
         }
 
 
@@ -1785,43 +1789,77 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
 
     }
 
-    public String GetMacAddressOfProbe(String level){
+    public String GetMacAddressOfProbe(String level) {
 
         String MacAddress = "";
-        String[] Seperate = level.split(",");
 
-        for (int i= 0; i< 6 ;i++){
+        try {
+            String[] Seperate = level.split(",");
 
-            String pd = CommonUtils.decimal2hex(Integer.parseInt(Seperate[i].trim()));
-            MacAddress  = MacAddress+pd;
+            for (int i = 0; i < 6; i++) {
+
+                String pd = CommonUtils.decimal2hex(Integer.parseInt(Seperate[i].trim()));
+                MacAddress = MacAddress + pd;
+
+            }
+
+            System.out.println("MacAddress of probe: " + MacAddress);
+
+        } catch (Exception e) {
+            AppConstants.WriteinFile("\n" + TAG + "Backgroundservice_AP_PIPE GetMacAddressOfProbe ~~~Exception~~" + e);
+        }
+
+        return MacAddress;
+    }
+
+    public String ConvertToMacAddressFormat(String mac_str) {
+
+        String str = mac_str;
+        String mac_address = "";
+
+        List<String> strings = new ArrayList<String>();
+        int index = 0;
+
+        while (index < str.length()) {
+            strings.add(str.substring(index, Math.min(index + 2, str.length())));
+
+            if (index < 2) {
+                mac_address = mac_address + str.substring(index, Math.min(index + 2, str.length()));
+            } else {
+                mac_address = mac_address + ":" + str.substring(index, Math.min(index + 2, str.length()));
+            }
+
+            index += 2;
 
         }
 
-        System.out.println("MacAddress of probe: "+MacAddress);
-
-        return MacAddress;
+        return mac_address;
     }
 
     public String GetProbeReading(String level) {
 
         String MacAddress = "";
-        String[] Seperate = level.split(",");
         double prove = 0;
-        for (int i = 0; i <= Seperate.length; i++) {
+        try {
+            String[] Seperate = level.split(",");
 
-            if (i == 8) {
-                String pd = CommonUtils.decimal2hex(Integer.parseInt(Seperate[i].trim()));
-                MacAddress = MacAddress + pd;
-            } else if (i == 9) {
-                String pd = CommonUtils.decimal2hex(Integer.parseInt(Seperate[i].trim()));
-                MacAddress = pd + MacAddress;
+            for (int i = 0; i <= Seperate.length; i++) {
+
+                if (i == 8) {
+                    String pd = CommonUtils.decimal2hex(Integer.parseInt(Seperate[i].trim()));
+                    MacAddress = MacAddress + pd;
+                } else if (i == 9) {
+                    String pd = CommonUtils.decimal2hex(Integer.parseInt(Seperate[i].trim()));
+                    MacAddress = pd + MacAddress;
+                }
+
+                int finalpd = CommonUtils.hex2decimal(MacAddress);
+                prove = finalpd / 128;
+
             }
-
-            int finalpd = CommonUtils.hex2decimal(MacAddress);
-            prove = finalpd / 128;
-
+        } catch (Exception e) {
+            AppConstants.WriteinFile("\n" + TAG + "Backgroundservice_AP_PIPE GetProbeReading ~~~Exception~~" + e);
         }
-
         return String.valueOf(prove);
     }
 
@@ -1838,7 +1876,7 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
             }
 
             int finalpd = CommonUtils.hex2decimal(Temperature);
-            Temp = (finalpd * 0.48876)-50;
+            Temp = (finalpd * 0.48876) - 50;
 
         }
 

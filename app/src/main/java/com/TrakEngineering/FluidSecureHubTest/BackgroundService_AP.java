@@ -41,6 +41,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -53,7 +54,7 @@ import static com.TrakEngineering.FluidSecureHubTest.CommonUtils.GetPrintReciptF
  * Created by VASP on 7/24/2017.
  */
 
-public class BackgroundService_AP extends BackgroundService{
+public class BackgroundService_AP extends BackgroundService {
 
 
     private static final String TAG = "BackgroundService_AP";
@@ -99,7 +100,7 @@ public class BackgroundService_AP extends BackgroundService{
     SimpleDateFormat sdformat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
 
     private String vehicleNumber, odometerTenths = "0", dNumber = "", pNumber = "", oText = "", hNumber = "";
-    String LinkName,OtherName,IsOtherRequire,OtherLabel,VehicleNumber,PrintDate,CompanyName,Location,PersonName,PrinterMacAddress,PrinterName,TransactionId,VehicleId, PhoneNumber, PersonId, PulseRatio, MinLimit, FuelTypeId, ServerDate, IntervalToStopFuel;
+    String LinkName, OtherName, IsOtherRequire, OtherLabel, VehicleNumber, PrintDate, CompanyName, Location, PersonName, PrinterMacAddress, PrinterName, TransactionId, VehicleId, PhoneNumber, PersonId, PulseRatio, MinLimit, FuelTypeId, ServerDate, IntervalToStopFuel;
 
     public static String FOLDER_PATH = Environment.getExternalStorageDirectory().getAbsolutePath() + "/FSBin/";
     public static String PATH_BIN_FILE1 = "user1.2048.new.5.bin";
@@ -128,20 +129,16 @@ public class BackgroundService_AP extends BackgroundService{
         try {
             super.onStart(intent, startId);
             Bundle extras = intent.getExtras();
-            if(extras == null){
-                Log.d("Service","null");
+            if (extras == null) {
+                Log.d("Service", "null");
                 this.stopSelf();
-                Constants.FS_2STATUS="FREE";
+                Constants.FS_2STATUS = "FREE";
                 clearEditTextFields();
-                if (!Constants.BusyVehicleNumberList.equals(null))
-                {
+                if (!Constants.BusyVehicleNumberList.equals(null)) {
                     Constants.BusyVehicleNumberList.remove(Constants.AccVehicleNumber);
                 }
-            }
-
-            else
-            {
-                Log.d("Service","not null");
+            } else {
+                Log.d("Service", "not null");
                 HTTP_URL = (String) extras.get("HTTP_URL");
 
                 URL_GET_TXNID = HTTP_URL + "client?command=lasttxtnid";
@@ -174,11 +171,11 @@ public class BackgroundService_AP extends BackgroundService{
                 jsonPulsar = "{\"pulsar_request\":{\"counter_set\":1}}";
                 jsonPulsarOff = "{\"pulsar_request\":{\"counter_set\":0}}";
 
-                System.out.println("BackgroundService is on. AP_FS33"+HTTP_URL);
-                Constants.FS_2STATUS="BUSY";
+                System.out.println("BackgroundService is on. AP_FS33" + HTTP_URL);
+                Constants.FS_2STATUS = "BUSY";
                 Constants.BusyVehicleNumberList.add(Constants.AccVehicleNumber);
 
-                SharedPreferences sharedPref =  this.getSharedPreferences(Constants.PREF_VehiFuel, Context.MODE_PRIVATE);
+                SharedPreferences sharedPref = this.getSharedPreferences(Constants.PREF_VehiFuel, Context.MODE_PRIVATE);
                 TransactionId = sharedPref.getString("TransactionId", "");
                 VehicleId = sharedPref.getString("VehicleId", "");
                 PhoneNumber = sharedPref.getString("PhoneNumber", "");
@@ -243,7 +240,7 @@ public class BackgroundService_AP extends BackgroundService{
                     } catch (ExecutionException e) {
                         e.printStackTrace();
                     }
-                } else{
+                } else {
 
                     AppConstants.colorToast(BackgroundService_AP.this, "Please check Internet Connection.", Color.RED);
                     UpdateTransactionStatusClass authEntity = new UpdateTransactionStatusClass();
@@ -286,8 +283,7 @@ public class BackgroundService_AP extends BackgroundService{
             }
             //GetLatLng();
             //Start ButtonCode
-            if (timeFirst <= 60)
-            {
+            if (timeFirst <= 60) {
                 //stopFirstTimer(true);
             }
 
@@ -299,7 +295,7 @@ public class BackgroundService_AP extends BackgroundService{
 //        btnStop.setVisibility(View.VISIBLE);
 //        progressBar2.setVisibility(View.VISIBLE);
 
-        }catch (NullPointerException e){
+        } catch (NullPointerException e) {
             Log.d("Ex", e.getMessage());
             this.stopSelf();
         }
@@ -361,16 +357,15 @@ public class BackgroundService_AP extends BackgroundService{
     }
 
     public void stopFirstTimer(boolean flag) {
-        if(flag) {
+        if (flag) {
             tFirst.cancel();
             tFirst.purge();
-        }
-        else {
+        } else {
             tFirst.cancel();
             tFirst.purge();
 
             WelcomeActivity.SelectedItemPos = -1;
-            AppConstants.BUSY_STATUS=true;
+            AppConstants.BUSY_STATUS = true;
 
             Intent i = new Intent(this, WelcomeActivity.class);
             i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -496,7 +491,7 @@ public class BackgroundService_AP extends BackgroundService{
                         }
                         */
 
-                        new  GETPulsarQuantity().execute(URL_GET_PULSAR);
+                        new GETPulsarQuantity().execute(URL_GET_PULSAR);
 
                     }
 
@@ -557,7 +552,7 @@ public class BackgroundService_AP extends BackgroundService{
 
                 } else {
 
-                    System.out.println("OUTPUT"+result);
+                    System.out.println("OUTPUT" + result);
 
                     if (stopTimer)
                         pulsarQtyLogic(result);
@@ -599,8 +594,7 @@ public class BackgroundService_AP extends BackgroundService{
                         //yet to test
                         this.stopSelf();
 
-                        if (!Constants.BusyVehicleNumberList.equals(null))
-                        {
+                        if (!Constants.BusyVehicleNumberList.equals(null)) {
                             Constants.BusyVehicleNumberList.remove(Constants.AccVehicleNumber);
                         }
 
@@ -639,12 +633,11 @@ public class BackgroundService_AP extends BackgroundService{
                         //tvCountDownTimer.setText("1");
 
                         System.out.println("APFS33 Auto Stop! Count down timer completed");
-                        AppConstants.colorToastBigFont(this, AppConstants.FS2_CONNECTED_SSID+" Auto Stop!\n\nCount down timer completed.", Color.BLUE);
+                        AppConstants.colorToastBigFont(this, AppConstants.FS2_CONNECTED_SSID + " Auto Stop!\n\nCount down timer completed.", Color.BLUE);
                         stopButtonFunctionality();
                         this.stopSelf();
 
-                        if (!Constants.BusyVehicleNumberList.equals(null))
-                        {
+                        if (!Constants.BusyVehicleNumberList.equals(null)) {
                             Constants.BusyVehicleNumberList.remove(Constants.AccVehicleNumber);
                         }
                     }
@@ -678,8 +671,7 @@ public class BackgroundService_AP extends BackgroundService{
                             //yet to test
                             this.stopSelf();
 
-                            if (!Constants.BusyVehicleNumberList.equals(null))
-                            {
+                            if (!Constants.BusyVehicleNumberList.equals(null)) {
                                 Constants.BusyVehicleNumberList.remove(Constants.AccVehicleNumber);
                             }
                         }
@@ -709,7 +701,7 @@ public class BackgroundService_AP extends BackgroundService{
         stopTimer = false;
 
 
-        new  CommandsPOST().execute(URL_RELAY, jsonRelayOff);
+        new CommandsPOST().execute(URL_RELAY, jsonRelayOff);
 
         new Handler().postDelayed(new Runnable() {
             @Override
@@ -812,7 +804,7 @@ public class BackgroundService_AP extends BackgroundService{
 
                     if (f.exists()) {
 
-                       new BackgroundService_AP.OkHttpFileUpload().execute(LocalPath, "application/binary");
+                        new BackgroundService_AP.OkHttpFileUpload().execute(LocalPath, "application/binary");
 
                     } else {
                         Toast.makeText(getApplicationContext(), "File Not found " + LocalPath, Toast.LENGTH_LONG).show();
@@ -828,7 +820,7 @@ public class BackgroundService_AP extends BackgroundService{
             @Override
             public void run() {
 
-                Constants.FS_2STATUS="FREE";
+                Constants.FS_2STATUS = "FREE";
                 clearEditTextFields();
                 //AppConstants.disconnectWiFi(DisplayMeterActivity.this);
                 GetDetails();
@@ -880,7 +872,7 @@ public class BackgroundService_AP extends BackgroundService{
 
                 // tvConsole.setText(consoleString);
 
-                System.out.println("APFS33 OUTPUT"+result);
+                System.out.println("APFS33 OUTPUT" + result);
 
 
             } catch (Exception e) {
@@ -916,10 +908,9 @@ public class BackgroundService_AP extends BackgroundService{
                             stopButtonFunctionality();
                             stopTimer = false;
                             this.stopSelf();
-                            Constants.FS_2STATUS="FREE";
+                            Constants.FS_2STATUS = "FREE";
                             clearEditTextFields();
-                            if (!Constants.BusyVehicleNumberList.equals(null))
-                            {
+                            if (!Constants.BusyVehicleNumberList.equals(null)) {
                                 Constants.BusyVehicleNumberList.remove(Constants.AccVehicleNumber);
                             }
 
@@ -974,11 +965,11 @@ public class BackgroundService_AP extends BackgroundService{
 
         fillqty = AppConstants.roundNumber(fillqty, 2);
 
-        System.out.println("APFS33 Pulse"+outputQuantity);
-        System.out.println("APFS33 Quantity"+ (fillqty));
+        System.out.println("APFS33 Pulse" + outputQuantity);
+        System.out.println("APFS33 Quantity" + (fillqty));
 
         DecimalFormat precision = new DecimalFormat("0.00");
-        Constants.FS_2Gallons =  (precision.format(fillqty));
+        Constants.FS_2Gallons = (precision.format(fillqty));
         Constants.FS_2Pulse = outputQuantity;
 
 
@@ -986,7 +977,7 @@ public class BackgroundService_AP extends BackgroundService{
         TrazComp authEntityClass = new TrazComp();
         authEntityClass.TransactionId = TransactionId;
         authEntityClass.FuelQuantity = fillqty;
-        authEntityClass.AppInfo = " Version:" + CommonUtils.getVersionCode(BackgroundService_AP.this) + " " + AppConstants.getDeviceName() + " Android " + android.os.Build.VERSION.RELEASE + " "+"--Main Transaction--";
+        authEntityClass.AppInfo = " Version:" + CommonUtils.getVersionCode(BackgroundService_AP.this) + " " + AppConstants.getDeviceName() + " Android " + android.os.Build.VERSION.RELEASE + " " + "--Main Transaction--";
         authEntityClass.TransactionFrom = "A";
         authEntityClass.Pulses = Integer.parseInt(counts);
 
@@ -1006,22 +997,21 @@ public class BackgroundService_AP extends BackgroundService{
 
         if (fillqty > 0) {
 
-                int rowseffected = controller.updateTransactions(imap);
-                System.out.println("rowseffected-" + rowseffected);
-                if (rowseffected == 0 ){
+            int rowseffected = controller.updateTransactions(imap);
+            System.out.println("rowseffected-" + rowseffected);
+            if (rowseffected == 0) {
 
-                    controller.insertTransactions(imap);
-                }
+                controller.insertTransactions(imap);
+            }
 
-                controller.deleteTransStatusByTransID(TransactionId);
+            controller.deleteTransStatusByTransID(TransactionId);
 
         }
 
 
     }
 
-    public void GetDetails()
-    {
+    public void GetDetails() {
         vehicleNumber = Constants.AccVehicleNumber;
         odometerTenths = Constants.AccOdoMeter + "";
         dNumber = Constants.AccDepartmentNumber;
@@ -1074,7 +1064,7 @@ public class BackgroundService_AP extends BackgroundService{
 
                 if (ResponceMessage.equalsIgnoreCase("success")) {
 
-                   // AppConstants.clearSharedPrefByName(BackgroundService_AP.this, Constants.PREF_FS_UPGRADE);
+                    // AppConstants.clearSharedPrefByName(BackgroundService_AP.this, Constants.PREF_FS_UPGRADE);
                 }
 
             } catch (Exception e) {
@@ -1085,13 +1075,12 @@ public class BackgroundService_AP extends BackgroundService{
         /////////////////////////////////////////////////////////////////////////
 
 
-
         SharedPreferences sharedPrefODO = this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
         IsOtherRequire = sharedPrefODO.getString(AppConstants.IsOtherRequire, "");
         OtherLabel = sharedPrefODO.getString(AppConstants.OtherLabel, "Other");
 
 
-        SharedPreferences sharedPref =  this.getSharedPreferences(Constants.PREF_VehiFuel, Context.MODE_PRIVATE);
+        SharedPreferences sharedPref = this.getSharedPreferences(Constants.PREF_VehiFuel, Context.MODE_PRIVATE);
         TransactionId = sharedPref.getString("TransactionId", "");
         VehicleId = sharedPref.getString("VehicleId", "");
         PhoneNumber = sharedPref.getString("PhoneNumber", "");
@@ -1119,21 +1108,20 @@ public class BackgroundService_AP extends BackgroundService{
         double ProductPrice = Double.parseDouble(sharedPref.getString("ProductPrice", ""));
 
 
-
         //Print Transaction Receipt
         DecimalFormat precision = new DecimalFormat("0.00");
         String Qty = (precision.format(fillqty));
 
         double FuelQuantity = Double.parseDouble(Qty);
-        String PrintCost = CalculatePrice( SurchargeType, FuelQuantity, ProductPrice, VehicleSum, DeptSum, VehPercentage, DeptPercentage);
+        String PrintCost = CalculatePrice(SurchargeType, FuelQuantity, ProductPrice, VehicleSum, DeptSum, VehPercentage, DeptPercentage);
 
 
-        if (IsOtherRequire.equalsIgnoreCase("true")){
+        if (IsOtherRequire.equalsIgnoreCase("true")) {
 
-            printReceipt = GetPrintReciptForOther(CompanyName,PrintDate,LinkName,Location,VehicleNumber,PersonName,OtherLabel,OtherName,Qty,PrintCost);
+            printReceipt = GetPrintReciptForOther(CompanyName, PrintDate, LinkName, Location, VehicleNumber, PersonName, OtherLabel, OtherName, Qty, PrintCost);
             // printReceipt = " \n\n------FluidSecure Receipt------ \n\nCompany   : " + CompanyName +"\n\nTime/Date : "+PrintDate+"\n\nLocation  : "+LinkName+","+Location+","+"\n\nVehicle # : "+VehicleNumber+"\n\nPersonnel : "+PersonName+" \n\nQty       : " + Qty + "\n\n"+OtherLabel+":"+OtherName+ "\n\n ---------Thank You---------"+"\n\n\n\n\n\n\n\n\n\n\n\n";
-        }else{
-            printReceipt = GetPrintRecipt(CompanyName,PrintDate,LinkName,Location,VehicleNumber,PersonName,Qty,PrintCost);
+        } else {
+            printReceipt = GetPrintRecipt(CompanyName, PrintDate, LinkName, Location, VehicleNumber, PersonName, Qty, PrintCost);
             // printReceipt = " \n\n------FluidSecure Receipt------ \n\nCompany   : " + CompanyName +"\n\nTime/Date : "+PrintDate+"\n\nLocation  : "+LinkName+","+Location+"\n\nVehicle # : "+VehicleNumber+"\n\nPersonnel : "+PersonName+" \n\nQty       : " + Qty + "\n\n ---------Thank You---------"+"\n\n\n\n\n\n\n\n\n\n\n\n";
         }
 
@@ -1152,7 +1140,7 @@ public class BackgroundService_AP extends BackgroundService{
             authEntityClass.FuelQuantity = fillqty;
             authEntityClass.Pulses = Pulses;
             authEntityClass.TransactionFrom = "A";
-            authEntityClass.AppInfo = " Version:" + CommonUtils.getVersionCode(BackgroundService_AP.this) + " " + AppConstants.getDeviceName() + " Android "+android.os.Build.VERSION.RELEASE+" ";
+            authEntityClass.AppInfo = " Version:" + CommonUtils.getVersionCode(BackgroundService_AP.this) + " " + AppConstants.getDeviceName() + " Android " + android.os.Build.VERSION.RELEASE + " ";
 
             /*authEntityClass.PersonId = PersonId;
             authEntityClass.SiteId = AcceptVehicleActivity.SITE_ID;
@@ -1199,7 +1187,7 @@ public class BackgroundService_AP extends BackgroundService{
 
 
             if (isInsert && fillqty > 0) {
-               // controller.insertTransactions(imap);
+                // controller.insertTransactions(imap);
             }
 
             /*//settransaction to FSUNIT
@@ -1275,8 +1263,9 @@ public class BackgroundService_AP extends BackgroundService{
             PrintDate = sharedPref.getString("PrintDate", "");
 
             //Get TankMonitoring details from FluidSecure Link
-            String response1 = new CommandsGET().execute(URL_TDL_info).get();
-           // String response1 = "{  \"tld\":{ \"level\":\"180, 212, 11, 34, 110, 175, 1, 47, 231, 15, 78, 65\"  }  }";
+             String response1 = new CommandsGET().execute(URL_TDL_info).get();
+            // String response1 = "{  \"tld\":{ \"level\":\"180, 212, 11, 34, 110, 175, 1, 47, 231, 15, 78, 65\"  }  }";
+            AppConstants.WriteinFile("\n" + TAG + "Backgroundservice_AP TankMonitorReading ~~~URL_TDL_info_Resp~~" + response1);
 
             try {
                 JSONObject reader = null;
@@ -1285,16 +1274,18 @@ public class BackgroundService_AP extends BackgroundService{
                 JSONObject tld = reader.getJSONObject("tld");
                 String level = tld.getString("level");
 
-                System.out.println("level"+level);
-                mac_address = GetMacAddressOfProbe(level);
+                System.out.println("level" + level);
+
+                String mac_str = GetMacAddressOfProbe(level);
+
+                mac_address = ConvertToMacAddressFormat(mac_str);
 
                 //Calculate probe reading
                 probe_reading = GetProbeReading(level);
                 probe_temperature = CalculateTemperature(level);
 
 
-
-                System.out.println("level1"+mac_address);
+                System.out.println("level1" + mac_address);
 
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -1317,8 +1308,6 @@ public class BackgroundService_AP extends BackgroundService{
             String serverRes = TestAsynTask.response;
 
             AppConstants.WriteinFile(TAG + "TankMonitorReading ~~~serverRes~~" + serverRes);
-
-
 
 
         } catch (Exception e) {
@@ -1415,11 +1404,11 @@ public class BackgroundService_AP extends BackgroundService{
                     public void run() {
                         try {
                             BTprint.closeBT();
-                        }catch (Exception e){
+                        } catch (Exception e) {
 
                         }
                     }
-                },2000);
+                }, 2000);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -1427,7 +1416,7 @@ public class BackgroundService_AP extends BackgroundService{
         }
     }
 
-    public void clearEditTextFields(){
+    public void clearEditTextFields() {
 
         Constants.AccVehicleNumber = "";
         Constants.AccOdoMeter = 0;
@@ -1620,7 +1609,7 @@ public class BackgroundService_AP extends BackgroundService{
 
     }
 
-    public void changeUpgradeFirmwareVersionstatus(){
+    public void changeUpgradeFirmwareVersionstatus() {
 
 
         SharedPreferences sharedPref = BackgroundService_AP.this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
@@ -1694,7 +1683,7 @@ public class BackgroundService_AP extends BackgroundService{
 
     }
 
-    private String CalculatePrice(String SurchargeType, double FuelQuantity, double ProductPrice, double VehicleSum, double DeptSum, double VehPercentage, double DeptPercentage){
+    private String CalculatePrice(String SurchargeType, double FuelQuantity, double ProductPrice, double VehicleSum, double DeptSum, double VehPercentage, double DeptPercentage) {
 
         double cost = 0.0;
         if (SurchargeType.equalsIgnoreCase("0")) {
@@ -1747,43 +1736,73 @@ public class BackgroundService_AP extends BackgroundService{
 
     }
 
-    public String GetMacAddressOfProbe(String level){
+    public String GetMacAddressOfProbe(String level) {
 
         String MacAddress = "";
-        String[] Seperate = level.split(",");
+        try {
+            String[] Seperate = level.split(",");
 
-        for (int i= 0; i< 6 ;i++){
+            for (int i = 0; i < 6; i++) {
 
-            String pd = CommonUtils.decimal2hex(Integer.parseInt(Seperate[i].trim()));
-            MacAddress  = MacAddress+pd;
+                String pd = CommonUtils.decimal2hex(Integer.parseInt(Seperate[i].trim()));
+                MacAddress = MacAddress + pd;
+
+            }
+
+            System.out.println("MacAddress of probe: " + MacAddress);
+        } catch (Exception e) {
+            AppConstants.WriteinFile("\n" + TAG + "Backgroundservice_AP GetMacAddressOfProbe ~~~Exception~~" + e);
+        }
+        return MacAddress;
+    }
+
+    public String ConvertToMacAddressFormat(String mac_str) {
+
+        String str = mac_str;
+        String mac_address = "";
+
+        List<String> strings = new ArrayList<String>();
+        int index = 0;
+
+        while (index < str.length()) {
+            strings.add(str.substring(index, Math.min(index + 2, str.length())));
+
+            if (index < 2) {
+                mac_address = mac_address + str.substring(index, Math.min(index + 2, str.length()));
+            } else {
+                mac_address = mac_address + ":" + str.substring(index, Math.min(index + 2, str.length()));
+            }
+
+            index += 2;
 
         }
 
-        System.out.println("MacAddress of probe: "+MacAddress);
-
-        return MacAddress;
+        return mac_address;
     }
 
     public String GetProbeReading(String level) {
 
         String MacAddress = "";
-        String[] Seperate = level.split(",");
         double prove = 0;
-        for (int i = 0; i <= Seperate.length; i++) {
+        try {
+            String[] Seperate = level.split(",");
+            for (int i = 0; i <= Seperate.length; i++) {
 
-            if (i == 8) {
-                String pd = CommonUtils.decimal2hex(Integer.parseInt(Seperate[i].trim()));
-                MacAddress = MacAddress + pd;
-            } else if (i == 9) {
-                String pd = CommonUtils.decimal2hex(Integer.parseInt(Seperate[i].trim()));
-                MacAddress = pd + MacAddress;
+                if (i == 8) {
+                    String pd = CommonUtils.decimal2hex(Integer.parseInt(Seperate[i].trim()));
+                    MacAddress = MacAddress + pd;
+                } else if (i == 9) {
+                    String pd = CommonUtils.decimal2hex(Integer.parseInt(Seperate[i].trim()));
+                    MacAddress = pd + MacAddress;
+                }
+
+                int finalpd = CommonUtils.hex2decimal(MacAddress);
+                prove = finalpd / 128;
+
             }
-
-            int finalpd = CommonUtils.hex2decimal(MacAddress);
-            prove = finalpd / 128;
-
+        }catch (Exception e){
+            AppConstants.WriteinFile("\n" + TAG + "Backgroundservice_AP GetProbeReading ~~~Exception~~" + e);
         }
-
         return String.valueOf(prove);
     }
 
@@ -1800,7 +1819,7 @@ public class BackgroundService_AP extends BackgroundService{
             }
 
             int finalpd = CommonUtils.hex2decimal(Temperature);
-            Temp = (finalpd * 0.48876)-50;
+            Temp = (finalpd * 0.48876) - 50;
 
         }
 

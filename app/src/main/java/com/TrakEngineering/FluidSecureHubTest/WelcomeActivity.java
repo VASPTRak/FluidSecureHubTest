@@ -4274,7 +4274,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                             transmitEscapeCommend();
 
                                         }
-                                    }, 500);
+                                    }, 1000);
 
 
                                 } else {
@@ -4326,6 +4326,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
+                                System.out.println("escape command response"+getResponseString(response, errorCode));
                                 mTxtEscapeResponse.setText(getResponseString(
                                         response, errorCode));
                             }
