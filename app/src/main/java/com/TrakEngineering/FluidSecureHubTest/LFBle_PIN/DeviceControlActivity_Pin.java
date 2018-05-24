@@ -319,7 +319,8 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
 
         //Toast.makeText(getApplicationContext(), "FOK_KEY" + AppConstants.APDU_FOB_KEY, Toast.LENGTH_SHORT).show();
         showKeybord();
-        AppConstants.APDU_FOB_KEY = "";
+      //  AppConstants.APDU_FOB_KEY = "";
+        AppConstants.PinLocal_FOB_KEY = "";
         Istimeout_Sec = true;
         TimeoutPinScreen();
         registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter());
@@ -362,7 +363,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
             @Override
             public void run() {
                 //do something
-                if (!AppConstants.APDU_FOB_KEY.equalsIgnoreCase("")) {
+                if (!AppConstants.PinLocal_FOB_KEY.equalsIgnoreCase("")) {
 
                     t.cancel();
                     System.out.println("Pin FOK_KEY" + AppConstants.APDU_FOB_KEY);
@@ -410,7 +411,8 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
     protected void onStop() {
         super.onStop();
 
-        AppConstants.APDU_FOB_KEY = "";
+        AppConstants.PinLocal_FOB_KEY = "";
+      //  AppConstants.APDU_FOB_KEY = "";
         t.cancel();//Stop timer FOB Key
         ScreenOutTime.cancel();//Stop screenout
 
@@ -475,6 +477,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
 
             //tv_enter_pin_no.setText("Fob Read Successfully");
             tv_fob_number.setText("");//"Fob No: " + LF_FobKey
+            AppConstants.PinLocal_FOB_KEY = LF_FobKey;
             AppConstants.APDU_FOB_KEY = LF_FobKey;
             if (mBluetoothLeServicePin != null) {
                 mBluetoothLeServicePin.writeCustomCharacteristic(0x01, etInput.getText().toString().trim());
@@ -649,6 +652,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
 
                 } else {
 
+                    onResume();
                     Istimeout_Sec = true;
                     TimeoutPinScreen();
                     btnSave.setEnabled(true);

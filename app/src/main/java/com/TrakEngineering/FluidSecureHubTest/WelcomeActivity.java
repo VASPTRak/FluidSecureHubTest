@@ -4303,6 +4303,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                                 String fobnum = getResponseString(apdu, errorCode).replace(" ", "").trim();
                                 AppConstants.APDU_FOB_KEY = fobnum;
+                                AppConstants.VehicleLocal_FOB_KEY = fobnum;
+                                AppConstants.PinLocal_FOB_KEY = fobnum;
 
 
                                 mTxtResponseApdu.setText(fobnum);

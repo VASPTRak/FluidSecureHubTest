@@ -74,6 +74,8 @@ public class AppConstants {
 
 
     public static String APDU_FOB_KEY = "";
+    public static String VehicleLocal_FOB_KEY = "";
+    public static String PinLocal_FOB_KEY = "";
     public static String FS_selected;
     public static String BLUETOOTH_PRINTER_NAME;
     public static String PrinterMacAddress;

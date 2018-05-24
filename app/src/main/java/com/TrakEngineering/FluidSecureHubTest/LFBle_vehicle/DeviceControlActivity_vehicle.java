@@ -302,7 +302,8 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
 
-        AppConstants.APDU_FOB_KEY = "";
+        AppConstants.VehicleLocal_FOB_KEY = "";
+        //AppConstants.APDU_FOB_KEY = "";
 
 
         if (Constants.CurrentSelectedHose.equals("FS1")) {
@@ -349,9 +350,10 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
             @Override
             public void run() {
                 //do something
-                if (!AppConstants.APDU_FOB_KEY.equalsIgnoreCase("")) {
+                if (!AppConstants.VehicleLocal_FOB_KEY.equalsIgnoreCase("")) {
 
                     t.cancel();
+                   // AppConstants.VehicleLocal_FOB_KEY = AppConstants.APDU_FOB_KEY;
                     System.out.println("Success"+AppConstants.APDU_FOB_KEY);
 
                     runOnUiThread(new Runnable() {
@@ -402,6 +404,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
         super.onStop();
 
         AppConstants.APDU_FOB_KEY = "";
+        AppConstants.VehicleLocal_FOB_KEY = "";
         t.cancel();//Stop timer FOB Key
         ScreenOutTimeVehicle.cancel();//Stop screen out timer
     }
@@ -467,6 +470,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
 
             tv_fob_number.setText("Fob No: " + LF_FobKey);
             AppConstants.APDU_FOB_KEY = LF_FobKey;
+            AppConstants.VehicleLocal_FOB_KEY = LF_FobKey;
             //On LF Fob read success
             editVehicleNumber.setText("");
             Istimeout_Sec = false;
@@ -748,10 +752,11 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
                             startActivity(i);
 
                         } else {
+                            btnSave.setEnabled(true);
+                            onResume();
                             //Empty Fob key & enable edit text and Enter button
                             // AppConstants.FOB_KEY_VEHICLE = "";
                             editVehicleNumber.setEnabled(true);
-                            btnSave.setEnabled(true);
                             tv_vehicle_no_below.setText("Enter Vehicle Number:");
                             CommonUtils.showCustomMessageDilaog(DeviceControlActivity_vehicle.this, "Message", ResponceText);
                         }
@@ -760,7 +765,8 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
 
                 } else {
                     //Empty Fob key & enable edit text and Enter button
-                    AppConstants.APDU_FOB_KEY = "";
+                   // AppConstants.APDU_FOB_KEY = "";
+                    AppConstants.VehicleLocal_FOB_KEY = "";
                     editVehicleNumber.setEnabled(true);
                     btnSave.setEnabled(true);
                     CommonUtils.showNoInternetDialog(DeviceControlActivity_vehicle.this);
@@ -770,7 +776,8 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
 
             } else {
                 //Empty Fob key & enable edit text and Enter button
-                AppConstants.APDU_FOB_KEY = "";
+               // AppConstants.APDU_FOB_KEY = "";
+                AppConstants.VehicleLocal_FOB_KEY = "";
                 if (IsVehicleHasFob.equalsIgnoreCase("true")){editVehicleNumber.setEnabled(false);}
                 else{editVehicleNumber.setEnabled(true);}
 
@@ -877,6 +884,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
                         startActivity(i);
 
                     }else  if (ValidationFailFor.equalsIgnoreCase("invalidfob")) {
+
 
                           //AppConstants.colorToastBigFont(this, ResponceText, Color.RED);
                           //CommonUtils.showCustomMessageDilaog(DeviceControlActivity_vehicle.this, "Message", ResponceText);
@@ -1006,6 +1014,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
         AppConstants.ClearEdittextFielsOnBack(DeviceControlActivity_vehicle.this);
         Istimeout_Sec = false;
         AppConstants.APDU_FOB_KEY = "";
+        AppConstants.VehicleLocal_FOB_KEY = "";
         finish();
     }
 
@@ -1034,7 +1043,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                hideKeybord();
+                               // hideKeybord();
                                 Istimeout_Sec = false;
                                 AppConstants.ClearEdittextFielsOnBack(DeviceControlActivity_vehicle.this);
 
@@ -1094,7 +1103,8 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
         }else{
 
             //showKeybord();
-            AppConstants.APDU_FOB_KEY = "";
+           // AppConstants.APDU_FOB_KEY = "";
+            AppConstants.VehicleLocal_FOB_KEY = "";
             //editVehicleNumber.setText("");
             tv_enter_vehicle_no.setVisibility(View.VISIBLE);
             tv_vehicle_no_below.setVisibility(View.GONE);

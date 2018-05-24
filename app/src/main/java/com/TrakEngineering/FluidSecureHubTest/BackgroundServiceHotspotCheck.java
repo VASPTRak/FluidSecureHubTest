@@ -35,6 +35,7 @@ public class BackgroundServiceHotspotCheck extends BackgroundService{
                     wifiApManager.setWifiApEnabled(null, true);  //Hotspot enabled
                     //AppConstants.colorToastBigFont(BackgroundServiceHotspotCheck.this, "Connecting to hotspot, please wait", Color.RED);
                     System.out.println("Connecting to hotspot, please wait....");
+                    AppConstants.WriteinFile("BackgroundServiceHotspotCheck~~~~~~~~~" + "Hotspot ON");
                 }
 
             }
