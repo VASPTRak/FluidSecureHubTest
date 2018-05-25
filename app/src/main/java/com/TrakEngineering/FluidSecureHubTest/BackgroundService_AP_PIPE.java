@@ -1347,8 +1347,15 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
             PrintDate = sharedPref.getString("PrintDate_FS1", "");
 
             //Get TankMonitoring details from FluidSecure Link
-            String response1 = new CommandsGET().execute(URL_TDL_info).get();
-            //String response1 = "{  \"tld\":{ \"level\":\"180, 212, 11, 34, 110, 175, 1, 47, 231, 15, 78, 65\"  }  }";
+            //String response1 = new CommandsGET().execute(URL_TDL_info).get();
+             String response1 = "{  \"tld\":{ \"level\":\"180, 212, 11, 34, 110, 175, 1, 47, 231, 15, 78, 65\"  }  }";
+             String test = "{\n" +
+                     "\"tld\":{\n" +
+                     "\"level\":92,207,127,206,113,140,1,73,16,10,144,244\n" +
+                     "}\n" +
+                     "}";
+
+
             AppConstants.WriteinFile("\n" + TAG + "Backgroundservice_AP_PIPE TankMonitorReading ~~~URL_TDL_info_Resp~~" + response1);
             try {
                 JSONObject reader = null;

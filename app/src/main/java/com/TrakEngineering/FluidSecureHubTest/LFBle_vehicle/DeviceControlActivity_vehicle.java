@@ -98,6 +98,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
     private EditText etInput;
     private Button btnWrite, btnRead;
     String LF_FobKey = "";
+    int Count = 1;
 
     //--------------------------
 
@@ -302,6 +303,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
 
+        Count = 1;
         AppConstants.VehicleLocal_FOB_KEY = "";
         //AppConstants.APDU_FOB_KEY = "";
 
@@ -455,18 +457,21 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
 
 
             String Str_data = data.toString().trim();
-            System.out.println("FOK_KEY Vehi "+Str_data);
+            System.out.println("FOK_KEY Vehi " + Str_data);
+            AppConstants.WriteinFile(TAG + " ~~~~~~~~~" + "DeviceControlActivity_vehicle displayData Response LF: " + Str_data);
 
-            try {
-                String[] Seperate = Str_data.split("\n");
-                String Sep1 = Seperate[0];
-                String Sep2 = Seperate[1];
-                LF_FobKey = Sep2.replace(" ","");
-                tv_fobkey.setText(Sep2.replace(" ",""));
-            }catch (Exception ex){
-                System.out.println(ex);
-                AppConstants.WriteinFile(TAG+" ~~~~~~~~~" + "displayData Split Fob_Key  --Exception " + ex);
-            }
+            if (!Str_data.equalsIgnoreCase("000000")){
+
+                try {
+                    String[] Seperate = Str_data.split("\n");
+                    String Sep1 = Seperate[0];
+                    String Sep2 = Seperate[1];
+                    LF_FobKey = Sep2.replace(" ", "");
+                    tv_fobkey.setText(Sep2.replace(" ", ""));
+                } catch (Exception ex) {
+                    System.out.println(ex);
+                    AppConstants.WriteinFile(TAG + " ~~~~~~~~~" + "displayData Split Fob_Key  --Exception " + ex);
+                }
 
             tv_fob_number.setText("Fob No: " + LF_FobKey);
             AppConstants.APDU_FOB_KEY = LF_FobKey;
@@ -475,9 +480,24 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
             editVehicleNumber.setText("");
             Istimeout_Sec = false;
             ScreenOutTimeVehicle.cancel();
-            if (mBluetoothLeServiceVehicle != null) {
-                mBluetoothLeServiceVehicle.writeCustomCharacteristic(0x01, etInput.getText().toString().trim());
+                if (mBluetoothLeServiceVehicle != null) {
+                    mBluetoothLeServiceVehicle.writeCustomCharacteristic(0x01, etInput.getText().toString().trim());
+                }
+
+        }
+
+            if (Count < 3)
+            {
+                Toast.makeText(getApplicationContext(),"Attempt to read Characteristic: "+Count, Toast.LENGTH_LONG).show();
+                AppConstants.WriteinFile(TAG + " ~~~~~~~~~" + "DeviceControlActivity_Vehicle displayData Attempt to read Characteristic: " + Count);
+                Count++;
+                if (mBluetoothLeServiceVehicle != null) {
+                    // mBluetoothLeServiceVehicle.readCharacteristic(characteristic);
+                    mBluetoothLeServiceVehicle.readCustomCharacteristic();
+                }
             }
+
+
         }
     }
 

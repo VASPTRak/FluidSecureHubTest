@@ -97,6 +97,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
 
     private EditText etInput;
     String LF_FobKey = "";
+    int Count = 1;
 
     //--------------------------
 
@@ -317,6 +318,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
 
+        Count = 1;
         //Toast.makeText(getApplicationContext(), "FOK_KEY" + AppConstants.APDU_FOB_KEY, Toast.LENGTH_SHORT).show();
         showKeybord();
       //  AppConstants.APDU_FOB_KEY = "";
@@ -462,17 +464,18 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
 
 
             String Str_data = data.toString().trim();
-            System.out.println("FOK_KEY Vehi "+Str_data);
-
+            System.out.println("FOK_KEY Vehi " + Str_data);
+            AppConstants.WriteinFile(TAG + " ~~~~~~~~~" + "DeviceControlActivity_pin displayData Response LF: " + Str_data);
+            if (!Str_data.equalsIgnoreCase("000000")) {
             try {
                 String[] Seperate = Str_data.split("\n");
                 String Sep1 = Seperate[0];
                 String Sep2 = Seperate[1];
-                LF_FobKey = Sep2.replace(" ","");
-                tv_fobkey.setText(Sep2.replace(" ",""));
-            }catch (Exception ex){
+                LF_FobKey = Sep2.replace(" ", "");
+                tv_fobkey.setText(Sep2.replace(" ", ""));
+            } catch (Exception ex) {
                 System.out.println(ex);
-                AppConstants.WriteinFile(TAG+" ~~~~~~~~~" + "displayData Split Fob_Key  --Exception " + ex);
+                AppConstants.WriteinFile(TAG + " ~~~~~~~~~" + "displayData Split Fob_Key  --Exception " + ex);
             }
 
             //tv_enter_pin_no.setText("Fob Read Successfully");
@@ -484,6 +487,19 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
             }
             //On LF Fob read success
             etPersonnelPin.setText("");
+
+                if (Count < 3)
+                {
+                    Toast.makeText(getApplicationContext(),"Attempt to read Characteristic: "+Count, Toast.LENGTH_LONG).show();
+                    AppConstants.WriteinFile(TAG + " ~~~~~~~~~" + "DeviceControlActivity_pin displayData Attempt to read Characteristic: " + Count);
+                    Count++;
+                    if (mBluetoothLeServicePin != null) {
+                        // mBluetoothLeServiceVehicle.readCharacteristic(characteristic);
+                        mBluetoothLeServicePin.readCustomCharacteristic();
+                    }
+                }
+
+        }
         }
     }
 
