@@ -1276,20 +1276,24 @@ public class BackgroundService_FS_UNIT_4 extends BackgroundService {
                 reader = new JSONObject(response1);
 
                 JSONObject tld = reader.getJSONObject("tld");
-                String level = tld.getString("level");
+                mac_address = tld.getString("Mac_address");
+                String Sensor_ID = tld.getString("Sensor_ID");
+                String Response_code = tld.getString("Response_code");
+                String LSB = tld.getString("LSB");
+                String MSB = tld.getString("MSB");
+                String Tem_data = tld.getString("Tem_data");
+                String Checksum = tld.getString("Checksum");
 
-                System.out.println("level" + level);
-                String mac_str = GetMacAddressOfProbe(level);
 
-                mac_address = ConvertToMacAddressFormat(mac_str);
+                //Get mac address of probe
+                //String mac_str = GetMacAddressOfProbe(level);
+                //mac_address = ConvertToMacAddressFormat(mac_str);
 
                 //Calculate probe reading
-                probe_reading = GetProbeReading(level);
+                probe_reading = GetProbeReading(LSB,MSB);
 
-                probe_temperature = CalculateTemperature(level);
+                probe_temperature = CalculateTemperature(Tem_data);
 
-
-                System.out.println("level1" + mac_address);
 
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -1746,49 +1750,26 @@ public class BackgroundService_FS_UNIT_4 extends BackgroundService {
         return mac_address;
     }
 
-    public String GetProbeReading(String level) {
+    public String GetProbeReading(String LSB, String MSB) {
 
-        String MacAddress = "";
         double prove = 0;
         try {
-            String[] Seperate = level.split(",");
-            for (int i = 0; i <= Seperate.length; i++) {
 
-                if (i == 8) {
-                    String pd = CommonUtils.decimal2hex(Integer.parseInt(Seperate[i].trim()));
-                    MacAddress = MacAddress + pd;
-                } else if (i == 9) {
-                    String pd = CommonUtils.decimal2hex(Integer.parseInt(Seperate[i].trim()));
-                    MacAddress = pd + MacAddress;
-                }
+            String lsb_hex = CommonUtils.decimal2hex(Integer.parseInt(LSB));
+            String msb_hex = CommonUtils.decimal2hex(Integer.parseInt(MSB));
+            String Combine_hex = lsb_hex+msb_hex;
+            int finalpd = CommonUtils.hex2decimal(Combine_hex);
+            prove = finalpd / 128;
 
-                int finalpd = CommonUtils.hex2decimal(MacAddress);
-                prove = finalpd / 128;
-
-            }
-        }catch (Exception e){
-            AppConstants.WriteinFile("\n" + TAG + "Backgroundservice_FS_UNITE_4 GetProbeReading ~~~Exception~~" + e);
+        } catch (Exception e) {
+            AppConstants.WriteinFile("\n" + TAG + "Backgroundservice_AP_PIPE GetProbeReading ~~~Exception~~" + e);
         }
         return String.valueOf(prove);
     }
 
+    public String CalculateTemperature(String Tem_data) {
 
-    public String CalculateTemperature(String level) {
-
-        String Temperature = "";
-        String[] Seperate = level.split(",");
-        double Temp = 0;
-        for (int i = 0; i <= Seperate.length; i++) {
-
-            if (i == 10) {
-                Temperature = CommonUtils.decimal2hex(Integer.parseInt(Seperate[i].trim()));
-
-            }
-
-            int finalpd = CommonUtils.hex2decimal(Temperature);
-            Temp = (finalpd * 0.48876) - 50;
-
-        }
+        int Temp = (int) ((Integer.parseInt(Tem_data) * 0.48876) - 50);
 
         return String.valueOf(Temp);
     }

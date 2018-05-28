@@ -2411,7 +2411,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                                         } else {
                                             //Rename FluidSecure Unite
-                                            RenameLink();
+                                           // RenameLink();
 
                                             AppConstants.UPDATE_MACADDRESS = mac_address;
                                             AppConstants.colorToastBigFont(WelcomeActivity.this, "Mac address " + mac_address, Color.BLUE);
