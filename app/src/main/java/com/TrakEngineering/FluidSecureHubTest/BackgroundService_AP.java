@@ -1297,13 +1297,13 @@ public class BackgroundService_AP extends BackgroundService {
             }
 
             //-----------------------------------------------------------
-
+            String CurrentDeviceDate = CommonUtils.getTodaysDateInString();
             TankMonitorEntity obj_entity = new TankMonitorEntity();
             obj_entity.IMEI_UDID = AppConstants.getIMEI(BackgroundService_AP.this);
             obj_entity.FromSiteId = Integer.parseInt(AppConstants.SITE_ID);
             obj_entity.ProbeReading = probe_reading;
             obj_entity.TLD = mac_address;
-            obj_entity.ReadingDateTime = PrintDate;
+            obj_entity.ReadingDateTime = CurrentDeviceDate;//PrintDate;
 
             BackgroundService_AP.SaveTankMonitorReadingy TestAsynTask = new BackgroundService_AP.SaveTankMonitorReadingy(obj_entity);
             TestAsynTask.execute();

@@ -1301,13 +1301,13 @@ public class BackgroundService_FS_UNIT_4 extends BackgroundService {
             }
 
             //-----------------------------------------------------------
-
+            String CurrentDeviceDate = CommonUtils.getTodaysDateInString();
             TankMonitorEntity obj_entity = new TankMonitorEntity();
             obj_entity.IMEI_UDID = AppConstants.getIMEI(BackgroundService_FS_UNIT_4.this);
             obj_entity.FromSiteId = Integer.parseInt(AppConstants.SITE_ID);
             obj_entity.ProbeReading = probe_reading;
             obj_entity.TLD = mac_address;
-            obj_entity.ReadingDateTime = PrintDate;
+            obj_entity.ReadingDateTime = CurrentDeviceDate;//PrintDate;
 
             BackgroundService_FS_UNIT_4.SaveTankMonitorReadingy TestAsynTask = new BackgroundService_FS_UNIT_4.SaveTankMonitorReadingy(obj_entity);
             TestAsynTask.execute();
