@@ -146,6 +146,10 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
                     tv_enter_vehicle_no.setText("");
                 } else {
                     tv_enter_vehicle_no.setText("Present Fob key to reader");
+                    int widthi = ActionBar.LayoutParams.WRAP_CONTENT;
+                    int heighti = 0;
+                    LinearLayout.LayoutParams parmsi = new LinearLayout.LayoutParams(widthi, heighti);
+                    tv_enter_vehicle_no.setLayoutParams(parmsi);
                 }
 
             }
@@ -171,6 +175,10 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
                 mConnected = true;
                 invalidateOptionsMenu();
                 tv_enter_vehicle_no.setText("Present Fob key to reader");
+                int widthi = ActionBar.LayoutParams.WRAP_CONTENT;
+                int heighti = 0;
+                LinearLayout.LayoutParams parmsi = new LinearLayout.LayoutParams(widthi, heighti);
+                tv_enter_vehicle_no.setLayoutParams(parmsi);
 
             } else if (BluetoothLeService_vehicle.ACTION_GATT_DISCONNECTED.equals(action)) {
                 mConnected = false;
@@ -189,7 +197,13 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
     private void clearUI() {
 
         tv_fobkey.setText("");
-        tv_enter_vehicle_no.setText("Reader not connected");
+
+        int widthi = ActionBar.LayoutParams.WRAP_CONTENT;
+        int heighti = ActionBar.LayoutParams.WRAP_CONTENT;
+        LinearLayout.LayoutParams parmsi = new LinearLayout.LayoutParams(widthi, heighti);
+        tv_enter_vehicle_no.setLayoutParams(parmsi);
+        tv_enter_vehicle_no.setText("   Reader not connected");
+        tv_enter_vehicle_no.setVisibility(View.VISIBLE);
         tv_fob_number.setText("Fob No: ");
     }
 
@@ -340,6 +354,10 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
                     tv_enter_vehicle_no.setText("");
                 } else {
                     tv_enter_vehicle_no.setText("Present Fob key to reader");
+                    int widthi = ActionBar.LayoutParams.WRAP_CONTENT;
+                    int heighti = 0;
+                    LinearLayout.LayoutParams parmsi = new LinearLayout.LayoutParams(widthi, heighti);
+                    tv_enter_vehicle_no.setLayoutParams(parmsi);
                 }
 
             }
@@ -438,6 +456,10 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
                         tv_enter_vehicle_no.setText("");
                     } else {
                         tv_enter_vehicle_no.setText("Present Fob key to reader");
+                        int widthi = ActionBar.LayoutParams.WRAP_CONTENT;
+                        int heighti = 0;
+                        LinearLayout.LayoutParams parmsi = new LinearLayout.LayoutParams(widthi, heighti);
+                        tv_enter_vehicle_no.setLayoutParams(parmsi);
                     }
 
                 }
@@ -730,6 +752,8 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
                         editor.commit();
 
 
+                        AppConstants.WriteinFile("DeviceControlActivity_vehicle ~~~~~~~~~" + "CallSaveButtonFunctionality Vehicle entered is: " + vehicleNumber);
+
                         if (IsOdoMeterRequire.equalsIgnoreCase("True")) {
 
                             Intent intent = new Intent(DeviceControlActivity_vehicle.this, AcceptOdoActivity.class);//AcceptPinActivity
@@ -783,14 +807,14 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
                             // AppConstants.APDU_FOB_KEY = "";
                             AppConstants.VehicleLocal_FOB_KEY = "";
                             //editVehicleNumber.setText("");
-                            tv_enter_vehicle_no.setVisibility(View.VISIBLE);
+                            /*tv_enter_vehicle_no.setVisibility(View.VISIBLE);
                             tv_vehicle_no_below.setVisibility(View.GONE);
                             tv_fob_number.setVisibility(View.GONE);
                             editVehicleNumber.setVisibility(View.VISIBLE);
                             tv_fob_Reader.setVisibility(View.VISIBLE);
                             tv_or.setVisibility(View.VISIBLE);
                             tv_dont_have_fob.setVisibility(View.VISIBLE);
-                            Linear_layout_Save_back_buttons.setVisibility(View.VISIBLE);
+                            Linear_layout_Save_back_buttons.setVisibility(View.VISIBLE);*/
                             //-----------------------------------------------------------
 
                             btnSave.setEnabled(true);
@@ -950,7 +974,11 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
                         Istimeout_Sec = true;
                         TimeoutVehicleScreen();
                         tv_enter_vehicle_no.setText("Invalid FOB or Unassigned FOB");
-                        tv_enter_vehicle_no.setVisibility(View.VISIBLE);
+                        int widthi = ActionBar.LayoutParams.WRAP_CONTENT;
+                        int heighti = ActionBar.LayoutParams.WRAP_CONTENT;
+                        LinearLayout.LayoutParams parmsi = new LinearLayout.LayoutParams(widthi, heighti);
+                        tv_enter_vehicle_no.setLayoutParams(parmsi);
+
                         tv_fob_number.setVisibility(View.GONE);
                         tv_fob_Reader.setVisibility(View.GONE);
                         tv_or.setVisibility(View.GONE);
@@ -959,8 +987,8 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
                         btnSave.setVisibility(View.VISIBLE);
                         String content = "Enter your <br><b>VEHICLE ID</b> in<br> the green box below";
 
-                        int width = 350;
-                        int height = 60;
+                        int width = 450;
+                        int height = 80;
                         LinearLayout.LayoutParams parms = new LinearLayout.LayoutParams(width, height);
                         parms.gravity = Gravity.CENTER;
                         editVehicleNumber.setLayoutParams(parms);
@@ -1137,12 +1165,16 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
 
             editVehicleNumber.setText("");
             tv_enter_vehicle_no.setText("Present Fob key to reader");
+            int widthi = ActionBar.LayoutParams.WRAP_CONTENT;
+            int heighti = 0;
+            LinearLayout.LayoutParams parmsi = new LinearLayout.LayoutParams(widthi, heighti);
+            tv_enter_vehicle_no.setLayoutParams(parmsi);
+
             tv_fob_Reader.setVisibility(View.VISIBLE);
             btnSave.setVisibility(View.GONE);
 
             tv_or.setVisibility(View.GONE);
             tv_dont_have_fob.setVisibility(View.GONE);
-            tv_enter_vehicle_no.setVisibility(View.VISIBLE);
             tv_vehicle_no_below.setVisibility(View.GONE);
             tv_fob_number.setVisibility(View.GONE);
 
@@ -1163,7 +1195,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
             // AppConstants.APDU_FOB_KEY = "";
             AppConstants.VehicleLocal_FOB_KEY = "";
             //editVehicleNumber.setText("");
-            tv_enter_vehicle_no.setVisibility(View.VISIBLE);
+            tv_enter_vehicle_no.setVisibility(View.INVISIBLE);
             tv_vehicle_no_below.setVisibility(View.GONE);
             tv_fob_number.setVisibility(View.GONE);
             editVehicleNumber.setVisibility(View.VISIBLE);
@@ -1175,8 +1207,8 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
             btnSave.setVisibility(View.VISIBLE);
             btnCancel.setVisibility(View.VISIBLE);
 
-            int width = 350;
-            int height = 70;
+            int width = 450;
+            int height = 80;
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(width, height);
             params.gravity = Gravity.CENTER;
             editVehicleNumber.setLayoutParams(params);
@@ -1190,6 +1222,11 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
 
         tv_enter_vehicle_no.setText("Fob Read Successfully");
         tv_enter_vehicle_no.setVisibility(View.VISIBLE);
+        int widthi = ActionBar.LayoutParams.WRAP_CONTENT;
+        int heighti = ActionBar.LayoutParams.WRAP_CONTENT;
+        LinearLayout.LayoutParams parmsi = new LinearLayout.LayoutParams(widthi, heighti);
+        tv_enter_vehicle_no.setLayoutParams(parmsi);
+
         tv_fob_number.setVisibility(View.VISIBLE);
         tv_vehicle_no_below.setVisibility(View.VISIBLE);
         tv_dont_have_fob.setVisibility(View.GONE);

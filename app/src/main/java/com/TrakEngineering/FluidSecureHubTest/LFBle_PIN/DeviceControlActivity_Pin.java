@@ -806,6 +806,8 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                         String IsDepartmentRequire = sharedPrefODO.getString(AppConstants.IsDepartmentRequire, "");
                         String IsOtherRequire = sharedPrefODO.getString(AppConstants.IsOtherRequire, "");
 
+                        AppConstants.WriteinFile("DeviceControlActivity_Pin ~~~~~~~~~" + "CallSaveButtonFunctionality Personnel entered is: " + etPersonnelPin.getText().toString().trim());
+
                         if (IsDepartmentRequire.equalsIgnoreCase("True")) {
 
 

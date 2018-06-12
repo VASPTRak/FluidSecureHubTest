@@ -1004,6 +1004,9 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             Constants.AccPersonnelPIN_FS4 = "";
         }
 
+        AppConstants.WriteinFile("welcomeActivity ~~~~~~~~~" + "startWelcomeActivity hose selected" + AppConstants.CURRENT_SELECTED_SSID);
+
+
         Intent intent = new Intent(WelcomeActivity.this, DeviceControlActivity_vehicle.class);
         startActivity(intent);
 

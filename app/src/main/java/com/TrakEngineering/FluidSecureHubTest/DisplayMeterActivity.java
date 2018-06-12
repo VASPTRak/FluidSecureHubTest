@@ -251,6 +251,8 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
             }
         }, screenTimeOut);
 
+        AppConstants.WriteinFile("DisplayMeterActivity ~~~~~~~~~" + " In DisplayMeterActivity ");
+
         getListOfConnectedDevice();
 
         tv_hoseConnected.setText("Connected to " + AppConstants.CURRENT_SELECTED_SSID);
@@ -970,6 +972,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
                         } else {
 
+                            AppConstants.WriteinFile("DisplayMeterActivity ~~~~~~~~~" + "Link is unavailable relay");
                             AppConstants.colorToastBigFont(DisplayMeterActivity.this, " Link is unavailable", Color.RED);
                             AppConstants.ClearEdittextFielsOnBack(DisplayMeterActivity.this); //Clear EditText on move to welcome activity.
                             Intent intent = new Intent(DisplayMeterActivity.this, WelcomeActivity.class);
@@ -981,6 +984,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
                     } else {
 
+                        AppConstants.WriteinFile("DisplayMeterActivity ~~~~~~~~~" + "Link is unavailable info command");
                         AppConstants.colorToastBigFont(DisplayMeterActivity.this, " Link is unavailable", Color.RED);
                         AppConstants.ClearEdittextFielsOnBack(DisplayMeterActivity.this); //Clear EditText on move to welcome activity.
                         Intent intent = new Intent(DisplayMeterActivity.this, WelcomeActivity.class);
