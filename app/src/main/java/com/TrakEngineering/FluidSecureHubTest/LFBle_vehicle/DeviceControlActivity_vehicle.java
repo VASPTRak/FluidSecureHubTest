@@ -988,7 +988,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
                         String content = "Enter your <br><b>VEHICLE ID</b> in<br> the green box below";
 
                         int width = 450;
-                        int height = 80;
+                        int height = ActionBar.LayoutParams.WRAP_CONTENT;
                         LinearLayout.LayoutParams parms = new LinearLayout.LayoutParams(width, height);
                         parms.gravity = Gravity.CENTER;
                         editVehicleNumber.setLayoutParams(parms);
@@ -1208,7 +1208,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
             btnCancel.setVisibility(View.VISIBLE);
 
             int width = 450;
-            int height = 80;
+            int height = ActionBar.LayoutParams.WRAP_CONTENT;
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(width, height);
             params.gravity = Gravity.CENTER;
             editVehicleNumber.setLayoutParams(params);
