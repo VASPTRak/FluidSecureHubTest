@@ -221,6 +221,16 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     protected void onResume() {
         super.onResume();
 
+        // only when screen turns on
+        if (!ScreenReceiver.screenOff) {
+            // this is when onResume() is called due to a screen state change
+            Log.i(TAG,"SCREEN TURNED ON");
+        } else {
+            Log.i(TAG,"this is when onResume() is called when the screen state has not changed ");
+        }
+
+
+
         tvSSIDName.setText("Select");
         SelectedItemPos = -1;
         ConnectCount = 0;
@@ -275,6 +285,20 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
     }
 
+    @Override
+    protected void onPause() {
+
+        // when the screen is about to turn off
+        if (ScreenReceiver.screenOff) {
+            // this is the case when onPause() is called by the system due to a screen state change
+            Log.i(TAG,"SCREEN TURNED OFF");
+        } else {
+            // this is when onPause() is called when the screen state has not changed
+            Log.i(TAG,"this is when onPause() is called when the screen state has not changed");
+        }
+
+        super.onPause();
+    }
 
     @Override
     protected void onDestroy() {
@@ -317,6 +341,13 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         mGoogleApiClient.connect();
 
         InItGUI();
+
+        //------------Initialize receiver -Screen On/Off------------
+        IntentFilter filter = new IntentFilter(Intent.ACTION_SCREEN_ON);
+        filter.addAction(Intent.ACTION_SCREEN_OFF);
+        BroadcastReceiver mReceiver = new ScreenReceiver();
+        registerReceiver(mReceiver, filter);
+        Log.i(TAG,"Initialize receiver -Screen On/Off");
 
         /* Connect the reader. */
         new Handler().postDelayed(new Runnable() {
@@ -539,7 +570,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
     public void EnableHotspotBackgService() {
 
-
+        boolean screenOff = true;
         Calendar cal = Calendar.getInstance();
         Intent name = new Intent(WelcomeActivity.this, BackgroundServiceHotspotCheck.class);
         PendingIntent pintent = PendingIntent.getService(getApplicationContext(), 0, name, 0);
