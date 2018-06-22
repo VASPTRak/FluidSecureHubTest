@@ -82,13 +82,19 @@ import com.squareup.okhttp.Response;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
 import java.net.InetAddress;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -129,6 +135,11 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     int RetryOneAtemptConnectToSelectedSSSID = 0;
     String ReaderFrequency = "", IsOdoMeterRequire = "", IsDepartmentRequire = "", IsPersonnelPINRequireForHub = "", IsPersonnelPINRequire = "", IsOtherRequire = "";
 
+    //Upgrade firmware status for each hose
+    public static boolean IsUpgradeInprogress_FS1 = false;
+    public static boolean IsUpgradeInprogress_FS2 = false;
+    public static boolean IsUpgradeInprogress_FS3 = false;
+    public static boolean IsUpgradeInprogress_FS4 = false;
 
     //FS For Stopbutton
     String PhoneNumber;
@@ -150,6 +161,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     String jsonPulsarOff = "{\"pulsar_request\":{\"counter_set\":0}}";
     String URL_INFO = "";
     String URL_UPDATE_FS_INFO = "";
+    String FOLDER_PATH = Environment.getExternalStorageDirectory().getAbsolutePath() + "/FSBin/";
 
 //============Bluetooth reader Gatt==============
 
@@ -224,11 +236,10 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         // only when screen turns on
         if (!ScreenReceiver.screenOff) {
             // this is when onResume() is called due to a screen state change
-            Log.i(TAG,"SCREEN TURNED ON");
+            Log.i(TAG, "SCREEN TURNED ON");
         } else {
-            Log.i(TAG,"this is when onResume() is called when the screen state has not changed ");
+            Log.i(TAG, "this is when onResume() is called when the screen state has not changed ");
         }
-
 
 
         tvSSIDName.setText("Select");
@@ -283,6 +294,16 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         //Delete log files older than 1 month
         DeleteOldLogFiles();
 
+
+        //Check For FirmwreUpgrade
+        /*new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                CheckForFirmwreUpgrade();
+            }
+        }, 500);*/
+
+
     }
 
     @Override
@@ -291,10 +312,10 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         // when the screen is about to turn off
         if (ScreenReceiver.screenOff) {
             // this is the case when onPause() is called by the system due to a screen state change
-            Log.i(TAG,"SCREEN TURNED OFF");
+            Log.i(TAG, "SCREEN TURNED OFF");
         } else {
             // this is when onPause() is called when the screen state has not changed
-            Log.i(TAG,"this is when onPause() is called when the screen state has not changed");
+            Log.i(TAG, "this is when onPause() is called when the screen state has not changed");
         }
 
         super.onPause();
@@ -347,7 +368,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         filter.addAction(Intent.ACTION_SCREEN_OFF);
         BroadcastReceiver mReceiver = new ScreenReceiver();
         registerReceiver(mReceiver, filter);
-        Log.i(TAG,"Initialize receiver -Screen On/Off");
+        Log.i(TAG, "Initialize receiver -Screen On/Off");
 
         /* Connect the reader. */
         new Handler().postDelayed(new Runnable() {
@@ -1661,6 +1682,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                 String PulserTimingAdjust = c.getString("PulserTimingAdjust");
                                 String BluetoothCardReaderHF = c.getString("BluetoothCardReaderHF");
                                 String IsDefective = c.getString("IsDefective");
+                                String FilePath = c.getString("FilePath");
+                                AppConstants.UP_FilePath = FilePath;
 
                                 AppConstants.BT_READER_NAME = BluetoothCardReaderHF;
 
@@ -1677,6 +1700,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                 map.put("item", WifiSSId);
                                 map.put("MacAddress", MacAddress);
                                 map.put("IsBusy", IsBusy);
+                                map.put("IsUpgrade", IsUpgrade);
                                 map.put("PulserTimingAdjust", PulserTimingAdjust);
 
                                 if (ResponceMessage.equalsIgnoreCase("success")) {
@@ -1937,7 +1961,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                             //Selected position
                             //Toast.makeText(getApplicationContext(), "FS Position" + position, Toast.LENGTH_SHORT).show();
                             AppConstants.FS_selected = String.valueOf(position);
-                            if (String.valueOf(position).equalsIgnoreCase("0")) {
+                            if (String.valueOf(position).equalsIgnoreCase("0") && !IsUpgradeInprogress_FS1) {
 
                                 if (Constants.FS_1STATUS.equalsIgnoreCase("FREE") && IsBusy.equalsIgnoreCase("N")) {
                                     // linear_fs_1.setBackgroundColor(getResources().getColor(android.R.color.holo_red_light));
@@ -1961,7 +1985,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                     btnGo.setVisibility(View.GONE);
 
                                 }
-                            } else if (String.valueOf(position).equalsIgnoreCase("1")) {
+                            } else if (String.valueOf(position).equalsIgnoreCase("1") && !IsUpgradeInprogress_FS2) {
                                 if (Constants.FS_2STATUS.equalsIgnoreCase("FREE") && IsBusy.equalsIgnoreCase("N")) {
                                     // linear_fs_1.setBackgroundColor(getResources().getColor(android.R.color.holo_red_light));
 
@@ -1984,7 +2008,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                     btnGo.setVisibility(View.GONE);
                                 }
 
-                            } else if (String.valueOf(position).equalsIgnoreCase("2")) {
+                            } else if (String.valueOf(position).equalsIgnoreCase("2") && !IsUpgradeInprogress_FS3) {
 
 
                                 if (Constants.FS_3STATUS.equalsIgnoreCase("FREE") && IsBusy.equalsIgnoreCase("N")) {
@@ -2010,7 +2034,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                 }
 
 
-                            } else if (String.valueOf(position).equalsIgnoreCase("3")) {
+                            } else if (String.valueOf(position).equalsIgnoreCase("3") && !IsUpgradeInprogress_FS4) {
 
 
                                 if (Constants.FS_4STATUS.equalsIgnoreCase("FREE") && IsBusy.equalsIgnoreCase("N")) {
@@ -2035,7 +2059,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                 }
                             } else {
 
-                                tvSSIDName.setText("Can't select this Hose for current version");
+                                tvSSIDName.setText("Please try again soon");
                                 btnGo.setVisibility(View.GONE);
                             }
                         }
@@ -2445,7 +2469,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                                         } else {
                                             //Rename FluidSecure Unite
-                                           // RenameLink();
+                                            // RenameLink();
 
                                             AppConstants.UPDATE_MACADDRESS = mac_address;
                                             AppConstants.colorToastBigFont(WelcomeActivity.this, "Mac address " + mac_address, Color.BLUE);
@@ -4362,7 +4386,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                System.out.println("escape command response"+getResponseString(response, errorCode));
+                                System.out.println("escape command response" + getResponseString(response, errorCode));
                                 mTxtEscapeResponse.setText(getResponseString(
                                         response, errorCode));
                             }
@@ -4876,6 +4900,219 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             }
         } else {
             System.out.println("Character format error!");
+        }
+
+    }
+
+    public void CheckForFirmwreUpgrade() {
+
+
+        if (serverSSIDList != null && serverSSIDList.size() > 0) {
+
+            for (int i = 0; i < serverSSIDList.size(); i++) {
+
+                String selSSID = serverSSIDList.get(i).get("WifiSSId");
+                String IsBusy = serverSSIDList.get(i).get("IsBusy");
+                String Selected_Mac_Addr = serverSSIDList.get(i).get("MacAddress");
+                String selSiteId = serverSSIDList.get(i).get("SiteId");
+                String hoseID = serverSSIDList.get(i).get("HoseId");
+                String IsUpgrade = serverSSIDList.get(i).get("IsUpgrade"); //"Y";
+                AppConstants.CURRENT_SELECTED_SSID = selSSID;
+                AppConstants.CURRENT_HOSE_SSID = hoseID;
+                AppConstants.CURRENT_SELECTED_SITEID = selSiteId;
+                AppConstants.SELECTED_MACADDRESS = Selected_Mac_Addr;
+                String IsHoseNameReplaced = serverSSIDList.get(i).get("IsHoseNameReplaced");
+                String ReplaceableHoseName = serverSSIDList.get(i).get("ReplaceableHoseName");
+                String PulserTimingAd = serverSSIDList.get(i).get("PulserTimingAdjust");
+                IsDefective = serverSSIDList.get(i).get("IsDefective");
+                AppConstants.PulserTimingAdjust = PulserTimingAd;
+
+                String FUpgrade_URL = "";
+
+                for (int k = 0; k < AppConstants.DetailsListOfConnectedDevices.size(); k++) {
+                    String Mac_Addr = AppConstants.DetailsListOfConnectedDevices.get(k).get("macAddress");
+                    if (Selected_Mac_Addr.equalsIgnoreCase(Mac_Addr)) {
+                        FUpgrade_URL = "http://" + AppConstants.DetailsListOfConnectedDevices.get(k).get("ipAddress") + ":80/";
+                    }
+                }
+
+
+                //Firmware upgrade
+                System.out.println("IsUpgradeIsUpgrade: " + IsUpgrade);
+
+                //If true download file
+                if (IsUpgrade.trim().equalsIgnoreCase("Y") && !FUpgrade_URL.equalsIgnoreCase("")) {
+                    AppConstants.UP_Upgrade = true;
+                    DownloadFirmwareFile();
+                } else {
+                    AppConstants.UP_Upgrade = false;
+                }
+
+
+                if (String.valueOf(i).equalsIgnoreCase("0") && Constants.FS_1STATUS.equalsIgnoreCase("FREE") && !FUpgrade_URL.equalsIgnoreCase("")) {
+
+                    AppConstants.UP_HoseId_fs1 = hoseID;
+                    if (IsUpgrade.trim().equalsIgnoreCase("Y")) {
+                        AppConstants.UP_Upgrade_fs1 = true;
+                        IsUpgradeInprogress_FS1 = true;
+                        //Start BackgroundService to upgradeFirmware
+                        Intent serviceIntent = new Intent(WelcomeActivity.this, BackgroundServiceUpgradeFirmware.class);
+                        serviceIntent.putExtra("FUpgrade_URL", FUpgrade_URL);
+                        startService(serviceIntent);
+                        break;
+
+                    } else {
+                        AppConstants.UP_Upgrade_fs1 = false;
+                    }
+
+
+                } else if (String.valueOf(i).equalsIgnoreCase("1") && Constants.FS_2STATUS.equalsIgnoreCase("FREE") && !FUpgrade_URL.equalsIgnoreCase("")) {
+
+                    AppConstants.UP_HoseId_fs2 = hoseID;
+                    if (IsUpgrade.trim().equalsIgnoreCase("Y")) {
+                        AppConstants.UP_Upgrade_fs2 = true;
+                        IsUpgradeInprogress_FS2 = true;
+                        //Start BackgroundService to upgradeFirmware
+                        Intent serviceIntent = new Intent(WelcomeActivity.this, BackgroundServiceUpgradeFirmware.class);
+                        serviceIntent.putExtra("FUpgrade_URL", FUpgrade_URL);
+                        startService(serviceIntent);
+                        break;
+                    } else {
+                        AppConstants.UP_Upgrade_fs2 = false;
+                    }
+
+
+                } else if (String.valueOf(i).equalsIgnoreCase("2") && Constants.FS_3STATUS.equalsIgnoreCase("FREE") && !FUpgrade_URL.equalsIgnoreCase("")) {
+
+                    AppConstants.UP_HoseId_fs3 = hoseID;
+                    if (IsUpgrade.trim().equalsIgnoreCase("Y")) {
+                        AppConstants.UP_Upgrade_fs3 = true;
+                        IsUpgradeInprogress_FS3 = true;
+                        //Start BackgroundService to upgradeFirmware
+                        Intent serviceIntent = new Intent(WelcomeActivity.this, BackgroundServiceUpgradeFirmware.class);
+                        serviceIntent.putExtra("FUpgrade_URL", FUpgrade_URL);
+                        startService(serviceIntent);
+                        break;
+                    } else {
+                        AppConstants.UP_Upgrade_fs3 = false;
+                    }
+
+
+                } else if (String.valueOf(i).equalsIgnoreCase("3") && Constants.FS_4STATUS.equalsIgnoreCase("FREE") && !FUpgrade_URL.equalsIgnoreCase("")) {
+
+                    AppConstants.UP_HoseId_fs4 = hoseID;
+                    if (IsUpgrade.trim().equalsIgnoreCase("Y")) {
+                        AppConstants.UP_Upgrade_fs4 = true;
+                        IsUpgradeInprogress_FS4 = true;
+                        //Start BackgroundService to upgradeFirmware
+                        Intent serviceIntent = new Intent(WelcomeActivity.this, BackgroundServiceUpgradeFirmware.class);
+                        serviceIntent.putExtra("FUpgrade_URL", FUpgrade_URL);
+                        startService(serviceIntent);
+                        break;
+                    } else {
+                        AppConstants.UP_Upgrade_fs4 = false;
+                    }
+
+                } else {
+
+                    //Hose might be busy and also wants to upgrade firmware
+                    //OR hose not connected to hotspot
+                    AppConstants.colorToastBigFont(WelcomeActivity.this, "Hose in use wating for upgrade firmware", Color.RED);
+                }
+
+
+            }
+
+        }
+
+
+    }
+
+    public void DownloadFirmwareFile() {
+
+        File folder = new File(Environment.getExternalStorageDirectory() + File.separator + "FSBin");
+        boolean success = true;
+        if (!folder.exists()) {
+            success = folder.mkdirs();
+        }
+        if (success) {
+            // Do something on success
+        } else {
+            AppConstants.AlertDialogBox(WelcomeActivity.this, "Please check File is present in FSBin Folder in Internal(Device) Storage");
+        }
+
+        if (AppConstants.UP_FilePath != null)
+            new DownloadFileFromURL().execute(AppConstants.UP_FilePath, "user1.2048.new.5.bin");
+
+    }
+
+    class DownloadFileFromURL extends AsyncTask<String, String, String> {
+
+        ProgressDialog pd;
+
+        @Override
+        protected void onPreExecute() {
+            pd = new ProgressDialog(WelcomeActivity.this);
+            pd.setMessage("Software update in progress.\nPlease wait several seconds....");
+            pd.setCancelable(false);
+            pd.show();
+        }
+
+
+        @Override
+        protected String doInBackground(String... f_url) {
+            int count;
+            try {
+                URL url = new URL(f_url[0]);
+                URLConnection conection = url.openConnection();
+                conection.connect();
+                // getting file length
+                int lenghtOfFile = conection.getContentLength();
+
+                // input stream to read file - with 8k buffer
+                InputStream input = new BufferedInputStream(url.openStream(), 8192);
+
+                // Output stream to write file
+                OutputStream output = new FileOutputStream(FOLDER_PATH + f_url[1]);
+
+                byte data[] = new byte[1024];
+
+                long total = 0;
+
+                while ((count = input.read(data)) != -1) {
+                    total += count;
+                    // publishing the progress....
+                    // After this onProgressUpdate will be called
+                    publishProgress("" + (int) ((total * 100) / lenghtOfFile));
+
+                    // writing data to file
+                    output.write(data, 0, count);
+                }
+
+                // flushing output
+                output.flush();
+
+                // closing streams
+                output.close();
+                input.close();
+
+            } catch (Exception e) {
+                Log.e("Error: ", e.getMessage());
+            }
+
+            return null;
+        }
+
+
+        protected void onProgressUpdate(String... progress) {
+            // setting progress percentage
+            //pDialog.setProgress(Integer.parseInt(progress[0]));
+        }
+
+
+        @Override
+        protected void onPostExecute(String file_url) {
+            pd.dismiss();
         }
 
     }

@@ -567,7 +567,7 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
 
             } catch (Exception e) {
                 Log.d("Ex", e.getMessage());
-                AppConstants.WriteinFile("BackgroundService_AP_PIPE ~~~~~~~~~" + "GETPulsarQuantity doInBackground Execption " + e);
+                AppConstants.WriteinFile("BackgroundService_AP_PIPE ~~~~~~~~~" + "GETPulsarQuantity doInBackground Execption~ " + e);
             }
 
 
@@ -577,6 +577,8 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
         @Override
         protected void onPostExecute(String result) {
 
+            System.out.println("Result"+result);
+            System.out.println("Result"+result);
 
             try {
 

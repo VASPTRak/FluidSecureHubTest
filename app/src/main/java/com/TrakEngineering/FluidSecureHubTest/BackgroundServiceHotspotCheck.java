@@ -29,10 +29,8 @@ public class BackgroundServiceHotspotCheck extends BackgroundService {
 
         try {
             super.onStart(intent, startId);
-            String From_BroadcastReceiver = "NO";
             Bundle extras = intent.getExtras();
             boolean screenOff = intent.getBooleanExtra("screen_state", true);
-            Log.i(TAG, "Service is on==" + screenOff);
             if (extras == null) {
                 Log.d(TAG, "null");
                 this.stopSelf();
@@ -56,9 +54,15 @@ public class BackgroundServiceHotspotCheck extends BackgroundService {
 
                     } else if (!isScreenOn(this) && CommonUtils.isHotspotEnabled(BackgroundServiceHotspotCheck.this)){
 
-                        wifiApManager.setWifiApEnabled(null, false);  //Hotspot disable
-                        Log.i(TAG, "Disable hotspot, please wait....");
-                        AppConstants.WriteinFile("BackgroundServiceHotspotCheck~~~~~~~~~" + "Hotspot OFF");
+
+                        if (Constants.FS_1STATUS.equalsIgnoreCase("FREE") && Constants.FS_2STATUS.equalsIgnoreCase("FREE") && Constants.FS_3STATUS.equalsIgnoreCase("FREE") && Constants.FS_4STATUS.equalsIgnoreCase("FREE"))
+                        {
+                            wifiApManager.setWifiApEnabled(null, false);  //Hotspot disable
+                            Log.i(TAG, "Disable hotspot, please wait....");
+                            AppConstants.WriteinFile("BackgroundServiceHotspotCheck~~~~~~~~~" + "Hotspot OFF");
+                        }else{
+                            Log.i(TAG, "Can not disable hotspot, One of the link is busy...");
+                        }
 
                     } else{
 

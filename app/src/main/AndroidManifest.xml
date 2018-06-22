@@ -133,6 +133,8 @@
         <service
             android:name=".BackgroundServiceWriteTimestampToFile"
             android:enabled="true" />
+        <service android:name=".BackgroundServiceUpgradeFirmware"
+            android:enabled="true" />
 
         <receiver android:name=".MobileDataReceiver">
             <intent-filter>
@@ -143,6 +145,7 @@
             <intent-filter android:priority="100">
                 <action android:name="android.net.wifi.STATE_CHANGE" />
             </intent-filter>
+
         </receiver>
         <receiver android:name=".OnBootReceiver">
             <intent-filter>

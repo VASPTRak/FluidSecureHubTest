@@ -256,7 +256,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
         //Constants.AccPersonnelPIN = "";
         //Constants.AccOther = "";
 
-        if (AppConstants.UP_Upgrade) {
+       /* if (AppConstants.UP_Upgrade) {
 
             File folder = new File(Environment.getExternalStorageDirectory() + File.separator + "FSBin");
             boolean success = true;
@@ -272,7 +272,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
             if (AppConstants.UP_FilePath != null)
                 new DeviceControlActivity_vehicle.DownloadFileFromURL().execute(AppConstants.UP_FilePath, "user1.2048.new.5.bin");
 
-        }
+        }*/
 
         editVehicleNumber.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
