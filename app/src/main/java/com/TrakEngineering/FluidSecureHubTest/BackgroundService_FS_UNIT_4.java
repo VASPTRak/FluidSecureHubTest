@@ -35,9 +35,12 @@ import com.squareup.okhttp.Response;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -49,6 +52,7 @@ import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 import static com.TrakEngineering.FluidSecureHubTest.CommonUtils.GetPrintRecipt;
 import static com.TrakEngineering.FluidSecureHubTest.CommonUtils.GetPrintReciptForOther;
@@ -64,6 +68,7 @@ public class BackgroundService_FS_UNIT_4 extends BackgroundService {
     String EMPTY_Val = "";
     private ConnectionDetector cd;
     String HTTP_URL = "";
+    private int AttemptCount = 0;
 
     String URL_INFO = HTTP_URL + "client?command=info";
     String URL_STATUS = HTTP_URL + "client?command=status";
@@ -96,6 +101,8 @@ public class BackgroundService_FS_UNIT_4 extends BackgroundService {
 
     ArrayList<HashMap<String, String>> quantityRecords = new ArrayList<>();
     ArrayList<Integer> respCounter = new ArrayList<>();
+    public static ArrayList<String> listOfConnectedIP_FS_UNIT_4 = new ArrayList<String>();
+
 
     SimpleDateFormat sdformat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
 
@@ -109,7 +116,7 @@ public class BackgroundService_FS_UNIT_4 extends BackgroundService {
     int timeFirst = 60;
     Timer tFirst;
     TimerTask taskFirst;
-    boolean stopTimer = true;
+    boolean stopTimer;
     boolean pulsarConnected = false;
     double minFuelLimit = 0, numPulseRatio = 0;
     String consoleString = "", outputQuantity = "0";
@@ -122,7 +129,6 @@ public class BackgroundService_FS_UNIT_4 extends BackgroundService {
     Integer Pulses = 0;
     long sqliteID = 0;
     String printReceipt = "";
-    BluetoothPrinter BTprint = new BluetoothPrinter();
 
     ConnectivityManager connection_manager;
 
@@ -144,6 +150,10 @@ public class BackgroundService_FS_UNIT_4 extends BackgroundService {
 
 
             } else {
+
+                stopTimer = true;
+                AttemptCount = 0;
+
                 Log.d("Service", "not null");
                 HTTP_URL = (String) extras.get("HTTP_URL");
 
@@ -392,7 +402,8 @@ public class BackgroundService_FS_UNIT_4 extends BackgroundService {
                 MediaType JSON = MediaType.parse("application/json");
 
                 OkHttpClient client = new OkHttpClient();
-
+                client.setConnectTimeout(15, TimeUnit.SECONDS);
+                client.setReadTimeout(15, TimeUnit.SECONDS);
                 RequestBody body = RequestBody.create(JSON, param[1]);
 
                 Request request = new Request.Builder()
@@ -441,6 +452,8 @@ public class BackgroundService_FS_UNIT_4 extends BackgroundService {
             try {
 
                 OkHttpClient client = new OkHttpClient();
+                client.setConnectTimeout(15, TimeUnit.SECONDS);
+                client.setReadTimeout(15, TimeUnit.SECONDS);
                 Request request = new Request.Builder()
                         .url(param[0])
                         .build();
@@ -495,10 +508,34 @@ public class BackgroundService_FS_UNIT_4 extends BackgroundService {
 
                         }
                         */
+                        new ListConnectedHotspotIP_FS_UNIT_4().execute();
 
-                        new BackgroundService_FS_UNIT_4.GETPulsarQuantity().execute(URL_GET_PULSAR);
+                        Thread.sleep(1000);
 
-                    }
+                        if (IsFsConnected(HTTP_URL)){
+
+                            AttemptCount = 0;
+                            //FS link is connected
+                            new BackgroundService_FS_UNIT_4.GETPulsarQuantity().execute(URL_GET_PULSAR);
+
+
+                        }else{
+
+                            if (AttemptCount > 2) {
+                            //FS Link DisConnected
+                            System.out.println("FS Link not connected" + listOfConnectedIP_FS_UNIT_4);
+                            AppConstants.WriteinFile("BackgroundService_FS_UNIT_4 ~~~~~~~~~" + "~~~~FS Link not connected~~~~~~~");
+                            stopTimer = false;
+                            new CommandsPOST().execute(URL_RELAY, jsonRelayOff);
+                            Constants.FS_4STATUS = "FREE";
+                            clearEditTextFields();
+//                          BackgroundService_AP.this.stopSelf();
+                            } else {
+                                System.out.println("FS Link not connected ~~AttemptCount:" +AttemptCount);
+                                AttemptCount = AttemptCount+1;
+                            }
+                        }}
+
 
                 } catch (Exception e) {
                     System.out.println(e);
@@ -509,6 +546,17 @@ public class BackgroundService_FS_UNIT_4 extends BackgroundService {
         }, 0, 2000);
 
 
+    }
+
+    public boolean IsFsConnected(String toMatchString)
+    {
+
+        for (String HttpAddress : listOfConnectedIP_FS_UNIT_4)
+        {
+            if (HttpAddress.contains(toMatchString))
+                return true;
+        }
+        return false;
     }
 
     public class GETPulsarQuantity extends AsyncTask<String, Void, String> {
@@ -522,6 +570,8 @@ public class BackgroundService_FS_UNIT_4 extends BackgroundService {
             try {
 
                 OkHttpClient client = new OkHttpClient();
+                client.setConnectTimeout(15, TimeUnit.SECONDS);
+                client.setReadTimeout(15, TimeUnit.SECONDS);
                 Request request = new Request.Builder()
                         .url(param[0])
                         .build();
@@ -846,6 +896,8 @@ public class BackgroundService_FS_UNIT_4 extends BackgroundService {
             try {
 
                 OkHttpClient client = new OkHttpClient();
+                client.setConnectTimeout(15, TimeUnit.SECONDS);
+                client.setReadTimeout(15, TimeUnit.SECONDS);
                 Request request = new Request.Builder()
                         .url(param[0])
                         .build();
@@ -1038,6 +1090,10 @@ public class BackgroundService_FS_UNIT_4 extends BackgroundService {
 
     public void TransactionCompleteFunction() {
 
+
+
+        System.out.println("In transaction Complete");
+
         TankMonitorReading(); //Get Tank Monitor Reading and save it to server
 
         ////////////////////--UpgradeCurrentVersion to server--///////////////////////////////////////////////////////
@@ -1111,6 +1167,8 @@ public class BackgroundService_FS_UNIT_4 extends BackgroundService {
 
         //----------------------------
 
+       // ------------------------------------Printer Stop Multiple transactions issue--------------------------------------------------------------------------------
+
         LinkName = AppConstants.CURRENT_SELECTED_SSID;
 
         //Print Transaction Receipt
@@ -1132,13 +1190,19 @@ public class BackgroundService_FS_UNIT_4 extends BackgroundService {
         }
 
         try {
-            new SetBTConnectionPrinter().execute();
+
+            //Start background Service to print recipt
+            Intent serviceIntent = new Intent(BackgroundService_FS_UNIT_4.this, BackgroundServiceBluetoothPrinter.class);
+            serviceIntent.putExtra("printReceipt", printReceipt);
+            startService(serviceIntent);
+
         } catch (Exception e) {
             e.printStackTrace();
         }
 
+    //------------------------------------Ends--------------------------------------------------------------------------------
 
-        try {
+ try {
 
             TrazComp authEntityClass = new TrazComp();
             authEntityClass.TransactionId = TransactionId;
@@ -1147,21 +1211,7 @@ public class BackgroundService_FS_UNIT_4 extends BackgroundService {
             authEntityClass.TransactionFrom = "A";
             authEntityClass.AppInfo = " Version:" + CommonUtils.getVersionCode(BackgroundService_FS_UNIT_4.this) + " " + AppConstants.getDeviceName() + " Android " + android.os.Build.VERSION.RELEASE + " ";
 
-            /*authEntityClass.PersonId = PersonId;
-            authEntityClass.SiteId = AcceptVehicleActivity.SITE_ID;
-            authEntityClass.VehicleId = VehicleId;
-            authEntityClass.CurrentOdometer = odometerTenths;
-            authEntityClass.FuelTypeId = FuelTypeId;
-            authEntityClass.PhoneNumber = PhoneNumber;
-            authEntityClass.WifiSSId = AppConstants.FS1_CONNECTED_SSID;//AppConstants.LAST_CONNECTED_SSID;
-            authEntityClass.TransactionDate = ServerDate;
-            authEntityClass.CurrentLat = "" + CurrentLat;
-            authEntityClass.CurrentLng = "" + CurrentLng;
-            authEntityClass.VehicleNumber = vehicleNumber;
-            authEntityClass.DepartmentNumber = dNumber;
-            authEntityClass.PersonnelPIN = pNumber;
-            authEntityClass.Other = oText;
-            authEntityClass.Hours = hNumber;*/
+
 
             Gson gson = new Gson();
             String jsonData = gson.toJson(authEntityClass);
@@ -1195,20 +1245,6 @@ public class BackgroundService_FS_UNIT_4 extends BackgroundService {
                 // controller.insertTransactions(imap);
             }
 
-           /* //settransaction to FSUNIT
-            //==========================
-
-            new Handler().postDelayed(new Runnable() {
-                @Override
-                public void run() {
-
-                    new BackgroundService_FS_UNIT_4.CommandsPOST().execute(URL_SET_TXNID, "{\"txtnid\":" + TransactionId + "}");
-
-                    //new CommandsPOST().execute(URL_RELAY, jsonRelayOn);
-                }
-            }, 1500);
-
-            //==========================*/
             clearEditTextFields();
 
 
@@ -1245,10 +1281,7 @@ public class BackgroundService_FS_UNIT_4 extends BackgroundService {
 
         }
 
-
-        startService(new Intent(this, BackgroundService.class));
-
-        //linearFuelAnother.setVisibility(View.VISIBLE);
+          startService(new Intent(BackgroundService_FS_UNIT_4.this, BackgroundService.class));
 
     }
 
@@ -1381,49 +1414,6 @@ public class BackgroundService_FS_UNIT_4 extends BackgroundService {
 
     }
 
-    public class SetBTConnectionPrinter extends AsyncTask<String, Void, String> {
-
-
-        @Override
-        protected String doInBackground(String... strings) {
-
-
-            try {
-
-                BTprint.findBT();
-                BTprint.openBT();
-
-                System.out.println("printer. FindBT and OpenBT");
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(String s) {
-
-            try {
-                BTprint.sendData(printReceipt);
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            BTprint.closeBT();
-                        } catch (Exception e) {
-
-                        }
-                    }
-                }, 2000);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-        }
-    }
-
     public void clearEditTextFields() {
 
         Constants.AccVehicleNumber_FS4 = "";
@@ -1463,7 +1453,8 @@ public class BackgroundService_FS_UNIT_4 extends BackgroundService {
                 MediaType contentype = MediaType.parse(Localcontenttype);
 
                 OkHttpClient client = new OkHttpClient();
-
+                client.setConnectTimeout(15, TimeUnit.SECONDS);
+                client.setReadTimeout(15, TimeUnit.SECONDS);
                 RequestBody body = RequestBody.create(contentype, readBytesFromFile(LocalPath));
 
                 Request request = new Request.Builder()
@@ -1630,6 +1621,12 @@ public class BackgroundService_FS_UNIT_4 extends BackgroundService {
         }
 
         @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            System.out.println("Check time in seconds~~~~~ UpgradeCurrentVersionWithUgradableVersion Start");
+        }
+
+        @Override
         protected Void doInBackground(Void... voids) {
 
             try {
@@ -1651,6 +1648,11 @@ public class BackgroundService_FS_UNIT_4 extends BackgroundService {
             return null;
         }
 
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            System.out.println("Check time in seconds~~~~~ UpgradeCurrentVersionWithUgradableVersion Stop");
+        }
     }
 
     private String CalculatePrice(String SurchargeType_FS4, double FuelQuantity, double ProductPrice_FS4, double VehicleSum_FS4, double DeptSum_FS4, double VehPercentage_FS4, double DeptPercentage_FS4) {
@@ -1773,6 +1775,100 @@ public class BackgroundService_FS_UNIT_4 extends BackgroundService {
 
         return String.valueOf(Temp);
     }
+
+    public static class ListConnectedHotspotIP_FS_UNIT_4 extends AsyncTask<String, Void, String> {
+
+        @Override
+        protected void onPreExecute() {
+
+            listOfConnectedIP_FS_UNIT_4.clear();
+
+        }
+
+        protected String doInBackground(String... arg0) {
+
+
+
+
+            String resp = "";
+
+            Thread thread = new Thread(new Runnable() {
+
+                @Override
+                public void run() {
+                    BufferedReader br = null;
+                    boolean isFirstLine = true;
+
+                    try {
+                        br = new BufferedReader(new FileReader("/proc/net/arp"));
+                        String line;
+
+                        while ((line = br.readLine()) != null) {
+                            if (isFirstLine) {
+                                isFirstLine = false;
+                                continue;
+                            }
+
+                            String[] splitted = line.split(" +");
+
+                            if (splitted != null && splitted.length >= 4) {
+
+                                String ipAddress = splitted[0];
+                                String macAddress = splitted[3];
+                                System.out.println("IPAddress" + ipAddress);
+                                boolean isReachable = InetAddress.getByName(
+                                        splitted[0]).isReachable(500);  // this is network call so we cant do that on UI thread, so i take background thread.
+                                if (isReachable) {
+                                    Log.d("Device Information", ipAddress + " : "
+                                            + macAddress);
+                                }
+
+                                if (ipAddress != null || macAddress != null) {
+
+
+                                    listOfConnectedIP_FS_UNIT_4.add("http://"+ ipAddress +":80/");
+
+                                    System.out.println("Details Of Connected HotspotIP" + listOfConnectedIP_FS_UNIT_4);
+                                }
+
+                            }
+
+                        }
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        AppConstants.WriteinFile("BackgroundService_FS_INIT_4 ~~~~~~~~~" + "ListConnectedHotspotIP_FS_UNIT_4 1 --Exception " + e);
+                    } finally {
+                        try {
+                            br.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                            AppConstants.WriteinFile("BackgroundService_FS_INIT_4 ~~~~~~~~~" + "ListConnectedHotspotIP_FS_UNIT_4 2 --Exception " + e);
+                        }
+                    }
+                }
+            });
+            thread.start();
+
+
+            return resp;
+
+
+        }
+
+
+        @Override
+        protected void onPostExecute(String result) {
+
+            super.onPostExecute(result);
+            String strJson = result;
+
+
+
+        }
+
+    }
+
 
 }
 

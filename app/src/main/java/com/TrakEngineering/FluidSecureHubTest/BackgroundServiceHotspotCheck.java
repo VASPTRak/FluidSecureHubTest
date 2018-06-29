@@ -43,7 +43,7 @@ public class BackgroundServiceHotspotCheck extends BackgroundService {
                     AppConstants.WriteinFile("BackgroundServiceHotspotCheck~~~~~~~~~" + "Hotspot ON");
 
                 } else if (screenOff) {
-                    
+
 
 
                     if (isScreenOn(this) && !CommonUtils.isHotspotEnabled(BackgroundServiceHotspotCheck.this)) {

@@ -1,7 +1,6 @@
 package com.TrakEngineering.FluidSecureHubTest;
 
 import android.annotation.TargetApi;
-import android.app.Activity;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -17,8 +16,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
-import android.support.annotation.RequiresApi;
-import android.text.Html;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -27,7 +24,6 @@ import com.TrakEngineering.FluidSecureHubTest.enity.TankMonitorEntity;
 import com.TrakEngineering.FluidSecureHubTest.enity.TrazComp;
 import com.TrakEngineering.FluidSecureHubTest.enity.UpdateTransactionStatusClass;
 import com.TrakEngineering.FluidSecureHubTest.enity.UpgradeVersionEntity;
-import com.TrakEngineering.FluidSecureHubTest.enity.VehicleRequireEntity;
 import com.TrakEngineering.FluidSecureHubTest.server.ServerHandler;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
@@ -41,9 +37,12 @@ import com.squareup.okhttp.Response;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -55,6 +54,7 @@ import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 import static com.TrakEngineering.FluidSecureHubTest.CommonUtils.GetPrintRecipt;
 import static com.TrakEngineering.FluidSecureHubTest.CommonUtils.GetPrintReciptForOther;
@@ -70,6 +70,7 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
     private static final String TAG = "BackgroundService_AP_PIPE :";
     String EMPTY_Val = "";
     private ConnectionDetector cd;
+    private int AttemptCount = 0;
 
     //String HTTP_URL = "http://192.168.43.140:80/";//for pipe
     //String HTTP_URL = "http://192.168.43.5:80/";//Other FS
@@ -107,6 +108,7 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
 
     ArrayList<HashMap<String, String>> quantityRecords = new ArrayList<>();
     ArrayList<Integer> respCounter = new ArrayList<>();
+    public static ArrayList<String> listOfConnectedIP_AP_PIPE = new ArrayList<String>();
 
     SimpleDateFormat sdformat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
 
@@ -119,7 +121,7 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
     int timeFirst = 60;
     Timer tFirst;
     TimerTask taskFirst;
-    boolean stopTimer = true;
+    boolean stopTimer;
     boolean pulsarConnected = false;
     double minFuelLimit = 0, numPulseRatio = 0;
     String consoleString = "", outputQuantity = "0";
@@ -134,7 +136,6 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
     double Lastfillqty = 0;
     ConnectivityManager connection_manager;
     String printReceipt = "";
-    BluetoothPrinter BTprint = new BluetoothPrinter();
 
 
     @Override
@@ -154,6 +155,10 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
 
 
             } else {
+
+                stopTimer = true;
+                AttemptCount = 0;
+
                 Log.d("Service", "not null");
                 HTTP_URL = (String) extras.get("HTTP_URL");
 
@@ -428,7 +433,8 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
                 MediaType JSON = MediaType.parse("application/json");
 
                 OkHttpClient client = new OkHttpClient();
-
+                client.setConnectTimeout(15, TimeUnit.SECONDS);
+                client.setReadTimeout(15, TimeUnit.SECONDS);
                 RequestBody body = RequestBody.create(JSON, param[1]);
 
                 Request request = new Request.Builder()
@@ -477,6 +483,8 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
             try {
 
                 OkHttpClient client = new OkHttpClient();
+                client.setConnectTimeout(15, TimeUnit.SECONDS);
+                client.setReadTimeout(15, TimeUnit.SECONDS);
                 Request request = new Request.Builder()
                         .url(param[0])
                         .build();
@@ -532,9 +540,31 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
                         }
                         */
 
-                        new BackgroundService_AP_PIPE.GETPulsarQuantity().execute(URL_GET_PULSAR);
+                        new  ListConnectedHotspotIP_AP_PIPE().execute();
 
-                    }
+                        Thread.sleep(1000);
+
+                        if (IsFsConnected(HTTP_URL)){
+                            AttemptCount = 0;
+                            //FS link is connected
+                            new GETPulsarQuantity().execute(URL_GET_PULSAR);
+
+                        }else{
+
+                            if (AttemptCount > 2) {
+                            //FS Link DisConnected
+                            System.out.println("FS Link not connected" + listOfConnectedIP_AP_PIPE);
+                            AppConstants.WriteinFile("BackgroundService_AP_PIPE ~~~~~~~~~" + "FS Link not connected");
+                            stopTimer = false;
+                            new BackgroundService_AP_PIPE.CommandsPOST().execute(URL_RELAY, jsonRelayOff);
+                            Constants.FS_1STATUS = "FREE";
+                            clearEditTextFields();
+//                          BackgroundService_AP.this.stopSelf();
+                            } else {
+                                System.out.println("FS Link not connected ~~AttemptCount:" +AttemptCount);
+                                AttemptCount = AttemptCount+1;
+                            }
+                        }}
 
                 } catch (Exception e) {
                     System.out.println(e);
@@ -545,6 +575,17 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
         }, 0, 2000);
 
 
+    }
+
+    public boolean IsFsConnected(String toMatchString)
+    {
+
+        for (String HttpAddress : listOfConnectedIP_AP_PIPE)
+        {
+            if (HttpAddress.contains(toMatchString))
+                return true;
+        }
+        return false;
     }
 
     public class GETPulsarQuantity extends AsyncTask<String, Void, String> {
@@ -558,6 +599,8 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
             try {
 
                 OkHttpClient client = new OkHttpClient();
+                client.setConnectTimeout(15, TimeUnit.SECONDS);
+                client.setReadTimeout(15, TimeUnit.SECONDS);
                 Request request = new Request.Builder()
                         .url(param[0])
                         .build();
@@ -885,6 +928,8 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
             try {
 
                 OkHttpClient client = new OkHttpClient();
+                client.setConnectTimeout(15, TimeUnit.SECONDS);
+                client.setReadTimeout(15, TimeUnit.SECONDS);
                 Request request = new Request.Builder()
                         .url(param[0])
                         .build();
@@ -1186,7 +1231,11 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
         }
 
         try {
-            new SetBTConnectionPrinter().execute();
+            //Start background Service to print recipt
+            Intent serviceIntent = new Intent(BackgroundService_AP_PIPE.this, BackgroundServiceBluetoothPrinter.class);
+            serviceIntent.putExtra("printReceipt", printReceipt);
+            startService(serviceIntent);
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -1327,11 +1376,7 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
 
         }
 
-
-        startService(new Intent(this, BackgroundService.class));
-
-        //linearFuelAnother.setVisibility(View.VISIBLE);
-
+            startService(new Intent(this, BackgroundService.class));
     }
 
     public void TankMonitorReading() {
@@ -1351,11 +1396,7 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
             //Get TankMonitoring details from FluidSecure Link
              String response1 = new CommandsGET().execute(URL_TDL_info).get();
              //String response1 = "{  \"tld\":{ \"level\":\"180, 212, 11, 34, 110, 175, 1, 47, 231, 15, 78, 65\"  }  }";
-             String test = "{\n" +
-                     "\"tld\":{\n" +
-                     "\"level\":92,207,127,206,113,140,1,73,16,10,144,244\n" +
-                     "}\n" +
-                     "}";
+
 
 
             AppConstants.WriteinFile("\n" + TAG + "Backgroundservice_AP_PIPE TankMonitorReading ~~~URL_TDL_info_Resp~~" + response1);
@@ -1469,49 +1510,6 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
 
     }
 
-    public class SetBTConnectionPrinter extends AsyncTask<String, Void, String> {
-
-
-        @Override
-        protected String doInBackground(String... strings) {
-
-
-            try {
-
-                BTprint.findBT();
-                BTprint.openBT();
-
-                System.out.println("printer. FindBT and OpenBT");
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(String s) {
-
-            try {
-                BTprint.sendData(printReceipt);
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            BTprint.closeBT();
-                        } catch (Exception e) {
-
-                        }
-                    }
-                }, 2000);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-        }
-    }
-
     public void clearEditTextFields() {
 
         Constants.AccVehicleNumber_FS1 = "";
@@ -1551,7 +1549,8 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
                 MediaType contentype = MediaType.parse(Localcontenttype);
 
                 OkHttpClient client = new OkHttpClient();
-
+                client.setConnectTimeout(15, TimeUnit.SECONDS);
+                client.setReadTimeout(15, TimeUnit.SECONDS);
                 RequestBody body = RequestBody.create(contentype, readBytesFromFile(LocalPath));
                 Request request = new Request.Builder()
                         .url(HTTP_URL)//HTTP_URL  192.168.43.210
@@ -1872,5 +1871,99 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
 
         return String.valueOf(Temp);
     }
+
+public class ListConnectedHotspotIP_AP_PIPE extends AsyncTask<String, Void, String> {
+
+    @Override
+    protected void onPreExecute() {
+
+        listOfConnectedIP_AP_PIPE.clear();
+
+    }
+
+    protected String doInBackground(String... arg0) {
+
+
+
+
+        String resp = "";
+
+        Thread thread = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                BufferedReader br = null;
+                boolean isFirstLine = true;
+
+                try {
+                    br = new BufferedReader(new FileReader("/proc/net/arp"));
+                    String line;
+
+                    while ((line = br.readLine()) != null) {
+                        if (isFirstLine) {
+                            isFirstLine = false;
+                            continue;
+                        }
+
+                        String[] splitted = line.split(" +");
+
+                        if (splitted != null && splitted.length >= 4) {
+
+                            String ipAddress = splitted[0];
+                            String macAddress = splitted[3];
+                            System.out.println("IPAddress" + ipAddress);
+                            boolean isReachable = InetAddress.getByName(
+                                    splitted[0]).isReachable(500);  // this is network call so we cant do that on UI thread, so i take background thread.
+                            if (isReachable) {
+                                Log.d("Device Information", ipAddress + " : "
+                                        + macAddress);
+                            }
+
+                            if (ipAddress != null || macAddress != null) {
+
+
+                                listOfConnectedIP_AP_PIPE.add("http://"+ ipAddress +":80/");
+                                System.out.println("Details Of Connected HotspotIP" + listOfConnectedIP_AP_PIPE);
+                            }
+
+
+
+                        }
+
+                    }
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    AppConstants.WriteinFile("BackgroundService_AP_PIPE ~~~~~~~~~" + "ListConnectedHotspotIP_AP_PIPE 1 --Exception " + e);
+                } finally {
+                    try {
+                        br.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        AppConstants.WriteinFile("BackgroundService_AP_PIPE ~~~~~~~~~" + "ListConnectedHotspotIP_AP_PIPE 2 --Exception " + e);
+                    }
+                }
+            }
+        });
+        thread.start();
+
+
+        return resp;
+
+
+    }
+
+
+    @Override
+    protected void onPostExecute(String result) {
+
+        super.onPostExecute(result);
+        String strJson = result;
+
+
+
+    }
+
+}
 
 }

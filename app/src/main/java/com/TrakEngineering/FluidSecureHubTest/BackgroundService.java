@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
+import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -18,6 +19,7 @@ import com.squareup.okhttp.Response;
 
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -29,7 +31,6 @@ public class BackgroundService extends Service {
 
     ServerHandler serverHandler = new ServerHandler();
         DBController controller = new DBController(BackgroundService.this);
-
 
     @Nullable
     @Override
@@ -44,7 +45,7 @@ public class BackgroundService extends Service {
 
 
 
-        ArrayList<HashMap<String, String>> StatusData = controller.getAllUpdateTranStatus();
+         ArrayList<HashMap<String, String>> StatusData = controller.getAllUpdateTranStatus();
 
         if (StatusData != null && StatusData.size() > 0) {
 
@@ -54,12 +55,11 @@ public class BackgroundService extends Service {
                 String jsonData = StatusData.get(i).get("jsonData");
                 String authString = StatusData.get(i).get("authString");
 
-                new UploadTransactionStatus().execute(Id, jsonData, authString);
+                 new UploadTransactionStatus().execute(Id, jsonData, authString);
 
             }
 
         }
-
 
         ArrayList<HashMap<String, String>> uData = controller.getAllTransaction();
 
@@ -289,4 +289,5 @@ public class BackgroundService extends Service {
             }
         }
     }
+
 }

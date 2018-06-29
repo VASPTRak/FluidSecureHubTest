@@ -37,9 +37,12 @@ import com.squareup.okhttp.Response;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -51,6 +54,7 @@ import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 import static com.TrakEngineering.FluidSecureHubTest.CommonUtils.GetPrintRecipt;
 import static com.TrakEngineering.FluidSecureHubTest.CommonUtils.GetPrintReciptForOther;
@@ -65,6 +69,7 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
     private static final String TAG = "BackgroundService_FS_UNITE_3 :";
     String EMPTY_Val = "";
     private ConnectionDetector cd;
+    private int AttemptCount = 0;
 
     //String HTTP_URL = "http://192.168.43.140:80/";//for pipe
     //String HTTP_URL = "http://192.168.43.5:80/";//Other FS
@@ -101,6 +106,7 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
 
     ArrayList<HashMap<String, String>> quantityRecords = new ArrayList<>();
     ArrayList<Integer> respCounter = new ArrayList<>();
+    public static ArrayList<String> listOfConnectedIP_UNIT_3 = new ArrayList<String>();
 
     SimpleDateFormat sdformat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
 
@@ -113,7 +119,7 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
     int timeFirst = 60;
     Timer tFirst;
     TimerTask taskFirst;
-    boolean stopTimer = true;
+    boolean stopTimer;
     boolean pulsarConnected = false;
     double minFuelLimit = 0, numPulseRatio = 0;
     String consoleString = "", outputQuantity = "0";
@@ -127,7 +133,6 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
     long sqliteID = 0;
     ConnectivityManager connection_manager;
     String printReceipt = "";
-    BluetoothPrinter BTprint = new BluetoothPrinter();
 
 
     @Override
@@ -146,11 +151,13 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
                     Constants.BusyVehicleNumberList.remove(Constants.AccVehicleNumber_FS3);
                 }
 
-
             }
 
             else
             {
+                stopTimer = true;
+                AttemptCount = 0;
+
                 Log.d("Service","not null");
                 HTTP_URL = (String) extras.get("HTTP_URL");
 
@@ -418,7 +425,8 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
                 MediaType JSON = MediaType.parse("application/json");
 
                 OkHttpClient client = new OkHttpClient();
-
+                client.setConnectTimeout(15, TimeUnit.SECONDS);
+                client.setReadTimeout(15, TimeUnit.SECONDS);
                 RequestBody body = RequestBody.create(JSON, param[1]);
 
                 Request request = new Request.Builder()
@@ -466,6 +474,8 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
             try {
 
                 OkHttpClient client = new OkHttpClient();
+                client.setConnectTimeout(15, TimeUnit.SECONDS);
+                client.setReadTimeout(15, TimeUnit.SECONDS);
                 Request request = new Request.Builder()
                         .url(param[0])
                         .build();
@@ -520,10 +530,29 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
 
                         }
                         */
+                        new ListConnectedHotspotIP_FS_UNIT_3().execute();
 
-                        new GETPulsarQuantity().execute(URL_GET_PULSAR);
+                        Thread.sleep(1000);
 
-                    }
+                        if (IsFsConnected(HTTP_URL)){
+                            AttemptCount = 0;
+                            //FS link is connected
+                            new GETPulsarQuantity().execute(URL_GET_PULSAR);
+
+                        }else{
+                            if (AttemptCount > 2) {
+                            //FS Link DisConnected
+                            AppConstants.WriteinFile("BackgroundService_FS_UNIT_3 ~~~~~~~~~" + "FS Link not connected" );
+                            stopTimer = false;
+                            new BackgroundService_FS_UNIT_3.CommandsPOST().execute(URL_RELAY, jsonRelayOff);
+                            Constants.FS_3STATUS = "FREE";
+                            clearEditTextFields();
+//                          BackgroundService_AP.this.stopSelf();
+                            } else {
+                                System.out.println("FS Link not connected ~~AttemptCount:" +AttemptCount);
+                                AttemptCount = AttemptCount+1;
+                            }
+                        }}
 
                 } catch (Exception e) {
                     System.out.println(e);
@@ -534,6 +563,17 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
         }, 0, 2000);
 
 
+    }
+
+    public boolean IsFsConnected(String toMatchString)
+    {
+
+        for (String HttpAddress : listOfConnectedIP_UNIT_3)
+        {
+            if (HttpAddress.contains(toMatchString))
+                return true;
+        }
+        return false;
     }
 
     public class GETPulsarQuantity extends AsyncTask<String, Void, String> {
@@ -547,6 +587,8 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
             try {
 
                 OkHttpClient client = new OkHttpClient();
+                client.setConnectTimeout(15, TimeUnit.SECONDS);
+                client.setReadTimeout(15, TimeUnit.SECONDS);
                 Request request = new Request.Builder()
                         .url(param[0])
                         .build();
@@ -872,6 +914,8 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
             try {
 
                 OkHttpClient client = new OkHttpClient();
+                client.setConnectTimeout(15, TimeUnit.SECONDS);
+                client.setReadTimeout(15, TimeUnit.SECONDS);
                 Request request = new Request.Builder()
                         .url(param[0])
                         .build();
@@ -1153,7 +1197,12 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
         }
 
         try {
-            new  SetBTConnectionPrinter().execute();
+
+            //Start background Service to print recipt
+            Intent serviceIntent = new Intent(BackgroundService_FS_UNIT_3.this, BackgroundServiceBluetoothPrinter.class);
+            serviceIntent.putExtra("printReceipt", printReceipt);
+            startService(serviceIntent);
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -1266,10 +1315,7 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
 
         }
 
-
-        startService(new Intent(this, BackgroundService.class));
-
-        //linearFuelAnother.setVisibility(View.VISIBLE);
+            startService(new Intent(this, BackgroundService.class));
 
     }
 
@@ -1404,49 +1450,6 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
 
     }
 
-    public class SetBTConnectionPrinter extends AsyncTask<String, Void, String> {
-
-
-        @Override
-        protected String doInBackground(String... strings) {
-
-
-            try {
-
-                BTprint.findBT();
-                BTprint.openBT();
-
-                System.out.println("printer. FindBT and OpenBT");
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(String s) {
-
-            try {
-                BTprint.sendData(printReceipt);
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            BTprint.closeBT();
-                        }catch (Exception e){
-
-                        }
-                    }
-                },2000);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-        }
-    }
-
     public void clearEditTextFields(){
 
         Constants.AccVehicleNumber_FS3 = "";
@@ -1487,7 +1490,8 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
                 MediaType contentype = MediaType.parse(Localcontenttype);
 
                 OkHttpClient client = new OkHttpClient();
-
+                client.setConnectTimeout(15, TimeUnit.SECONDS);
+                client.setReadTimeout(15, TimeUnit.SECONDS);
                 RequestBody body = RequestBody.create(contentype, readBytesFromFile(LocalPath));
 
                 Request request = new Request.Builder()
@@ -1788,5 +1792,100 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
         return mac_address;
     }
 
+
+    public static class ListConnectedHotspotIP_FS_UNIT_3 extends AsyncTask<String, Void, String> {
+
+        @Override
+        protected void onPreExecute() {
+
+            listOfConnectedIP_UNIT_3.clear();
+
+        }
+
+        protected String doInBackground(String... arg0) {
+
+
+
+
+            String resp = "";
+
+            Thread thread = new Thread(new Runnable() {
+
+                @Override
+                public void run() {
+                    BufferedReader br = null;
+                    boolean isFirstLine = true;
+
+                    try {
+                        br = new BufferedReader(new FileReader("/proc/net/arp"));
+                        String line;
+
+                        while ((line = br.readLine()) != null) {
+                            if (isFirstLine) {
+                                isFirstLine = false;
+                                continue;
+                            }
+
+                            String[] splitted = line.split(" +");
+
+                            if (splitted != null && splitted.length >= 4) {
+
+                                String ipAddress = splitted[0];
+                                String macAddress = splitted[3];
+                                System.out.println("IPAddress" + ipAddress);
+                                boolean isReachable = InetAddress.getByName(
+                                        splitted[0]).isReachable(500);  // this is network call so we cant do that on UI thread, so i take background thread.
+                                if (isReachable) {
+                                    Log.d("Device Information", ipAddress + " : "
+                                            + macAddress);
+                                }
+
+                                if (ipAddress != null || macAddress != null) {
+
+
+                                    listOfConnectedIP_UNIT_3.add("http://"+ ipAddress +":80/");
+                                    System.out.println("Details Of Connected HotspotIP" + listOfConnectedIP_UNIT_3);
+
+                                }
+
+
+
+                            }
+
+                        }
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        AppConstants.WriteinFile("BackgroundService_FS_UNIT_3 ~~~~~~~~~" + "ListConnectedHotspotIP_FS_UNIT_3 1 --Exception " + e);
+                    } finally {
+                        try {
+                            br.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                            AppConstants.WriteinFile("BackgroundService_FS_UNIT_3 ~~~~~~~~~" + "ListConnectedHotspotIP_FS_UNIT_3 2 --Exception " + e);
+                        }
+                    }
+                }
+            });
+            thread.start();
+
+
+            return resp;
+
+
+        }
+
+
+        @Override
+        protected void onPostExecute(String result) {
+
+            super.onPostExecute(result);
+            String strJson = result;
+
+
+
+        }
+
+    }
 
 }

@@ -1,5 +1,6 @@
 package com.TrakEngineering.FluidSecureHubTest;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.AlertDialog;
@@ -7,10 +8,12 @@ import android.app.Dialog;
 import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
+import android.bluetooth.le.BluetoothLeScanner;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -99,6 +102,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import static com.TrakEngineering.FluidSecureHubTest.R.id.textView;
@@ -326,12 +330,16 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         super.onDestroy();
         /* Stop to monitor bond state change */
         unregisterReceiver(mBroadcastReceiver);
-
         /* Disconnect Bluetooth reader */
         disconnectReader();
+
+        IntentFilter filter = new IntentFilter(Intent.ACTION_SCREEN_ON);
+        filter.addAction(Intent.ACTION_SCREEN_OFF);
+
     }
 
 
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -1286,6 +1294,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     }
 
     public void refreshWiFiList() {
+
         new GetSSIDUsingLocation().execute();
     }
 
@@ -1400,6 +1409,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
         @Override
         protected void onPreExecute() {
+
             pd = new ProgressDialog(WelcomeActivity.this);
             pd.setMessage("Please wait...");
             pd.setCancelable(true);
@@ -1442,7 +1452,6 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                 Response response = client.newCall(request).execute();
                 resp = response.body().string();
-
 
                 //------------------------------
 
@@ -3657,7 +3666,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             tv_fs3_Pulse.setText(Constants.FS_3Pulse);
             tv_fs3_stop.setClickable(false);
 
-            System.out.println("testing update ui Welcome : Gallons" + Constants.FS_3Gallons + "pulse" + Constants.FS_3Pulse);
+            // System.out.println("testing update ui Welcome : Gallons" + Constants.FS_3Gallons + "pulse" + Constants.FS_3Pulse);
 
             if (Constants.FS_3Gallons.equals("") || Constants.FS_3Gallons.equals("0.00")) {
                 Constants.FS_3Gallons = String.valueOf("0.00");
@@ -5116,4 +5125,5 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         }
 
     }
+
 }

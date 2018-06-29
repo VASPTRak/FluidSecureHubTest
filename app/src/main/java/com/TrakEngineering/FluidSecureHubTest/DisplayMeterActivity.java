@@ -62,8 +62,10 @@ import org.json.JSONObject;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -75,7 +77,9 @@ import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
+import static android.os.Build.VERSION.SDK_INT;
 import static android.text.TextUtils.isEmpty;
 import static com.TrakEngineering.FluidSecureHubTest.WelcomeActivity.wifiApManager;
 import static java.lang.String.format;
@@ -96,9 +100,11 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
     LinearLayout linearFuelAnother;
     Integer Pulses = 0;
     String iot_version = "";
+    ProgressDialog loading;
 
     private static final int SERVER_PORT = 2901;
     private static final String SERVER_IP = "192.168.4.1";
+    ArrayList<HashMap<String, String>> ListOfConnectedDevices = new ArrayList<>();
 
 
     Socket socketFS = new Socket();
@@ -210,6 +216,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
     protected void onResume() {
         super.onResume();
 
+        new GetConnectedDevicesIP().execute();
         //Hide keyboard
         this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
     }
@@ -251,9 +258,11 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
             }
         }, screenTimeOut);
 
+
         AppConstants.WriteinFile("DisplayMeterActivity ~~~~~~~~~" + " In DisplayMeterActivity ");
 
         getListOfConnectedDevice();
+
 
         tv_hoseConnected.setText("Connected to " + AppConstants.CURRENT_SELECTED_SSID);
         if (Constants.CurrentSelectedHose.equals("FS1")) {
@@ -741,6 +750,14 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
             case R.id.btnStart:
 
+                /*loading = new ProgressDialog(DisplayMeterActivity.this);
+                loading.setCancelable(true);
+                loading.setMessage("Please wait..");
+                loading.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+                loading.show();*/
+
+                //new SetBTConnectionPrinter().execute();
+
                 SharedPreferences sharedPrefODO = DisplayMeterActivity.this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
                 IsOdoMeterRequire = sharedPrefODO.getString(AppConstants.IsOdoMeterRequire, "");
                 String HubId = sharedPrefODO.getString(AppConstants.HubId, "");
@@ -761,6 +778,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                     }
 
                 }
+
                 URL_GET_TXNID = HTTP_URL + "client?command=lasttxtnid";
                 URL_SET_TXNID = HTTP_URL + "config?command=txtnid";
                 URL_GET_PULSAR = HTTP_URL + "client?command=pulsar ";
@@ -771,8 +789,10 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                 String PulserTimingAd = HTTP_URL + "config?command=pulsar";
                 URL_SET_PULSAR = HTTP_URL + "config?command=pulsar";
 
+
                 //Check if Hose connected to hotspot or not
                 try {
+
                     String FSStatus = new CommandsGET().execute(URL_INFO).get();
                     System.out.print("psssss" + FSStatus);
                     if (FSStatus.startsWith("{") && FSStatus.contains("Version")) {
@@ -852,6 +872,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                                             @Override
                                             public void run() {
 
+                                               // loading.dismiss();
                                                 // startService(new Intent(DisplayMeterActivity.this, BackgroundService_AP_PIPE.class));
                                                 Intent serviceIntent = new Intent(DisplayMeterActivity.this, BackgroundService_AP_PIPE.class);
                                                 serviceIntent.putExtra("HTTP_URL", HTTP_URL);
@@ -1232,9 +1253,13 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                 if (respp.contains("quantity_10_record")) {
                     JSONObject jsonObject = new JSONObject(respp);
                     JSONObject joPulsarStat = jsonObject.getJSONObject("quantity_10_record");
-                    int counts1 = Integer.parseInt(joPulsarStat.getString("1:")) + 1;
-                    String counts = String.valueOf(counts1);
-
+                    int Initialcount = Integer.parseInt(joPulsarStat.getString("1:"));
+                    String counts = "";
+                    if (Initialcount > 0){
+                        counts = String.valueOf(Initialcount+1);
+                    }else{
+                        counts = String.valueOf(Initialcount);
+                    }
 
                     Pulses = Integer.parseInt(counts);
                     double lastCnt = Double.parseDouble(counts);
@@ -1665,6 +1690,8 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
             try {
 
                 OkHttpClient client = new OkHttpClient();
+                client.setConnectTimeout(15, TimeUnit.SECONDS);
+                client.setReadTimeout(15, TimeUnit.SECONDS);
                 Request request = new Request.Builder()
                         .url(param[0])
                         .build();
@@ -1715,6 +1742,8 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
             try {
 
                 OkHttpClient client = new OkHttpClient();
+                client.setConnectTimeout(15, TimeUnit.SECONDS);
+                client.setReadTimeout(15, TimeUnit.SECONDS);
                 Request request = new Request.Builder()
                         .url(param[0])
                         .build();
@@ -1880,10 +1909,15 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
             try {
 
                 OkHttpClient client = new OkHttpClient();
+                client.setConnectTimeout(15, TimeUnit.SECONDS);
+                client.setReadTimeout(15, TimeUnit.SECONDS);
+
                 Request request = new Request.Builder()
                         .url(param[0])
                         .build();
 
+                request.urlString();
+                System.out.println("urlStr"+request.urlString());
                 Response response = client.newCall(request).execute();
                 resp = response.body().string();
 
@@ -1937,6 +1971,8 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                 MediaType JSON = MediaType.parse("application/json");
 
                 OkHttpClient client = new OkHttpClient();
+                client.setConnectTimeout(15, TimeUnit.SECONDS);
+                client.setReadTimeout(15, TimeUnit.SECONDS);
 
                 RequestBody body = RequestBody.create(JSON, param[1]);
 
@@ -2564,6 +2600,109 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
             return null;
         }
     }*/
+   public class GetConnectedDevicesIP extends AsyncTask<String, Void, String> {
+       ProgressDialog dialog;
+
+
+       @Override
+       protected void onPreExecute() {
+           dialog = new ProgressDialog(DisplayMeterActivity.this);
+           dialog.setMessage("Fetching connected device info..");
+           dialog.setCancelable(false);
+           dialog.show();
+
+       }
+
+       protected String doInBackground(String... arg0) {
+
+
+           ListOfConnectedDevices.clear();
+
+           String resp = "";
+
+           Thread thread = new Thread(new Runnable() {
+
+               @Override
+               public void run() {
+                   BufferedReader br = null;
+                   boolean isFirstLine = true;
+
+                   try {
+                       br = new BufferedReader(new FileReader("/proc/net/arp"));
+                       String line;
+
+                       while ((line = br.readLine()) != null) {
+                           if (isFirstLine) {
+                               isFirstLine = false;
+                               continue;
+                           }
+
+                           String[] splitted = line.split(" +");
+
+                           if (splitted != null && splitted.length >= 4) {
+
+                               String ipAddress = splitted[0];
+                               String macAddress = splitted[3];
+                               System.out.println("IPAddress" + ipAddress);
+                               boolean isReachable = InetAddress.getByName(
+                                       splitted[0]).isReachable(500);  // this is network call so we cant do that on UI thread, so i take background thread.
+                               if (isReachable) {
+                                   Log.d("Device Information", ipAddress + " : "
+                                           + macAddress);
+                               }
+
+                               if (ipAddress != null || macAddress != null) {
+
+                                   HashMap<String, String> map = new HashMap<>();
+                                   map.put("ipAddress", ipAddress);
+                                   map.put("macAddress", macAddress);
+
+                                   ListOfConnectedDevices.add(map);
+
+                               }
+                               AppConstants.DetailsListOfConnectedDevices = ListOfConnectedDevices;
+                               System.out.println("DeviceConnected" + ListOfConnectedDevices);
+
+                           }
+
+                       }
+
+                   } catch (Exception e) {
+                       e.printStackTrace();
+                       AppConstants.WriteinFile("welcomeActivity ~~~~~~~~~" + "GetConnectedDevicesIP 1 --Exception " + e);
+                   } finally {
+                       try {
+                           br.close();
+                       } catch (IOException e) {
+                           e.printStackTrace();
+                           AppConstants.WriteinFile("welcomeActivity ~~~~~~~~~" + "GetConnectedDevicesIP 2 --Exception " + e);
+                       }
+                   }
+               }
+           });
+           thread.start();
+
+
+           return resp;
+
+
+       }
+
+
+       @Override
+       protected void onPostExecute(String result) {
+
+           super.onPostExecute(result);
+           String strJson = result;
+
+
+           dialog.dismiss();
+
+       }
+
+   }
+
+
 
 
 }

@@ -135,6 +135,8 @@
             android:enabled="true" />
         <service android:name=".BackgroundServiceUpgradeFirmware"
             android:enabled="true" />
+        <service android:name=".BackgroundServiceBluetoothPrinter"
+            android:enabled="true"/>
 
         <receiver android:name=".MobileDataReceiver">
             <intent-filter>

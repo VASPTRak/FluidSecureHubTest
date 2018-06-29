@@ -6,11 +6,11 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.location.Location;
+import android.net.ConnectivityManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
-import android.provider.SyncStateContract;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -32,9 +32,12 @@ import com.squareup.okhttp.Response;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -46,6 +49,7 @@ import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 import static com.TrakEngineering.FluidSecureHubTest.CommonUtils.GetPrintRecipt;
 import static com.TrakEngineering.FluidSecureHubTest.CommonUtils.GetPrintReciptForOther;
@@ -60,6 +64,8 @@ public class BackgroundService_AP extends BackgroundService {
     private static final String TAG = "BackgroundService_AP";
     String EMPTY_Val = "";
     private ConnectionDetector cd;
+    private int AttemptCount = 0;
+    public static ArrayList<String> listOfConnectedIP_AP = new ArrayList<String>();
 
     //String HTTP_URL = "http://192.168.43.140:80/";//for pipe
     //String HTTP_URL = "http://192.168.43.5:80/";//Other FS
@@ -105,10 +111,12 @@ public class BackgroundService_AP extends BackgroundService {
     public static String FOLDER_PATH = Environment.getExternalStorageDirectory().getAbsolutePath() + "/FSBin/";
     public static String PATH_BIN_FILE1 = "user1.2048.new.5.bin";
 
+    ConnectivityManager connection_manager;
+
     int timeFirst = 60;
     Timer tFirst;
     TimerTask taskFirst;
-    boolean stopTimer = true;
+    boolean stopTimer;
     boolean pulsarConnected = false;
     double minFuelLimit = 0, numPulseRatio = 0;
     String consoleString = "", outputQuantity = "0";
@@ -121,13 +129,15 @@ public class BackgroundService_AP extends BackgroundService {
     Integer Pulses = 0;
     long sqliteID = 0;
     String printReceipt = "";
-    BluetoothPrinter BTprint = new BluetoothPrinter();
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 
         try {
             super.onStart(intent, startId);
+
+
+
             Bundle extras = intent.getExtras();
             if (extras == null) {
                 Log.d("Service", "null");
@@ -138,6 +148,10 @@ public class BackgroundService_AP extends BackgroundService {
                     Constants.BusyVehicleNumberList.remove(Constants.AccVehicleNumber);
                 }
             } else {
+
+                stopTimer = true;
+                AttemptCount = 0;
+
                 Log.d("Service", "not null");
                 HTTP_URL = (String) extras.get("HTTP_URL");
 
@@ -387,7 +401,8 @@ public class BackgroundService_AP extends BackgroundService {
                 MediaType JSON = MediaType.parse("application/json");
 
                 OkHttpClient client = new OkHttpClient();
-
+                client.setConnectTimeout(15, TimeUnit.SECONDS);
+                client.setReadTimeout(15, TimeUnit.SECONDS);
                 RequestBody body = RequestBody.create(JSON, param[1]);
 
                 Request request = new Request.Builder()
@@ -436,6 +451,8 @@ public class BackgroundService_AP extends BackgroundService {
             try {
 
                 OkHttpClient client = new OkHttpClient();
+                client.setConnectTimeout(15, TimeUnit.SECONDS);
+                client.setReadTimeout(15, TimeUnit.SECONDS);
                 Request request = new Request.Builder()
                         .url(param[0])
                         .build();
@@ -491,9 +508,31 @@ public class BackgroundService_AP extends BackgroundService {
                         }
                         */
 
-                        new GETPulsarQuantity().execute(URL_GET_PULSAR);
+                       new ListConnectedHotspotIP_AP().execute();
 
-                    }
+                       Thread.sleep(1000);
+
+                        if (IsFsConnected(HTTP_URL)){
+                            AttemptCount = 0;
+                            //FS link is connected
+                            new GETPulsarQuantity().execute(URL_GET_PULSAR);
+
+                        }else{
+
+                            if (AttemptCount > 2) {
+                            //FS Link DisConnected
+                            System.out.println("FS Link not connected" + listOfConnectedIP_AP);
+                            AppConstants.WriteinFile("BackgroundService_AP ~~~~~~~~~" + "FS Link not connected");
+                            stopTimer = false;
+                            new CommandsPOST().execute(URL_RELAY, jsonRelayOff);
+                            Constants.FS_2STATUS = "FREE";
+                            clearEditTextFields();
+//                          BackgroundService_AP.this.stopSelf();
+                            } else {
+                                System.out.println("FS Link not connected ~~AttemptCount:" +AttemptCount);
+                                AttemptCount = AttemptCount+1;
+                            }
+                        }}
 
                 } catch (Exception e) {
                     AppConstants.WriteinFile("BackgroundService_AP ~~~~~~~~~" + "startQuantityInterval Execption " + e);
@@ -504,6 +543,17 @@ public class BackgroundService_AP extends BackgroundService {
         }, 0, 2000);
 
 
+    }
+
+    public boolean IsFsConnected(String toMatchString)
+    {
+
+        for (String HttpAddress : listOfConnectedIP_AP)
+        {
+            if (HttpAddress.contains(toMatchString))
+                return true;
+        }
+        return false;
     }
 
     public class GETPulsarQuantity extends AsyncTask<String, Void, String> {
@@ -517,6 +567,8 @@ public class BackgroundService_AP extends BackgroundService {
             try {
 
                 OkHttpClient client = new OkHttpClient();
+                client.setConnectTimeout(15, TimeUnit.SECONDS);
+                client.setReadTimeout(15, TimeUnit.SECONDS);
                 Request request = new Request.Builder()
                         .url(param[0])
                         .build();
@@ -846,6 +898,8 @@ public class BackgroundService_AP extends BackgroundService {
             try {
 
                 OkHttpClient client = new OkHttpClient();
+                client.setConnectTimeout(15, TimeUnit.SECONDS);
+                client.setReadTimeout(15, TimeUnit.SECONDS);
                 Request request = new Request.Builder()
                         .url(param[0])
                         .build();
@@ -1126,7 +1180,12 @@ public class BackgroundService_AP extends BackgroundService {
         }
 
         try {
-            new SetBTConnectionPrinter().execute();
+
+            //Start background Service to print recipt
+            Intent serviceIntent = new Intent(BackgroundService_AP.this, BackgroundServiceBluetoothPrinter.class);
+            serviceIntent.putExtra("printReceipt", printReceipt);
+            startService(serviceIntent);
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -1240,12 +1299,7 @@ public class BackgroundService_AP extends BackgroundService {
 
         }
 
-
-        startService(new Intent(this, BackgroundService.class));
-
-        //linearFuelAnother.setVisibility(View.VISIBLE);
-
-
+            startService(new Intent(this, BackgroundService.class));
     }
 
     public void TankMonitorReading() {
@@ -1377,49 +1431,6 @@ public class BackgroundService_AP extends BackgroundService {
 
     }
 
-    public class SetBTConnectionPrinter extends AsyncTask<String, Void, String> {
-
-
-        @Override
-        protected String doInBackground(String... strings) {
-
-
-            try {
-
-                BTprint.findBT();
-                BTprint.openBT();
-
-                System.out.println("printer. FindBT and OpenBT");
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(String s) {
-
-            try {
-                BTprint.sendData(printReceipt);
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            BTprint.closeBT();
-                        } catch (Exception e) {
-
-                        }
-                    }
-                }, 2000);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-        }
-    }
-
     public void clearEditTextFields() {
 
         Constants.AccVehicleNumber = "";
@@ -1459,7 +1470,8 @@ public class BackgroundService_AP extends BackgroundService {
                 MediaType contentype = MediaType.parse(Localcontenttype);
 
                 OkHttpClient client = new OkHttpClient();
-
+                client.setConnectTimeout(15, TimeUnit.SECONDS);
+                client.setReadTimeout(15, TimeUnit.SECONDS);
                 RequestBody body = RequestBody.create(contentype, readBytesFromFile(LocalPath));
 
                 Request request = new Request.Builder()
@@ -1807,4 +1819,99 @@ public class BackgroundService_AP extends BackgroundService {
 
         return String.valueOf(Temp);
     }
+
+    public static class ListConnectedHotspotIP_AP extends AsyncTask<String, Void, String> {
+
+        @Override
+        protected void onPreExecute() {
+
+            listOfConnectedIP_AP.clear();
+
+        }
+
+        protected String doInBackground(String... arg0) {
+
+
+
+
+            String resp = "";
+
+            Thread thread = new Thread(new Runnable() {
+
+                @Override
+                public void run() {
+                    BufferedReader br = null;
+                    boolean isFirstLine = true;
+
+                    try {
+                        br = new BufferedReader(new FileReader("/proc/net/arp"));
+                        String line;
+
+                        while ((line = br.readLine()) != null) {
+                            if (isFirstLine) {
+                                isFirstLine = false;
+                                continue;
+                            }
+
+                            String[] splitted = line.split(" +");
+
+                            if (splitted != null && splitted.length >= 4) {
+
+                                String ipAddress = splitted[0];
+                                String macAddress = splitted[3];
+                                System.out.println("IPAddress" + ipAddress);
+                                boolean isReachable = InetAddress.getByName(
+                                        splitted[0]).isReachable(500);  // this is network call so we cant do that on UI thread, so i take background thread.
+                                if (isReachable) {
+                                    Log.d("Device Information", ipAddress + " : "
+                                            + macAddress);
+                                }
+
+                                if (ipAddress != null || macAddress != null) {
+
+
+                                    listOfConnectedIP_AP.add("http://"+ ipAddress +":80/");
+                                    System.out.println("Details Of Connected HotspotIP" + listOfConnectedIP_AP);
+                                }
+
+
+
+                            }
+
+                        }
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        AppConstants.WriteinFile("BackgroundService_AP ~~~~~~~~~" + "ListConnectedHotspotIP_AP 1 --Exception " + e);
+                    } finally {
+                        try {
+                            br.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                            AppConstants.WriteinFile("BackgroundService_AP ~~~~~~~~~" + "ListConnectedHotspotIP_AP 2 --Exception " + e);
+                        }
+                    }
+                }
+            });
+            thread.start();
+
+
+            return resp;
+
+
+        }
+
+
+        @Override
+        protected void onPostExecute(String result) {
+
+            super.onPostExecute(result);
+            String strJson = result;
+
+
+
+        }
+
+    }
+
 }
