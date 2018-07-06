@@ -128,7 +128,7 @@ public class BackgroundService_AP extends BackgroundService {
     double Lastfillqty = 0;
     Integer Pulses = 0;
     long sqliteID = 0;
-    String printReceipt = "";
+    String printReceipt = "",IsFuelingStop = "0",IsLastTransaction = "0";
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -151,6 +151,8 @@ public class BackgroundService_AP extends BackgroundService {
 
                 stopTimer = true;
                 AttemptCount = 0;
+                IsFuelingStop = "0";
+                IsLastTransaction = "0";
 
                 Log.d("Service", "not null");
                 HTTP_URL = (String) extras.get("HTTP_URL");
@@ -498,17 +500,10 @@ public class BackgroundService_AP extends BackgroundService {
 
                     if (stopTimer) {
 
-                        /*
-                        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
 
-                            setHttpTransportWifi(URL_GET_PULSAR, EMPTY_Val);
+                        new GETPulsarQuantity().execute(URL_GET_PULSAR);
 
-                        } else {
-
-                        }
-                        */
-
-                       new ListConnectedHotspotIP_AP().execute();
+                      /* new ListConnectedHotspotIP_AP().execute();
 
                        Thread.sleep(1000);
 
@@ -532,7 +527,7 @@ public class BackgroundService_AP extends BackgroundService {
                                 System.out.println("FS Link not connected ~~AttemptCount:" +AttemptCount);
                                 AttemptCount = AttemptCount+1;
                             }
-                        }}
+                        }*/}
 
                 } catch (Exception e) {
                     AppConstants.WriteinFile("BackgroundService_AP ~~~~~~~~~" + "startQuantityInterval Execption " + e);
@@ -640,6 +635,7 @@ public class BackgroundService_AP extends BackgroundService {
                     pulsarConnected = false;
                     if (!pulsarConnected) {
 
+                        IsFuelingStop = "1";
                         System.out.println("APFS33 Auto Stop! Pulsar disconnected");
                         //AppConstants.colorToastBigFont(this, AppConstants.FS2_CONNECTED_SSID+" Auto Stop!\n\nPulsar disconnected", Color.BLUE);
                         stopButtonFunctionality();
@@ -684,6 +680,7 @@ public class BackgroundService_AP extends BackgroundService {
                         //linearTimer.setVisibility(View.GONE);
                         //tvCountDownTimer.setText("1");
 
+                        IsFuelingStop = "1";
                         System.out.println("APFS33 Auto Stop! Count down timer completed");
                         AppConstants.colorToastBigFont(this, AppConstants.FS2_CONNECTED_SSID + " Auto Stop!\n\nCount down timer completed.", Color.BLUE);
                         stopButtonFunctionality();
@@ -717,6 +714,7 @@ public class BackgroundService_AP extends BackgroundService {
                     if (minFuelLimit > 0) {
                         if (fillqty >= minFuelLimit) {
 
+                            IsFuelingStop = "1";
                             System.out.println("APFS33 Auto Stop!You reached MAX fuel limit.");
                             //AppConstants.colorToastBigFont(this, "Auto Stop!\n\nYou reached MAX fuel limit.", Color.BLUE);
                             stopButtonFunctionality();
@@ -956,6 +954,7 @@ public class BackgroundService_AP extends BackgroundService {
 
                         if (qtyFrequencyCount()) {
 
+                            IsFuelingStop = "1";
                             //qty is same for some time
                             System.out.println("APFS33 Auto Stop!Quantity is same for last");
                             //AppConstants.colorToastBigFont(this, "Auto Stop!\n\nQuantity is same for last " + stopAutoFuelSeconds + " seconds.", Color.BLUE);
@@ -1034,6 +1033,8 @@ public class BackgroundService_AP extends BackgroundService {
         authEntityClass.AppInfo = " Version:" + CommonUtils.getVersionCode(BackgroundService_AP.this) + " " + AppConstants.getDeviceName() + " Android " + android.os.Build.VERSION.RELEASE + " " + "--Main Transaction--";
         authEntityClass.TransactionFrom = "A";
         authEntityClass.Pulses = Integer.parseInt(counts);
+        authEntityClass.IsFuelingStop = IsFuelingStop;
+        authEntityClass.IsLastTransaction = IsLastTransaction;
 
         Gson gson = new Gson();
         String jsonData = gson.toJson(authEntityClass);
@@ -1200,6 +1201,8 @@ public class BackgroundService_AP extends BackgroundService {
             authEntityClass.Pulses = Pulses;
             authEntityClass.TransactionFrom = "A";
             authEntityClass.AppInfo = " Version:" + CommonUtils.getVersionCode(BackgroundService_AP.this) + " " + AppConstants.getDeviceName() + " Android " + android.os.Build.VERSION.RELEASE + " ";
+            authEntityClass.IsFuelingStop = IsFuelingStop;
+            authEntityClass.IsLastTransaction = IsLastTransaction;
 
             /*authEntityClass.PersonId = PersonId;
             authEntityClass.SiteId = AcceptVehicleActivity.SITE_ID;
@@ -1803,7 +1806,7 @@ public class BackgroundService_AP extends BackgroundService {
 
             String lsb_hex = CommonUtils.decimal2hex(Integer.parseInt(LSB));
             String msb_hex = CommonUtils.decimal2hex(Integer.parseInt(MSB));
-            String Combine_hex = lsb_hex+msb_hex;
+            String Combine_hex = msb_hex+lsb_hex;
             int finalpd = CommonUtils.hex2decimal(Combine_hex);
             prove = finalpd / 128;
 

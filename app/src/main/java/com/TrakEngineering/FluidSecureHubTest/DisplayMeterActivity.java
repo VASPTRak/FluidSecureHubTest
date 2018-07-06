@@ -120,7 +120,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
     boolean isTransactionComp = false;
     ServerHandler serverHandler = new ServerHandler();
 
-    String EMPTY_Val = "";
+    String EMPTY_Val = "",IsFuelingStop = "0",IsLastTransaction = "1";;
 
     public String HTTP_URL = "";
     public String URL_GET_TXNID = "";
@@ -1275,6 +1275,8 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                         authEntityClass.Pulses = Pulses;
                         authEntityClass.AppInfo = " Version:" + CommonUtils.getVersionCode(DisplayMeterActivity.this) + " " + AppConstants.getDeviceName() + " Android " + android.os.Build.VERSION.RELEASE + " " + "--Last Transaction--";
                         authEntityClass.TransactionFrom = "A";
+                        authEntityClass.IsFuelingStop = IsFuelingStop;
+                        authEntityClass.IsLastTransaction = IsLastTransaction;
 
                         Gson gson = new Gson();
                         String jsonData = gson.toJson(authEntityClass);

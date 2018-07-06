@@ -1,5 +1,6 @@
 package com.TrakEngineering.FluidSecureHubTest;
 
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Service;
 import android.content.Context;
@@ -28,11 +29,14 @@ import com.TrakEngineering.FluidSecureHubTest.server.ServerHandler;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.gson.Gson;
+import com.squareup.okhttp.Call;
+import com.squareup.okhttp.Callback;
 import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.RequestBody;
 import com.squareup.okhttp.Response;
+import com.squareup.okhttp.ResponseBody;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -58,6 +62,7 @@ import java.util.concurrent.TimeUnit;
 
 import static com.TrakEngineering.FluidSecureHubTest.CommonUtils.GetPrintRecipt;
 import static com.TrakEngineering.FluidSecureHubTest.CommonUtils.GetPrintReciptForOther;
+import static com.google.android.gms.internal.zzid.runOnUiThread;
 
 
 /**
@@ -135,7 +140,8 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
 
     double Lastfillqty = 0;
     ConnectivityManager connection_manager;
-    String printReceipt = "";
+    String printReceipt = "",IsFuelingStop = "0",IsLastTransaction = "0";
+
 
 
     @Override
@@ -158,6 +164,8 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
 
                 stopTimer = true;
                 AttemptCount = 0;
+                IsFuelingStop = "0";
+                IsLastTransaction = "0";
 
                 Log.d("Service", "not null");
                 HTTP_URL = (String) extras.get("HTTP_URL");
@@ -521,7 +529,6 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
 
     public void startQuantityInterval() {
 
-
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
@@ -530,23 +537,19 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
 
                     if (stopTimer) {
 
-                        /*
-                        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                        new GETPulsarQuantity().execute(URL_GET_PULSAR);
 
-                            setHttpTransportWifi(URL_GET_PULSAR, EMPTY_Val);
+                        //Asynchronous okhttp call
+                       // GETPulsarQuantityAsyncCall(URL_GET_PULSAR);
 
-                        } else {
-
-                        }
-                        */
-
-                        new  ListConnectedHotspotIP_AP_PIPE().execute();
+                       /* new  ListConnectedHotspotIP_AP_PIPE().execute();
 
                         Thread.sleep(1000);
 
                         if (IsFsConnected(HTTP_URL)){
                             AttemptCount = 0;
                             //FS link is connected
+                            System.out.println("Get pulsor timing check in FS PIPE -- startQuantityInterval");
                             new GETPulsarQuantity().execute(URL_GET_PULSAR);
 
                         }else{
@@ -564,7 +567,7 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
                                 System.out.println("FS Link not connected ~~AttemptCount:" +AttemptCount);
                                 AttemptCount = AttemptCount+1;
                             }
-                        }}
+                        }*/}
 
                 } catch (Exception e) {
                     System.out.println(e);
@@ -591,6 +594,7 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
     public class GETPulsarQuantity extends AsyncTask<String, Void, String> {
 
         public String resp = "";
+
 
 
         protected String doInBackground(String... param) {
@@ -620,7 +624,6 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
         @Override
         protected void onPostExecute(String result) {
 
-            System.out.println("Result"+result);
             System.out.println("Result"+result);
 
             try {
@@ -654,6 +657,68 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
         }
     }
 
+    public void GETPulsarQuantityAsyncCall(String URL_GET_PULSAR){
+        OkHttpClient httpClient = new OkHttpClient();
+        Request request = new Request.Builder()
+                .url(URL_GET_PULSAR)
+                .build();
+
+        httpClient.newCall(request).enqueue(new Callback() {
+            @SuppressLint("LongLogTag")
+            @Override
+            public void onFailure(Request request, IOException e) {
+                Log.e(TAG, "error in getting response using async okhttp call");
+            }
+
+            @SuppressLint("LongLogTag")
+            @Override
+            public void onResponse(Response response) throws IOException {
+
+                ResponseBody responseBody = response.body();
+                if (!response.isSuccessful()) {
+                    throw new IOException("Error response " + response);
+                }else {
+
+                    String result = responseBody.string();
+                    System.out.println("Result" + result);
+                    System.out.println("Get pulsar---------- FS PIPE ~~~onPostExecute~~~" + result);
+
+                    try {
+
+                        if (result.equalsIgnoreCase("")) {
+                            respCounter.add(0);
+                            System.out.println("FR:0");
+                        } else {
+                            respCounter.add(1);
+                            System.out.println("FR:1");
+                        }
+
+                        if (getPulsarResponseEmptyFor3times()) {
+                            // btnStop.performClick();
+                            stopButtonFunctionality();
+
+                        } else {
+
+                            System.out.println("OUTPUT" + result);
+
+                            if (stopTimer)
+                                pulsarQtyLogic(result);
+                        }
+
+
+                    } catch (Exception e) {
+                        AppConstants.WriteinFile("BackgroundService_AP_PIPE ~~~~~~~~~" + "GETPulsarQuantity onPostExecute Execption " + e);
+                        System.out.println(e);
+                    }
+
+
+                }
+
+            }
+
+        });
+    }
+
     public void pulsarQtyLogic(String result) {
 
         int secure_status = 0;
@@ -679,6 +744,8 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
                         if (!Constants.BusyVehicleNumberList.equals(null)) {
                             Constants.BusyVehicleNumberList.remove(Constants.AccVehicleNumber_FS1);
                         }
+
+                        IsFuelingStop = "1";
                         System.out.println("APFS_PIPE Auto Stop! Pulsar disconnected");
                         // AppConstants.colorToastBigFont(this, AppConstants.FS1_CONNECTED_SSID+" Auto Stop!\n\nPulsar disconnected", Color.BLUE);
                         stopButtonFunctionality();
@@ -721,6 +788,7 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
                             Constants.BusyVehicleNumberList.remove(Constants.AccVehicleNumber_FS1);
                         }
 
+                        IsFuelingStop = "1";
                         System.out.println("APFS_PIPE Auto Stop! Count down timer completed");
                         AppConstants.colorToastBigFont(this, AppConstants.FS1_CONNECTED_SSID + " Auto Stop!\n\nCount down timer completed.", Color.BLUE);
                         stopButtonFunctionality();
@@ -754,6 +822,8 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
                             if (!Constants.BusyVehicleNumberList.equals(null)) {
                                 Constants.BusyVehicleNumberList.remove(Constants.AccVehicleNumber_FS1);
                             }
+
+                            IsFuelingStop = "1";
                             System.out.println("APFS_PIPE Auto Stop!You reached MAX fuel limit.");
                             //AppConstants.colorToastBigFont(this, "Auto Stop!\n\nYou reached MAX fuel limit.", Color.BLUE);
                             stopButtonFunctionality();
@@ -785,6 +855,11 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
 
 
         new BackgroundService_AP_PIPE.CommandsPOST().execute(URL_RELAY, jsonRelayOff);
+
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+
 
         new Handler().postDelayed(new Runnable() {
             @Override
@@ -839,6 +914,9 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
                 }
             }
         }, 1000);
+
+            }
+        });
 
 
     }
@@ -989,6 +1067,7 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
                         if (qtyFrequencyCount()) {
 
                             //qty is same for some time
+                            IsFuelingStop = "1";
                             System.out.println("APFS_PIPE Auto Stop!Quantity is same for last");
                             //AppConstants.colorToastBigFont(this, "Auto Stop!\n\nQuantity is same for last " + stopAutoFuelSeconds + " seconds.", Color.BLUE);
                             stopButtonFunctionality();
@@ -1066,6 +1145,8 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
         authEntityClass.AppInfo = " Version:" + CommonUtils.getVersionCode(BackgroundService_AP_PIPE.this) + " " + AppConstants.getDeviceName() + " Android " + android.os.Build.VERSION.RELEASE + " " + "--Main Transaction--";
         authEntityClass.TransactionFrom = "A";
         authEntityClass.Pulses = Integer.parseInt(counts);
+        authEntityClass.IsFuelingStop = IsFuelingStop;
+        authEntityClass.IsLastTransaction = IsLastTransaction;
 
         Gson gson = new Gson();
         String jsonData = gson.toJson(authEntityClass);
@@ -1274,7 +1355,8 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
             authEntityClass.Pulses = Pulses;
             authEntityClass.TransactionFrom = "A";
             authEntityClass.AppInfo = " Version:" + CommonUtils.getVersionCode(BackgroundService_AP_PIPE.this) + " " + AppConstants.getDeviceName() + " Android " + android.os.Build.VERSION.RELEASE + " ";
-
+            authEntityClass.IsFuelingStop = IsFuelingStop;
+            authEntityClass.IsLastTransaction = IsLastTransaction;
 
             /*authEntityClass.PersonId = PersonId;
             authEntityClass.SiteId = AcceptVehicleActivity.SITE_ID;
@@ -1855,7 +1937,7 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
 
             String lsb_hex = CommonUtils.decimal2hex(Integer.parseInt(LSB));
             String msb_hex = CommonUtils.decimal2hex(Integer.parseInt(MSB));
-            String Combine_hex = lsb_hex+msb_hex;
+            String Combine_hex = msb_hex+lsb_hex;
             int finalpd = CommonUtils.hex2decimal(Combine_hex);
             prove = finalpd / 128;
 

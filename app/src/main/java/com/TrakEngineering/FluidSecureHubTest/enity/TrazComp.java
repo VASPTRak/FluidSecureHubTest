@@ -27,4 +27,9 @@ public class TrazComp {
     public String Other;
     public String Hours;
     public String AppInfo;
+
+    public String IsFuelingStop;
+    public String IsLastTransaction;
+
+
 }

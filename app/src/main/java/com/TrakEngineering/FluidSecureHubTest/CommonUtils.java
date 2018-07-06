@@ -87,20 +87,38 @@ public class CommonUtils {
     public static String GetPrintReciptForOther(String CompanyName,String PrintDate,String LinkName,String Location,String VehicleNumber,String PersonName,String OtherLabel,String OtherName,String Qty,String PrintCost){
 
         String content = "<h1>------FluidSecure Receipt------</h1>\n\n\n" +
-
-                "        <p><u>Company :</u>\n" +
-                "        <p>"+CompanyName+"\n" +
-                "        <p><b>Time/Date :</b>\n" +
-                "        <p>" + PrintDate + "\n" +
-                "        <p><b>Location  :</b>\n" +
-                "        <p>"+LinkName+", "+Location+"\n" +
-                "        <p><b>Vehicle    :</b> "+VehicleNumber+"\n" +
-                "        <p><b>Personnel   :</b> "+PersonName+"\n" +
-                "        <p><b>Quantity    :</b> "+Qty+"\n" +
-                "        <p><b>Cost ($)    :</b> "+PrintCost+"\n" +
+                "        <p><u>\n</u><br/>" +//empty line
+                "        <p><u>Company :</u><br/>" +
+                "        <p><u>\n</u><br/>" +//empty line
+                "        <p>"+CompanyName+"<br/>" +
+                "        <p><u>\n</u><br/>" +//empty line
+                "        <p><b>Time/Date :</b><br/>" +
+                "        <p><u>\n</u><br/>" +//empty line
+                "        <p>" + PrintDate + "<br/>" +
+                "        <p><u>\n</u><br/>" +//empty line
+                "        <p><b>Location  :</b><br/>" +
+                "        <p><u>\n</u><br/>" +//empty line
+                "        <p>"+LinkName+", "+Location+"<br/>" +
+                "        <p><u>\n</u><br/>" +//empty line
+                "        <p><b>Vehicle    :</b> "+VehicleNumber+"<br/>" +
+                "        <p><u>\n</u><br/>" +//empty line
+                "        <p><b>Personnel   :</b> "+PersonName+"<br/>" +
+                "        <p><u>\n</u><br/>" +//empty line
+                "        <p><b>Quantity    :</b> "+Qty+"<br/>" +
+                "        <p><u>\n</u><br/>" +//empty line
+                "        <p><b>Cost ($)    :</b> "+PrintCost+"<br/>" +
+                "        <p><u>\n</u><br/>" +//empty line
                 "        <p>"+OtherLabel+": \n\n\n\n" +
-                "        <p><b>"+OtherName+" </b>\n" +
-                "        <h2>      ---------Thank You---------</h2>\n\n";
+                "        <p><u>\n</u><br/>" +//empty line
+                "        <p><b>"+OtherName+" </b><br/>" +
+                "        <p><u>\n</u><br/>" +//empty line
+                "        <h2>      ---------Thank You---------</h2>\n\n"+
+                "        <p><u>\n</u><br/>" +//blank spase to cut paper
+                "        <p><u>\n</u><br/>" +//blank spase to cut paper
+                "        <p><u>\n</u><br/>" +//blank spase to cut paper
+                "        <p><u>\n</u><br/>" +//blank spase to cut paper
+                "        <p><u>\n</u><br/>" +//blank spase to cut paper
+                "        <p><u>\n</u><br/>" ;//blank spase to cut paper
 
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
@@ -114,18 +132,34 @@ public class CommonUtils {
     public static String GetPrintRecipt(String CompanyName,String PrintDate,String LinkName,String Location,String VehicleNumber,String PersonName,String Qty,String PrintCost){
 
         String content = "<h1>------FluidSecure Receipt------</h1>\n\n\n" +
-
-                "        <p><b>Company :</b>\n" +
-                "        <p>"+CompanyName+"\n" +
-                "        <p><b>Time/Date :</b>\n" +
-                "        <p>" + PrintDate + "\n" +
-                "        <p><b>Location  :</b>\n" +
-                "        <p>"+LinkName+", "+Location+"\n" +
-                "        <p><b>Vehicle    :</b> "+VehicleNumber+"\n" +
+                "        <p><u>\n</u><br/>" +//empty line
+                "        <p><b>Company :</b><br/>" +
+                "        <p><u>\n</u><br/>" +//empty line
+                "        <p>"+CompanyName+"<br/>" +
+                "        <p><u>\n</u><br/>" +//empty line
+                "        <p><b>Time/Date :</b><br/>" +
+                "        <p><u>\n</u><br/>" +//empty line
+                "        <p>" + PrintDate + "<br/>" +
+                "        <p><u>\n</u><br/>" +//empty line
+                "        <p><b>Location  :</b><br/>" +
+                "        <p><u>\n</u><br/>" +//empty line
+                "        <p>"+LinkName+", "+Location+"<br/>" +
+                "        <p><u>\n</u><br/>" +//empty line
+                "        <p><b>Vehicle    :</b> "+VehicleNumber+"<br/>" +
+                "        <p><u>\n</u><br/>" +//empty line
                 "        <p><b>Personnel   :</b> "+PersonName+"\n\n\n\n" +
-                "        <p><b>Quantity    :</b> "+Qty+"\n" +
-                "        <p><b>Cost ($)   :</b> "+PrintCost+"\n" +
-                "        <h2>      ---------Thank You---------</h2>\n\n";
+                "        <p><u>\n</u><br/>" +//empty line
+                "        <p><b>Quantity    :</b> "+Qty+"<br/>" +
+                "        <p><u>\n</u><br/>" +//empty line
+                "        <p><b>Cost ($)   :</b> "+PrintCost+"<br/>" +
+                "        <p><u>\n</u><br/>" +//empty line
+                "        <h2>      ---------Thank You---------</h2>\n\n"+
+                "        <p><u>\n</u><br/>" +//blank spase to cut paper
+                "        <p><u>\n</u><br/>" +//blank spase to cut paper
+                "        <p><u>\n</u><br/>" +//blank spase to cut paper
+                "        <p><u>\n</u><br/>" +//blank spase to cut paper
+                "        <p><u>\n</u><br/>" +//blank spase to cut paper
+                "        <p><u>\n</u><br/>" ;//blank spase to cut paper
 
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {

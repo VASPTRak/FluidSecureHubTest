@@ -132,7 +132,7 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
     Integer Pulses = 0;
     long sqliteID = 0;
     ConnectivityManager connection_manager;
-    String printReceipt = "";
+    String printReceipt = "",IsFuelingStop = "0",IsLastTransaction = "0";
 
 
     @Override
@@ -157,6 +157,8 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
             {
                 stopTimer = true;
                 AttemptCount = 0;
+                IsFuelingStop = "0";
+                IsLastTransaction = "0";
 
                 Log.d("Service","not null");
                 HTTP_URL = (String) extras.get("HTTP_URL");
@@ -513,6 +515,7 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
     public void startQuantityInterval() {
 
 
+
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
@@ -521,16 +524,9 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
 
                     if (stopTimer) {
 
-                        /*
-                        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                        new GETPulsarQuantity().execute(URL_GET_PULSAR);
 
-                            setHttpTransportWifi(URL_GET_PULSAR, EMPTY_Val);
-
-                        } else {
-
-                        }
-                        */
-                        new ListConnectedHotspotIP_FS_UNIT_3().execute();
+                       /* new ListConnectedHotspotIP_FS_UNIT_3().execute();
 
                         Thread.sleep(1000);
 
@@ -552,7 +548,7 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
                                 System.out.println("FS Link not connected ~~AttemptCount:" +AttemptCount);
                                 AttemptCount = AttemptCount+1;
                             }
-                        }}
+                        }*/}
 
                 } catch (Exception e) {
                     System.out.println(e);
@@ -583,7 +579,6 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
 
         protected String doInBackground(String... param) {
 
-
             try {
 
                 OkHttpClient client = new OkHttpClient();
@@ -607,7 +602,6 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
 
         @Override
         protected void onPostExecute(String result) {
-
 
             try {
 
@@ -665,6 +659,8 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
                         {
                             Constants.BusyVehicleNumberList.remove(Constants.AccVehicleNumber_FS3);
                         }
+
+                        IsFuelingStop = "1";
                         System.out.println("APFS_3 Auto Stop! Pulsar disconnected");
                         // AppConstants.colorToastBigFont(this, AppConstants.FS1_CONNECTED_SSID+" Auto Stop!\n\nPulsar disconnected", Color.BLUE);
                         stopButtonFunctionality();
@@ -709,6 +705,7 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
                             Constants.BusyVehicleNumberList.remove(Constants.AccVehicleNumber_FS3);
                         }
 
+                        IsFuelingStop = "1";
                         System.out.println("APFS_PIPE Auto Stop! Count down timer completed");
                         AppConstants.colorToastBigFont(this, AppConstants.FS3_CONNECTED_SSID+" Auto Stop!\n\nCount down timer completed.", Color.BLUE);
                         stopButtonFunctionality();
@@ -742,6 +739,7 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
                             {
                                 Constants.BusyVehicleNumberList.remove(Constants.AccVehicleNumber_FS3);
                             }
+                            IsFuelingStop = "1";
                             System.out.println("APFS_PIPE Auto Stop!You reached MAX fuel limit.");
                             //AppConstants.colorToastBigFont(this, "Auto Stop!\n\nYou reached MAX fuel limit.", Color.BLUE);
                             stopButtonFunctionality();
@@ -972,6 +970,7 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
 
                         if (qtyFrequencyCount()) {
 
+                            IsFuelingStop = "1";
                             //qty is same for some time
                             System.out.println("APFS_3 Auto Stop!Quantity is same for last");
                             //AppConstants.colorToastBigFont(this, "Auto Stop!\n\nQuantity is same for last " + stopAutoFuelSeconds + " seconds.", Color.BLUE);
@@ -1052,6 +1051,8 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
         authEntityClass.AppInfo = " Version:" + CommonUtils.getVersionCode(BackgroundService_FS_UNIT_3.this) + " " + AppConstants.getDeviceName() + " Android " + android.os.Build.VERSION.RELEASE + " "+"--Main Transaction--";
         authEntityClass.TransactionFrom = "A";
         authEntityClass.Pulses = Integer.parseInt(counts);
+        authEntityClass.IsFuelingStop = IsFuelingStop;
+        authEntityClass.IsLastTransaction = IsLastTransaction;
 
         Gson gson = new Gson();
         String jsonData = gson.toJson(authEntityClass);
@@ -1216,6 +1217,8 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
             authEntityClass.Pulses = Pulses;
             authEntityClass.TransactionFrom = "A";
             authEntityClass.AppInfo = " Version:" + CommonUtils.getVersionCode(BackgroundService_FS_UNIT_3.this) + " " + AppConstants.getDeviceName() + " Android "+android.os.Build.VERSION.RELEASE+" ";
+            authEntityClass.IsFuelingStop = IsFuelingStop;
+            authEntityClass.IsLastTransaction = IsLastTransaction;
 
             /*authEntityClass.PersonId = PersonId;
             authEntityClass.SiteId = AcceptVehicleActivity.SITE_ID;
@@ -1751,7 +1754,7 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
 
             String lsb_hex = CommonUtils.decimal2hex(Integer.parseInt(LSB));
             String msb_hex = CommonUtils.decimal2hex(Integer.parseInt(MSB));
-            String Combine_hex = lsb_hex+msb_hex;
+            String Combine_hex = msb_hex+lsb_hex;
             int finalpd = CommonUtils.hex2decimal(Combine_hex);
             prove = finalpd / 128;
 

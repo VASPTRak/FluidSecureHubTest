@@ -1128,8 +1128,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                         try {
                             //#73--Only one FS unit display
-                            String selMacAddress = serverSSIDList.get(0).get("MacAddress");
-                            if (serverSSIDList != null && serverSSIDList.size() == 1 && !selMacAddress.equals("") && Constants.FS_1STATUS.equalsIgnoreCase("FREE")) {
+                            String ReconfigureLink = serverSSIDList.get(0).get("ReconfigureLink");
+                            if (serverSSIDList != null && serverSSIDList.size() == 1 && ReconfigureLink.equalsIgnoreCase("true") && Constants.FS_1STATUS.equalsIgnoreCase("FREE")) {
 
                                 tvSSIDName.setText(serverSSIDList.get(0).get("WifiSSId"));
                                 OnHoseSelected_OnClick(Integer.toString(0));
@@ -1516,6 +1516,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                 String IsUpgrade = c.getString("IsUpgrade");
                                 String PulserTimingAdjust = c.getString("PulserTimingAdjust");
                                 String IsDefective = c.getString("IsDefective");
+                                String ReconfigureLink = c.getString("ReconfigureLink");
 
                                 String FilePath = c.getString("FilePath");
                                 AppConstants.UP_FilePath = FilePath;
@@ -1535,6 +1536,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                 map.put("IsUpgrade", IsUpgrade);
                                 map.put("PulserTimingAdjust", PulserTimingAdjust);
                                 map.put("IsDefective", IsDefective);
+                                map.put("ReconfigureLink", ReconfigureLink);
 
                                 if (ResponceMessage.equalsIgnoreCase("success")) {
                                     if (isNotNULL(SiteId) && isNotNULL(HoseId) && isNotNULL(WifiSSId)) {
@@ -1692,6 +1694,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                 String BluetoothCardReaderHF = c.getString("BluetoothCardReaderHF");
                                 String IsDefective = c.getString("IsDefective");
                                 String FilePath = c.getString("FilePath");
+                                String ReconfigureLink = c.getString("ReconfigureLink");
                                 AppConstants.UP_FilePath = FilePath;
 
                                 AppConstants.BT_READER_NAME = BluetoothCardReaderHF;
@@ -1711,6 +1714,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                 map.put("IsBusy", IsBusy);
                                 map.put("IsUpgrade", IsUpgrade);
                                 map.put("PulserTimingAdjust", PulserTimingAdjust);
+                                map.put("ReconfigureLink", ReconfigureLink);
 
                                 if (ResponceMessage.equalsIgnoreCase("success")) {
                                     if (isNotNULL(SiteId) && isNotNULL(HoseId) && isNotNULL(WifiSSId)) {
@@ -1731,8 +1735,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                         //#73--Only one FS unit display
                         try {
-                            String selMacAddress = serverSSIDList.get(0).get("MacAddress");
-                            if (serverSSIDList != null && serverSSIDList.size() == 1 && !selMacAddress.equals("") && Constants.FS_1STATUS.equalsIgnoreCase("FREE")) {
+                            String ReconfigureLink = serverSSIDList.get(0).get("ReconfigureLink");
+                            if (serverSSIDList != null && serverSSIDList.size() == 1 && ReconfigureLink.equalsIgnoreCase("true") && Constants.FS_1STATUS.equalsIgnoreCase("FREE")) {
 
                                 tvSSIDName.setText(serverSSIDList.get(0).get("WifiSSId"));
                                 OnHoseSelected_OnClick(Integer.toString(0));
@@ -1826,6 +1830,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 IsDefective = "False";
                 IpAddress = "";
                 SelectedItemPos = position;
+                String ReconfigureLink = serverSSIDList.get(SelectedItemPos).get("ReconfigureLink");
                 String selSSID = serverSSIDList.get(SelectedItemPos).get("WifiSSId");
                 String IsBusy = serverSSIDList.get(SelectedItemPos).get("IsBusy");
                 String selMacAddress = serverSSIDList.get(SelectedItemPos).get("MacAddress");
@@ -1900,7 +1905,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                 } else {
 
-                    if (selMacAddress.trim().equals("")) {  //MacAddress on server is null
+                    if (ReconfigureLink.equalsIgnoreCase("true")) {  //MacAddress on server is null
 
                         if (Constants.FS_1STATUS.equalsIgnoreCase("FREE") && Constants.FS_2STATUS.equalsIgnoreCase("FREE") && Constants.FS_3STATUS.equalsIgnoreCase("FREE") && Constants.FS_4STATUS.equalsIgnoreCase("FREE")) {
 
@@ -3913,6 +3918,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         //new GetConnectedDevicesIP().execute();//Refreshed donnected devices list on hose selection.
         String IpAddress = "";
         SelectedItemPos = Integer.parseInt(position);
+        String ReconfigureLink = serverSSIDList.get(SelectedItemPos).get("ReconfigureLink");
         String selSSID = serverSSIDList.get(SelectedItemPos).get("WifiSSId");
         String IsBusy = serverSSIDList.get(SelectedItemPos).get("IsBusy");
         String selMacAddress = serverSSIDList.get(SelectedItemPos).get("MacAddress");
@@ -3934,7 +3940,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             AppConstants.REPLACEBLE_WIFI_NAME_FS_ON_UPDATE_MAC = ReplaceableHoseName;
         }
 
-        if (selMacAddress.trim().equals("")) {  //MacAddress on server is null
+        if (ReconfigureLink.equalsIgnoreCase("true")) { //MacAddress on server is null
 
             if (Constants.FS_1STATUS.equalsIgnoreCase("FREE") && Constants.FS_2STATUS.equalsIgnoreCase("FREE") && Constants.FS_3STATUS.equalsIgnoreCase("FREE") && Constants.FS_4STATUS.equalsIgnoreCase("FREE")) {
 
