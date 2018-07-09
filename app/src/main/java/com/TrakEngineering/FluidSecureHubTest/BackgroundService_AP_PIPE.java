@@ -537,20 +537,20 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
 
                     if (stopTimer) {
 
-                        new GETPulsarQuantity().execute(URL_GET_PULSAR);
 
-                        //Asynchronous okhttp call
-                       // GETPulsarQuantityAsyncCall(URL_GET_PULSAR);
-
-                       /* new  ListConnectedHotspotIP_AP_PIPE().execute();
+                        listOfConnectedIP_AP_PIPE.clear();
+                        ListConnectedHotspotIP_AP_PIPEAsyncCall();
 
                         Thread.sleep(1000);
 
                         if (IsFsConnected(HTTP_URL)){
                             AttemptCount = 0;
                             //FS link is connected
-                            System.out.println("Get pulsor timing check in FS PIPE -- startQuantityInterval");
-                            new GETPulsarQuantity().execute(URL_GET_PULSAR);
+                            //Synchronous okhttp call
+                            //new GETPulsarQuantity().execute(URL_GET_PULSAR);
+
+                            //Asynchronous okhttp call
+                            GETPulsarQuantityAsyncCall(URL_GET_PULSAR);
 
                         }else{
 
@@ -567,7 +567,7 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
                                 System.out.println("FS Link not connected ~~AttemptCount:" +AttemptCount);
                                 AttemptCount = AttemptCount+1;
                             }
-                        }*/}
+                        }}
 
                 } catch (Exception e) {
                     System.out.println(e);
@@ -1466,6 +1466,8 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
         String mac_address = "";
         String probe_reading = "";
         String probe_temperature = "";
+        String LSB ="";
+        String MSB ="";
 
         try {
 
@@ -1490,8 +1492,8 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
                 mac_address = tld.getString("Mac_address");
                 String Sensor_ID = tld.getString("Sensor_ID");
                 String Response_code = tld.getString("Response_code");
-                String LSB = tld.getString("LSB");
-                String MSB = tld.getString("MSB");
+                LSB = tld.getString("LSB");
+                MSB = tld.getString("MSB");
                 String Tem_data = tld.getString("Tem_data");
                 String Checksum = tld.getString("Checksum");
 
@@ -1501,7 +1503,7 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
                 //mac_address = ConvertToMacAddressFormat(mac_str);
 
                 //Calculate probe reading
-                probe_reading = GetProbeReading(LSB,MSB);
+                //probe_reading = GetProbeReading(LSB,MSB);
 
                 probe_temperature = CalculateTemperature(Tem_data);
 
@@ -1516,8 +1518,10 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
             TankMonitorEntity obj_entity = new TankMonitorEntity();
             obj_entity.IMEI_UDID = AppConstants.getIMEI(BackgroundService_AP_PIPE.this);
             obj_entity.FromSiteId = Integer.parseInt(AppConstants.SITE_ID);
-            obj_entity.ProbeReading = probe_reading;
+           // obj_entity.ProbeReading = probe_reading;
             obj_entity.TLD = mac_address;
+            obj_entity.LSB = LSB;
+            obj_entity.MSB = MSB;
             obj_entity.ReadingDateTime = CurrentDeviceDate;//PrintDate;
 
             SaveTankMonitorReadingy TestAsynTask = new SaveTankMonitorReadingy(obj_entity);
@@ -1954,21 +1958,7 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
         return String.valueOf(Temp);
     }
 
-public class ListConnectedHotspotIP_AP_PIPE extends AsyncTask<String, Void, String> {
-
-    @Override
-    protected void onPreExecute() {
-
-        listOfConnectedIP_AP_PIPE.clear();
-
-    }
-
-    protected String doInBackground(String... arg0) {
-
-
-
-
-        String resp = "";
+    public void ListConnectedHotspotIP_AP_PIPEAsyncCall(){
 
         Thread thread = new Thread(new Runnable() {
 
@@ -2029,23 +2019,6 @@ public class ListConnectedHotspotIP_AP_PIPE extends AsyncTask<String, Void, Stri
         });
         thread.start();
 
-
-        return resp;
-
-
     }
-
-
-    @Override
-    protected void onPostExecute(String result) {
-
-        super.onPostExecute(result);
-        String strJson = result;
-
-
-
-    }
-
-}
 
 }

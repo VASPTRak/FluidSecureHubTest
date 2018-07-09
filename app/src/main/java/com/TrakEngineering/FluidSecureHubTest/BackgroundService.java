@@ -200,7 +200,14 @@ public class BackgroundService extends Service {
                 if (ResponceMessage.equalsIgnoreCase("success") || ResponceMessage.equalsIgnoreCase("fail")) {
 
                     if (ResponceMessage.equalsIgnoreCase("success")) {
-                        AppConstants.notificationAlert(BackgroundService.this);
+
+                        String Notify = jsonData;
+                        if (Notify.contains("IsFuelingStop\":\"1")){
+                            //Notify only when IsFuelingStop = 1
+                            AppConstants.notificationAlert(BackgroundService.this);
+                        }else {
+                            //Skip notification
+                        }
 
                         controller.deleteTransactions(Id);
 

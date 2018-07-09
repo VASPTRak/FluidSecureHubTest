@@ -1,5 +1,6 @@
 package com.TrakEngineering.FluidSecureHubTest;
 
+import android.annotation.SuppressLint;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -23,11 +24,13 @@ import com.TrakEngineering.FluidSecureHubTest.server.ServerHandler;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.gson.Gson;
+import com.squareup.okhttp.Callback;
 import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.RequestBody;
 import com.squareup.okhttp.Response;
+import com.squareup.okhttp.ResponseBody;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -53,6 +56,7 @@ import java.util.concurrent.TimeUnit;
 
 import static com.TrakEngineering.FluidSecureHubTest.CommonUtils.GetPrintRecipt;
 import static com.TrakEngineering.FluidSecureHubTest.CommonUtils.GetPrintReciptForOther;
+import static com.google.android.gms.internal.zzid.runOnUiThread;
 
 /**
  * Created by VASP on 7/24/2017.
@@ -128,14 +132,13 @@ public class BackgroundService_AP extends BackgroundService {
     double Lastfillqty = 0;
     Integer Pulses = 0;
     long sqliteID = 0;
-    String printReceipt = "",IsFuelingStop = "0",IsLastTransaction = "0";
+    String printReceipt = "", IsFuelingStop = "0", IsLastTransaction = "0";
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 
         try {
             super.onStart(intent, startId);
-
 
 
             Bundle extras = intent.getExtras();
@@ -500,34 +503,37 @@ public class BackgroundService_AP extends BackgroundService {
 
                     if (stopTimer) {
 
+                        listOfConnectedIP_AP.clear();
+                        ListConnectedHotspotIP_APAsyncCall();
 
-                        new GETPulsarQuantity().execute(URL_GET_PULSAR);
+                        Thread.sleep(1000);
 
-                      /* new ListConnectedHotspotIP_AP().execute();
-
-                       Thread.sleep(1000);
-
-                        if (IsFsConnected(HTTP_URL)){
+                        if (IsFsConnected(HTTP_URL)) {
                             AttemptCount = 0;
                             //FS link is connected
-                            new GETPulsarQuantity().execute(URL_GET_PULSAR);
+                            //Synchronous okhttp call
+                            //new GETPulsarQuantity().execute(URL_GET_PULSAR);
 
-                        }else{
+                            //Asynchronous okhttp call
+                            GETPulsarQuantityAsyncCall(URL_GET_PULSAR);
+
+                        } else {
 
                             if (AttemptCount > 2) {
-                            //FS Link DisConnected
-                            System.out.println("FS Link not connected" + listOfConnectedIP_AP);
-                            AppConstants.WriteinFile("BackgroundService_AP ~~~~~~~~~" + "FS Link not connected");
-                            stopTimer = false;
-                            new CommandsPOST().execute(URL_RELAY, jsonRelayOff);
-                            Constants.FS_2STATUS = "FREE";
-                            clearEditTextFields();
+                                //FS Link DisConnected
+                                System.out.println("FS Link not connected" + listOfConnectedIP_AP);
+                                AppConstants.WriteinFile("BackgroundService_AP ~~~~~~~~~" + "FS Link not connected");
+                                stopTimer = false;
+                                new CommandsPOST().execute(URL_RELAY, jsonRelayOff);
+                                Constants.FS_2STATUS = "FREE";
+                                clearEditTextFields();
 //                          BackgroundService_AP.this.stopSelf();
                             } else {
-                                System.out.println("FS Link not connected ~~AttemptCount:" +AttemptCount);
-                                AttemptCount = AttemptCount+1;
+                                System.out.println("FS Link not connected ~~AttemptCount:" + AttemptCount);
+                                AttemptCount = AttemptCount + 1;
                             }
-                        }*/}
+                        }
+                    }
 
                 } catch (Exception e) {
                     AppConstants.WriteinFile("BackgroundService_AP ~~~~~~~~~" + "startQuantityInterval Execption " + e);
@@ -540,11 +546,9 @@ public class BackgroundService_AP extends BackgroundService {
 
     }
 
-    public boolean IsFsConnected(String toMatchString)
-    {
+    public boolean IsFsConnected(String toMatchString) {
 
-        for (String HttpAddress : listOfConnectedIP_AP)
-        {
+        for (String HttpAddress : listOfConnectedIP_AP) {
             if (HttpAddress.contains(toMatchString))
                 return true;
         }
@@ -613,6 +617,68 @@ public class BackgroundService_AP extends BackgroundService {
 
 
         }
+    }
+
+    public void GETPulsarQuantityAsyncCall(String URL_GET_PULSAR) {
+        OkHttpClient httpClient = new OkHttpClient();
+        Request request = new Request.Builder()
+                .url(URL_GET_PULSAR)
+                .build();
+
+        httpClient.newCall(request).enqueue(new Callback() {
+            @SuppressLint("LongLogTag")
+            @Override
+            public void onFailure(Request request, IOException e) {
+                Log.e(TAG, "error in getting response using async okhttp call");
+            }
+
+            @SuppressLint("LongLogTag")
+            @Override
+            public void onResponse(Response response) throws IOException {
+
+                ResponseBody responseBody = response.body();
+                if (!response.isSuccessful()) {
+                    throw new IOException("Error response " + response);
+                } else {
+
+                    String result = responseBody.string();
+                    System.out.println("Result" + result);
+                    System.out.println("Get pulsar---------- FS PIPE ~~~onPostExecute~~~" + result);
+
+                    try {
+
+                        if (result.equalsIgnoreCase("")) {
+                            respCounter.add(0);
+                            System.out.println("FR:0");
+                        } else {
+                            respCounter.add(1);
+                            System.out.println("FR:1");
+                        }
+
+                        if (getPulsarResponseEmptyFor3times()) {
+                            // btnStop.performClick();
+                            stopButtonFunctionality();
+
+                        } else {
+
+                            System.out.println("OUTPUT" + result);
+
+                            if (stopTimer)
+                                pulsarQtyLogic(result);
+                        }
+
+
+                    } catch (Exception e) {
+                        AppConstants.WriteinFile("BackgroundService_AP ~~~~~~~~~" + "GETPulsarQuantity onPostExecute Execption " + e);
+                        System.out.println(e);
+                    }
+
+
+                }
+
+            }
+
+        });
     }
 
     public void pulsarQtyLogic(String result) {
@@ -753,27 +819,32 @@ public class BackgroundService_AP extends BackgroundService {
 
         new CommandsPOST().execute(URL_RELAY, jsonRelayOff);
 
-        new Handler().postDelayed(new Runnable() {
+        runOnUiThread(new Runnable() {
             @Override
             public void run() {
 
-                try {
-                    String cntA = "0", cntB = "0", cntC = "0";
 
-                    for (int i = 0; i < 3; i++) {
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
 
-                        String result = new GETFINALPulsar().execute(URL_GET_PULSAR).get();
+                        try {
+                            String cntA = "0", cntB = "0", cntC = "0";
+
+                            for (int i = 0; i < 3; i++) {
+
+                                String result = new GETFINALPulsar().execute(URL_GET_PULSAR).get();
 
 
-                        if (result.contains("pulsar_status")) {
+                                if (result.contains("pulsar_status")) {
 
-                            JSONObject jsonObject = new JSONObject(result);
-                            JSONObject joPulsarStat = jsonObject.getJSONObject("pulsar_status");
-                            String counts = joPulsarStat.getString("counts");
-                            //String pulsar_status = joPulsarStat.getString("pulsar_status");
-                            //String pulsar_secure_status = joPulsarStat.getString("pulsar_secure_status");
+                                    JSONObject jsonObject = new JSONObject(result);
+                                    JSONObject joPulsarStat = jsonObject.getJSONObject("pulsar_status");
+                                    String counts = joPulsarStat.getString("counts");
+                                    //String pulsar_status = joPulsarStat.getString("pulsar_status");
+                                    //String pulsar_secure_status = joPulsarStat.getString("pulsar_secure_status");
 
-                            convertCountToQuantity(counts);
+                                    convertCountToQuantity(counts);
 
                             /*
                             if (i == 0)
@@ -785,28 +856,30 @@ public class BackgroundService_AP extends BackgroundService {
                             */
 
 
-                            if (i == 2) {
+                                    if (i == 2) {
 
-                                new Handler().postDelayed(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        finalLastStep();
+                                        new Handler().postDelayed(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                finalLastStep();
+                                            }
+                                        }, 1000);
+
+
                                     }
-                                }, 1000);
 
 
+                                }
                             }
-
-
+                        } catch (Exception e) {
+                            System.out.println(e);
+                            AppConstants.WriteinFile("BackgroundService_AP ~~~~~~~~~" + "stopButtonFunctionality Execption " + e);
                         }
                     }
-                } catch (Exception e) {
-                    System.out.println(e);
-                    AppConstants.WriteinFile("BackgroundService_AP ~~~~~~~~~" + "stopButtonFunctionality Execption " + e);
-                }
-            }
-        }, 1000);
+                }, 1000);
 
+            }
+        });
 
     }
 
@@ -1060,9 +1133,7 @@ public class BackgroundService_AP extends BackgroundService {
             }
 
             controller.deleteTransStatusByTransID(TransactionId);
-
         }
-
 
     }
 
@@ -1302,7 +1373,7 @@ public class BackgroundService_AP extends BackgroundService {
 
         }
 
-            startService(new Intent(this, BackgroundService.class));
+        startService(new Intent(this, BackgroundService.class));
     }
 
     public void TankMonitorReading() {
@@ -1310,6 +1381,8 @@ public class BackgroundService_AP extends BackgroundService {
         String mac_address = "";
         String probe_reading = "";
         String probe_temperature = "";
+        String LSB ="";
+        String MSB ="";
 
         try {
 
@@ -1320,7 +1393,7 @@ public class BackgroundService_AP extends BackgroundService {
             PrintDate = sharedPref.getString("PrintDate", "");
 
             //Get TankMonitoring details from FluidSecure Link
-             String response1 = new CommandsGET().execute(URL_TDL_info).get();
+            String response1 = new CommandsGET().execute(URL_TDL_info).get();
             // String response1 = "{  \"tld\":{ \"level\":\"180, 212, 11, 34, 110, 175, 1, 47, 231, 15, 78, 65\"  }  }";
             AppConstants.WriteinFile("\n" + TAG + "Backgroundservice_AP TankMonitorReading ~~~URL_TDL_info_Resp~~" + response1);
 
@@ -1332,8 +1405,8 @@ public class BackgroundService_AP extends BackgroundService {
                 mac_address = tld.getString("Mac_address");
                 String Sensor_ID = tld.getString("Sensor_ID");
                 String Response_code = tld.getString("Response_code");
-                String LSB = tld.getString("LSB");
-                String MSB = tld.getString("MSB");
+                LSB = tld.getString("LSB");
+                MSB = tld.getString("MSB");
                 String Tem_data = tld.getString("Tem_data");
                 String Checksum = tld.getString("Checksum");
 
@@ -1343,7 +1416,7 @@ public class BackgroundService_AP extends BackgroundService {
                 //mac_address = ConvertToMacAddressFormat(mac_str);
 
                 //Calculate probe reading
-                probe_reading = GetProbeReading(LSB,MSB);
+                //probe_reading = GetProbeReading(LSB, MSB);
 
                 probe_temperature = CalculateTemperature(Tem_data);
 
@@ -1358,8 +1431,10 @@ public class BackgroundService_AP extends BackgroundService {
             TankMonitorEntity obj_entity = new TankMonitorEntity();
             obj_entity.IMEI_UDID = AppConstants.getIMEI(BackgroundService_AP.this);
             obj_entity.FromSiteId = Integer.parseInt(AppConstants.SITE_ID);
-            obj_entity.ProbeReading = probe_reading;
+            //obj_entity.ProbeReading = probe_reading;
             obj_entity.TLD = mac_address;
+            obj_entity.LSB = LSB;
+            obj_entity.MSB = MSB;
             obj_entity.ReadingDateTime = CurrentDeviceDate;//PrintDate;
 
             BackgroundService_AP.SaveTankMonitorReadingy TestAsynTask = new BackgroundService_AP.SaveTankMonitorReadingy(obj_entity);
@@ -1806,7 +1881,7 @@ public class BackgroundService_AP extends BackgroundService {
 
             String lsb_hex = CommonUtils.decimal2hex(Integer.parseInt(LSB));
             String msb_hex = CommonUtils.decimal2hex(Integer.parseInt(MSB));
-            String Combine_hex = msb_hex+lsb_hex;
+            String Combine_hex = msb_hex + lsb_hex;
             int finalpd = CommonUtils.hex2decimal(Combine_hex);
             prove = finalpd / 128;
 
@@ -1823,97 +1898,65 @@ public class BackgroundService_AP extends BackgroundService {
         return String.valueOf(Temp);
     }
 
-    public static class ListConnectedHotspotIP_AP extends AsyncTask<String, Void, String> {
+    public void ListConnectedHotspotIP_APAsyncCall() {
 
-        @Override
-        protected void onPreExecute() {
+        Thread thread = new Thread(new Runnable() {
 
-            listOfConnectedIP_AP.clear();
+            @Override
+            public void run() {
+                BufferedReader br = null;
+                boolean isFirstLine = true;
 
-        }
+                try {
+                    br = new BufferedReader(new FileReader("/proc/net/arp"));
+                    String line;
 
-        protected String doInBackground(String... arg0) {
+                    while ((line = br.readLine()) != null) {
+                        if (isFirstLine) {
+                            isFirstLine = false;
+                            continue;
+                        }
+
+                        String[] splitted = line.split(" +");
+
+                        if (splitted != null && splitted.length >= 4) {
+
+                            String ipAddress = splitted[0];
+                            String macAddress = splitted[3];
+                            System.out.println("IPAddress" + ipAddress);
+                            boolean isReachable = InetAddress.getByName(
+                                    splitted[0]).isReachable(500);  // this is network call so we cant do that on UI thread, so i take background thread.
+                            if (isReachable) {
+                                Log.d("Device Information", ipAddress + " : "
+                                        + macAddress);
+                            }
+
+                            if (ipAddress != null || macAddress != null) {
 
 
+                                listOfConnectedIP_AP.add("http://" + ipAddress + ":80/");
+                                System.out.println("Details Of Connected HotspotIP" + listOfConnectedIP_AP);
+                            }
 
 
-            String resp = "";
+                        }
 
-            Thread thread = new Thread(new Runnable() {
+                    }
 
-                @Override
-                public void run() {
-                    BufferedReader br = null;
-                    boolean isFirstLine = true;
-
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    AppConstants.WriteinFile("BackgroundService_AP ~~~~~~~~~" + "ListConnectedHotspotIP_AP 1 --Exception " + e);
+                } finally {
                     try {
-                        br = new BufferedReader(new FileReader("/proc/net/arp"));
-                        String line;
-
-                        while ((line = br.readLine()) != null) {
-                            if (isFirstLine) {
-                                isFirstLine = false;
-                                continue;
-                            }
-
-                            String[] splitted = line.split(" +");
-
-                            if (splitted != null && splitted.length >= 4) {
-
-                                String ipAddress = splitted[0];
-                                String macAddress = splitted[3];
-                                System.out.println("IPAddress" + ipAddress);
-                                boolean isReachable = InetAddress.getByName(
-                                        splitted[0]).isReachable(500);  // this is network call so we cant do that on UI thread, so i take background thread.
-                                if (isReachable) {
-                                    Log.d("Device Information", ipAddress + " : "
-                                            + macAddress);
-                                }
-
-                                if (ipAddress != null || macAddress != null) {
-
-
-                                    listOfConnectedIP_AP.add("http://"+ ipAddress +":80/");
-                                    System.out.println("Details Of Connected HotspotIP" + listOfConnectedIP_AP);
-                                }
-
-
-
-                            }
-
-                        }
-
-                    } catch (Exception e) {
+                        br.close();
+                    } catch (IOException e) {
                         e.printStackTrace();
-                        AppConstants.WriteinFile("BackgroundService_AP ~~~~~~~~~" + "ListConnectedHotspotIP_AP 1 --Exception " + e);
-                    } finally {
-                        try {
-                            br.close();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                            AppConstants.WriteinFile("BackgroundService_AP ~~~~~~~~~" + "ListConnectedHotspotIP_AP 2 --Exception " + e);
-                        }
+                        AppConstants.WriteinFile("BackgroundService_AP ~~~~~~~~~" + "ListConnectedHotspotIP_AP 2 --Exception " + e);
                     }
                 }
-            });
-            thread.start();
-
-
-            return resp;
-
-
-        }
-
-
-        @Override
-        protected void onPostExecute(String result) {
-
-            super.onPostExecute(result);
-            String strJson = result;
-
-
-
-        }
+            }
+        });
+        thread.start();
 
     }
 

@@ -1,5 +1,6 @@
 package com.TrakEngineering.FluidSecureHubTest;
 
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Service;
 import android.content.Context;
@@ -28,11 +29,13 @@ import com.TrakEngineering.FluidSecureHubTest.server.ServerHandler;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.gson.Gson;
+import com.squareup.okhttp.Callback;
 import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.RequestBody;
 import com.squareup.okhttp.Response;
+import com.squareup.okhttp.ResponseBody;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -58,12 +61,13 @@ import java.util.concurrent.TimeUnit;
 
 import static com.TrakEngineering.FluidSecureHubTest.CommonUtils.GetPrintRecipt;
 import static com.TrakEngineering.FluidSecureHubTest.CommonUtils.GetPrintReciptForOther;
+import static com.google.android.gms.internal.zzid.runOnUiThread;
 
 /**
  * Created by VASP on 10/10/2017.
  */
 
-public class BackgroundService_FS_UNIT_3 extends BackgroundService{
+public class BackgroundService_FS_UNIT_3 extends BackgroundService {
 
 
     private static final String TAG = "BackgroundService_FS_UNITE_3 :";
@@ -111,7 +115,7 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
     SimpleDateFormat sdformat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
 
     private String vehicleNumber, odometerTenths = "0", dNumber = "", pNumber = "", oText = "", hNumber = "";
-    String LinkName,OtherName,IsOtherRequire,OtherLabel,VehicleNumber,PrintDate,CompanyName,Location,PersonName,PrinterMacAddress,PrinterName,TransactionId,VehicleId, PhoneNumber, PersonId, PulseRatio, MinLimit, FuelTypeId, ServerDate, IntervalToStopFuel;
+    String LinkName, OtherName, IsOtherRequire, OtherLabel, VehicleNumber, PrintDate, CompanyName, Location, PersonName, PrinterMacAddress, PrinterName, TransactionId, VehicleId, PhoneNumber, PersonId, PulseRatio, MinLimit, FuelTypeId, ServerDate, IntervalToStopFuel;
 
     public static String FOLDER_PATH = Environment.getExternalStorageDirectory().getAbsolutePath() + "/FSBin/";
     public static String PATH_BIN_FILE1 = "user1.2048.new.5.bin";
@@ -132,7 +136,7 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
     Integer Pulses = 0;
     long sqliteID = 0;
     ConnectivityManager connection_manager;
-    String printReceipt = "",IsFuelingStop = "0",IsLastTransaction = "0";
+    String printReceipt = "", IsFuelingStop = "0", IsLastTransaction = "0";
 
 
     @Override
@@ -146,21 +150,17 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
                 this.stopSelf();
                 Constants.FS_3STATUS = "FREE";
                 clearEditTextFields();
-                if (!Constants.BusyVehicleNumberList.equals(null))
-                {
+                if (!Constants.BusyVehicleNumberList.equals(null)) {
                     Constants.BusyVehicleNumberList.remove(Constants.AccVehicleNumber_FS3);
                 }
 
-            }
-
-            else
-            {
+            } else {
                 stopTimer = true;
                 AttemptCount = 0;
                 IsFuelingStop = "0";
                 IsLastTransaction = "0";
 
-                Log.d("Service","not null");
+                Log.d("Service", "not null");
                 HTTP_URL = (String) extras.get("HTTP_URL");
 
                 URL_INFO = HTTP_URL + "client?command=info";
@@ -194,11 +194,11 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
 
                 jsonRename = "{\"Request\":{\"SoftAP\":{\"Connect_SoftAP\":{\"authmode\":\"WPAPSK/WPA2PSK\",\"channel\":6,\"ssid\":\"" + AppConstants.REPLACEBLE_WIFI_NAME_FS3 + "\",\"password\":\"123456789\"}}}}";
 
-                System.out.println("BackgroundService is on. AP_FS_PIPE"+HTTP_URL);
-                Constants.FS_3STATUS="BUSY";
+                System.out.println("BackgroundService is on. AP_FS_PIPE" + HTTP_URL);
+                Constants.FS_3STATUS = "BUSY";
                 Constants.BusyVehicleNumberList.add(Constants.AccVehicleNumber_FS3);
 
-                SharedPreferences sharedPref =  this.getSharedPreferences(Constants.PREF_VehiFuel, Context.MODE_PRIVATE);
+                SharedPreferences sharedPref = this.getSharedPreferences(Constants.PREF_VehiFuel, Context.MODE_PRIVATE);
                 TransactionId = sharedPref.getString("TransactionId_FS3", "");
                 VehicleId = sharedPref.getString("VehicleId_FS3", "");
                 PhoneNumber = sharedPref.getString("PhoneNumber_FS3", "");
@@ -263,7 +263,7 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
                     } catch (ExecutionException e) {
                         e.printStackTrace();
                     }
-                } else{
+                } else {
 
                     AppConstants.colorToast(BackgroundService_FS_UNIT_3.this, "Please check Internet Connection.", Color.RED);
                     UpdateTransactionStatusClass authEntity = new UpdateTransactionStatusClass();
@@ -307,12 +307,11 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
 
 
             }
-        }catch (NullPointerException e){
+        } catch (NullPointerException e) {
             Log.d("Ex", e.getMessage());
             AppConstants.WriteinFile("BackgroundService_FS_UNIT_3 ~~~~~~~~~" + "onStartCommand Execption " + e);
             this.stopSelf();
         }
-
 
 
         //GetLatLng();
@@ -356,7 +355,6 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
     }
 
 
-
     @TargetApi(21)
     private void setGlobalWifiConnection() {
 
@@ -395,16 +393,15 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
     }
 
     public void stopFirstTimer(boolean flag) {
-        if(flag) {
+        if (flag) {
             tFirst.cancel();
             tFirst.purge();
-        }
-        else {
+        } else {
             tFirst.cancel();
             tFirst.purge();
 
             WelcomeActivity.SelectedItemPos = -1;
-            AppConstants.BUSY_STATUS=true;
+            AppConstants.BUSY_STATUS = true;
 
             Intent i = new Intent(this, WelcomeActivity.class);
             i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -415,7 +412,6 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
     public class CommandsPOST extends AsyncTask<String, Void, String> {
 
         public String resp = "";
-
 
 
         protected String doInBackground(String... param) {
@@ -455,7 +451,7 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
 
             try {
 
-                System.out.println("APFS_3 OUTPUT"+result);
+                System.out.println("APFS_3 OUTPUT" + result);
 
             } catch (Exception e) {
                 AppConstants.WriteinFile("BackgroundService_FS_UNIT_3 ~~~~~~~~~" + "CommandsPOST OnPostExecution Execption " + e);
@@ -500,7 +496,7 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
 
             try {
 
-                System.out.println("APFS_3 OUTPUT"+result);
+                System.out.println("APFS_3 OUTPUT" + result);
 
             } catch (Exception e) {
 
@@ -515,7 +511,6 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
     public void startQuantityInterval() {
 
 
-
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
@@ -524,16 +519,20 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
 
                     if (stopTimer) {
 
-                        new GETPulsarQuantity().execute(URL_GET_PULSAR);
 
-                       /* new ListConnectedHotspotIP_FS_UNIT_3().execute();
+                        listOfConnectedIP_UNIT_3.clear();
+                        ListConnectedHotspotIP_FS_UNIT_3AsyncCall();
 
                         Thread.sleep(1000);
 
                         if (IsFsConnected(HTTP_URL)){
                             AttemptCount = 0;
                             //FS link is connected
-                            new GETPulsarQuantity().execute(URL_GET_PULSAR);
+                            //Synchronous okhttp call
+                            //new GETPulsarQuantity().execute(URL_GET_PULSAR);
+
+                            //Asynchronous okhttp call
+                            GETPulsarQuantityAsyncCall(URL_GET_PULSAR);
 
                         }else{
                             if (AttemptCount > 2) {
@@ -548,7 +547,8 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
                                 System.out.println("FS Link not connected ~~AttemptCount:" +AttemptCount);
                                 AttemptCount = AttemptCount+1;
                             }
-                        }*/}
+                        }
+                    }
 
                 } catch (Exception e) {
                     System.out.println(e);
@@ -561,11 +561,9 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
 
     }
 
-    public boolean IsFsConnected(String toMatchString)
-    {
+    public boolean IsFsConnected(String toMatchString) {
 
-        for (String HttpAddress : listOfConnectedIP_UNIT_3)
-        {
+        for (String HttpAddress : listOfConnectedIP_UNIT_3) {
             if (HttpAddress.contains(toMatchString))
                 return true;
         }
@@ -619,7 +617,7 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
 
                 } else {
 
-                    System.out.println("OUTPUT001"+result);
+                    System.out.println("OUTPUT001" + result);
 
                     if (stopTimer)
                         pulsarQtyLogic(result);
@@ -631,6 +629,67 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
             }
 
         }
+    }
+
+    public void GETPulsarQuantityAsyncCall(String URL_GET_PULSAR) {
+        OkHttpClient httpClient = new OkHttpClient();
+        Request request = new Request.Builder()
+                .url(URL_GET_PULSAR)
+                .build();
+
+        httpClient.newCall(request).enqueue(new Callback() {
+            @SuppressLint("LongLogTag")
+            @Override
+            public void onFailure(Request request, IOException e) {
+                Log.e(TAG, "error in getting response using async okhttp call");
+            }
+
+            @SuppressLint("LongLogTag")
+            @Override
+            public void onResponse(Response response) throws IOException {
+
+                ResponseBody responseBody = response.body();
+                if (!response.isSuccessful()) {
+                    throw new IOException("Error response " + response);
+                } else {
+
+                    String result = responseBody.string();
+                    System.out.println("Result" + result);
+                    System.out.println("Get pulsar---------- FS PIPE ~~~onPostExecute~~~" + result);
+
+                    try {
+
+                        if (result.equalsIgnoreCase("")) {
+                            respCounter.add(0);
+                            System.out.println("FR:0");
+                        } else {
+                            respCounter.add(1);
+                            System.out.println("FR:1");
+                        }
+
+                        if (getPulsarResponseEmptyFor3times()) {
+                            // btnStop.performClick();
+                            stopButtonFunctionality();
+
+                        } else {
+
+                            System.out.println("OUTPUT001" + result);
+
+                            if (stopTimer)
+                                pulsarQtyLogic(result);
+                        }
+
+                    } catch (Exception e) {
+                        AppConstants.WriteinFile("BackgroundService_FS_UNIT_3 ~~~~~~~~~" + "GETPulsarQuantity onPostExecute Execption " + e);
+                        System.out.println(e);
+                    }
+
+
+                }
+
+            }
+
+        });
     }
 
     public void pulsarQtyLogic(String result) {
@@ -655,8 +714,7 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
 
                         this.stopSelf();
 
-                        if (!Constants.BusyVehicleNumberList.equals(null))
-                        {
+                        if (!Constants.BusyVehicleNumberList.equals(null)) {
                             Constants.BusyVehicleNumberList.remove(Constants.AccVehicleNumber_FS3);
                         }
 
@@ -700,14 +758,13 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
 
                         this.stopSelf();
 
-                        if (!Constants.BusyVehicleNumberList.equals(null))
-                        {
+                        if (!Constants.BusyVehicleNumberList.equals(null)) {
                             Constants.BusyVehicleNumberList.remove(Constants.AccVehicleNumber_FS3);
                         }
 
                         IsFuelingStop = "1";
                         System.out.println("APFS_PIPE Auto Stop! Count down timer completed");
-                        AppConstants.colorToastBigFont(this, AppConstants.FS3_CONNECTED_SSID+" Auto Stop!\n\nCount down timer completed.", Color.BLUE);
+                        AppConstants.colorToastBigFont(this, AppConstants.FS3_CONNECTED_SSID + " Auto Stop!\n\nCount down timer completed.", Color.BLUE);
                         stopButtonFunctionality();
                     }
 
@@ -735,8 +792,7 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
                         if (fillqty >= minFuelLimit) {
 
                             this.stopSelf();
-                            if (!Constants.BusyVehicleNumberList.equals(null))
-                            {
+                            if (!Constants.BusyVehicleNumberList.equals(null)) {
                                 Constants.BusyVehicleNumberList.remove(Constants.AccVehicleNumber_FS3);
                             }
                             IsFuelingStop = "1";
@@ -772,27 +828,32 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
 
         new CommandsPOST().execute(URL_RELAY, jsonRelayOff);
 
-        new Handler().postDelayed(new Runnable() {
+        runOnUiThread(new Runnable() {
             @Override
             public void run() {
 
-                try {
-                    String cntA = "0", cntB = "0", cntC = "0";
 
-                    for (int i = 0; i < 3; i++) {
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
 
-                        String result = new GETFINALPulsar().execute(URL_GET_PULSAR).get();
+                        try {
+                            String cntA = "0", cntB = "0", cntC = "0";
+
+                            for (int i = 0; i < 3; i++) {
+
+                                String result = new GETFINALPulsar().execute(URL_GET_PULSAR).get();
 
 
-                        if (result.contains("pulsar_status")) {
+                                if (result.contains("pulsar_status")) {
 
-                            JSONObject jsonObject = new JSONObject(result);
-                            JSONObject joPulsarStat = jsonObject.getJSONObject("pulsar_status");
-                            String counts = joPulsarStat.getString("counts");
-                            //String pulsar_status = joPulsarStat.getString("pulsar_status");
-                            //String pulsar_secure_status = joPulsarStat.getString("pulsar_secure_status");
+                                    JSONObject jsonObject = new JSONObject(result);
+                                    JSONObject joPulsarStat = jsonObject.getJSONObject("pulsar_status");
+                                    String counts = joPulsarStat.getString("counts");
+                                    //String pulsar_status = joPulsarStat.getString("pulsar_status");
+                                    //String pulsar_secure_status = joPulsarStat.getString("pulsar_secure_status");
 
-                            convertCountToQuantity(counts);
+                                    convertCountToQuantity(counts);
 
                             /*
                             if (i == 0)
@@ -804,28 +865,29 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
                             */
 
 
-                            if (i == 2) {
+                                    if (i == 2) {
 
-                                new Handler().postDelayed(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        finalLastStep();
+                                        new Handler().postDelayed(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                finalLastStep();
+                                            }
+                                        }, 1000);
+
+
                                     }
-                                }, 1000);
 
 
+                                }
                             }
-
-
+                        } catch (Exception e) {
+                            AppConstants.WriteinFile("BackgroundService_FS_UNIT_3 ~~~~~~~~~" + "stopButtonFunctionality Execption " + e);
+                            System.out.println(e);
                         }
                     }
-                } catch (Exception e) {
-                    AppConstants.WriteinFile("BackgroundService_FS_UNIT_3 ~~~~~~~~~" + "stopButtonFunctionality Execption " + e);
-                    System.out.println(e);
-                }
+                }, 1000);
             }
-        }, 1000);
-
+        });
 
     }
 
@@ -872,7 +934,7 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
 
                     if (f.exists()) {
 
-                      new BackgroundService_FS_UNIT_3.OkHttpFileUpload().execute(LocalPath, "application/binary");
+                        new BackgroundService_FS_UNIT_3.OkHttpFileUpload().execute(LocalPath, "application/binary");
 
                     } else {
                         Toast.makeText(getApplicationContext(), "File Not found " + LocalPath, Toast.LENGTH_LONG).show();
@@ -940,7 +1002,7 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
 
                 // tvConsole.setText(consoleString);
 
-                System.out.println("APFS_3 OUTPUT"+result);
+                System.out.println("APFS_3 OUTPUT" + result);
 
 
             } catch (Exception e) {
@@ -979,8 +1041,7 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
                             this.stopSelf();
                             Constants.FS_3STATUS = "FREE";
                             clearEditTextFields();
-                            if (!Constants.BusyVehicleNumberList.equals(null))
-                            {
+                            if (!Constants.BusyVehicleNumberList.equals(null)) {
                                 Constants.BusyVehicleNumberList.remove(Constants.AccVehicleNumber_FS3);
                             }
 
@@ -1036,19 +1097,19 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
 
         fillqty = AppConstants.roundNumber(fillqty, 2);
 
-        System.out.println("APFS_3 Pulse"+outputQuantity);
-        System.out.println("APFS_3 Quantity"+ (fillqty));
+        System.out.println("APFS_3 Pulse" + outputQuantity);
+        System.out.println("APFS_3 Quantity" + (fillqty));
         DecimalFormat precision = new DecimalFormat("0.00");
-        Constants.FS_3Gallons =  (precision.format(fillqty));
-        Constants.FS_3Pulse  = outputQuantity;
+        Constants.FS_3Gallons = (precision.format(fillqty));
+        Constants.FS_3Pulse = outputQuantity;
 
-        System.out.println("testing update ui Back : Gallons"+Constants.FS_3Gallons+"pulse"+Constants.FS_3Pulse);
+        System.out.println("testing update ui Back : Gallons" + Constants.FS_3Gallons + "pulse" + Constants.FS_3Pulse);
 
         ////////////////////////////////////-Update transaction ---
         TrazComp authEntityClass = new TrazComp();
         authEntityClass.TransactionId = TransactionId;
         authEntityClass.FuelQuantity = fillqty;
-        authEntityClass.AppInfo = " Version:" + CommonUtils.getVersionCode(BackgroundService_FS_UNIT_3.this) + " " + AppConstants.getDeviceName() + " Android " + android.os.Build.VERSION.RELEASE + " "+"--Main Transaction--";
+        authEntityClass.AppInfo = " Version:" + CommonUtils.getVersionCode(BackgroundService_FS_UNIT_3.this) + " " + AppConstants.getDeviceName() + " Android " + android.os.Build.VERSION.RELEASE + " " + "--Main Transaction--";
         authEntityClass.TransactionFrom = "A";
         authEntityClass.Pulses = Integer.parseInt(counts);
         authEntityClass.IsFuelingStop = IsFuelingStop;
@@ -1070,22 +1131,22 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
 
         if (fillqty > 0) {
 
-                int rowseffected = controller.updateTransactions(imap);
-                System.out.println("rowseffected-" + rowseffected);
-                if (rowseffected == 0 ){
+            int rowseffected = controller.updateTransactions(imap);
+            System.out.println("rowseffected-" + rowseffected);
+            if (rowseffected == 0) {
 
-                    controller.insertTransactions(imap);
-                }
+                controller.insertTransactions(imap);
+            }
 
-                controller.deleteTransStatusByTransID(TransactionId);
+            controller.deleteTransStatusByTransID(TransactionId);
 
 
         }
 
 
     }
-    public void GetDetails()
-    {
+
+    public void GetDetails() {
         vehicleNumber = Constants.AccVehicleNumber_FS3;
         odometerTenths = Constants.AccOdoMeter_FS3 + "";
         dNumber = Constants.AccDepartmentNumber_FS3;
@@ -1149,7 +1210,6 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
         /////////////////////////////////////////////////////////////////////////
 
 
-
         SharedPreferences sharedPrefODO = this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
         IsOtherRequire = sharedPrefODO.getString(AppConstants.IsOtherRequire, "");
         OtherLabel = sharedPrefODO.getString(AppConstants.OtherLabel, "Other");
@@ -1186,14 +1246,14 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
         String Qty = (precision.format(fillqty));
 
         double FuelQuantity = Double.parseDouble(Qty);
-        String PrintCost = CalculatePrice( SurchargeType_FS3, FuelQuantity, ProductPrice_FS3, VehicleSum_FS3, DeptSum_FS3, VehPercentage_FS3, DeptPercentage_FS3);
+        String PrintCost = CalculatePrice(SurchargeType_FS3, FuelQuantity, ProductPrice_FS3, VehicleSum_FS3, DeptSum_FS3, VehPercentage_FS3, DeptPercentage_FS3);
 
-        if (IsOtherRequire.equalsIgnoreCase("true")){
+        if (IsOtherRequire.equalsIgnoreCase("true")) {
 
-            printReceipt = GetPrintReciptForOther(CompanyName,PrintDate,LinkName,Location,VehicleNumber,PersonName,OtherLabel,OtherName,Qty,PrintCost);
+            printReceipt = GetPrintReciptForOther(CompanyName, PrintDate, LinkName, Location, VehicleNumber, PersonName, OtherLabel, OtherName, Qty, PrintCost);
             // printReceipt = " \n\n------FluidSecure Receipt------ \n\nCompany   : " + CompanyName +"\n\nTime/Date : "+PrintDate+"\n\nLocation  : "+LinkName+","+Location+","+"\n\nVehicle # : "+VehicleNumber+"\n\nPersonnel : "+PersonName+" \n\nQty       : " + Qty + "\n\n"+OtherLabel+":"+OtherName+ "\n\n ---------Thank You---------"+"\n\n\n\n\n\n\n\n\n\n\n\n";
-        }else{
-            printReceipt = GetPrintRecipt(CompanyName,PrintDate,LinkName,Location,VehicleNumber,PersonName,Qty,PrintCost);
+        } else {
+            printReceipt = GetPrintRecipt(CompanyName, PrintDate, LinkName, Location, VehicleNumber, PersonName, Qty, PrintCost);
             // printReceipt = " \n\n------FluidSecure Receipt------ \n\nCompany   : " + CompanyName +"\n\nTime/Date : "+PrintDate+"\n\nLocation  : "+LinkName+","+Location+"\n\nVehicle # : "+VehicleNumber+"\n\nPersonnel : "+PersonName+" \n\nQty       : " + Qty + "\n\n ---------Thank You---------"+"\n\n\n\n\n\n\n\n\n\n\n\n";
         }
 
@@ -1216,7 +1276,7 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
             authEntityClass.FuelQuantity = fillqty;
             authEntityClass.Pulses = Pulses;
             authEntityClass.TransactionFrom = "A";
-            authEntityClass.AppInfo = " Version:" + CommonUtils.getVersionCode(BackgroundService_FS_UNIT_3.this) + " " + AppConstants.getDeviceName() + " Android "+android.os.Build.VERSION.RELEASE+" ";
+            authEntityClass.AppInfo = " Version:" + CommonUtils.getVersionCode(BackgroundService_FS_UNIT_3.this) + " " + AppConstants.getDeviceName() + " Android " + android.os.Build.VERSION.RELEASE + " ";
             authEntityClass.IsFuelingStop = IsFuelingStop;
             authEntityClass.IsLastTransaction = IsLastTransaction;
 
@@ -1318,7 +1378,8 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
 
         }
 
-            startService(new Intent(this, BackgroundService.class));
+
+                startService(new Intent(BackgroundService_FS_UNIT_3.this, BackgroundService.class));
 
     }
 
@@ -1327,6 +1388,8 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
         String mac_address = "";
         String probe_reading = "";
         String probe_temperature = "";
+        String LSB ="";
+        String MSB ="";
 
         try {
 
@@ -1337,9 +1400,9 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
             PrintDate = sharedPref.getString("PrintDate_FS3", "");
 
             //Get TankMonitoring details from FluidSecure Link
-              String response1 = new CommandsGET().execute(URL_TDL_info).get();
+            String response1 = new CommandsGET().execute(URL_TDL_info).get();
             // String response1 = "{  \"tld\":{ \"level\":\"180, 212, 11, 34, 110, 175, 1, 47, 231, 15, 78, 65\"  }  }";
-            AppConstants.WriteinFile("\n"+TAG + "Backgroundservice_FS_UNIT_3 TankMonitorReading ~~~URL_TDL_info_Resp~~" + response1);
+            AppConstants.WriteinFile("\n" + TAG + "Backgroundservice_FS_UNIT_3 TankMonitorReading ~~~URL_TDL_info_Resp~~" + response1);
             try {
                 JSONObject reader = null;
                 reader = new JSONObject(response1);
@@ -1348,8 +1411,8 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
                 mac_address = tld.getString("Mac_address");
                 String Sensor_ID = tld.getString("Sensor_ID");
                 String Response_code = tld.getString("Response_code");
-                String LSB = tld.getString("LSB");
-                String MSB = tld.getString("MSB");
+                LSB = tld.getString("LSB");
+                MSB = tld.getString("MSB");
                 String Tem_data = tld.getString("Tem_data");
                 String Checksum = tld.getString("Checksum");
 
@@ -1359,7 +1422,7 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
                 //mac_address = ConvertToMacAddressFormat(mac_str);
 
                 //Calculate probe reading
-                probe_reading = GetProbeReading(LSB,MSB);
+                //probe_reading = GetProbeReading(LSB, MSB);
 
                 probe_temperature = CalculateTemperature(Tem_data);
 
@@ -1375,8 +1438,10 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
             TankMonitorEntity obj_entity = new TankMonitorEntity();
             obj_entity.IMEI_UDID = AppConstants.getIMEI(BackgroundService_FS_UNIT_3.this);
             obj_entity.FromSiteId = Integer.parseInt(AppConstants.SITE_ID);
-            obj_entity.ProbeReading = probe_reading;
+            //obj_entity.ProbeReading = probe_reading;
             obj_entity.TLD = mac_address;
+            obj_entity.LSB = LSB;
+            obj_entity.MSB = MSB;
             obj_entity.ReadingDateTime = CurrentDeviceDate;//PrintDate;
 
             BackgroundService_FS_UNIT_3.SaveTankMonitorReadingy TestAsynTask = new BackgroundService_FS_UNIT_3.SaveTankMonitorReadingy(obj_entity);
@@ -1386,8 +1451,6 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
             String serverRes = TestAsynTask.response;
 
             AppConstants.WriteinFile(TAG + "TankMonitorReading ~~~serverRes~~" + serverRes);
-
-
 
 
         } catch (Exception e) {
@@ -1453,7 +1516,7 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
 
     }
 
-    public void clearEditTextFields(){
+    public void clearEditTextFields() {
 
         Constants.AccVehicleNumber_FS3 = "";
         Constants.AccOdoMeter_FS3 = 0;
@@ -1694,7 +1757,7 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
 
     }
 
-    private String CalculatePrice(String SurchargeType_FS3, double FuelQuantity, double ProductPrice_FS3, double VehicleSum_FS3, double DeptSum_FS3, double VehPercentage_FS3, double DeptPercentage_FS3){
+    private String CalculatePrice(String SurchargeType_FS3, double FuelQuantity, double ProductPrice_FS3, double VehicleSum_FS3, double DeptSum_FS3, double VehPercentage_FS3, double DeptPercentage_FS3) {
 
         double cost = 0.0;
         if (SurchargeType_FS3.equalsIgnoreCase("0")) {
@@ -1754,7 +1817,7 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
 
             String lsb_hex = CommonUtils.decimal2hex(Integer.parseInt(LSB));
             String msb_hex = CommonUtils.decimal2hex(Integer.parseInt(MSB));
-            String Combine_hex = msb_hex+lsb_hex;
+            String Combine_hex = msb_hex + lsb_hex;
             int finalpd = CommonUtils.hex2decimal(Combine_hex);
             prove = finalpd / 128;
 
@@ -1795,99 +1858,67 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService{
         return mac_address;
     }
 
+    public void ListConnectedHotspotIP_FS_UNIT_3AsyncCall() {
 
-    public static class ListConnectedHotspotIP_FS_UNIT_3 extends AsyncTask<String, Void, String> {
+        Thread thread = new Thread(new Runnable() {
 
-        @Override
-        protected void onPreExecute() {
+            @Override
+            public void run() {
+                BufferedReader br = null;
+                boolean isFirstLine = true;
 
-            listOfConnectedIP_UNIT_3.clear();
+                try {
+                    br = new BufferedReader(new FileReader("/proc/net/arp"));
+                    String line;
 
-        }
+                    while ((line = br.readLine()) != null) {
+                        if (isFirstLine) {
+                            isFirstLine = false;
+                            continue;
+                        }
 
-        protected String doInBackground(String... arg0) {
+                        String[] splitted = line.split(" +");
+
+                        if (splitted != null && splitted.length >= 4) {
+
+                            String ipAddress = splitted[0];
+                            String macAddress = splitted[3];
+                            System.out.println("IPAddress" + ipAddress);
+                            boolean isReachable = InetAddress.getByName(
+                                    splitted[0]).isReachable(500);  // this is network call so we cant do that on UI thread, so i take background thread.
+                            if (isReachable) {
+                                Log.d("Device Information", ipAddress + " : "
+                                        + macAddress);
+                            }
+
+                            if (ipAddress != null || macAddress != null) {
 
 
+                                listOfConnectedIP_UNIT_3.add("http://" + ipAddress + ":80/");
+                                System.out.println("Details Of Connected HotspotIP" + listOfConnectedIP_UNIT_3);
+
+                            }
 
 
-            String resp = "";
+                        }
 
-            Thread thread = new Thread(new Runnable() {
+                    }
 
-                @Override
-                public void run() {
-                    BufferedReader br = null;
-                    boolean isFirstLine = true;
-
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    AppConstants.WriteinFile("BackgroundService_FS_UNIT_3 ~~~~~~~~~" + "ListConnectedHotspotIP_FS_UNIT_3 1 --Exception " + e);
+                } finally {
                     try {
-                        br = new BufferedReader(new FileReader("/proc/net/arp"));
-                        String line;
-
-                        while ((line = br.readLine()) != null) {
-                            if (isFirstLine) {
-                                isFirstLine = false;
-                                continue;
-                            }
-
-                            String[] splitted = line.split(" +");
-
-                            if (splitted != null && splitted.length >= 4) {
-
-                                String ipAddress = splitted[0];
-                                String macAddress = splitted[3];
-                                System.out.println("IPAddress" + ipAddress);
-                                boolean isReachable = InetAddress.getByName(
-                                        splitted[0]).isReachable(500);  // this is network call so we cant do that on UI thread, so i take background thread.
-                                if (isReachable) {
-                                    Log.d("Device Information", ipAddress + " : "
-                                            + macAddress);
-                                }
-
-                                if (ipAddress != null || macAddress != null) {
-
-
-                                    listOfConnectedIP_UNIT_3.add("http://"+ ipAddress +":80/");
-                                    System.out.println("Details Of Connected HotspotIP" + listOfConnectedIP_UNIT_3);
-
-                                }
-
-
-
-                            }
-
-                        }
-
-                    } catch (Exception e) {
+                        br.close();
+                    } catch (IOException e) {
                         e.printStackTrace();
-                        AppConstants.WriteinFile("BackgroundService_FS_UNIT_3 ~~~~~~~~~" + "ListConnectedHotspotIP_FS_UNIT_3 1 --Exception " + e);
-                    } finally {
-                        try {
-                            br.close();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                            AppConstants.WriteinFile("BackgroundService_FS_UNIT_3 ~~~~~~~~~" + "ListConnectedHotspotIP_FS_UNIT_3 2 --Exception " + e);
-                        }
+                        AppConstants.WriteinFile("BackgroundService_FS_UNIT_3 ~~~~~~~~~" + "ListConnectedHotspotIP_FS_UNIT_3 2 --Exception " + e);
                     }
                 }
-            });
-            thread.start();
+            }
+        });
+        thread.start();
 
-
-            return resp;
-
-
-        }
-
-
-        @Override
-        protected void onPostExecute(String result) {
-
-            super.onPostExecute(result);
-            String strJson = result;
-
-
-
-        }
 
     }
 
