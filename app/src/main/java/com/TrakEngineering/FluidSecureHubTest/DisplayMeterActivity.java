@@ -120,7 +120,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
     boolean isTransactionComp = false;
     ServerHandler serverHandler = new ServerHandler();
 
-    String EMPTY_Val = "",IsFuelingStop = "0",IsLastTransaction = "1";;
+    String EMPTY_Val = "",IsFuelingStop = "0",IsLastTransaction = "1";
 
     public String HTTP_URL = "";
     public String URL_GET_TXNID = "";

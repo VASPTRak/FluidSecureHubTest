@@ -250,19 +250,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         SelectedItemPos = -1;
         ConnectCount = 0;
 
-        if (mConnectState == BluetoothReader.STATE_DISCONNECTED) {
-
-            //If Reader Disconnected try to connection attempt.
-            if (ConnectCount < 1) {
-
-                ConnectCount += 1;
-                System.out.println("Count: " + ConnectCount);
-
-                if (mDeviceName != null && mDeviceAddress.contains(":")) {
-                    connectReader();
-                }
-            }
-        }
+        //Reconnect BT reader if disconnected
+        ReConnectBTReader();
 
 
         final IntentFilter intentFilter = new IntentFilter();
@@ -5130,6 +5119,23 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             pd.dismiss();
         }
 
+    }
+
+    public void ReConnectBTReader(){
+
+        if (mConnectState == BluetoothReader.STATE_DISCONNECTED) {
+
+            //If Reader Disconnected try to connection attempt.
+            if (ConnectCount < 1) {
+
+                ConnectCount += 1;
+                System.out.println("Count: " + ConnectCount);
+
+                if (mDeviceName != null && mDeviceAddress.contains(":")) {
+                    connectReader();
+                }
+            }
+        }
     }
 
 }
