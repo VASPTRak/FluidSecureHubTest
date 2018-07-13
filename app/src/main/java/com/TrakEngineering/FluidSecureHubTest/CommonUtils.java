@@ -118,6 +118,9 @@ public class CommonUtils {
                 "        <p><u>\n</u><br/>" +//blank spase to cut paper
                 "        <p><u>\n</u><br/>" +//blank spase to cut paper
                 "        <p><u>\n</u><br/>" +//blank spase to cut paper
+                "        <p><u>\n</u><br/>" +//blank spase to cut paper
+                "        <p><u>\n</u><br/>" +//blank spase to cut paper
+                "        <p><u>\n</u><br/>" +//blank spase to cut paper
                 "        <p><u>\n</u><br/>" ;//blank spase to cut paper
 
 
@@ -154,6 +157,9 @@ public class CommonUtils {
                 "        <p><b>Cost ($)   :</b> "+PrintCost+"<br/>" +
                 "        <p><u>\n</u><br/>" +//empty line
                 "        <h2>      ---------Thank You---------</h2>\n\n"+
+                "        <p><u>\n</u><br/>" +//blank spase to cut paper
+                "        <p><u>\n</u><br/>" +//blank spase to cut paper
+                "        <p><u>\n</u><br/>" +//blank spase to cut paper
                 "        <p><u>\n</u><br/>" +//blank spase to cut paper
                 "        <p><u>\n</u><br/>" +//blank spase to cut paper
                 "        <p><u>\n</u><br/>" +//blank spase to cut paper

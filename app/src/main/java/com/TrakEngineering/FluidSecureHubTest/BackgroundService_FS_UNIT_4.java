@@ -1250,8 +1250,10 @@ public class BackgroundService_FS_UNIT_4 extends BackgroundService {
         String Qty = (precision.format(fillqty));
         double FuelQuantity = Double.parseDouble(Qty);
 
-        //-----------------
-        String PrintCost = CalculatePrice(SurchargeType_FS4, FuelQuantity, ProductPrice_FS4, VehicleSum_FS4, DeptSum_FS4, VehPercentage_FS4, DeptPercentage_FS4);
+        //---------print cost--------
+        String InitPrintCost = CalculatePrice(SurchargeType_FS4, FuelQuantity, ProductPrice_FS4, VehicleSum_FS4, DeptSum_FS4, VehPercentage_FS4, DeptPercentage_FS4);
+        DecimalFormat precision_cost = new DecimalFormat("0.00");
+        String PrintCost = (precision_cost.format(Double.parseDouble(InitPrintCost)));
 
 
         if (IsOtherRequire.equalsIgnoreCase("true")) {

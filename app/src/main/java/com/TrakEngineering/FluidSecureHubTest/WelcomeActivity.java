@@ -7,6 +7,7 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.PendingIntent;
 import android.app.ProgressDialog;
+import android.app.admin.DevicePolicyManager;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothDevice;
@@ -15,6 +16,7 @@ import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.le.BluetoothLeScanner;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -33,6 +35,8 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.os.PowerManager;
+import android.os.SystemClock;
 import android.provider.Settings;
 import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
@@ -106,6 +110,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import static com.TrakEngineering.FluidSecureHubTest.R.id.textView;
+import static com.google.android.gms.internal.zzid.runOnUiThread;
 
 
 public class WelcomeActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, View.OnClickListener {
@@ -114,6 +119,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     private float density;
     ProgressDialog dialog1;
     public int ConnectCount = 0;
+    private PowerManager mPowerManager;
+    private PowerManager.WakeLock mWakeLock;
 
     private TextView textDateTime, tv_fs1_Qty, tv_fs2_Qty, tv_fs3_Qty, tv_fs4_Qty, tv_FS1_hoseName, tv_FS2_hoseName, tv_FS3_hoseName,
             tv_FS4_hoseName, tv_fs1_stop, tv_fs2_stop, tv_fs3_stop, tv_fs4_stop, tv_fs1QTN, tv_fs2QTN, tv_fs3QTN, tv_fs4QTN, tv_fs1_pulseTxt, tv_fs2_pulseTxt, tv_fs3_pulseTxt, tv_fs4_pulseTxt, tv_fs1_Pulse, tv_fs2_Pulse, tv_fs3_Pulse, tv_fs4_Pulse;
@@ -123,11 +130,13 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     private ConnectionDetector cd;
     private double latitude = 0;
     private double longitude = 0;
+    private static final long SCAN_PERIOD = 3000;
     TextView tvSSIDName, tv_NFS1, tv_NFS2, tv_NFS3, tv_NFS4;//tv_fs1_pulse
     LinearLayout linearHose, linear_fs_1, linear_fs_2, linear_fs_3, linear_fs_4;
     WifiManager mainWifi;
     StringBuilder sb = new StringBuilder();
 
+    ArrayList<HashMap<String, String>> ListOfBleDevices = new ArrayList<>();
     ArrayList<HashMap<String, String>> serverSSIDList = new ArrayList<>();
     ArrayList<HashMap<String, String>> ListOfConnectedDevices = new ArrayList<>();
     public static int SelectedItemPos;
@@ -191,6 +200,9 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     private static final byte[] AUTO_POLLING_START = {(byte) 0xE0, 0x00, 0x00,
             0x40, 0x01};
 
+    private BluetoothAdapter mBluetoothAdapter;
+    private boolean mScanning;
+    private Handler mHandler;
 
     /* Reader to be connected. */
     private String mDeviceName;
@@ -481,6 +493,32 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
         /* Set the onClick() event handlers. */
         setOnClickListener();
+
+       /* //Enable Screen
+        PowerManager.WakeLock screenLock = ((PowerManager)getSystemService(POWER_SERVICE)).newWakeLock(
+                PowerManager.SCREEN_BRIGHT_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP, "TAG");
+        screenLock.acquire();
+
+        //later
+        screenLock.release();*/
+
+        /*WindowManager.LayoutParams params = this.getWindow().getAttributes();
+
+        *//** Turn off: *//*
+        params.flags = WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON;
+        //TODO Store original brightness value
+        params.screenBrightness = 0f;
+        this.getWindow().setAttributes(params);
+
+        *//** Turn on: *//*
+        params.flags = WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON;
+        //TODO restoring from original value
+        params.screenBrightness = 0.9f;
+        this.getWindow().setAttributes(params);*/
+
+
+        //Repeat every 30min
+        NoSleepEscapeCommand();
 
         /* Initialize BluetoothReaderGattCallback. */
         mGattCallback = new BluetoothReaderGattCallback();
@@ -852,6 +890,12 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
     public void selectHoseAction(View v) {
 
+       /* //Scan for Near-by BLE devices
+        ListOfBleDevices.clear();
+        scanLeDevice(true);*/
+
+        //Reconnect BT reader if disconnected
+        ReConnectBTReader();
         new GetConnectedDevicesIP().execute();//Refreshed donnected devices list on hose selection.
         refreshWiFiList();
         //alertSelectHoseList(tvLatLng.getText().toString() + "\n");
@@ -5121,7 +5165,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
     }
 
-    public void ReConnectBTReader(){
+    public void ReConnectBTReader() {
 
         if (mConnectState == BluetoothReader.STATE_DISCONNECTED) {
 
@@ -5136,6 +5180,93 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 }
             }
         }
+    }
+
+    private void scanLeDevice(final boolean enable) {
+        if (enable) {
+            // Stops scanning after a pre-defined scan period.
+            mHandler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    mScanning = false;
+                    mBluetoothAdapter.stopLeScan(mLeScanCallback);
+
+                }
+            }, SCAN_PERIOD);
+
+            mScanning = true;
+            mBluetoothAdapter.startLeScan(mLeScanCallback);
+        } else {
+            mScanning = false;
+            mBluetoothAdapter.stopLeScan(mLeScanCallback);
+        }
+
+    }
+
+    // Device scan callback.
+    private BluetoothAdapter.LeScanCallback mLeScanCallback =
+            new BluetoothAdapter.LeScanCallback() {
+
+                @Override
+                public void onLeScan(final BluetoothDevice device, final int rssi, final byte[] scanRecord) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+
+                            HashMap<String, String> map = new HashMap<>();
+                            map.put("BleName", device.getName());
+                            map.put("BleMacAddress", device.getAddress());
+                            map.put("BleRssi", String.valueOf(rssi));
+
+                            ListOfBleDevices.add(map);
+
+                        }
+                    });
+                }
+            };
+
+
+    public void NoSleepEscapeCommand() {
+
+
+        Thread tst = new Thread() {
+
+            @Override
+            public void run() {
+                try {
+                    while (!isInterrupted()) {
+                        Thread.sleep(1800000);
+
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                transmitEscapeCommend();//No Sleep command
+                            }
+                        });
+
+                    }
+                } catch (InterruptedException e) {
+                }
+            }
+        };
+
+        tst.start();
+
+    }
+
+    public void turnOnScreen(){
+        // turn on screen
+        Log.v("ProximityActivity", "ON!");
+        mWakeLock = mPowerManager.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP, "tag");
+        mWakeLock.acquire();
+    }
+
+    @TargetApi(21) //Suppress lint error for PROXIMITY_SCREEN_OFF_WAKE_LOCK
+    public void turnOffScreen(){
+        // turn off screen
+        Log.v("ProximityActivity", "OFF!");
+        mWakeLock = mPowerManager.newWakeLock(PowerManager.PROXIMITY_SCREEN_OFF_WAKE_LOCK, "tag");
+        mWakeLock.acquire();
     }
 
 }

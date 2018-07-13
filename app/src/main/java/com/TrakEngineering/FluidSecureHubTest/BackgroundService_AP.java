@@ -1239,7 +1239,11 @@ public class BackgroundService_AP extends BackgroundService {
         String Qty = (precision.format(fillqty));
 
         double FuelQuantity = Double.parseDouble(Qty);
-        String PrintCost = CalculatePrice(SurchargeType, FuelQuantity, ProductPrice, VehicleSum, DeptSum, VehPercentage, DeptPercentage);
+
+        //---------print cost--------
+        String InitPrintCost = CalculatePrice(SurchargeType, FuelQuantity, ProductPrice, VehicleSum, DeptSum, VehPercentage, DeptPercentage);
+        DecimalFormat precision_cost = new DecimalFormat("0.00");
+        String PrintCost = (precision_cost.format(Double.parseDouble(InitPrintCost)));
 
 
         if (IsOtherRequire.equalsIgnoreCase("true")) {

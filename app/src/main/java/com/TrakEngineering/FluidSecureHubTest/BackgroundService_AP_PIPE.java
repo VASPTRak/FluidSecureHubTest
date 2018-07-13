@@ -1295,12 +1295,12 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
         //Print Transaction Receipt
         DecimalFormat precision = new DecimalFormat("0.00");
         String Qty = (precision.format(fillqty));
-
         double FuelQuantity = Double.parseDouble(Qty);
 
-        //-----------------
-        String PrintCost = CalculatePrice(SurchargeType_FS1, FuelQuantity, ProductPrice_FS1, VehicleSum_FS1, DeptSum_FS1, VehPercentage_FS1, DeptPercentage_FS1);
-
+        //---------print cost--------
+        String InitPrintCost = CalculatePrice(SurchargeType_FS1, FuelQuantity, ProductPrice_FS1, VehicleSum_FS1, DeptSum_FS1, VehPercentage_FS1, DeptPercentage_FS1);
+        DecimalFormat precision_cost = new DecimalFormat("0.00");
+        String PrintCost = (precision_cost.format(Double.parseDouble(InitPrintCost)));
 
         if (IsOtherRequire.equalsIgnoreCase("true")) {
 

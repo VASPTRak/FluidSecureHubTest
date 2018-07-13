@@ -1244,9 +1244,12 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService {
         //Print Transaction Receipt
         DecimalFormat precision = new DecimalFormat("0.00");
         String Qty = (precision.format(fillqty));
-
         double FuelQuantity = Double.parseDouble(Qty);
-        String PrintCost = CalculatePrice(SurchargeType_FS3, FuelQuantity, ProductPrice_FS3, VehicleSum_FS3, DeptSum_FS3, VehPercentage_FS3, DeptPercentage_FS3);
+
+        //---------print cost--------
+        String InitPrintCost = CalculatePrice(SurchargeType_FS3, FuelQuantity, ProductPrice_FS3, VehicleSum_FS3, DeptSum_FS3, VehPercentage_FS3, DeptPercentage_FS3);
+        DecimalFormat precision_cost = new DecimalFormat("0.00");
+        String PrintCost = (precision_cost.format(Double.parseDouble(InitPrintCost)));
 
         if (IsOtherRequire.equalsIgnoreCase("true")) {
 
