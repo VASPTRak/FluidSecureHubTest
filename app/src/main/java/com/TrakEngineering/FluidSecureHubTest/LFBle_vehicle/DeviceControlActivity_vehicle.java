@@ -107,7 +107,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
     public static String SITE_ID = "0";
     private EditText editVehicleNumber;
     String IsVehicleHasFob = "", IsOdoMeterRequire = "", IsDepartmentRequire = "", IsPersonnelPINRequire = "", IsPersonnelPINRequireForHub = "", IsOtherRequire = "";
-    Button btnCancel, btnSave;
+    Button btnCancel, btnSave,btn_ReadFobAgain;
     GoogleApiClient mGoogleApiClient;
     public static double CurrentLat = 0, CurrentLng = 0;
     RelativeLayout footer_keybord;
@@ -248,6 +248,9 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
         SITE_ID = parseSiteData(dataSite);
         AppConstants.SITE_ID = SITE_ID;
 
+        //enable hotspot.
+        Constants.hotspotstayOn = true;
+
         //Check Selected FS and  change accordingly
         //Constants.AccVehicleNumber = "";
         //Constants.AccOdoMeter = 0;
@@ -305,6 +308,13 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
             }
         });
 
+        btn_ReadFobAgain.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                onResume();
+            }
+        });
+
         tv_return.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -317,6 +327,15 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+
+        /*//Click to read Lf fob
+        btn_ReadFobAgain.setVisibility(View.INVISIBLE);
+        int width = ActionBar.LayoutParams.WRAP_CONTENT;
+        int height = 0;
+        LinearLayout.LayoutParams parms = new LinearLayout.LayoutParams(width, height);
+        parms.gravity = Gravity.CENTER;
+        btn_ReadFobAgain.setLayoutParams(parms);*/
+
 
         Count = 1;
         AppConstants.VehicleLocal_FOB_KEY = "";
@@ -489,28 +508,31 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
                     String[] Seperate = Str_data.split("\n");
                     String Sep1 = Seperate[0];
                     String Sep2 = Seperate[1];
-                    LF_FobKey = Sep2.replace(" ", "");
+                    LF_FobKey = Sep2.replace(" ", "");//if no fob presented this value should be empty.
                     tv_fobkey.setText(Sep2.replace(" ", ""));
                 } catch (Exception ex) {
                     System.out.println(ex);
                     AppConstants.WriteinFile(TAG + " ~~~~~~~~~" + "displayData Split Fob_Key  --Exception " + ex);
                 }
 
-                tv_fob_number.setText("Fob No: " + LF_FobKey);
-                AppConstants.APDU_FOB_KEY = LF_FobKey;
-                AppConstants.VehicleLocal_FOB_KEY = LF_FobKey;
-                //On LF Fob read success
-                editVehicleNumber.setText("");
-                Istimeout_Sec = false;
-                ScreenOutTimeVehicle.cancel();
-                if (mBluetoothLeServiceVehicle != null) {
-                    mBluetoothLeServiceVehicle.writeCustomCharacteristic(0x01, etInput.getText().toString().trim());
+                if (!LF_FobKey.equalsIgnoreCase(""))
+                {
+                    tv_fob_number.setText("Fob No: " + LF_FobKey);
+                    AppConstants.APDU_FOB_KEY = LF_FobKey;
+                    AppConstants.VehicleLocal_FOB_KEY = LF_FobKey;
+                    //On LF Fob read success
+                    editVehicleNumber.setText("");
+                    Istimeout_Sec = false;
+                    ScreenOutTimeVehicle.cancel();
+                    if (mBluetoothLeServiceVehicle != null) {
+                        mBluetoothLeServiceVehicle.writeCustomCharacteristic(0x01, etInput.getText().toString().trim());
+                    }
                 }
 
             }
 
             if (Count < 3) {
-                Toast.makeText(getApplicationContext(), "Attempt to read Characteristic: " + Count, Toast.LENGTH_LONG).show();
+               // Toast.makeText(getApplicationContext(), "Attempt to read Characteristic: " + Count, Toast.LENGTH_LONG).show();
                 AppConstants.WriteinFile(TAG + " ~~~~~~~~~" + "DeviceControlActivity_Vehicle displayData Attempt to read Characteristic: " + Count);
                 Count++;
                 if (mBluetoothLeServiceVehicle != null) {
@@ -597,6 +619,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
         tv_fob_Reader = (TextView) findViewById(R.id.tv_fob_Reader);
         tv_or = (TextView) findViewById(R.id.tv_or);
         btnSave = (Button) findViewById(R.id.btnSave);
+        btn_ReadFobAgain = (Button) findViewById(R.id.btn_ReadFobAgain);
         footer_keybord = (RelativeLayout) findViewById(R.id.footer_keybord);
         Linear_layout_Save_back_buttons = (LinearLayout) findViewById(R.id.Linear_layout_Save_back_buttons);
         tv_return = (TextView) findViewById(R.id.tv_return);
@@ -817,8 +840,15 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
                             Linear_layout_Save_back_buttons.setVisibility(View.VISIBLE);*/
                             //-----------------------------------------------------------
 
+                           /* //Click to read Lf fob
                             btnSave.setEnabled(true);
-                            onResume();
+                            btn_ReadFobAgain.setVisibility(View.VISIBLE);
+                            int width = ActionBar.LayoutParams.WRAP_CONTENT;
+                            int height = ActionBar.LayoutParams.WRAP_CONTENT;
+                            LinearLayout.LayoutParams parms = new LinearLayout.LayoutParams(width, height);
+                            parms.gravity = Gravity.CENTER;
+                            btn_ReadFobAgain.setLayoutParams(parms);*/
+                            //onResume();
                             //Empty Fob key & enable edit text and Enter button
                             // AppConstants.FOB_KEY_VEHICLE = "";
                             editVehicleNumber.setEnabled(true);
@@ -829,7 +859,15 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
 
                             IsNewFobVar = true;
                             btnSave.setEnabled(true);
-                            onResume();
+
+                           /* //Click to read Lf fob
+                            btn_ReadFobAgain.setVisibility(View.VISIBLE);
+                            int width = ActionBar.LayoutParams.WRAP_CONTENT;
+                            int height = ActionBar.LayoutParams.WRAP_CONTENT;
+                            LinearLayout.LayoutParams parms = new LinearLayout.LayoutParams(width, height);
+                            parms.gravity = Gravity.CENTER;
+                            btn_ReadFobAgain.setLayoutParams(parms);*/
+                            //onResume();
                             //Empty Fob key & enable edit text and Enter button
                             // AppConstants.FOB_KEY_VEHICLE = "";
                             editVehicleNumber.setEnabled(true);

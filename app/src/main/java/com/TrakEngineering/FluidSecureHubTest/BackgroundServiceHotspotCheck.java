@@ -1,6 +1,7 @@
 package com.TrakEngineering.FluidSecureHubTest;
 
 import android.app.Service;
+import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -36,6 +37,15 @@ public class BackgroundServiceHotspotCheck extends BackgroundService {
                 this.stopSelf();
             } else {
 
+                //Enable bluetooth
+                BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+                mBluetoothAdapter.enable();
+                /*if (mBluetoothAdapter.disable()) {
+                    mBluetoothAdapter.enable();
+                }*/
+
+
+                //Enable hotspot Logic
                 if (!screenOff && !CommonUtils.isHotspotEnabled(BackgroundServiceHotspotCheck.this) && Constants.hotspotstayOn) {
 
                     wifiApManager.setWifiApEnabled(null, true);  //Hotspot enabled

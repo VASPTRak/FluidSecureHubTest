@@ -113,7 +113,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
 
     EditText etPersonnelPin;
     TextView tv_enter_pin_no, tv_ok;
-    Button btnSave, btnCancel;
+    Button btnSave, btnCancel, btn_ReadFobAgain;
     String IsOdoMeterRequire = "", IsDepartmentRequire = "", IsPersonnelPINRequire = "", IsOtherRequire = "";
     String TimeOutinMinute;
 
@@ -138,7 +138,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
             if (mDeviceName != null && mDeviceAddress.contains(":")) {
                 final boolean result = mBluetoothLeServicePin.connect(mDeviceAddress);
                 Log.d(TAG, "Connect request result=" + result);
-            }else{
+            } else {
                 if (!HFDeviceAddress.contains(":")) {
                     tv_enter_pin_no.setText("");
                 } else {
@@ -235,6 +235,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
         }
 
 
+        btn_ReadFobAgain = (Button) findViewById(R.id.btn_ReadFobAgain);
         btnSave = (Button) findViewById(R.id.btnSave);
         btnCancel = (Button) findViewById(R.id.btnCancel);
         tv_fob_Reader = (TextView) findViewById(R.id.tv_fob_Reader);
@@ -304,6 +305,14 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
             }
         });
 
+        btn_ReadFobAgain.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                onResume();
+            }
+        });
+
+
         tv_return.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -318,10 +327,17 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
 
+       /* btn_ReadFobAgain.setVisibility(View.INVISIBLE);
+        int width = ActionBar.LayoutParams.WRAP_CONTENT;
+        int height = 0;
+        LinearLayout.LayoutParams parms = new LinearLayout.LayoutParams(width, height);
+        parms.gravity = Gravity.CENTER;
+        btn_ReadFobAgain.setLayoutParams(parms);*/
+
         Count = 1;
         //Toast.makeText(getApplicationContext(), "FOK_KEY" + AppConstants.APDU_FOB_KEY, Toast.LENGTH_SHORT).show();
         showKeybord();
-      //  AppConstants.APDU_FOB_KEY = "";
+        //  AppConstants.APDU_FOB_KEY = "";
         AppConstants.PinLocal_FOB_KEY = "";
         Istimeout_Sec = true;
         TimeoutPinScreen();
@@ -331,7 +347,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
             if (mDeviceName != null && mDeviceAddress.contains(":")) {
                 final boolean result = mBluetoothLeServicePin.connect(mDeviceAddress);
                 Log.d(TAG, "Connect request result=" + result);
-            }else{
+            } else {
                 if (!HFDeviceAddress.contains(":")) {
                     tv_enter_pin_no.setText("");
                 } else {
@@ -414,7 +430,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
         super.onStop();
 
         AppConstants.PinLocal_FOB_KEY = "";
-      //  AppConstants.APDU_FOB_KEY = "";
+        //  AppConstants.APDU_FOB_KEY = "";
         t.cancel();//Stop timer FOB Key
         ScreenOutTime.cancel();//Stop screenout
 
@@ -440,7 +456,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                 if (mDeviceName != null && mDeviceAddress.contains(":")) {
                     final boolean result = mBluetoothLeServicePin.connect(mDeviceAddress);
                     Log.d(TAG, "Connect request result=" + result);
-                }else{
+                } else {
                     if (!HFDeviceAddress.contains(":")) {
                         tv_enter_pin_no.setText("");
                     } else {
@@ -467,30 +483,32 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
             System.out.println("FOK_KEY Vehi " + Str_data);
             AppConstants.WriteinFile(TAG + " ~~~~~~~~~" + "DeviceControlActivity_pin displayData Response LF: " + Str_data);
             if (!Str_data.equalsIgnoreCase("000000")) {
-            try {
-                String[] Seperate = Str_data.split("\n");
-                String Sep1 = Seperate[0];
-                String Sep2 = Seperate[1];
-                LF_FobKey = Sep2.replace(" ", "");
-                tv_fobkey.setText(Sep2.replace(" ", ""));
-            } catch (Exception ex) {
-                System.out.println(ex);
-                AppConstants.WriteinFile(TAG + " ~~~~~~~~~" + "displayData Split Fob_Key  --Exception " + ex);
-            }
+                try {
+                    String[] Seperate = Str_data.split("\n");
+                    String Sep1 = Seperate[0];
+                    String Sep2 = Seperate[1];
+                    LF_FobKey = Sep2.replace(" ", "");//if no fob presented this value should be empty.
+                    tv_fobkey.setText(Sep2.replace(" ", ""));
+                } catch (Exception ex) {
+                    System.out.println(ex);
+                    AppConstants.WriteinFile(TAG + " ~~~~~~~~~" + "displayData Split Fob_Key  --Exception " + ex);
+                }
 
-            //tv_enter_pin_no.setText("Fob Read Successfully");
-            tv_fob_number.setText("");//"Fob No: " + LF_FobKey
-            AppConstants.PinLocal_FOB_KEY = LF_FobKey;
-            AppConstants.APDU_FOB_KEY = LF_FobKey;
-            if (mBluetoothLeServicePin != null) {
-                mBluetoothLeServicePin.writeCustomCharacteristic(0x01, etInput.getText().toString().trim());
-            }
-            //On LF Fob read success
-            etPersonnelPin.setText("");
+                if (!LF_FobKey.equalsIgnoreCase("")) {
+                    //tv_enter_pin_no.setText("Fob Read Successfully");
+                    tv_fob_number.setText("");//"Fob No: " + LF_FobKey
+                    AppConstants.PinLocal_FOB_KEY = LF_FobKey;
+                    AppConstants.APDU_FOB_KEY = LF_FobKey;
+                    if (mBluetoothLeServicePin != null) {
+                        mBluetoothLeServicePin.writeCustomCharacteristic(0x01, etInput.getText().toString().trim());
+                    }
+                    //On LF Fob read success
+                    etPersonnelPin.setText("");
+                }
 
-                if (Count < 3)
-                {
-                    Toast.makeText(getApplicationContext(),"Attempt to read Characteristic: "+Count, Toast.LENGTH_LONG).show();
+
+                if (Count < 3) {
+                    // Toast.makeText(getApplicationContext(),"Attempt to read Characteristic: "+Count, Toast.LENGTH_LONG).show();
                     AppConstants.WriteinFile(TAG + " ~~~~~~~~~" + "DeviceControlActivity_pin displayData Attempt to read Characteristic: " + Count);
                     Count++;
                     if (mBluetoothLeServicePin != null) {
@@ -499,7 +517,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                     }
                 }
 
-        }
+            }
         }
     }
 
@@ -588,7 +606,6 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
     }
 
 
-
     public void DisplayScreenInit() {
 
         etPersonnelPin.setEnabled(true);
@@ -668,7 +685,13 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
 
                 } else {
 
-                    onResume();
+                   /* btn_ReadFobAgain.setVisibility(View.VISIBLE);
+                    int width = ActionBar.LayoutParams.WRAP_CONTENT;
+                    int height = ActionBar.LayoutParams.WRAP_CONTENT;
+                    LinearLayout.LayoutParams parms = new LinearLayout.LayoutParams(width, height);
+                    parms.gravity = Gravity.CENTER;
+                    btn_ReadFobAgain.setLayoutParams(parms);*/
+                    // onResume();
                     Istimeout_Sec = true;
                     TimeoutPinScreen();
                     btnSave.setEnabled(true);

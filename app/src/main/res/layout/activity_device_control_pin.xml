@@ -45,6 +45,18 @@
                 android:textAppearance="?android:attr/textAppearanceLarge"
                 android:textSize="14dp" />
 
+            <Button
+                android:id="@+id/btn_ReadFobAgain"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_weight="1"
+                android:visibility="gone"
+                android:background="@color/colorFluid"
+                android:text=" Click to read fob again "
+                android:textColor="@color/white"
+                android:textSize="@dimen/go_button_text" />
+
             <TextView
                 android:id="@+id/tv_title"
                 android:gravity="center"

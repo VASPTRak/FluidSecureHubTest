@@ -9,12 +9,10 @@ import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.app.admin.DevicePolicyManager;
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
-import android.bluetooth.le.BluetoothLeScanner;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -36,7 +34,6 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.PowerManager;
-import android.os.SystemClock;
 import android.provider.Settings;
 import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
@@ -56,7 +53,6 @@ import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.TrakEngineering.FluidSecureHubTest.LFBle_PIN.DeviceControlActivity_Pin;
 import com.TrakEngineering.FluidSecureHubTest.LFBle_vehicle.DeviceControlActivity_vehicle;
 import com.TrakEngineering.FluidSecureHubTest.WifiHotspot.WifiApManager;
 import com.TrakEngineering.FluidSecureHubTest.enity.AuthEntityClass;
@@ -106,11 +102,10 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Timer;
 import java.util.concurrent.TimeUnit;
 
 import static com.TrakEngineering.FluidSecureHubTest.R.id.textView;
-import static com.google.android.gms.internal.zzid.runOnUiThread;
 
 
 public class WelcomeActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, View.OnClickListener {
@@ -119,8 +114,10 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     private float density;
     ProgressDialog dialog1;
     public int ConnectCount = 0;
-    private PowerManager mPowerManager;
-    private PowerManager.WakeLock mWakeLock;
+    private static final int ADMIN_INTENT = 1;
+    private DevicePolicyManager mDevicePolicyManager;
+    private ComponentName mComponentName;
+    public boolean OnDashboardScreen = true;
 
     private TextView textDateTime, tv_fs1_Qty, tv_fs2_Qty, tv_fs3_Qty, tv_fs4_Qty, tv_FS1_hoseName, tv_FS2_hoseName, tv_FS3_hoseName,
             tv_FS4_hoseName, tv_fs1_stop, tv_fs2_stop, tv_fs3_stop, tv_fs4_stop, tv_fs1QTN, tv_fs2QTN, tv_fs3QTN, tv_fs4QTN, tv_fs1_pulseTxt, tv_fs2_pulseTxt, tv_fs3_pulseTxt, tv_fs4_pulseTxt, tv_fs1_Pulse, tv_fs2_Pulse, tv_fs3_Pulse, tv_fs4_Pulse;
@@ -147,7 +144,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     boolean isTCancelled = false;
     int RetryOneAtemptConnectToSelectedSSSID = 0;
     String ReaderFrequency = "", IsOdoMeterRequire = "", IsDepartmentRequire = "", IsPersonnelPINRequireForHub = "", IsPersonnelPINRequire = "", IsOtherRequire = "";
-
+    BroadcastReceiver mReceiver;
     //Upgrade firmware status for each hose
     public static boolean IsUpgradeInprogress_FS1 = false;
     public static boolean IsUpgradeInprogress_FS2 = false;
@@ -162,6 +159,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     double fillqty = 0;
     ProgressDialog loading = null;
     String IpAddress = "", IsDefective = "False";
+    Timer t;
 
     String HTTP_URL = "";//"http://192.168.43.153:80/";//for pipe
     String URL_GET_PULSAR_FS1, URL_SET_PULSAR_FS1, URL_WIFI_FS1, URL_RELAY_FS1, URL_GET_PULSAR_FS2, URL_SET_PULSAR_FS2, URL_WIFI_FS2, URL_RELAY_FS2, URL_GET_PULSAR_FS3, URL_SET_PULSAR_FS3, URL_WIFI_FS3, URL_RELAY_FS3, URL_GET_PULSAR_FS4, URL_SET_PULSAR_FS4, URL_WIFI_FS4, URL_RELAY_FS4;
@@ -249,6 +247,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     protected void onResume() {
         super.onResume();
 
+        OnDashboardScreen = true;
         // only when screen turns on
         if (!ScreenReceiver.screenOff) {
             // this is when onResume() is called due to a screen state change
@@ -314,6 +313,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     @Override
     protected void onPause() {
 
+        OnDashboardScreen = false;
         // when the screen is about to turn off
         if (ScreenReceiver.screenOff) {
             // this is the case when onPause() is called by the system due to a screen state change
@@ -329,6 +329,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     @Override
     protected void onDestroy() {
         super.onDestroy();
+
+        OnDashboardScreen = false;
         /* Stop to monitor bond state change */
         unregisterReceiver(mBroadcastReceiver);
         /* Disconnect Bluetooth reader */
@@ -336,6 +338,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
         IntentFilter filter = new IntentFilter(Intent.ACTION_SCREEN_ON);
         filter.addAction(Intent.ACTION_SCREEN_OFF);
+
+        unregisterReceiver(mReceiver);
 
     }
 
@@ -375,7 +379,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         //------------Initialize receiver -Screen On/Off------------
         IntentFilter filter = new IntentFilter(Intent.ACTION_SCREEN_ON);
         filter.addAction(Intent.ACTION_SCREEN_OFF);
-        BroadcastReceiver mReceiver = new ScreenReceiver();
+        mReceiver = new ScreenReceiver();
         registerReceiver(mReceiver, filter);
         Log.i(TAG, "Initialize receiver -Screen On/Off");
 
@@ -418,6 +422,9 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
         //Enable Background service to check hotspot
         EnableHotspotBackgService();
+
+        //Device Administrator permission
+        EnableDeviceAdministratorPermission();
 
 
         // set User Information
@@ -494,31 +501,11 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         /* Set the onClick() event handlers. */
         setOnClickListener();
 
-       /* //Enable Screen
-        PowerManager.WakeLock screenLock = ((PowerManager)getSystemService(POWER_SERVICE)).newWakeLock(
-                PowerManager.SCREEN_BRIGHT_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP, "TAG");
-        screenLock.acquire();
-
-        //later
-        screenLock.release();*/
-
-        /*WindowManager.LayoutParams params = this.getWindow().getAttributes();
-
-        *//** Turn off: *//*
-        params.flags = WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON;
-        //TODO Store original brightness value
-        params.screenBrightness = 0f;
-        this.getWindow().setAttributes(params);
-
-        *//** Turn on: *//*
-        params.flags = WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON;
-        //TODO restoring from original value
-        params.screenBrightness = 0.9f;
-        this.getWindow().setAttributes(params);*/
-
-
         //Repeat every 30min
-        NoSleepEscapeCommand();
+         NoSleepEscapeCommand();
+
+        //To OverCome Flickring issue
+        OnOffScreenFunction();
 
         /* Initialize BluetoothReaderGattCallback. */
         mGattCallback = new BluetoothReaderGattCallback();
@@ -631,7 +618,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         Intent name = new Intent(WelcomeActivity.this, BackgroundServiceHotspotCheck.class);
         PendingIntent pintent = PendingIntent.getService(getApplicationContext(), 0, name, 0);
         AlarmManager alarm = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        alarm.setRepeating(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), 60000, pintent);
+        alarm.setRepeating(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), 5000, pintent); //60000
         //scan and enable hotspot if OFF
         Constants.hotspotstayOn = true;
 
@@ -640,6 +627,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     @Override
     protected void onStop() {
         super.onStop();
+
+        OnDashboardScreen = false;
         if (loading != null) {
             loading.dismiss();
             Constants.hotspotstayOn = true;
@@ -895,6 +884,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         scanLeDevice(true);*/
 
         //Reconnect BT reader if disconnected
+        ConnectCount = 0;
         ReConnectBTReader();
         new GetConnectedDevicesIP().execute();//Refreshed donnected devices list on hose selection.
         refreshWiFiList();
@@ -1952,6 +1942,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                 loading.show();
 
                                 //Do not enable hotspot.
+                                OnDashboardScreen = false; //screen on/off flag
                                 Constants.hotspotstayOn = false;
 
                                 //AppConstants.colorToast(WelcomeActivity.this, "Updating mac address please wait..", Color.RED);
@@ -2318,6 +2309,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 AppConstants.WriteinFile("welcomeActivity ~~~~~~~~~" + "CommandsGET_INFO  DoInBackground --Exception " + e);
                 Log.d("Ex", e.getMessage());
                 Constants.hotspotstayOn = true;
+                OnDashboardScreen = true; //screen on/off flag
                 loading.dismiss();
             }
 
@@ -2392,6 +2384,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
             } catch (Exception e) {
                 loading.dismiss();
+                OnDashboardScreen = true; //screen on/off flag
                 Constants.hotspotstayOn = true;
                 Log.d("Ex", e.getMessage());
                 AppConstants.WriteinFile("welcomeActivity ~~~~~~~~~" + "CommandsPOST_ChangeHotspotSettings  DoInBackground --Exception " + e);
@@ -2415,6 +2408,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
             } catch (Exception e) {
                 loading.dismiss();
+                OnDashboardScreen = true; //screen on/off flag
                 Constants.hotspotstayOn = true;
                 System.out.println(e);
                 AppConstants.WriteinFile("welcomeActivity ~~~~~~~~~" + "CommandsPOST_ChangeHotspotSettings  onpostExecution --Exception " + e);
@@ -2506,6 +2500,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                                         if (mac_address.equals("")) {
                                             loading.dismiss();
+                                            OnDashboardScreen = true; //screen on/off flag
                                             Constants.hotspotstayOn = true;
                                             AppConstants.colorToastBigFont(WelcomeActivity.this, "Could not get mac address", Color.RED);
                                             WifiManager wifiManagerMM = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
@@ -2564,6 +2559,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                                             } catch (Exception e) {
                                                 loading.dismiss();
+                                                OnDashboardScreen = true; //screen on/off flag
                                                 Constants.hotspotstayOn = true;
                                                 System.out.println(e);
                                                 AppConstants.WriteinFile("welcomeActivity ~~~~~~~~~" + "WiFiConnectTask  UpdateMacAddressClass --Exception " + e);
@@ -2703,6 +2699,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
             } catch (Exception ex) {
                 loading.dismiss();
+                OnDashboardScreen = true; //screen on/off flag
                 Constants.hotspotstayOn = true;
                 CommonUtils.LogMessage("", "UpdateMACAddress ", ex);
                 AppConstants.WriteinFile("welcomeActivity ~~~~~~~~~" + "UpdateMacAsynTask doInBackground--Exception " + ex);
@@ -2726,6 +2723,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
 
                         loading.dismiss();
+                        OnDashboardScreen = true; //screen on/off flag
                         Constants.hotspotstayOn = true;
                         AppConstants.colorToastBigFont(WelcomeActivity.this, " Mac Address Updated ", Color.parseColor("#4CAF50"));
                         wifiApManager.setWifiApEnabled(null, true);
@@ -2733,6 +2731,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                     } else if (ResponceMessage.equalsIgnoreCase("fail")) {
                         loading.dismiss();
+                        OnDashboardScreen = true; //screen on/off flag
                         Constants.hotspotstayOn = true;
                         AppConstants.colorToastBigFont(WelcomeActivity.this, " Could not Updated mac address ", Color.RED);
                         wifiApManager.setWifiApEnabled(null, true);
@@ -3986,6 +3985,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                 //Do not enable hotspot.
                 Constants.hotspotstayOn = false;
+                OnDashboardScreen = false; //screen on/off flag
 
                 //AppConstants.colorToast(WelcomeActivity.this, "Updating mac address please wait..", Color.RED);
                 wifiApManager.setWifiApEnabled(null, false);  //Hotspot disabled
@@ -5225,7 +5225,6 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 }
             };
 
-
     public void NoSleepEscapeCommand() {
 
 
@@ -5235,7 +5234,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             public void run() {
                 try {
                     while (!isInterrupted()) {
-                        Thread.sleep(1800000);
+                        Thread.sleep(3600000);//1800000 == 30 min 3600000== 1hr
 
                         runOnUiThread(new Runnable() {
                             @Override
@@ -5254,19 +5253,62 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
     }
 
-    public void turnOnScreen(){
-        // turn on screen
-        Log.v("ProximityActivity", "ON!");
-        mWakeLock = mPowerManager.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP, "tag");
-        mWakeLock.acquire();
+    public void EnableDeviceAdministratorPermission() {
+
+        mDevicePolicyManager = (DevicePolicyManager) getSystemService(
+                Context.DEVICE_POLICY_SERVICE);
+        mComponentName = new ComponentName(this, DeviceAdministratorClass.class);
+
+        if (mDevicePolicyManager != null && mDevicePolicyManager.isAdminActive(mComponentName)) {
+            System.out.println("Device Administrator Is ON");
+        } else {
+            Intent intent = new Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN);
+            intent.putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, mComponentName);
+            intent.putExtra(DevicePolicyManager.EXTRA_ADD_EXPLANATION, "Administrator description");
+            startActivityForResult(intent, ADMIN_INTENT);
+        }
     }
 
-    @TargetApi(21) //Suppress lint error for PROXIMITY_SCREEN_OFF_WAKE_LOCK
-    public void turnOffScreen(){
-        // turn off screen
-        Log.v("ProximityActivity", "OFF!");
-        mWakeLock = mPowerManager.newWakeLock(PowerManager.PROXIMITY_SCREEN_OFF_WAKE_LOCK, "tag");
-        mWakeLock.acquire();
-    }
+    public void OnOffScreenFunction() {
 
+        Thread TStrt = new Thread() {
+
+            @Override
+            public void run() {
+                try {
+                    while (!isInterrupted()) {
+                        Thread.sleep(1800000);//1800000 == 30 min
+
+                        if (OnDashboardScreen && Constants.FS_1STATUS.equalsIgnoreCase("FREE") && Constants.FS_2STATUS.equalsIgnoreCase("FREE") && Constants.FS_3STATUS.equalsIgnoreCase("FREE") && Constants.FS_4STATUS.equalsIgnoreCase("FREE")) {
+
+                            //Disable Screen
+                            boolean isAdmin = mDevicePolicyManager.isAdminActive(mComponentName);
+                            if (isAdmin) {
+                                mDevicePolicyManager.lockNow();
+                            } else {
+                                AppConstants.colorToastBigFont(WelcomeActivity.this, "Turn ON Device Administrator Permission", Color.RED);
+                            }
+
+                            Thread.sleep(2000);
+
+
+                            //Enable Screen
+                            PowerManager.WakeLock screenLock = ((PowerManager) getSystemService(POWER_SERVICE)).newWakeLock(
+                                    PowerManager.SCREEN_BRIGHT_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP, "TAG");
+                            screenLock.acquire();
+
+                            //later
+                            screenLock.release();
+                        }
+
+                    }
+                } catch (InterruptedException e) {
+                }
+            }
+        };
+
+        TStrt.start();
+
+
+    }
 }

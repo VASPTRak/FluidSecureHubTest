@@ -4,7 +4,9 @@ package com.TrakEngineering.FluidSecureHubTest;
 import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.Activity;
-import android.app.ProgressDialog;
+import android.app.admin.DevicePolicyManager;
+import android.bluetooth.BluetoothAdapter;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -29,12 +31,10 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.TrakEngineering.FluidSecureHubTest.WifiHotspot.WifiApManager;
 import com.TrakEngineering.FluidSecureHubTest.server.GPSTracker;
-import com.TrakEngineering.FluidSecureHubTest.server.ServerHandler;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
@@ -74,6 +74,10 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
 
     GoogleApiClient mGoogleApiClient;
 
+    private static final int ADMIN_INTENT = 1;
+    private DevicePolicyManager mDevicePolicyManager;
+    private ComponentName mComponentName;
+
 
     protected static final int REQUEST_CHECK_SETTINGS = 0x1;
 
@@ -89,6 +93,7 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
 
         /*if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
             setGlobalMobileDatConnection();*/
+        EnableDeviceAdministratorPermission();
 
         CommonUtils.LogMessage(TAG, "SplashActivity", null);
         mGoogleApiClient = new GoogleApiClient.Builder(this)
@@ -135,7 +140,13 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
                 AppConstants.IS_WIFI_ON = false;
             }*/
 
+            //Enable hotspot
             wifiApManager.setWifiApEnabled(null, true);
+
+            //Enable bluetooth
+            BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+            mBluetoothAdapter.enable();
+
 
             LocationManager locationManager = (LocationManager) SplashActivity.this.getSystemService(Context.LOCATION_SERVICE);
             boolean statusOfGPS = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
@@ -783,6 +794,23 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
 
         // commit changes
         editor.commit();
+    }
+
+    public void EnableDeviceAdministratorPermission(){
+
+        mDevicePolicyManager = (DevicePolicyManager)getSystemService(
+                Context.DEVICE_POLICY_SERVICE);
+        mComponentName = new ComponentName(this, DeviceAdministratorClass.class);
+
+        if( mDevicePolicyManager != null && mDevicePolicyManager.isAdminActive(mComponentName)) {
+            // Toast.makeText(getApplicationContext(),"Enable Device Administrator",Toast.LENGTH_LONG).show();
+            System.out.println("Device Administrator Is ON");
+        }else{
+            Intent intent = new Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN);
+            intent.putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, mComponentName);
+            intent.putExtra(DevicePolicyManager.EXTRA_ADD_EXPLANATION, "Administrator description");
+            startActivityForResult(intent, ADMIN_INTENT);
+        }
     }
 
 
