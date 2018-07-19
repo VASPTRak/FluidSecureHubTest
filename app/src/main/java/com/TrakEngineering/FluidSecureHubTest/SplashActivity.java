@@ -477,6 +477,7 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
                     String BluetoothCardReader = jsonObject.getString("BluetoothCardReader");
                     String BluetoothCardReaderMacAddress = jsonObject.getString("BluetoothCardReaderMacAddress");
                     String IsVehicleHasFob = jsonObject.getString("IsVehicleHasFob");
+                    String IsPersonHasFob = jsonObject.getString("IsPersonHasFob");
                     String LFBluetoothCardReader = jsonObject.getString("LFBluetoothCardReader");
                     String LFBluetoothCardReaderMacAddress = jsonObject.getString("LFBluetoothCardReaderMacAddress");
 

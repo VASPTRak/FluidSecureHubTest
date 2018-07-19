@@ -40,42 +40,40 @@ public class BackgroundServiceHotspotCheck extends BackgroundService {
                 //Enable bluetooth
                 BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
                 mBluetoothAdapter.enable();
-                /*if (mBluetoothAdapter.disable()) {
-                    mBluetoothAdapter.enable();
-                }*/
-
 
                 //Enable hotspot Logic
-                if (!screenOff && !CommonUtils.isHotspotEnabled(BackgroundServiceHotspotCheck.this) && Constants.hotspotstayOn) {
+                if (AppConstants.FlickeringScreenOff) {
+
+                    Log.i(TAG, "Dont do anything Screen off to overcome Flickering issue");
+                    AppConstants.FlickeringScreenOff = false; //Do not disable hotspot
+
+                } else if (!screenOff && !CommonUtils.isHotspotEnabled(BackgroundServiceHotspotCheck.this) && Constants.hotspotstayOn) {
 
                     wifiApManager.setWifiApEnabled(null, true);  //Hotspot enabled
                     Log.i(TAG, "Connecting to hotspot, please wait....");
-                    AppConstants.WriteinFile("BackgroundServiceHotspotCheck~~~~~~~~~" + "Hotspot ON");
+                    AppConstants.WriteinFile("BackgroundServiceHotspotCheck~~~~~~~~~" + "Hotspot ON--1");
 
                 } else if (screenOff) {
 
-
-
-                    if (isScreenOn(this) && !CommonUtils.isHotspotEnabled(BackgroundServiceHotspotCheck.this)) {
+                    if (isScreenOn(this) && !CommonUtils.isHotspotEnabled(BackgroundServiceHotspotCheck.this) && Constants.hotspotstayOn) {
 
                         wifiApManager.setWifiApEnabled(null, true);  //Hotspot enabled
                         Log.i(TAG, "Connecting to hotspot, please wait....");
-                        AppConstants.WriteinFile("BackgroundServiceHotspotCheck~~~~~~~~~" + "Hotspot ON");
+                        AppConstants.WriteinFile("BackgroundServiceHotspotCheck~~~~~~~~~" + "Hotspot ON--2");
 
 
-                    } else if (!isScreenOn(this) && CommonUtils.isHotspotEnabled(BackgroundServiceHotspotCheck.this)){
+                    } else if (!isScreenOn(this) && CommonUtils.isHotspotEnabled(BackgroundServiceHotspotCheck.this)) {
 
 
-                        if (Constants.FS_1STATUS.equalsIgnoreCase("FREE") && Constants.FS_2STATUS.equalsIgnoreCase("FREE") && Constants.FS_3STATUS.equalsIgnoreCase("FREE") && Constants.FS_4STATUS.equalsIgnoreCase("FREE"))
-                        {
+                        if (Constants.FS_1STATUS.equalsIgnoreCase("FREE") && Constants.FS_2STATUS.equalsIgnoreCase("FREE") && Constants.FS_3STATUS.equalsIgnoreCase("FREE") && Constants.FS_4STATUS.equalsIgnoreCase("FREE")) {
                             wifiApManager.setWifiApEnabled(null, false);  //Hotspot disable
                             Log.i(TAG, "Disable hotspot, please wait....");
                             AppConstants.WriteinFile("BackgroundServiceHotspotCheck~~~~~~~~~" + "Hotspot OFF");
-                        }else{
+                        } else {
                             Log.i(TAG, "Can not disable hotspot, One of the link is busy...");
                         }
 
-                    } else{
+                    } else {
 
                         Log.i(TAG, "Dont do anything");
 

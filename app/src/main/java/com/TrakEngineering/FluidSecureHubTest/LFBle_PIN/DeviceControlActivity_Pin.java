@@ -139,11 +139,11 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                 final boolean result = mBluetoothLeServicePin.connect(mDeviceAddress);
                 Log.d(TAG, "Connect request result=" + result);
             } else {
-                if (!HFDeviceAddress.contains(":")) {
+               /* if (!HFDeviceAddress.contains(":")) {
                     tv_enter_pin_no.setText("");
                 } else {
                     tv_enter_pin_no.setText("Present Fob key to reader");
-                }
+                }*/
             }
         }
 
@@ -166,7 +166,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
             if (BluetoothLeService_Pin.ACTION_GATT_CONNECTED.equals(action)) {
                 mConnected = true;
                 invalidateOptionsMenu();
-                tv_enter_pin_no.setText("Present Fob key to reader");
+                //tv_enter_pin_no.setText("Present Fob key to reader");
 
             } else if (BluetoothLeService_Pin.ACTION_GATT_DISCONNECTED.equals(action)) {
                 mConnected = false;
@@ -348,11 +348,11 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                 final boolean result = mBluetoothLeServicePin.connect(mDeviceAddress);
                 Log.d(TAG, "Connect request result=" + result);
             } else {
-                if (!HFDeviceAddress.contains(":")) {
+               /* if (!HFDeviceAddress.contains(":")) {
                     tv_enter_pin_no.setText("");
                 } else {
                     tv_enter_pin_no.setText("Present Fob key to reader");
-                }
+                }*/
             }
 
         }
@@ -457,11 +457,11 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                     final boolean result = mBluetoothLeServicePin.connect(mDeviceAddress);
                     Log.d(TAG, "Connect request result=" + result);
                 } else {
-                    if (!HFDeviceAddress.contains(":")) {
+                    /*if (!HFDeviceAddress.contains(":")) {
                         tv_enter_pin_no.setText("");
                     } else {
                         tv_enter_pin_no.setText("Present Fob key to reader");
-                    }
+                    }*/
                 }
                 return true;
             case R.id.menu_disconnect:
@@ -482,7 +482,8 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
             String Str_data = data.toString().trim();
             System.out.println("FOK_KEY Vehi " + Str_data);
             AppConstants.WriteinFile(TAG + " ~~~~~~~~~" + "DeviceControlActivity_pin displayData Response LF: " + Str_data);
-            if (!Str_data.equalsIgnoreCase("000000")) {
+            String Str_check = Str_data.replace(" ","");
+            if (!Str_check.equalsIgnoreCase("000000")) {
                 try {
                     String[] Seperate = Str_data.split("\n");
                     String Sep1 = Seperate[0];
@@ -612,7 +613,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
         btnSave.setEnabled(true);
         tv_fob_number.setText("");
         tv_ok.setVisibility(View.GONE);
-        tv_enter_pin_no.setVisibility(View.VISIBLE);
+        tv_enter_pin_no.setVisibility(View.INVISIBLE);
         tv_fob_Reader.setVisibility(View.VISIBLE);
         tv_or.setVisibility(View.VISIBLE);
         tv_fob_Reader.setVisibility(View.VISIBLE);

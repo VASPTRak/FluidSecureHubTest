@@ -202,8 +202,8 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
         int heighti = ActionBar.LayoutParams.WRAP_CONTENT;
         LinearLayout.LayoutParams parmsi = new LinearLayout.LayoutParams(widthi, heighti);
         tv_enter_vehicle_no.setLayoutParams(parmsi);
-        tv_enter_vehicle_no.setText("   Reader not connected");
         tv_enter_vehicle_no.setVisibility(View.VISIBLE);
+        tv_enter_vehicle_no.setText("   Reader not connected"); 
         tv_fob_number.setText("Fob No: ");
     }
 
@@ -501,8 +501,9 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
             String Str_data = data.toString().trim();
             System.out.println("FOK_KEY Vehi " + Str_data);
             AppConstants.WriteinFile(TAG + " ~~~~~~~~~" + "DeviceControlActivity_vehicle displayData Response LF: " + Str_data);
+            String Str_check = Str_data.replace(" ","");
 
-            if (!Str_data.equalsIgnoreCase("000000")) {
+            if (!Str_check.equalsIgnoreCase("000000")) {
 
                 try {
                     String[] Seperate = Str_data.split("\n");

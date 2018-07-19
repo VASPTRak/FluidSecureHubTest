@@ -4460,9 +4460,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                             "The device is unable to set notification!",
                                             Toast.LENGTH_SHORT).show();
                                 } else {
-                                    Toast.makeText(WelcomeActivity.this,
-                                            "The device is ready to use!",
-                                            Toast.LENGTH_SHORT).show();
+                                   // Toast.makeText(WelcomeActivity.this, "The device is ready to use!", Toast.LENGTH_SHORT).show();
                                 }
                             }
                         });
@@ -5277,7 +5275,9 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             public void run() {
                 try {
                     while (!isInterrupted()) {
-                        Thread.sleep(1800000);//1800000 == 30 min
+                        Thread.sleep(1800000);//1800000 == 30 min  //300000 = 5 min
+
+                        AppConstants.FlickeringScreenOff = true; //Do not disable hotspot
 
                         if (OnDashboardScreen && Constants.FS_1STATUS.equalsIgnoreCase("FREE") && Constants.FS_2STATUS.equalsIgnoreCase("FREE") && Constants.FS_3STATUS.equalsIgnoreCase("FREE") && Constants.FS_4STATUS.equalsIgnoreCase("FREE")) {
 
