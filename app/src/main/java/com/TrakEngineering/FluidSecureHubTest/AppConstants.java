@@ -67,6 +67,7 @@ public class AppConstants {
     public static final String IsPersonnelPINRequireForHub = "IsPersonnelPINRequireForHub";
     public static final String FluidSecureSiteName = "FluidSecureSiteName";
     public static final String ISVehicleHasFob = "ISVehicleHasFob";
+    public static final String IsPersonHasFob = "IsPersonHasFob";
     public static final String IsOtherRequire = "IsOtherRequire";
     public static final String IsHoursRequire = "IsHoursRequire";
     public static final String OtherLabel = "OtherLabel";

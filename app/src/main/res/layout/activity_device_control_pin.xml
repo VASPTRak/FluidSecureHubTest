@@ -177,13 +177,14 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
             android:id="@+id/Linear_layout_Save_back_buttons"
             android:layout_marginTop="50dp"
             android:layout_marginRight="90dp"
             android:layout_marginLeft="90dp"
-            android:layout_marginBottom="90dp"
-            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="50dp"
             android:orientation="horizontal">
+
 
 
             <Button
@@ -211,9 +212,6 @@
                 android:text="Enter"
                 android:textColor="@color/white"
                 android:textSize="@dimen/go_button_text" />
-
-
-
 
         </LinearLayout>
 

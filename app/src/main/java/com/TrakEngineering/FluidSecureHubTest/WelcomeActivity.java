@@ -5275,7 +5275,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             public void run() {
                 try {
                     while (!isInterrupted()) {
-                        Thread.sleep(1800000);//1800000 == 30 min  //300000 = 5 min
+                        Thread.sleep(300000);//1800000 == 30 min  //300000 = 5 min
 
                         AppConstants.FlickeringScreenOff = true; //Do not disable hotspot
 
@@ -5289,7 +5289,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                 AppConstants.colorToastBigFont(WelcomeActivity.this, "Turn ON Device Administrator Permission", Color.RED);
                             }
 
-                            Thread.sleep(2000);
+                            Thread.sleep(500);
 
 
                             //Enable Screen
