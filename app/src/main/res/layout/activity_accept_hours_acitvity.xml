@@ -6,7 +6,7 @@
     android:background="@color/white"
     android:orientation="vertical"
     android:padding="@dimen/main_outer_padding"
-    tools:context="com.TrakEngineering.FluidSecureHubTest.AcceptVehicleActivity">
+    tools:context="com.TrakEngineering.FluidSecureHub.AcceptVehicleActivity">
 
     <ScrollView
         android:layout_width="match_parent"
