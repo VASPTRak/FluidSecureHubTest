@@ -67,6 +67,7 @@ public class AppConstants {
     public static final String IsPersonnelPINRequireForHub = "IsPersonnelPINRequireForHub";
     public static final String FluidSecureSiteName = "FluidSecureSiteName";
     public static final String ISVehicleHasFob = "ISVehicleHasFob";
+    public static final String IsPersonHasFob = "IsPersonHasFob";
     public static final String IsOtherRequire = "IsOtherRequire";
     public static final String IsHoursRequire = "IsHoursRequire";
     public static final String OtherLabel = "OtherLabel";
@@ -78,6 +79,8 @@ public class AppConstants {
        public static String webIP = "http://fluidsecure.cloudapp.net/"; //live
       //public static String webIP = "http://103.8.126.241:93/";//New link for FS_AP
      //public static String webIP = "http://103.8.126.241:8988/";//new for hotspot changes
+
+    public static boolean FlickeringScreenOff;
 
     public static boolean FlickeringScreenOff;
 

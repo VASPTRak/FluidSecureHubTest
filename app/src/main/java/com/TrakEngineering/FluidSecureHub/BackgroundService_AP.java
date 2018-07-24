@@ -224,7 +224,7 @@ public class BackgroundService_AP extends BackgroundService {
 
                 controller.insertTransStatus(mapsts);
                 ////////////////////////////////////////////
-                String userEmail = CommonUtils.getCustomerDetails_backgroundService(BackgroundService_AP.this).Email;
+                String userEmail = CommonUtils.getCustomerDetails_backgroundService(BackgroundService_AP.this).PersonEmail;
                 String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(BackgroundService_AP.this) + ":" + userEmail + ":" + "TransactionComplete");
 
                 HashMap<String, String> imap = new HashMap<>();
@@ -1114,7 +1114,7 @@ public class BackgroundService_AP extends BackgroundService {
 
         AppConstants.WriteinFile("BackgroundService_AP~~~~~~~~~" + "InConvertCountToQuantity jsonData " + jsonData);
 
-        String userEmail = CommonUtils.getCustomerDetails_backgroundService(BackgroundService_AP.this).Email;
+        String userEmail = CommonUtils.getCustomerDetails_backgroundService(BackgroundService_AP.this).PersonEmail;
         String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(BackgroundService_AP.this) + ":" + userEmail + ":" + "TransactionComplete");
 
 
@@ -1174,7 +1174,7 @@ public class BackgroundService_AP extends BackgroundService {
 
         UpgradeVersionEntity objEntityClass = new UpgradeVersionEntity();
         objEntityClass.IMEIUDID = AppConstants.getIMEI(BackgroundService_AP.this);
-        objEntityClass.Email = CommonUtils.getCustomerDetails_backgroundService(this).Email;
+        objEntityClass.Email = CommonUtils.getCustomerDetails_backgroundService(this).PersonEmail;
         objEntityClass.HoseId = hoseid;
         objEntityClass.Version = fsversion;
 
@@ -1301,7 +1301,7 @@ public class BackgroundService_AP extends BackgroundService {
             AppConstants.WriteinFile("BackgroundService_AP~~~~~~~~~" + "InTransactionComplete jsonData " + jsonData);
             System.out.println("AP_FS33 TrazComp......" + jsonData);
 
-            String userEmail = CommonUtils.getCustomerDetails_backgroundService(this).Email;
+            String userEmail = CommonUtils.getCustomerDetails_backgroundService(this).PersonEmail;
 
             String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(this) + ":" + userEmail + ":" + "TransactionComplete");
 
@@ -1361,7 +1361,7 @@ public class BackgroundService_AP extends BackgroundService {
 
 
         if (AppConstants.NeedToRename) {
-            String userEmail = CommonUtils.getCustomerDetails_backgroundService(this).Email;
+            String userEmail = CommonUtils.getCustomerDetails_backgroundService(this).PersonEmail;
 
             String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(this) + ":" + userEmail + ":" + "SetHoseNameReplacedFlag");
 
@@ -1387,6 +1387,7 @@ public class BackgroundService_AP extends BackgroundService {
         String probe_temperature = "";
         String LSB ="";
         String MSB ="";
+        String Tem_data ="";
 
         try {
 
@@ -1411,7 +1412,7 @@ public class BackgroundService_AP extends BackgroundService {
                 String Response_code = tld.getString("Response_code");
                 LSB = tld.getString("LSB");
                 MSB = tld.getString("MSB");
-                String Tem_data = tld.getString("Tem_data");
+                Tem_data = tld.getString("Tem_data");
                 String Checksum = tld.getString("Checksum");
 
 
@@ -1422,7 +1423,7 @@ public class BackgroundService_AP extends BackgroundService {
                 //Calculate probe reading
                 //probe_reading = GetProbeReading(LSB, MSB);
 
-                probe_temperature = CalculateTemperature(Tem_data);
+               // probe_temperature = CalculateTemperature(Tem_data);
 
 
             } catch (JSONException e) {
@@ -1439,6 +1440,7 @@ public class BackgroundService_AP extends BackgroundService {
             obj_entity.TLD = mac_address;
             obj_entity.LSB = LSB;
             obj_entity.MSB = MSB;
+            obj_entity.TLDTemperature = Tem_data;
             obj_entity.ReadingDateTime = CurrentDeviceDate;//PrintDate;
 
             BackgroundService_AP.SaveTankMonitorReadingy TestAsynTask = new BackgroundService_AP.SaveTankMonitorReadingy(obj_entity);

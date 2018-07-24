@@ -180,6 +180,9 @@ public class AcceptVehicleActivity extends AppCompatActivity {
         SITE_ID = parseSiteData(dataSite);
         AppConstants.SITE_ID = SITE_ID;
 
+        //enable hotspot.
+        Constants.hotspotstayOn = true;
+
         //Check Selected FS and  change accordingly
         //Constants.AccVehicleNumber = "";
         //Constants.AccOdoMeter = 0;
