@@ -339,8 +339,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
 
         Count = 1;
         AppConstants.VehicleLocal_FOB_KEY = "";
-        //AppConstants.APDU_FOB_KEY = "";
-
+        AppConstants.APDU_FOB_KEY = "";
 
 
         if (Constants.CurrentSelectedHose.equals("FS1")) {
@@ -858,9 +857,10 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
 
                         } else {
 
+                            //Here Onresume and Appconstants.APDU_FOB_KEY uncomment
                             IsNewFobVar = true;
                             btnSave.setEnabled(true);
-
+                            AppConstants.APDU_FOB_KEY = "";
                            /* //Click to read Lf fob
                             btn_ReadFobAgain.setVisibility(View.VISIBLE);
                             int width = ActionBar.LayoutParams.WRAP_CONTENT;
@@ -868,7 +868,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
                             LinearLayout.LayoutParams parms = new LinearLayout.LayoutParams(width, height);
                             parms.gravity = Gravity.CENTER;
                             btn_ReadFobAgain.setLayoutParams(parms);*/
-                            //onResume();
+                            onResume();
                             //Empty Fob key & enable edit text and Enter button
                             // AppConstants.FOB_KEY_VEHICLE = "";
                             editVehicleNumber.setEnabled(true);

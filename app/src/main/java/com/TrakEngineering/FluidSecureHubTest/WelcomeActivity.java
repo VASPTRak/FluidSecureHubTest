@@ -110,6 +110,7 @@ import static com.TrakEngineering.FluidSecureHubTest.R.id.textView;
 
 public class WelcomeActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, View.OnClickListener {
 
+
     private String TAG = " WelcomeActivity ";
     private float density;
     ProgressDialog dialog1;
@@ -5290,6 +5291,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                             }
 
                             Thread.sleep(500);
+
 
 
                             //Enable Screen

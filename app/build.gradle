@@ -14,7 +14,7 @@ android {
         minSdkVersion 18
         targetSdkVersion 25
         versionCode 47
-        versionName "0.48.37"
+        versionName "0.48.39"
         multiDexEnabled true
     }
     buildTypes {
@@ -28,7 +28,6 @@ android {
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
-
 
     compile files('libs/acsaj-1.0.0.jar')
     compile files('libs/acsbt-1.0.0preview9.jar')

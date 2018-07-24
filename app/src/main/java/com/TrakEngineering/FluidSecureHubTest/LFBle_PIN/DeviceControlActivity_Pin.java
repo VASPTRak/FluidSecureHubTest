@@ -114,7 +114,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
     EditText etPersonnelPin;
     TextView tv_enter_pin_no, tv_ok;
     Button btnSave, btnCancel, btn_ReadFobAgain;
-    String IsPersonHasFob = "",IsOdoMeterRequire = "", IsDepartmentRequire = "", IsPersonnelPINRequire = "", IsOtherRequire = "";
+    String IsPersonHasFob = "", IsOdoMeterRequire = "", IsDepartmentRequire = "", IsPersonnelPINRequire = "", IsOtherRequire = "";
     String TimeOutinMinute;
 
     int FobReadingCount = 0;
@@ -341,7 +341,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
         Count = 1;
         //Toast.makeText(getApplicationContext(), "FOK_KEY" + AppConstants.APDU_FOB_KEY, Toast.LENGTH_SHORT).show();
         showKeybord();
-        //  AppConstants.APDU_FOB_KEY = "";
+        AppConstants.APDU_FOB_KEY = "";
         AppConstants.PinLocal_FOB_KEY = "";
         Istimeout_Sec = true;
         TimeoutPinScreen();
@@ -486,7 +486,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
             String Str_data = data.toString().trim();
             System.out.println("FOK_KEY Vehi " + Str_data);
             AppConstants.WriteinFile(TAG + " ~~~~~~~~~" + "DeviceControlActivity_pin displayData Response LF: " + Str_data);
-            String Str_check = Str_data.replace(" ","");
+            String Str_check = Str_data.replace(" ", "");
             if (!Str_check.equalsIgnoreCase("000000")) {
                 try {
                     String[] Seperate = Str_data.split("\n");
@@ -616,10 +616,10 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
         SharedPreferences sharedPrefODO = DeviceControlActivity_Pin.this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
         IsPersonHasFob = sharedPrefODO.getString(AppConstants.IsPersonHasFob, "false");
 
-        if (IsPersonHasFob.equalsIgnoreCase("true")){
+        if (IsPersonHasFob.equalsIgnoreCase("true")) {
 
 
-           // Linear_layout_Save_back_buttons.setVisibility(View.VISIBLE);
+            // Linear_layout_Save_back_buttons.setVisibility(View.VISIBLE);
             btnCancel.setVisibility(View.VISIBLE);
             btnSave.setVisibility(View.INVISIBLE);
 
@@ -642,7 +642,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
             tv_dont_have_fob.setVisibility(View.INVISIBLE);
             tv_or.setVisibility(View.INVISIBLE);
 
-        }else{
+        } else {
 
             btnCancel.setVisibility(View.VISIBLE);
             btnSave.setVisibility(View.VISIBLE);
@@ -758,13 +758,18 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
 
                 } else {
 
+                    if (!ResponceMessage.contains("New FOB detected")) {
+                        AppConstants.APDU_FOB_KEY = "";
+                        onResume();
+                    }
+
                    /* btn_ReadFobAgain.setVisibility(View.VISIBLE);
                     int width = ActionBar.LayoutParams.WRAP_CONTENT;
                     int height = ActionBar.LayoutParams.WRAP_CONTENT;
                     LinearLayout.LayoutParams parms = new LinearLayout.LayoutParams(width, height);
                     parms.gravity = Gravity.CENTER;
                     btn_ReadFobAgain.setLayoutParams(parms);*/
-                    // onResume();
+
                     int width = ActionBar.LayoutParams.WRAP_CONTENT;
                     int height = ActionBar.LayoutParams.WRAP_CONTENT;
                     LinearLayout.LayoutParams parms = new LinearLayout.LayoutParams(width, height);
