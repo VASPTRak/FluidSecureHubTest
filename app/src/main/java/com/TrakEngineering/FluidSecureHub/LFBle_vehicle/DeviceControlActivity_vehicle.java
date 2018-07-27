@@ -1203,7 +1203,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
         if (IsVehicleHasFob.equalsIgnoreCase("true") && IsNewFobVar) {
 
             editVehicleNumber.setText("");
-            tv_enter_vehicle_no.setText("Present Fob key to reader");
+            tv_enter_vehicle_no.setText("Present fob/card’ key to reader");
             int widthi = ActionBar.LayoutParams.WRAP_CONTENT;
             int heighti = 0;
             LinearLayout.LayoutParams parmsi = new LinearLayout.LayoutParams(widthi, heighti);
@@ -1259,7 +1259,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
 
     public void DisplayScreenFobReadSuccess() {
 
-        tv_enter_vehicle_no.setText("Fob Read Successfully");
+        tv_enter_vehicle_no.setText("Fob/card Read Successfully");
         tv_enter_vehicle_no.setVisibility(View.VISIBLE);
         int widthi = ActionBar.LayoutParams.WRAP_CONTENT;
         int heighti = ActionBar.LayoutParams.WRAP_CONTENT;
