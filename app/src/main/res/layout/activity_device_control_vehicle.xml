@@ -52,7 +52,7 @@
                     android:layout_gravity="center_horizontal"
                     android:layout_weight="1"
                     android:background="@color/colorFluid"
-                    android:text=" Click to read fob again "
+                    android:text=" Click to read fob/card again "
                     android:textColor="@color/white"
                     android:textSize="@dimen/go_button_text" />
 
@@ -80,7 +80,7 @@
                     android:textColor="@color/black"
                     android:textAppearance="?android:attr/textAppearanceLarge"
                     android:textAllCaps="false"
-                    android:text="Present your Vehicle FOB  below"
+                    android:text="Present your Vehicle fob/card below"
                     android:textSize="@dimen/go_button_text" />
 
                 <TextView
@@ -146,7 +146,7 @@
                     android:layout_marginLeft="20dp"
                     android:id="@+id/tv_fob_number"
                     android:gravity="left"
-                    android:text="FOB#:"
+                    android:text="fob/card#:"
                     android:textSize="@dimen/date_text" />
 
 

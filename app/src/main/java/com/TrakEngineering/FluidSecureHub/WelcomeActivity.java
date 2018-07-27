@@ -26,6 +26,7 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
@@ -246,6 +247,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
     /* Bluetooth GATT client. */
     private BluetoothGatt mBluetoothGatt;
+    Intent globalService;
+    private static final int OVERLAY_PERMISSION_CODE =5463 ;
 
     //============ Bluetooth reader Gatt end==============
 
@@ -253,6 +256,19 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     @Override
     protected void onResume() {
         super.onResume();
+
+        if (Build.VERSION.SDK_INT >= 23) {
+            if (!Settings.canDrawOverlays(this)) {
+
+                // Open the permission page
+                Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                        Uri.parse("package:" + getPackageName()));
+                startActivityForResult(intent, OVERLAY_PERMISSION_CODE);
+                return;
+            }else{
+                startService(globalService);
+            }
+        }
 
         OnDashboardScreen = true;
         // only when screen turns on
@@ -337,6 +353,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     protected void onDestroy() {
         super.onDestroy();
 
+        stopService(globalService);
         OnDashboardScreen = false;
         /* Stop to monitor bond state change */
         unregisterReceiver(mBroadcastReceiver);
@@ -354,9 +371,9 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    protected void onCreate(Bundle savedInstanceState) {        super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_welcome);
+        globalService = new Intent(this,GlobalTouchService.class);
         tvSSIDName = (TextView) findViewById(R.id.tvSSIDName);
         tvLatLng = (TextView) findViewById(R.id.tvLatLng);
 
@@ -1401,6 +1418,12 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 if (messageData.equalsIgnoreCase("true")) {
                     Intent intent = new Intent(WelcomeActivity.this, AcceptVehicleActivity.class);
                     startActivity(intent);
+                }
+            }
+        }else if (requestCode == OVERLAY_PERMISSION_CODE) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                if (Settings.canDrawOverlays(this)) {
+                    startService(globalService);
                 }
             }
         }

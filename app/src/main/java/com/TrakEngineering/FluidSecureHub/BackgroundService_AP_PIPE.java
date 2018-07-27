@@ -1218,7 +1218,7 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
 
     public void TransactionCompleteFunction() {
 
-       // TankMonitorReading(); //Get Tank Monitor Reading and save it to server
+        TankMonitorReading(); //Get Tank Monitor Reading and save it to server
 
         ////////////////////--UpgradeCurrentVersion to server--///////////////////////////////////////////////////////
 

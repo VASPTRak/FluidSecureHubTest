@@ -22,6 +22,9 @@
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
 
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.GET_TASKS" />
+
     <permission
         android:name="android.permission.INTERACT_ACROSS_USERS_FULL"
         android:protectionLevel="signature" />
@@ -139,6 +142,8 @@
             android:enabled="true" />
         <service android:name=".BackgroundServiceBluetoothPrinter"
             android:enabled="true"/>
+
+        <service android:name="GlobalTouchService" > </service>
 
         <receiver
             android:name=".DeviceAdministratorClass"

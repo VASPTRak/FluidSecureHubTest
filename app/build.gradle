@@ -1,7 +1,7 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 26
+    compileSdkVersion 27
     buildToolsVersion '27.0.3'
 
     dexOptions {
@@ -12,9 +12,9 @@ android {
     defaultConfig {
         applicationId "com.TrakEngineering.FluidSecureHub"
         minSdkVersion 18
-        targetSdkVersion 25
+        targetSdkVersion 27
         versionCode 47
-        versionName "0.35.2"
+        versionName "0.35.3"
         multiDexEnabled true
     }
     buildTypes {

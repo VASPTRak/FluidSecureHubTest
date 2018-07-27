@@ -82,8 +82,6 @@ public class AppConstants {
 
     public static boolean FlickeringScreenOff;
 
-    public static boolean FlickeringScreenOff;
-
     public static String APDU_FOB_KEY = "";
     public static String VehicleLocal_FOB_KEY = "";
     public static String PinLocal_FOB_KEY = "";

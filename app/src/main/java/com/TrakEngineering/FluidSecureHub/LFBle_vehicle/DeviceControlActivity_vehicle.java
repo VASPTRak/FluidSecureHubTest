@@ -145,7 +145,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
                 if (!HFDeviceAddress.contains(":")) {
                     tv_enter_vehicle_no.setText("");
                 } else {
-                    tv_enter_vehicle_no.setText("Present Fob key to reader");
+                    tv_enter_vehicle_no.setText("Present fob/card key to reader");
                     int widthi = ActionBar.LayoutParams.WRAP_CONTENT;
                     int heighti = 0;
                     LinearLayout.LayoutParams parmsi = new LinearLayout.LayoutParams(widthi, heighti);
@@ -174,7 +174,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
             if (BluetoothLeService_vehicle.ACTION_GATT_CONNECTED.equals(action)) {
                 mConnected = true;
                 invalidateOptionsMenu();
-                tv_enter_vehicle_no.setText("Present Fob key to reader");
+                tv_enter_vehicle_no.setText("Present fob/card key to reader");
                 int widthi = ActionBar.LayoutParams.WRAP_CONTENT;
                 int heighti = 0;
                 LinearLayout.LayoutParams parmsi = new LinearLayout.LayoutParams(widthi, heighti);
@@ -204,7 +204,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
         tv_enter_vehicle_no.setLayoutParams(parmsi);
         tv_enter_vehicle_no.setVisibility(View.VISIBLE);
         tv_enter_vehicle_no.setText("   Reader not connected");
-        tv_fob_number.setText("Fob No: ");
+        tv_fob_number.setText("fob/card No: ");
     }
 
 
@@ -371,7 +371,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
                 if (!HFDeviceAddress.contains(":")) {
                     tv_enter_vehicle_no.setText("");
                 } else {
-                    tv_enter_vehicle_no.setText("Present Fob key to reader");
+                    tv_enter_vehicle_no.setText("Present fob/card key to reader");
                     int widthi = ActionBar.LayoutParams.WRAP_CONTENT;
                     int heighti = 0;
                     LinearLayout.LayoutParams parmsi = new LinearLayout.LayoutParams(widthi, heighti);
@@ -383,7 +383,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
         }
 
         tv_fobkey.setText("");
-        tv_fob_number.setText("Fob No: ");
+        tv_fob_number.setText("fob/card No: ");
         LF_FobKey = "";
         t = new Timer();
         TimerTask tt = new TimerTask() {
@@ -473,7 +473,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
                     if (!HFDeviceAddress.contains(":")) {
                         tv_enter_vehicle_no.setText("");
                     } else {
-                        tv_enter_vehicle_no.setText("Present Fob key to reader");
+                        tv_enter_vehicle_no.setText("Present fob/card key to reader");
                         int widthi = ActionBar.LayoutParams.WRAP_CONTENT;
                         int heighti = 0;
                         LinearLayout.LayoutParams parmsi = new LinearLayout.LayoutParams(widthi, heighti);
@@ -517,7 +517,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
 
                 if (!LF_FobKey.equalsIgnoreCase(""))
                 {
-                    tv_fob_number.setText("Fob No: " + LF_FobKey);
+                    tv_fob_number.setText("fob/card No: " + LF_FobKey);
                     AppConstants.APDU_FOB_KEY = LF_FobKey;
                     AppConstants.VehicleLocal_FOB_KEY = LF_FobKey;
                     //On LF Fob read success
@@ -899,7 +899,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
                 }
 
                 btnSave.setEnabled(true);
-                CommonUtils.showMessageDilaog(DeviceControlActivity_vehicle.this, "Error Message", "Please enter vehicle number or use fob key.");
+                CommonUtils.showMessageDilaog(DeviceControlActivity_vehicle.this, "Error Message", "Please enter vehicle number or use fob/card key.");
             }
 
 
@@ -986,7 +986,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
 
                     editVehicleNumber.setText(VehicleNumber);
                     tv_vehicle_no_below.setText("Vehicle Number: " + VehicleNumber);
-                    tv_fob_number.setText("Fob No: " + AppConstants.APDU_FOB_KEY);
+                    tv_fob_number.setText("fob/card No: " + AppConstants.APDU_FOB_KEY);
 
 
                     DisplayScreenFobReadSuccess();
@@ -1012,7 +1012,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
 
                         Istimeout_Sec = true;
                         TimeoutVehicleScreen();
-                        tv_enter_vehicle_no.setText("Invalid FOB or Unassigned FOB");
+                        tv_enter_vehicle_no.setText("Invalid fob/card or Unassigned fob/card");
                         int widthi = ActionBar.LayoutParams.WRAP_CONTENT;
                         int heighti = ActionBar.LayoutParams.WRAP_CONTENT;
                         LinearLayout.LayoutParams parmsi = new LinearLayout.LayoutParams(widthi, heighti);

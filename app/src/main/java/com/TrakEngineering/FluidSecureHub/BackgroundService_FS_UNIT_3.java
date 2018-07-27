@@ -1173,7 +1173,7 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService {
 
     public void TransactionCompleteFunction() {
 
-       // TankMonitorReading(); //Get Tank Monitor Reading and save it to server
+       TankMonitorReading(); //Get Tank Monitor Reading and save it to server
 
         ////////////////////--UpgradeCurrentVersion to server--///////////////////////////////////////////////////////
 

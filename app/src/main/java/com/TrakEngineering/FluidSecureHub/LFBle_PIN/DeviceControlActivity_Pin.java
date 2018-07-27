@@ -613,6 +613,36 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
 
     public void DisplayScreenInit() {
 
+        SharedPreferences sharedPrefODO = DeviceControlActivity_Pin.this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
+        IsPersonHasFob = sharedPrefODO.getString(AppConstants.IsPersonHasFob, "false");
+
+        if (IsPersonHasFob.equalsIgnoreCase("true")) {
+
+
+            // Linear_layout_Save_back_buttons.setVisibility(View.VISIBLE);
+            btnCancel.setVisibility(View.VISIBLE);
+            btnSave.setVisibility(View.INVISIBLE);
+
+            int widthi = 0;
+            int heighti = 0;
+            LinearLayout.LayoutParams parmsi = new LinearLayout.LayoutParams(widthi, heighti);
+            parmsi.weight = 0;
+            btnSave.setLayoutParams(parmsi);
+
+            int widthp = 0;
+            int heightp = 0;
+            LinearLayout.LayoutParams parms = new LinearLayout.LayoutParams(widthp, heightp);
+            parms.gravity = Gravity.CENTER;
+            etPersonnelPin.setLayoutParams(parms);
+            tv_dont_have_fob.setLayoutParams(parms);
+            tv_or.setLayoutParams(parms);
+
+            Linear_layout_Save_back_buttons.setVisibility(View.VISIBLE);
+            tv_fob_Reader.setVisibility(View.INVISIBLE);
+            tv_dont_have_fob.setVisibility(View.INVISIBLE);
+            tv_or.setVisibility(View.INVISIBLE);
+
+        } else {
 
             btnCancel.setVisibility(View.VISIBLE);
             btnSave.setVisibility(View.VISIBLE);
@@ -623,19 +653,19 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
             parmsi.weight = 0;
             btnSave.setLayoutParams(parmsi);*/
 
-            int widtht = 450;
-            int heightt = ActionBar.LayoutParams.WRAP_CONTENT;
-            LinearLayout.LayoutParams parmst = new LinearLayout.LayoutParams(widtht, heightt);
-            parmst.gravity = Gravity.CENTER;
-            etPersonnelPin.setLayoutParams(parmst);
+            int width = 450;
+            int height = ActionBar.LayoutParams.WRAP_CONTENT;
+            LinearLayout.LayoutParams parms = new LinearLayout.LayoutParams(width, height);
+            parms.gravity = Gravity.CENTER;
+            etPersonnelPin.setLayoutParams(parms);
 
             Linear_layout_Save_back_buttons.setVisibility(View.VISIBLE);
             tv_fob_Reader.setVisibility(View.VISIBLE);
             tv_dont_have_fob.setVisibility(View.VISIBLE);
             tv_or.setVisibility(View.VISIBLE);
 
-            //--------------------------------------------------------------------
 
+        }
 
         int width = 0;
         int height = 0;
@@ -674,7 +704,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
         tv_fob_Reader.setVisibility(View.GONE);
         tv_or.setVisibility(View.GONE);
         tv_enter_pin_no.setVisibility(View.VISIBLE);
-        tv_ok.setText("FOB Read Successfully");
+        tv_ok.setText("fob/card Read Successfully");
         tv_dont_have_fob.setVisibility(View.GONE);
         etPersonnelPin.setVisibility(View.GONE);
         Linear_layout_Save_back_buttons.setVisibility(View.GONE);
@@ -751,7 +781,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                     btnSave.setEnabled(true);
                     tv_fob_number.setText("");
                     tv_fob_number.setVisibility(View.GONE);
-                    tv_ok.setText("Invalid FOB or Unassigned FOB");
+                    tv_ok.setText("Invalid fob/card or Unassigned fob/card");
                     tv_or.setVisibility(View.GONE);
                     tv_fob_Reader.setVisibility(View.GONE);
                     tv_dont_have_fob.setVisibility(View.VISIBLE);

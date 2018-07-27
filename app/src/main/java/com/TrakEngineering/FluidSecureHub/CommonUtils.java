@@ -47,6 +47,7 @@ import java.util.Stack;
 import static android.content.Context.WIFI_SERVICE;
 import static com.TrakEngineering.FluidSecureHub.AppConstants.FluidSecureSiteName;
 import static com.TrakEngineering.FluidSecureHub.AppConstants.ISVehicleHasFob;
+import static com.TrakEngineering.FluidSecureHub.AppConstants.IsPersonHasFob;
 
 /**
  * Created by VASP-LAP on 08-09-2015.
@@ -176,6 +177,13 @@ public class CommonUtils {
 
     }
     public static String getTodaysDateInString() {
+        Calendar c = Calendar.getInstance();
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String CurrantDate = df.format(c.getTime());
+        return (CurrantDate);
+    }
+
+    public static String getTodaysDateTemp() {
         Calendar c = Calendar.getInstance();
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         String CurrantDate = df.format(c.getTime());
@@ -422,7 +430,7 @@ public class CommonUtils {
     }
 
     public static void SaveUserInPref(Activity activity, String userName, String userMobile, String userEmail, String IsOdoMeterRequire,
-                                      String IsDepartmentRequire, String IsPersonnelPINRequire, String IsOtherRequire, String IsHoursRequire, String OtherLabel, String TimeOut, String HubId, String IsPersonnelPINRequireForHub, String fluidSecureSiteName,String IsVehicleHasFob) {
+                                      String IsDepartmentRequire, String IsPersonnelPINRequire, String IsOtherRequire, String IsHoursRequire, String OtherLabel, String TimeOut, String HubId, String IsPersonnelPINRequireForHub, String fluidSecureSiteName,String IsVehicleHasFob,String isPersonHasFob) {
 
         SharedPreferences sharedPref = activity.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPref.edit();
@@ -440,6 +448,7 @@ public class CommonUtils {
         editor.putString(AppConstants.HubId, HubId);
         editor.putString(AppConstants.IsPersonnelPINRequireForHub, IsPersonnelPINRequireForHub);
         editor.putString(ISVehicleHasFob,  IsVehicleHasFob);
+        editor.putString(IsPersonHasFob,  isPersonHasFob);
         editor.putString(FluidSecureSiteName,  fluidSecureSiteName);
 
         editor.commit();

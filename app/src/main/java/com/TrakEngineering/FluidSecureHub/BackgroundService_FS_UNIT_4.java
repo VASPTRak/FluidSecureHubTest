@@ -1168,7 +1168,7 @@ public class BackgroundService_FS_UNIT_4 extends BackgroundService {
 
         System.out.println("In transaction Complete");
 
-       // TankMonitorReading(); //Get Tank Monitor Reading and save it to server
+        TankMonitorReading(); //Get Tank Monitor Reading and save it to server
 
         ////////////////////--UpgradeCurrentVersion to server--///////////////////////////////////////////////////////
 

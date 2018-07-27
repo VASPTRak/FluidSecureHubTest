@@ -53,7 +53,7 @@
                     android:layout_weight="1"
                     android:visibility="gone"
                     android:background="@color/colorFluid"
-                    android:text=" Click to read fob again "
+                    android:text=" Click to read fob/card again "
                     android:textColor="@color/white"
                     android:textSize="@dimen/go_button_text" />
 
@@ -79,7 +79,7 @@
                     android:layout_height="wrap_content"
                     android:textColor="@color/black"
                     android:textAllCaps="false"
-                    android:text="Present your personnel FOB  below"
+                    android:text="Present your personnel fob/card  below"
                     android:textAppearance="?android:attr/textAppearanceLarge"
                     android:textSize="@dimen/go_button_text" />
                 <!--android:text="Please Hold Personnel FOB to Reader"-->
@@ -125,7 +125,7 @@
                     android:paddingRight="100dp"
                     android:layout_marginTop="25dp"
                     android:layout_marginBottom="20dp"
-                    android:text="Fob Read Successfully"
+                    android:text="fob/card Read Successfully"
                     android:textColor="@color/Red"
                     android:textAppearance="?android:attr/textAppearanceLarge"
                     android:textSize="35dp" />
@@ -150,7 +150,7 @@
                     android:id="@+id/tv_fob_number"
                     android:gravity="left"
                     android:textStyle="bold"
-                    android:text="FOB#:"
+                    android:text="fob/card#:"
                     android:textSize="@dimen/date_text" />
 
 
