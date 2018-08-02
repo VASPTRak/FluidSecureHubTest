@@ -536,12 +536,12 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService {
 
                         }else{
                             if (AttemptCount > 2) {
-                            //FS Link DisConnected
-                            AppConstants.WriteinFile("BackgroundService_FS_UNIT_3 ~~~~~~~~~" + "FS Link not connected" );
-                            stopTimer = false;
-                            new BackgroundService_FS_UNIT_3.CommandsPOST().execute(URL_RELAY, jsonRelayOff);
-                            Constants.FS_3STATUS = "FREE";
-                            clearEditTextFields();
+                                //FS Link DisConnected
+                                AppConstants.WriteinFile("BackgroundService_FS_UNIT_3 ~~~~~~~~~" + "FS Link not connected" );
+                                stopTimer = false;
+                                new BackgroundService_FS_UNIT_3.CommandsPOST().execute(URL_RELAY, jsonRelayOff);
+                                Constants.FS_3STATUS = "FREE";
+                                clearEditTextFields();
 //                          BackgroundService_AP.this.stopSelf();
                             } else {
                                 System.out.println("FS Link not connected ~~AttemptCount:" +AttemptCount);
@@ -1173,7 +1173,7 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService {
 
     public void TransactionCompleteFunction() {
 
-       TankMonitorReading(); //Get Tank Monitor Reading and save it to server
+        TankMonitorReading(); //Get Tank Monitor Reading and save it to server
 
         ////////////////////--UpgradeCurrentVersion to server--///////////////////////////////////////////////////////
 
@@ -1382,7 +1382,7 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService {
         }
 
 
-                startService(new Intent(BackgroundService_FS_UNIT_3.this, BackgroundService.class));
+        startService(new Intent(BackgroundService_FS_UNIT_3.this, BackgroundService.class));
 
     }
 
@@ -1428,7 +1428,7 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService {
                 //Calculate probe reading
                 //probe_reading = GetProbeReading(LSB, MSB);
 
-               // probe_temperature = CalculateTemperature(Tem_data);
+                // probe_temperature = CalculateTemperature(Tem_data);
 
 
             } catch (JSONException e) {

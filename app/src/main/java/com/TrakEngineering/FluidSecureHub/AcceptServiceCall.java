@@ -99,6 +99,10 @@ public class AcceptServiceCall {
 
             authEntityClass.AppInfo =  " Version " + CommonUtils.getVersionCode(activity) + " "+ AppConstants.getDeviceName().toLowerCase() + " " ;
 
+            Gson gson = new Gson();
+            String jsonData = gson.toJson(authEntityClass);
+            AppConstants.WriteinFile("~~~~~~~~~ Authorization Sequence Data ~~~~~~~~~~~" +jsonData);
+
 
             cd = new ConnectionDetector(activity);
             if (cd.isConnectingToInternet()) {

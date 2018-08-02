@@ -53,7 +53,7 @@
                     android:layout_weight="1"
                     android:visibility="gone"
                     android:background="@color/colorFluid"
-                    android:text=" Click to read fob/card again "
+                    android:text=" Click to read fob again "
                     android:textColor="@color/white"
                     android:textSize="@dimen/go_button_text" />
 
@@ -79,7 +79,7 @@
                     android:layout_height="wrap_content"
                     android:textColor="@color/black"
                     android:textAllCaps="false"
-                    android:text="Present your personnel fob/card  below"
+                    android:text="Present your personnel FOB  below"
                     android:textAppearance="?android:attr/textAppearanceLarge"
                     android:textSize="@dimen/go_button_text" />
                 <!--android:text="Please Hold Personnel FOB to Reader"-->
@@ -121,11 +121,11 @@
                     android:id="@+id/tv_ok"
                     android:gravity="center"
                     android:textStyle="bold"
-                    android:paddingLeft="50dp"
-                    android:paddingRight="50dp"
+                    android:paddingLeft="100dp"
+                    android:paddingRight="100dp"
                     android:layout_marginTop="25dp"
                     android:layout_marginBottom="20dp"
-                    android:text="fob/card Read Successfully"
+                    android:text="Fob Read Successfully"
                     android:textColor="@color/Red"
                     android:textAppearance="?android:attr/textAppearanceLarge"
                     android:textSize="35dp" />
@@ -150,7 +150,7 @@
                     android:id="@+id/tv_fob_number"
                     android:gravity="left"
                     android:textStyle="bold"
-                    android:text="fob/card#:"
+                    android:text="FOB#:"
                     android:textSize="@dimen/date_text" />
 
 
@@ -189,8 +189,8 @@
 
                 <Button
                     android:id="@+id/btnCancel"
-                    android:layout_width="0dp"
-                    android:layout_height="60dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     android:layout_gravity="center_horizontal"
                     android:layout_margin="5sp"
                     android:layout_weight="1"
@@ -202,8 +202,8 @@
 
                 <Button
                     android:id="@+id/btnSave"
-                    android:layout_width="0dp"
-                    android:layout_height="60dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     android:layout_marginLeft="25dp"
                     android:layout_gravity="center_horizontal"
                     android:layout_marginTop="10sp"

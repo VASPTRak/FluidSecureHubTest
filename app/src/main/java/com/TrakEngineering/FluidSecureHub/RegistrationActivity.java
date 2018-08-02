@@ -223,7 +223,7 @@ public class RegistrationActivity extends AppCompatActivity {
 
             try {
 
-               // String sendData = userName + "#:#" + userMobile + "#:#" + userEmail + "#:#" + imeiNumber + "#:#" + deviceType + "#:#" + userCompany + "#:#" + "AP";
+                // String sendData = userName + "#:#" + userMobile + "#:#" + userEmail + "#:#" + imeiNumber + "#:#" + deviceType + "#:#" + userCompany + "#:#" + "AP";
                 String sendData = userName + "#:#" + "" + "#:#" + "" + "#:#" + imeiNumber + "#:#" + deviceType + "#:#" + "" + "#:#" + "AP";
 
                 String AUTH_TOKEN = "Basic " + AppConstants.convertStingToBase64("123:abc:Register");
@@ -253,7 +253,7 @@ public class RegistrationActivity extends AppCompatActivity {
                 String ResponceMessage = jsonObj.getString(AppConstants.RES_MESSAGE);
 
                 if (ResponceMessage.equalsIgnoreCase("success")) {
-                    CommonUtils.SaveUserInPref(RegistrationActivity.this, userName, userMobile, userEmail, "","","","","", "", "","","", FluidSecureSiteName,ISVehicleHasFob,IsPersonHasFob);
+                    CommonUtils.SaveUserInPref(RegistrationActivity.this, userName, userMobile, userEmail, "","","","","", "", "","","", FluidSecureSiteName,ISVehicleHasFob, IsPersonHasFob);
 
                     AlertDialogBox(RegistrationActivity.this, "Thank you for registering. \n\nYour request has been sent for the approval. You will be able to proceed with the application after your request has been approved by the administrator.");
                 } else if (ResponceMessage.equalsIgnoreCase("fail")) {
@@ -279,3 +279,4 @@ public class RegistrationActivity extends AppCompatActivity {
 
 
 }
+

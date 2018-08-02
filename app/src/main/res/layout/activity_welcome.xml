@@ -5,7 +5,8 @@
     android:layout_height="match_parent"
     android:background="@color/white"
     android:orientation="vertical"
-    tools:context="com.TrakEngineering.FluidSecureHub.WelcomeActivity">
+    android:id="@+id/linearLayout_MainActivity"
+    tools:context="com.TrakEngineering.FluidSecureHubTest.WelcomeActivity">
 
     <ScrollView
         android:layout_width="match_parent"

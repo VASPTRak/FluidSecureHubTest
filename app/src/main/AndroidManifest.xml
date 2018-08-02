@@ -143,6 +143,9 @@
         <service android:name=".BackgroundServiceBluetoothPrinter"
             android:enabled="true"/>
 
+        <service android:name=".BackgroundServiceKeepDataTransferAlive"
+            android:enabled="true" />
+
         <service android:name="GlobalTouchService" > </service>
 
         <receiver

@@ -15,6 +15,7 @@ import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import com.TrakEngineering.FluidSecureHub.LFBle_PIN.DeviceControlActivity_Pin;
 import com.TrakEngineering.FluidSecureHub.enity.AuthEntityClass;
 import com.TrakEngineering.FluidSecureHub.server.ServerHandler;
 import com.google.gson.Gson;
@@ -353,7 +354,7 @@ public class AcceptOdoActivity extends AppCompatActivity {
 
         } else if (IsPersonnelPINRequireForHub.equalsIgnoreCase("True")) {
 
-            Intent i = new Intent(AcceptOdoActivity.this, AcceptPinActivity.class);//AcceptPinActivity
+            Intent i = new Intent(AcceptOdoActivity.this, DeviceControlActivity_Pin.class);//AcceptPinActivity
             startActivity(i);
 
         } else if (IsDepartmentRequire.equalsIgnoreCase("True")) {

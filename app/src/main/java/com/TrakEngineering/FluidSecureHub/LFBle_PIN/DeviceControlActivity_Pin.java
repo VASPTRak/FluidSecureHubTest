@@ -29,6 +29,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewTreeObserver;
+import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
@@ -552,7 +553,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                 System.out.println("pin2 FOK_KEY" + AppConstants.APDU_FOB_KEY);
                 ScreenOutTime.cancel();//Stop screenout
                 GetPinNuOnFobKeyDetection();
-                tv_fob_number.setText("Fob No: " + AppConstants.APDU_FOB_KEY);
+                tv_fob_number.setText("fob/card No: " + AppConstants.APDU_FOB_KEY);
             }
         });
 
@@ -642,16 +643,19 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
             tv_dont_have_fob.setVisibility(View.INVISIBLE);
             tv_or.setVisibility(View.INVISIBLE);
 
+            // hideKeybord();
+
         } else {
 
-            btnCancel.setVisibility(View.VISIBLE);
-            btnSave.setVisibility(View.VISIBLE);
 
             /*int widthi = 0;
             int heighti = 0;
             LinearLayout.LayoutParams parmsi = new LinearLayout.LayoutParams(widthi, heighti);
             parmsi.weight = 0;
             btnSave.setLayoutParams(parmsi);*/
+
+            btnCancel.setVisibility(View.VISIBLE);
+            btnSave.setVisibility(View.VISIBLE);
 
             int width = 450;
             int height = ActionBar.LayoutParams.WRAP_CONTENT;
@@ -695,7 +699,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
         tv_ok.setLayoutParams(parms);
 
         int widthi = ActionBar.LayoutParams.WRAP_CONTENT;
-        int heighti = 60;
+        int heighti = ActionBar.LayoutParams.WRAP_CONTENT;
         LinearLayout.LayoutParams parmsi = new LinearLayout.LayoutParams(widthi, heighti);
         tv_enter_pin_no.setLayoutParams(parmsi);
 
@@ -735,17 +739,16 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
 
                 String ResponceMessage = jsonObject.getString("ResponceMessage");
                 System.out.println("ResponceMessage..dt.." + ResponceMessage);
-
+                String PersonFOBNumber = jsonObject.getString("PersonFOBNumber");
+                String PersonPIN = jsonObject.getString("PersonPIN");
+                String IsNewFob = jsonObject.getString("IsNewFob");
 
                 if (ResponceMessage.equalsIgnoreCase("success")) {
 
-                    String PersonFOBNumber = jsonObject.getString("PersonFOBNumber");
-                    String PersonPIN = jsonObject.getString("PersonPIN");
                     DisplayScreenFobReadSuccess();
                     tv_enter_pin_no.setText("Personnel Number:" + PersonPIN);
                     System.out.println("PersonFOBNumber.." + PersonFOBNumber + "PersonPin" + PersonPIN);
                     etPersonnelPin.setText(PersonPIN);
-
 
                     new Handler().postDelayed(new Runnable() {
                         @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
@@ -758,32 +761,35 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
 
                 } else {
 
-                    if (!ResponceMessage.contains("New FOB detected")) {
+                    if (IsNewFob.equalsIgnoreCase("No")) {
                         AppConstants.APDU_FOB_KEY = "";
                         onResume();
+
+                        tv_fob_Reader.setVisibility(View.GONE);
+
+                        int width = ActionBar.LayoutParams.WRAP_CONTENT;
+                        int height = ActionBar.LayoutParams.WRAP_CONTENT;
+                        LinearLayout.LayoutParams parms = new LinearLayout.LayoutParams(width, height);
+                        parms.gravity = Gravity.CENTER;
+                        tv_ok.setLayoutParams(parms);
+
+                        tv_ok.setText("Invalid fob/card or Unassigned FOB");
+
+                        /*InputMethodManager inputMethodManager = (InputMethodManager) etPersonnelPin.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+                        etPersonnelPin.requestFocus();
+                        inputMethodManager.showSoftInput(etPersonnelPin, 0);*/
+
+                    }else{
+
+                        AcceptPinNumber();
                     }
-
-                   /* btn_ReadFobAgain.setVisibility(View.VISIBLE);
-                    int width = ActionBar.LayoutParams.WRAP_CONTENT;
-                    int height = ActionBar.LayoutParams.WRAP_CONTENT;
-                    LinearLayout.LayoutParams parms = new LinearLayout.LayoutParams(width, height);
-                    parms.gravity = Gravity.CENTER;
-                    btn_ReadFobAgain.setLayoutParams(parms);*/
-
-                    int width = ActionBar.LayoutParams.WRAP_CONTENT;
-                    int height = ActionBar.LayoutParams.WRAP_CONTENT;
-                    LinearLayout.LayoutParams parms = new LinearLayout.LayoutParams(width, height);
-                    parms.gravity = Gravity.CENTER;
-                    tv_ok.setLayoutParams(parms);
 
                     Istimeout_Sec = true;
                     TimeoutPinScreen();
                     btnSave.setEnabled(true);
                     tv_fob_number.setText("");
                     tv_fob_number.setVisibility(View.GONE);
-                    tv_ok.setText("Invalid fob/card or Unassigned fob/card");
                     tv_or.setVisibility(View.GONE);
-                    tv_fob_Reader.setVisibility(View.GONE);
                     tv_dont_have_fob.setVisibility(View.VISIBLE);
                     String content = "Enter your<br> <b>PERSONNEL ID </b>in<br> the green box below";
 
@@ -1062,14 +1068,10 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
 
     }
 
-    public void FobRetryLogic() {
-
-    }
-
     public void hideKeybord() {
 
-        InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
-        imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
+        InputMethodManager imm = (InputMethodManager) this.getSystemService(INPUT_METHOD_SERVICE);
+        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
     }
 
     public void showKeybord() {
@@ -1078,5 +1080,25 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
         imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, InputMethodManager.HIDE_IMPLICIT_ONLY);
     }
 
+    public void AcceptPinNumber(){
+
+        tv_fob_Reader.setVisibility(View.VISIBLE);
+        btnCancel.setVisibility(View.VISIBLE);
+        btnSave.setVisibility(View.VISIBLE);
+
+        int width = 450;
+        int height = ActionBar.LayoutParams.WRAP_CONTENT;
+        LinearLayout.LayoutParams parms = new LinearLayout.LayoutParams(width, height);
+        parms.gravity = Gravity.CENTER;
+        etPersonnelPin.setLayoutParams(parms);
+
+        int widthi = ActionBar.LayoutParams.WRAP_CONTENT;
+        int heighti = ActionBar.LayoutParams.WRAP_CONTENT;
+        LinearLayout.LayoutParams parmsi = new LinearLayout.LayoutParams(widthi, heighti);
+        parmsi.weight = 1;
+        btnSave.setLayoutParams(parmsi);
+
+
+    }
 
 }

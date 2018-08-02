@@ -10,6 +10,7 @@ import android.content.pm.PackageInfo;
 import android.net.ConnectivityManager;
 import android.net.wifi.WifiManager;
 import android.os.Build;
+import android.os.Environment;
 import android.text.Editable;
 import android.text.Html;
 import android.text.format.Time;
@@ -44,6 +45,7 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.Stack;
 
+import static android.content.Context.INPUT_METHOD_SERVICE;
 import static android.content.Context.WIFI_SERVICE;
 import static com.TrakEngineering.FluidSecureHub.AppConstants.FluidSecureSiteName;
 import static com.TrakEngineering.FluidSecureHub.AppConstants.ISVehicleHasFob;
@@ -55,6 +57,8 @@ import static com.TrakEngineering.FluidSecureHub.AppConstants.IsPersonHasFob;
 public class CommonUtils {
     private static String TAG = "CommonUtils";
     private static File mypath; /*'---------------------------------------------------------------------------------------- Implemet logger functionality here....*/
+    public static String FOLDER_PATH = Environment.getExternalStorageDirectory().getAbsolutePath() + "/FSBin/";
+    public static String PATH_BIN_FILE1 = "user1.2048.new.5.bin";
 
     public static void LogMessage(String TAG, String TheMessage, Exception ex) {
         String logmessage = getTodaysDateInString();
@@ -195,10 +199,10 @@ public class CommonUtils {
 
         String outputDateStr = null;
         try {
-        DateFormat inputFormat = new SimpleDateFormat("MM/dd/yyyy hh:mm:ss a");
-        DateFormat outputFormat = new SimpleDateFormat("hh:mm a MMM dd,yyyy");
-        Date date = inputFormat.parse(ServerDate001);
-        outputDateStr = outputFormat.format(date);
+            DateFormat inputFormat = new SimpleDateFormat("MM/dd/yyyy hh:mm:ss a");
+            DateFormat outputFormat = new SimpleDateFormat("hh:mm a MMM dd,yyyy");
+            Date date = inputFormat.parse(ServerDate001);
+            outputDateStr = outputFormat.format(date);
 
         } catch (ParseException e) {
             e.printStackTrace();
@@ -279,7 +283,7 @@ public class CommonUtils {
                 dialogBus.dismiss();
 
                 //editVehicleNumber.requestFocus();
-                InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
+                InputMethodManager imm = (InputMethodManager) context.getSystemService(INPUT_METHOD_SERVICE);
                 imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, InputMethodManager.HIDE_IMPLICIT_ONLY);
 
 
@@ -287,6 +291,32 @@ public class CommonUtils {
         });
 
     }
+
+    public static void showOnlyCustomMessageDilaog(final Activity context, String title, String message) {
+
+        final Dialog dialogBus = new Dialog(context);
+        dialogBus.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        //dialogBus.setTitle("KavachGPS Would Like to Access Your Details");
+        dialogBus.setCancelable(false);
+        dialogBus.setContentView(R.layout.custom_alertdialouge);
+        dialogBus.show();
+
+        TextView edt_message = (TextView) dialogBus.findViewById(R.id.edt_message);
+        Button btnAllow = (Button) dialogBus.findViewById(R.id.btnAllow);
+        edt_message.setText(message);
+
+        btnAllow.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                dialogBus.dismiss();
+
+
+            }
+        });
+
+    }
+
 
     public static void showMessageDilaog(final Activity context, String title, String message) {
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(context);
@@ -430,7 +460,7 @@ public class CommonUtils {
     }
 
     public static void SaveUserInPref(Activity activity, String userName, String userMobile, String userEmail, String IsOdoMeterRequire,
-                                      String IsDepartmentRequire, String IsPersonnelPINRequire, String IsOtherRequire, String IsHoursRequire, String OtherLabel, String TimeOut, String HubId, String IsPersonnelPINRequireForHub, String fluidSecureSiteName,String IsVehicleHasFob,String isPersonHasFob) {
+                                      String IsDepartmentRequire, String IsPersonnelPINRequire, String IsOtherRequire, String IsHoursRequire, String OtherLabel, String TimeOut, String HubId, String IsPersonnelPINRequireForHub, String fluidSecureSiteName, String IsVehicleHasFob, String isPersonHasFob) {
 
         SharedPreferences sharedPref = activity.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPref.edit();
@@ -486,7 +516,7 @@ public class CommonUtils {
 
 
         editor.commit();
-     }
+    }
 
     public static void SaveVehiFuelInPref(Activity activity, String TransactionId,String VehicleId, String PhoneNumber, String PersonId, String PulseRatio, String MinLimit, String FuelTypeId, String ServerDate, String IntervalToStopFuel,String PrintDate,String Company,String Location,String PersonName,String PrinterMacAddress,String PrinterName,String vehicleNumber,String accOther,String VehicleSum,String DeptSum,String VehPercentage,String DeptPercentage,String SurchargeType,String ProductPrice) {
 
@@ -648,6 +678,21 @@ public class CommonUtils {
     }
 
     public static UserInfoEntity getCustomerDetails_backgroundService(BackgroundService_AP activity) {
+
+        UserInfoEntity userInfoEntity = new UserInfoEntity();
+
+        SharedPreferences sharedPref = activity.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
+
+        userInfoEntity.PersonName = sharedPref.getString(AppConstants.USER_NAME, "");
+        userInfoEntity.PhoneNumber = sharedPref.getString(AppConstants.USER_MOBILE, "");
+        userInfoEntity.PersonEmail = sharedPref.getString(AppConstants.USER_EMAIL, "");
+        userInfoEntity.FluidSecureSiteName = sharedPref.getString(AppConstants.FluidSecureSiteName, "");
+
+
+        return userInfoEntity;
+    }
+
+    public static UserInfoEntity getCustomerDetails_KdtAlive(BackgroundServiceKeepDataTransferAlive activity) {
 
         UserInfoEntity userInfoEntity = new UserInfoEntity();
 

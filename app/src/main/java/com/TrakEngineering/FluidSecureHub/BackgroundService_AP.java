@@ -1164,7 +1164,7 @@ public class BackgroundService_AP extends BackgroundService {
 
     public void TransactionCompleteFunction() {
 
-       // TankMonitorReading();
+        TankMonitorReading();
 
         ////////////////////--UpgradeCurrentVersion to server--///////////////////////////////////////////////////////
 
@@ -1423,7 +1423,7 @@ public class BackgroundService_AP extends BackgroundService {
                 //Calculate probe reading
                 //probe_reading = GetProbeReading(LSB, MSB);
 
-               // probe_temperature = CalculateTemperature(Tem_data);
+                // probe_temperature = CalculateTemperature(Tem_data);
 
 
             } catch (JSONException e) {

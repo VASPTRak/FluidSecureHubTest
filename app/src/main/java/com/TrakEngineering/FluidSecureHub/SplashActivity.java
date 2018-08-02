@@ -6,6 +6,7 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.app.admin.DevicePolicyManager;
+import android.bluetooth.BluetoothAdapter;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -80,6 +81,7 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
     private DevicePolicyManager mDevicePolicyManager;
     private ComponentName mComponentName;
 
+
     protected static final int REQUEST_CHECK_SETTINGS = 0x1;
 
 
@@ -141,7 +143,13 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
                 AppConstants.IS_WIFI_ON = false;
             }*/
 
+            //Enable hotspot
             wifiApManager.setWifiApEnabled(null, true);
+
+            //Enable bluetooth
+            BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+            mBluetoothAdapter.enable();
+
 
             LocationManager locationManager = (LocationManager) SplashActivity.this.getSystemService(Context.LOCATION_SERVICE);
             boolean statusOfGPS = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
