@@ -53,8 +53,8 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
     String URL_UPGRADE_START = HTTP_URL + "upgrade?command=start";
     String URL_RESET = HTTP_URL + "upgrade?command=reset";
     String URL_INFO = HTTP_URL + "client?command=info";
-    private static final String TAG = "BackgroundService_UpgradeFirmware";
-    ArrayList<HashMap<String, String>> SSIDList = new ArrayList<>();
+    private static final String TAG = "BS__KeepDataTransferAlive";
+    public static ArrayList<HashMap<String, String>> SSIDList = new ArrayList<>();
     public static ArrayList<HashMap<String, String>> DetailslistOfConnectedIP_KDTA = new ArrayList<>();
     public static ArrayList<String> listOfConnectedIP_KDTA = new ArrayList<String>();
 
@@ -64,98 +64,12 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
 
         try {
             super.onStart(intent, startId);
-            Log.i(TAG, "BackgroundServiceKeepDataTransferAlive~~Begining~~");
-            SSIDList.clear();
+            Log.i(TAG, "~~~~~~~~~~Begining~~~~~~~~~~");
+            AppConstants.WriteinFile(TAG + "~~~~~~~~~~Begining~~~~~~~~~~");
+
             DetailslistOfConnectedIP_KDTA.clear();
-            GetSSIDUsingLocationAsyncCall();
-            ListConnectedHotspotIP_KDTA();
-            DownloadFirmwareFile();//Download firmware file
-
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
-            if (SSIDList != null && SSIDList.size() > 0) {
-
-                for (int i = 0; i < SSIDList.size(); i++) {
-
-                    String ReconfigureLink = SSIDList.get(i).get("ReconfigureLink");
-                    String selSSID = SSIDList.get(i).get("WifiSSId");
-                    String IsBusy = SSIDList.get(i).get("IsBusy");
-                    String selMacAddress = SSIDList.get(i).get("MacAddress");
-                    String selSiteId = SSIDList.get(i).get("SiteId");
-                    String hoseID = SSIDList.get(i).get("HoseId");
-                    String IsUpgrade = SSIDList.get(i).get("IsUpgrade"); //"Y";//
-
-                    for (int k = 0; k < DetailslistOfConnectedIP_KDTA.size(); k++) {
-                        String Mac_Addr = DetailslistOfConnectedIP_KDTA.get(k).get("macAddress");
-                        if (selMacAddress.equalsIgnoreCase(Mac_Addr)) {
-                            // URL_INFO = "http://" + DetailslistOfConnectedIP_KDTA.get(k).get("ipAddress") + ":80/";
-                            HTTP_URL = "http://" + DetailslistOfConnectedIP_KDTA.get(k).get("ipAddress") + ":80/";
-
-                            try {
-
-                                //If ipaddress is not empty
-                                URL_INFO = HTTP_URL + "client?command=info";
-                                URL_UPGRADE_START = HTTP_URL + "upgrade?command=start";
-                                URL_RESET = HTTP_URL + "upgrade?command=reset";
-                                String iot_version = "";
-
-                                String FSStatus = new CommandsGET().execute(URL_INFO).get();//Info command
-                                if (FSStatus.startsWith("{") && FSStatus.contains("Version")) {
-
-                                    try {
-
-                                        JSONObject jsonObj = new JSONObject(FSStatus);
-                                        String userData = jsonObj.getString("Version");
-                                        JSONObject jsonObject = new JSONObject(userData);
-
-                                        String sdk_version = jsonObject.getString("sdk_version");
-                                        String mac_address = jsonObject.getString("mac_address");
-                                        iot_version = jsonObject.getString("iot_version");
-
-
-                                    } catch (JSONException e) {
-                                        e.printStackTrace();
-                                    }
-
-                                }
-
-                                //IF upgrade firmware true check below
-                                if (IsUpgrade.equalsIgnoreCase("Y")) {
-
-                                    if (i == 0) {
-                                        //Hose one selected
-                                        WelcomeActivity.IsUpgradeInprogress_FS1 = true;
-                                    } else if (i == 1) {
-                                        //Hose two selected
-                                        WelcomeActivity.IsUpgradeInprogress_FS2 = true;
-                                    } else if (i == 2) {
-                                        //Hose three selected
-                                        WelcomeActivity.IsUpgradeInprogress_FS3 = true;
-                                    } else if (i == 3) {
-                                        //Hose four selected
-                                        WelcomeActivity.IsUpgradeInprogress_FS4 = true;
-                                    } else {
-                                        //Something went wrong
-                                    }
-                                    CheckForUpdateFirmware(hoseID, iot_version, String.valueOf(i));
-                                }
-
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            } catch (ExecutionException e) {
-                                e.printStackTrace();
-                            }
-
-                        }
-                    }
-
-
-                }
-            }
+            ListConnectedHotspotIP_KDTA(); //new GetSSIDUsingLocation();
+            StartUpgradeProcess();
 
 
         } catch (NullPointerException e) {
@@ -168,138 +82,102 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
         return Service.START_NOT_STICKY;
     }
 
-    public void GetSSIDUsingLocationAsyncCall() {
+    @SuppressLint("LongLogTag")
+    public void StartUpgradeProcess(){
 
-        String userEmail = CommonUtils.getCustomerDetails_KdtAlive(BackgroundServiceKeepDataTransferAlive.this).PersonEmail;
-        //----------------------------------------------------------------------------------
-        String parm1 = AppConstants.getIMEI(BackgroundServiceKeepDataTransferAlive.this) + ":" + userEmail + ":" + "Other";
-        String parm2 = "Authenticate:I:" + Constants.Latitude + "," + Constants.Longitude;
-        String authString = "Basic " + AppConstants.convertStingToBase64(parm1);
+        if (SSIDList != null && SSIDList.size() > 0) {
 
+            for (int i = 0; i < SSIDList.size(); i++) {
 
-        RequestBody body = RequestBody.create(TEXT, parm2);
-        OkHttpClient httpClient = new OkHttpClient();
-        Request request = new Request.Builder()
-                .url(AppConstants.webURL)
-                .post(body)
-                .addHeader("Authorization", authString)
-                .build();
+                Log.i(TAG,"Hotspot connected devices: "+String.valueOf(DetailslistOfConnectedIP_KDTA.size()));
 
-        httpClient.newCall(request).enqueue(new Callback() {
-            @SuppressLint("LongLogTag")
-            @Override
-            public void onFailure(Request request, IOException e) {
-                Log.e(TAG, "error in getting response using async okhttp call");
-            }
+                String ReconfigureLink = SSIDList.get(i).get("ReconfigureLink");
+                String selSSID = SSIDList.get(i).get("WifiSSId");
+                String IsBusy = SSIDList.get(i).get("IsBusy");
+                String selMacAddress = SSIDList.get(i).get("MacAddress");
+                String selSiteId = SSIDList.get(i).get("SiteId");
+                String hoseID = SSIDList.get(i).get("HoseId");
+                String IsUpgrade = SSIDList.get(i).get("IsUpgrade"); //"Y";//
 
-            @SuppressLint("LongLogTag")
-            @Override
-            public void onResponse(Response response) throws IOException {
-
-                ResponseBody responseBody = response.body();
-                if (!response.isSuccessful()) {
-                    throw new IOException("Error response " + response);
-                } else {
-
-                    String result = responseBody.string();
-                    System.out.println("Result" + result);
-                    System.out.println("Get pulsar---------- FS PIPE ~~~onPostExecute~~~" + result);
-
-                    if (result != null && !result.isEmpty()) {
+                for (int k = 0; k < DetailslistOfConnectedIP_KDTA.size(); k++) {
+                    String Mac_Addr = DetailslistOfConnectedIP_KDTA.get(k).get("macAddress");
+                    if (selMacAddress.equalsIgnoreCase(Mac_Addr)) {
+                        // URL_INFO = "http://" + DetailslistOfConnectedIP_KDTA.get(k).get("ipAddress") + ":80/";
+                        HTTP_URL = "http://" + DetailslistOfConnectedIP_KDTA.get(k).get("ipAddress") + ":80/";
 
                         try {
-                            JSONObject jsonObjectSite = null;
-                            jsonObjectSite = new JSONObject(result);
-                            String ResponseMessageSite = jsonObjectSite.getString(AppConstants.RES_MESSAGE);
 
-                            if (ResponseMessageSite.equalsIgnoreCase("success")) {
+                            AppConstants.WriteinFile(TAG + "HTTP_URL: "+HTTP_URL);
+                            Log.i(TAG,"HTTP URL: "+HTTP_URL);
+                            //If ipaddress is not empty
+                            URL_INFO = HTTP_URL + "client?command=info";
+                            URL_UPGRADE_START = HTTP_URL + "upgrade?command=start";
+                            URL_RESET = HTTP_URL + "upgrade?command=reset";
+                            String iot_version = "";
 
-                                JSONArray Requests = jsonObjectSite.getJSONArray(AppConstants.RES_DATA_SSID);
+                            String FSStatus = new CommandsGET().execute(URL_INFO).get();//Info command
+                            if (FSStatus.startsWith("{") && FSStatus.contains("Version")) {
 
-                                if (Requests.length() > 0) {
+                                try {
 
-                                    for (int i = 0; i < Requests.length(); i++) {
-                                        JSONObject c = Requests.getJSONObject(i);
+                                    JSONObject jsonObj = new JSONObject(FSStatus);
+                                    String userData = jsonObj.getString("Version");
+                                    JSONObject jsonObject = new JSONObject(userData);
 
-
-                                        String SiteId = c.getString("SiteId");
-                                        String SiteNumber = c.getString("SiteNumber");
-                                        String SiteName = c.getString("SiteName");
-                                        String SiteAddress = c.getString("SiteAddress");
-                                        String Latitude = c.getString("Latitude");
-                                        String Longitude = c.getString("Longitude");
-                                        String HoseId = c.getString("HoseId");
-                                        String HoseNumber = c.getString("HoseNumber");
-                                        String WifiSSId = c.getString("WifiSSId");
-                                        String UserName = c.getString("UserName");
-                                        String Password = c.getString("Password");
-                                        String ResponceMessage = c.getString("ResponceMessage");
-                                        String ResponceText = c.getString("ResponceText");
-                                        String ReplaceableHoseName = c.getString("ReplaceableHoseName");
-                                        String IsHoseNameReplaced = c.getString("IsHoseNameReplaced");
-                                        String MacAddress = c.getString("MacAddress");
-                                        String IsBusy = c.getString("IsBusy");
-                                        String IsUpgrade = c.getString("IsUpgrade");
-                                        String PulserTimingAdjust = c.getString("PulserTimingAdjust");
-                                        String BluetoothCardReaderHF = c.getString("BluetoothCardReaderHF");
-                                        String IsDefective = c.getString("IsDefective");
-                                        String FilePath = c.getString("FilePath");
-                                        String ReconfigureLink = c.getString("ReconfigureLink");
-                                        AppConstants.UP_FilePath = FilePath;
-
-                                        AppConstants.BT_READER_NAME = BluetoothCardReaderHF;
+                                    String sdk_version = jsonObject.getString("sdk_version");
+                                    String mac_address = jsonObject.getString("mac_address");
+                                    iot_version = jsonObject.getString("iot_version");
 
 
-                                        //Current Fs wifi password
-                                        Constants.CurrFsPass = Password;
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
 
-                                        HashMap<String, String> map = new HashMap<>();
-                                        map.put("SiteId", SiteId);
-                                        map.put("HoseId", HoseId);
-                                        map.put("WifiSSId", WifiSSId);
-                                        map.put("ReplaceableHoseName", ReplaceableHoseName);
-                                        map.put("IsHoseNameReplaced", IsHoseNameReplaced);
-                                        map.put("item", WifiSSId);
-                                        map.put("MacAddress", MacAddress);
-                                        map.put("IsBusy", IsBusy);
-                                        map.put("IsUpgrade", IsUpgrade);
-                                        map.put("PulserTimingAdjust", PulserTimingAdjust);
-                                        map.put("ReconfigureLink", ReconfigureLink);
+                            }else{
+                                Log.i(TAG,"Info Command response"+FSStatus);
+                                AppConstants.WriteinFile(TAG + "Info Command response"+FSStatus);
+                            }
 
-                                        if (ResponceMessage.equalsIgnoreCase("success")) {
-                                            if (isNotNULL(SiteId) && isNotNULL(HoseId) && isNotNULL(WifiSSId)) {
-                                                SSIDList.add(map);
-                                            }
-                                        } else {
-                                            String errMsg = ResponceText;
-                                            Log.i(TAG, ResponceText);
-                                        }
+                            //IF upgrade firmware true check below
+                            if (IsUpgrade.equalsIgnoreCase("Y")) {
 
-                                    }
+                                DownloadFirmwareFile();//Download firmware file
+
+                                if (i == 0) {
+                                    //Hose one selected
+                                    WelcomeActivity.IsUpgradeInprogress_FS1 = true;
+                                } else if (i == 1) {
+                                    //Hose two selected
+                                    WelcomeActivity.IsUpgradeInprogress_FS2 = true;
+                                } else if (i == 2) {
+                                    //Hose three selected
+                                    WelcomeActivity.IsUpgradeInprogress_FS3 = true;
+                                } else if (i == 3) {
+                                    //Hose four selected
+                                    WelcomeActivity.IsUpgradeInprogress_FS4 = true;
+                                } else {
+                                    //Something went wrong
                                 }
 
 
-                            } else if (ResponseMessageSite.equalsIgnoreCase("fail")) {
-                                Log.i(TAG, ResponseMessageSite);
+                                CheckForUpdateFirmware(hoseID, iot_version, String.valueOf(i));
                             }
-                        } catch (JSONException e) {
+
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        } catch (ExecutionException e) {
                             e.printStackTrace();
                         }
 
-
-                    } else {
-                        Log.i(TAG, "Unable to connect server. Please try again later!");
                     }
-
-
-                    //-------------------------------------------------------------------------------------------
-
-
                 }
 
-            }
 
-        });
+            }
+        }else{
+            Log.i(TAG,"SSID List Empty");
+            AppConstants.WriteinFile(TAG + "SSID List Empty");
+        }
     }
 
     public void ListConnectedHotspotIP_KDTA() {
@@ -463,11 +341,14 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
 
     }
 
+    @SuppressLint("LongLogTag")
     public void CheckForUpdateFirmware(final String hoseid, String iot_version, final String FS_selected) {
+
+        Log.i(TAG,"Upgrade for Hose: "+FS_selected+"\nFirmware Version: "+iot_version+"Hose ID: "+hoseid);
+        AppConstants.WriteinFile(TAG+" Upgrade for Hose: "+FS_selected+"\nFirmware Version: "+iot_version+"Hose ID: "+hoseid);
 
         SharedPreferences sharedPrefODO = this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
         String HubId = sharedPrefODO.getString(AppConstants.HubId, "");// HubId equals to personId
-
 
         //First call which will Update Fs firmware to Server--
         final UpgradeVersionEntity objEntityClass = new UpgradeVersionEntity();
@@ -483,111 +364,43 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
             System.out.println(objUP.response);
 
             try {
-                JSONObject jsonObject = new JSONObject(objUP.response);
+                JSONObject jsonObject = null;
+                jsonObject = new JSONObject(objUP.response);
+
                 String ResponceMessage = jsonObject.getString("ResponceMessage");
                 String ResponceText = jsonObject.getString("ResponceText");
 
+
                 if (ResponceMessage.equalsIgnoreCase("success")) {
+
+                    //Second call will get Status for firwareupdate
+                    StatusForUpgradeVersionEntity objEntityClass1 = new StatusForUpgradeVersionEntity();
+                    objEntityClass1.IMEIUDID = AppConstants.getIMEI(BackgroundServiceKeepDataTransferAlive.this);
+                    objEntityClass1.Email = CommonUtils.getCustomerDetails_KdtAlive(BackgroundServiceKeepDataTransferAlive.this).PersonEmail;
+                    objEntityClass1.HoseId = hoseid;
+                    objEntityClass1.PersonId = HubId;
+
+                    Gson gson = new Gson();
+                    String jsonData = gson.toJson(objEntityClass1);
+
+                    String userEmail = CommonUtils.getCustomerDetails_KdtAlive(BackgroundServiceKeepDataTransferAlive.this).PersonEmail;
+                    String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(BackgroundServiceKeepDataTransferAlive.this) + ":" + userEmail + ":" + "IsUpgradeCurrentVersionWithUgradableVersion");
+
+                    new GetUpgrateFirmwareStatus().execute(FS_selected, jsonData, authString);
+
                 }
 
             } catch (Exception e) {
-
+                e.printStackTrace();
+                Log.i(TAG," UpgradeCurrentVersionWithUgradableVersion 1 "+e);
+                AppConstants.WriteinFile(TAG+" UpgradeCurrentVersionWithUgradableVersion 1 "+e);
             }
+
+        }else{
+            Log.i(TAG,"Upgrade fail Hose id empty");
+            AppConstants.WriteinFile(TAG+" Upgrade fail Hose id empty");
         }
 
-        //Second call will get Status for firwareupdate
-        StatusForUpgradeVersionEntity objEntityClass1 = new StatusForUpgradeVersionEntity();
-        objEntityClass1.IMEIUDID = AppConstants.getIMEI(BackgroundServiceKeepDataTransferAlive.this);
-        objEntityClass1.Email = CommonUtils.getCustomerDetails_KdtAlive(BackgroundServiceKeepDataTransferAlive.this).PersonEmail;
-        objEntityClass1.HoseId = hoseid;
-        objEntityClass1.PersonId = HubId;
-
-        Gson gson = new Gson();
-        String jsonData = gson.toJson(objEntityClass1);
-
-        String userEmail = CommonUtils.getCustomerDetails_KdtAlive(BackgroundServiceKeepDataTransferAlive.this).PersonEmail;
-        String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(BackgroundServiceKeepDataTransferAlive.this) + ":" + userEmail + ":" + "IsUpgradeCurrentVersionWithUgradableVersion");
-
-        GetUpgrateFirmwareStatus_AsyncCall(FS_selected, jsonData, authString);
-
-    }
-
-    public void GetUpgrateFirmwareStatus_AsyncCall(final String FS_selected, String jsonData, String authTokan) {
-
-        RequestBody body = RequestBody.create(TEXT, jsonData);
-        OkHttpClient httpClient = new OkHttpClient();
-        Request request = new Request.Builder()
-                .url(AppConstants.webURL)
-                .addHeader("Authorization", authTokan)
-                .post(body)
-                .build();
-
-        httpClient.newCall(request).enqueue(new Callback() {
-            @SuppressLint("LongLogTag")
-            @Override
-            public void onFailure(Request request, IOException e) {
-                Log.e(TAG, "error in getting response using async okhttp call");
-            }
-
-            @SuppressLint("LongLogTag")
-            @Override
-            public void onResponse(Response response) throws IOException {
-
-                ResponseBody responseBody = response.body();
-                if (!response.isSuccessful()) {
-                    throw new IOException("Error response " + response);
-                } else {
-
-                    String ps = FS_selected;
-                    String resp = responseBody.string();
-
-                    try {
-                        JSONObject jsonObj = new JSONObject(resp);
-
-                        String ResponceMessage = jsonObj.getString(AppConstants.RES_MESSAGE);
-                        String ResponceText = jsonObj.getString(AppConstants.RES_TEXT);
-
-                        if (ResponceMessage.equalsIgnoreCase("success")) {
-
-                            if (ResponceText.trim().equalsIgnoreCase("Y")) {
-                                // AppConstants.UP_Upgrade_fs1 = true;
-                                new CommandsPOST().execute(URL_UPGRADE_START, "");
-                                System.out.println("tesssss" + URL_UPGRADE_START);
-
-                                //upgrade bin
-                                String LocalPath = CommonUtils.FOLDER_PATH + CommonUtils.PATH_BIN_FILE1;
-
-                                File f = new File(LocalPath);
-
-                                if (f.exists()) {
-
-                                  new OkHttpFileUpload().execute(LocalPath, "application/binary");
-                                   // OkHttpFileUpload_AsyncCall(LocalPath, "application/binary");
-
-                                } else {
-                                    Toast.makeText(getApplicationContext(), "File Not found " + LocalPath, Toast.LENGTH_LONG).show();
-                                }
-
-                            } else {
-                                //AppConstants.UP_Upgrade_fs1 = false;
-                                ChangeUpgradeProcessFlag();
-                            }
-
-                        } else {
-                            ChangeUpgradeProcessFlag();
-                            System.out.println("Something went wrong");
-                        }
-
-
-                    } catch (Exception e) {
-                        System.out.println(e.getMessage());
-                    }
-
-                }
-
-            }
-
-        });
     }
 
     public class CommandsPOST extends AsyncTask<String, Void, String> {
@@ -595,11 +408,10 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
         public String resp = "";
 
 
+        @SuppressLint("LongLogTag")
         protected String doInBackground(String... param) {
 
-
             try {
-
 
                 MediaType JSON = MediaType.parse("application/json");
 
@@ -616,7 +428,7 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
                 resp = response.body().string();
 
             } catch (Exception e) {
-                Log.d("Ex", e.getMessage());
+                Log.i(TAG," CommandsPOST Exception"+e);
                 AppConstants.WriteinFile(TAG + "CommandsPOST doInBackground Execption " + e);
                 stopSelf();
             }
@@ -625,6 +437,7 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
             return resp;
         }
 
+        @SuppressLint("LongLogTag")
         @Override
         protected void onPostExecute(String result) {
 
@@ -636,7 +449,7 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
             } catch (Exception e) {
 
                 AppConstants.WriteinFile(TAG + "CommandsPOST onPostExecute Execption " + e);
-                System.out.println(e);
+                Log.i(TAG," CommandsPOST Exception"+e);
                 stopSelf();
             }
 
@@ -648,6 +461,7 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
         public String resp = "";
 
 
+        @SuppressLint("LongLogTag")
         protected String doInBackground(String... param) {
 
 
@@ -667,19 +481,22 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
 
 
                 Response response = client.newCall(request).execute();
-                System.out.println("tesssss1" + response);
+                Log.i(TAG," OkHttpFileUpload doInBackground Response"+response);
                 if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
                 return response.body().string();
 
             } catch (Exception e) {
                 ChangeUpgradeProcessFlag();
-                Log.d("Ex", e.getMessage());
+                Log.i(TAG," OkHttpFileUpload doInBackground Exception"+e);
+                AppConstants.WriteinFile(TAG+" OkHttpFileUpload doInBackground Exception"+e);
+
             }
 
 
             return resp;
         }
 
+        @SuppressLint("LongLogTag")
         @Override
         protected void onPostExecute(String result) {
             System.out.println(" resp......." + result);
@@ -690,7 +507,17 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
                 new Handler().postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        new CommandsPOST().execute(URL_RESET, "");
+                        try {
+
+                            String ResetRespo =  new CommandsPOST().execute(URL_RESET, "").get();
+                            Log.i(TAG," Reset command Response: "+ResetRespo);
+                            AppConstants.WriteinFile(TAG + " Reset command Response: "+ResetRespo);
+
+                        } catch (Exception e) {
+
+                            Log.i(TAG," OkHttpFileUpload CommandsPOST Exception"+e);
+                            AppConstants.WriteinFile(TAG + "OkHttpFileUpload CommandsPOST doInBackground Execption " + e);
+                        }
                         ChangeUpgradeProcessFlag();
                         System.out.println("AFTER SECONDS 5");
                     }
@@ -699,7 +526,218 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
 
             } catch (Exception e) {
                 ChangeUpgradeProcessFlag();
-                System.out.println(e);
+                Log.i(TAG," OkHttpFileUpload onPostExecute Exception"+e);
+                AppConstants.WriteinFile(TAG+" OkHttpFileUpload onPostExecute Exception"+e);
+
+            }
+
+        }
+    }
+
+    private static byte[] readBytesFromFile(String filePath) {
+
+        FileInputStream fileInputStream = null;
+        byte[] bytesArray = null;
+
+        try {
+
+            File file = new File(filePath);
+            bytesArray = new byte[(int) file.length()];
+
+            //read file into bytes[]
+            fileInputStream = new FileInputStream(file);
+            fileInputStream.read(bytesArray);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (fileInputStream != null) {
+                try {
+                    fileInputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+        }
+
+        return bytesArray;
+
+    }
+
+    public void ChangeUpgradeProcessFlag() {
+
+        WelcomeActivity.IsUpgradeInprogress_FS1 = false;
+        WelcomeActivity.IsUpgradeInprogress_FS2 = false;
+        WelcomeActivity.IsUpgradeInprogress_FS3 = false;
+        WelcomeActivity.IsUpgradeInprogress_FS4 = false;
+
+    }
+
+    @SuppressLint("LongLogTag")
+    public void DownloadFirmwareFile() {
+
+        File folder = new File(Environment.getExternalStorageDirectory() + File.separator + "FSBin");
+        boolean success = true;
+        if (!folder.exists()) {
+            success = folder.mkdirs();
+        }
+        if (success) {
+            // Do something on success
+        } else {
+            //AppConstants.AlertDialogBox(WelcomeActivity.this, "Please check File is present in FSBin Folder in Internal(Device) Storage");
+            System.out.println("Please check File is present in FSBin Folder in Internal(Device) Storage");
+            Log.i(TAG," Please check File is present in FSBin Folder in Internal(Device) Storage");
+            AppConstants.WriteinFile(TAG+" Please check File is present in FSBin Folder in Internal(Device) Storage");
+        }
+
+        if (AppConstants.UP_FilePath != null)
+            new DownloadFileFromURL().execute(AppConstants.UP_FilePath, "user1.2048.new.5.bin");
+
+    }
+
+    class DownloadFileFromURL extends AsyncTask<String, String, String> {
+
+        @Override
+        protected String doInBackground(String... f_url) {
+            int count;
+            try {
+                URL url = new URL(f_url[0]);
+                URLConnection conection = url.openConnection();
+                conection.connect();
+                // getting file length
+                int lenghtOfFile = conection.getContentLength();
+
+                // input stream to read file - with 8k buffer
+                InputStream input = new BufferedInputStream(url.openStream(), 8192);
+
+                // Output stream to write file
+                OutputStream output = new FileOutputStream(CommonUtils.FOLDER_PATH + f_url[1]);
+
+                byte data[] = new byte[1024];
+
+                long total = 0;
+
+                while ((count = input.read(data)) != -1) {
+                    total += count;
+                    // publishing the progress....
+                    // After this onProgressUpdate will be called
+                    publishProgress("" + (int) ((total * 100) / lenghtOfFile));
+
+                    // writing data to file
+                    output.write(data, 0, count);
+                }
+
+                // flushing output
+                output.flush();
+
+                // closing streams
+                output.close();
+                input.close();
+
+            } catch (Exception e) {
+                Log.e("Error: ", e.getMessage());
+            }
+
+            return null;
+        }
+
+
+        protected void onProgressUpdate(String... progress) {
+            // setting progress percentage
+            //pDialog.setProgress(Integer.parseInt(progress[0]));
+        }
+
+
+    }
+
+    public class GetUpgrateFirmwareStatus extends AsyncTask<String, Void, String> {
+
+        String FS_selected;
+        String jsonData;
+        String authString;
+
+
+        @SuppressLint("LongLogTag")
+        @Override
+        protected String doInBackground(String... params) {
+
+            String response = "";
+            try {
+
+                FS_selected = params[0];
+                jsonData = params[1];
+                authString = params[2];
+
+                System.out.println("jsonData--" + jsonData);
+                System.out.println("authString--" + authString);
+
+
+                response = serverHandler.PostTextData(BackgroundServiceKeepDataTransferAlive.this, AppConstants.webURL, jsonData, authString);
+
+                System.out.println("Id..." + jsonData);
+
+            } catch (Exception e) {
+                Log.i(TAG," GetUpgrateFirmwareStatus doInBackground "+e);
+                AppConstants.WriteinFile(TAG+" GetUpgrateFirmwareStatus doInBackground "+e);
+            }
+
+            return response;
+        }
+
+        @SuppressLint("LongLogTag")
+        @Override
+        protected void onPostExecute(String resp) {
+
+            System.out.println("resp..." + resp);
+
+            try {
+                JSONObject jsonObj = new JSONObject(resp);
+
+                String ResponceMessage = jsonObj.getString(AppConstants.RES_MESSAGE);
+                String ResponceText = jsonObj.getString(AppConstants.RES_TEXT);
+
+                if (ResponceMessage.equalsIgnoreCase("success")) {
+
+                    if (ResponceText.trim().equalsIgnoreCase("Y")) {
+
+                        Log.i(TAG," GetUpgrateFirmwareStatus URL_UPGRADE_START: "+URL_UPGRADE_START);
+                        Log.i(TAG," GetUpgrateFirmwareStatus ResponceText: "+ResponceText.trim());
+
+                        String cmpresponse = new CommandsPOST().execute(URL_UPGRADE_START, "").get();
+                        Log.i(TAG," GetUpgrateFirmwareStatus CommandsPOST Response"+cmpresponse);
+                        AppConstants.WriteinFile(TAG+" GetUpgrateFirmwareStatus CommandsPOST Response"+cmpresponse);
+
+                        //upgrade bin
+                        String LocalPath = CommonUtils.FOLDER_PATH + CommonUtils.PATH_BIN_FILE1;
+
+                        File f = new File(LocalPath);
+
+                        if (f.exists()) {
+
+                            new OkHttpFileUpload().execute(LocalPath, "application/binary");
+                            // OkHttpFileUpload_AsyncCall(LocalPath, "application/binary");
+
+                        } else {
+                            Toast.makeText(getApplicationContext(), "File Not found " + LocalPath, Toast.LENGTH_LONG).show();
+                        }
+
+                    } else {
+                        //AppConstants.UP_Upgrade_fs1 = false;
+                        ChangeUpgradeProcessFlag();
+                    }
+
+                } else {
+                    ChangeUpgradeProcessFlag();
+                    Log.i(TAG," GetUpgrateFirmwareStatus Something Went wrong");
+                    AppConstants.WriteinFile(TAG+" GetUpgrateFirmwareStatus Something Went wrong");
+                }
+
+
+            } catch (Exception e) {
+
+                Log.i(TAG," GetUpgrateFirmwareStatus onPostExecute "+e);
+                AppConstants.WriteinFile(TAG+" GetUpgrateFirmwareStatus onPostExecute "+e);
             }
 
         }
@@ -759,118 +797,221 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
         });
     }
 
-    private static byte[] readBytesFromFile(String filePath) {
+    public void GetUpgrateFirmwareStatus_AsyncCall(final String FS_selected, String jsonData, String authTokan) {
 
-        FileInputStream fileInputStream = null;
-        byte[] bytesArray = null;
+        RequestBody body = RequestBody.create(TEXT, jsonData);
+        OkHttpClient httpClient = new OkHttpClient();
+        Request request = new Request.Builder()
+                .url(AppConstants.webURL)
+                .addHeader("Authorization", authTokan)
+                .post(body)
+                .build();
 
-        try {
-
-            File file = new File(filePath);
-            bytesArray = new byte[(int) file.length()];
-
-            //read file into bytes[]
-            fileInputStream = new FileInputStream(file);
-            fileInputStream.read(bytesArray);
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            if (fileInputStream != null) {
-                try {
-                    fileInputStream.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+        httpClient.newCall(request).enqueue(new Callback() {
+            @SuppressLint("LongLogTag")
+            @Override
+            public void onFailure(Request request, IOException e) {
+                Log.e(TAG, "error in getting response using async okhttp call");
             }
 
-        }
+            @SuppressLint("LongLogTag")
+            @Override
+            public void onResponse(Response response) throws IOException {
 
-        return bytesArray;
+                ResponseBody responseBody = response.body();
+                if (!response.isSuccessful()) {
+                    throw new IOException("Error response " + response);
+                } else {
 
-    }
+                    String ps = FS_selected;
+                    String resp = responseBody.string();
 
-    public void ChangeUpgradeProcessFlag() {
+                    try {
+                        JSONObject jsonObj = new JSONObject(resp);
 
-        WelcomeActivity.IsUpgradeInprogress_FS1 = false;
-        WelcomeActivity.IsUpgradeInprogress_FS2 = false;
-        WelcomeActivity.IsUpgradeInprogress_FS3 = false;
-        WelcomeActivity.IsUpgradeInprogress_FS4 = false;
+                        String ResponceMessage = jsonObj.getString(AppConstants.RES_MESSAGE);
+                        String ResponceText = jsonObj.getString(AppConstants.RES_TEXT);
 
-    }
+                        if (ResponceMessage.equalsIgnoreCase("success")) {
 
-    public void DownloadFirmwareFile(){
+                            if (ResponceText.trim().equalsIgnoreCase("Y")) {
+                                // AppConstants.UP_Upgrade_fs1 = true;
+                                new CommandsPOST().execute(URL_UPGRADE_START, "");
+                                System.out.println("tesssss" + URL_UPGRADE_START);
 
-        File folder = new File(Environment.getExternalStorageDirectory() + File.separator + "FSBin");
-        boolean success = true;
-        if (!folder.exists()) {
-            success = folder.mkdirs();
-        }
-        if (success) {
-            // Do something on success
-        } else {
-            //AppConstants.AlertDialogBox(WelcomeActivity.this, "Please check File is present in FSBin Folder in Internal(Device) Storage");
-            System.out.println("Please check File is present in FSBin Folder in Internal(Device) Storage");
-        }
+                                //upgrade bin
+                                String LocalPath = CommonUtils.FOLDER_PATH + CommonUtils.PATH_BIN_FILE1;
 
-        if (AppConstants.UP_FilePath != null)
-            new  DownloadFileFromURL().execute(AppConstants.UP_FilePath, "user1.2048.new.5.bin");
+                                File f = new File(LocalPath);
 
-    }
+                                if (f.exists()) {
 
-    class DownloadFileFromURL extends AsyncTask<String, String, String> {
+                                    // new OkHttpFileUpload().execute(LocalPath, "application/binary");
+                                    // OkHttpFileUpload_AsyncCall(LocalPath, "application/binary");
 
-        @Override
-        protected String doInBackground(String... f_url) {
-            int count;
-            try {
-                URL url = new URL(f_url[0]);
-                URLConnection conection = url.openConnection();
-                conection.connect();
-                // getting file length
-                int lenghtOfFile = conection.getContentLength();
+                                } else {
+                                    Toast.makeText(getApplicationContext(), "File Not found " + LocalPath, Toast.LENGTH_LONG).show();
+                                }
 
-                // input stream to read file - with 8k buffer
-                InputStream input = new BufferedInputStream(url.openStream(), 8192);
+                            } else {
+                                //AppConstants.UP_Upgrade_fs1 = false;
+                                ChangeUpgradeProcessFlag();
+                            }
 
-                // Output stream to write file
-                OutputStream output = new FileOutputStream(CommonUtils.FOLDER_PATH + f_url[1]);
+                        } else {
+                            ChangeUpgradeProcessFlag();
+                            System.out.println("Something went wrong");
+                        }
 
-                byte data[] = new byte[1024];
 
-                long total = 0;
+                    } catch (Exception e) {
+                        System.out.println(e.getMessage());
+                    }
 
-                while ((count = input.read(data)) != -1) {
-                    total += count;
-                    // publishing the progress....
-                    // After this onProgressUpdate will be called
-                    publishProgress("" + (int) ((total * 100) / lenghtOfFile));
-
-                    // writing data to file
-                    output.write(data, 0, count);
                 }
 
-                // flushing output
-                output.flush();
-
-                // closing streams
-                output.close();
-                input.close();
-
-            } catch (Exception e) {
-                Log.e("Error: ", e.getMessage());
             }
 
-            return null;
-        }
+        });
+    }
+
+    public void GetSSIDUsingLocationAsyncCall() {
+
+        String userEmail = CommonUtils.getCustomerDetails_KdtAlive(BackgroundServiceKeepDataTransferAlive.this).PersonEmail;
+        //----------------------------------------------------------------------------------
+        String parm1 = AppConstants.getIMEI(BackgroundServiceKeepDataTransferAlive.this) + ":" + userEmail + ":" + "Other";
+        String parm2 = "Authenticate:I:" + Constants.Latitude + "," + Constants.Longitude;
+        String authString = "Basic " + AppConstants.convertStingToBase64(parm1);
 
 
-        protected void onProgressUpdate(String... progress) {
-            // setting progress percentage
-            //pDialog.setProgress(Integer.parseInt(progress[0]));
-        }
+        RequestBody body = RequestBody.create(TEXT, parm2);
+        OkHttpClient httpClient = new OkHttpClient();
+        Request request = new Request.Builder()
+                .url(AppConstants.webURL)
+                .post(body)
+                .addHeader("Authorization", authString)
+                .build();
+
+        httpClient.newCall(request).enqueue(new Callback() {
+            @SuppressLint("LongLogTag")
+            @Override
+            public void onFailure(Request request, IOException e) {
+                Log.e(TAG, "error in getting response using async okhttp call");
+            }
+
+            @SuppressLint("LongLogTag")
+            @Override
+            public void onResponse(Response response) throws IOException {
+
+                ResponseBody responseBody = response.body();
+                if (!response.isSuccessful()) {
+                    throw new IOException("Error response " + response);
+                } else {
+
+                    String result = responseBody.string();
+                    System.out.println("Result" + result);
+                    System.out.println("Get pulsar---------- FS PIPE ~~~onPostExecute~~~" + result);
+
+                    if (result != null && !result.isEmpty()) {
+
+                        try {
+                            JSONObject jsonObjectSite = null;
+                            jsonObjectSite = new JSONObject(result);
+                            String ResponseMessageSite = jsonObjectSite.getString(AppConstants.RES_MESSAGE);
+
+                            if (ResponseMessageSite.equalsIgnoreCase("success")) {
+
+                                SSIDList.clear();
+                                JSONArray Requests = jsonObjectSite.getJSONArray(AppConstants.RES_DATA_SSID);
+
+                                if (Requests.length() > 0) {
+
+                                    for (int i = 0; i < Requests.length(); i++) {
+                                        JSONObject c = Requests.getJSONObject(i);
+
+
+                                        String SiteId = c.getString("SiteId");
+                                        String SiteNumber = c.getString("SiteNumber");
+                                        String SiteName = c.getString("SiteName");
+                                        String SiteAddress = c.getString("SiteAddress");
+                                        String Latitude = c.getString("Latitude");
+                                        String Longitude = c.getString("Longitude");
+                                        String HoseId = c.getString("HoseId");
+                                        String HoseNumber = c.getString("HoseNumber");
+                                        String WifiSSId = c.getString("WifiSSId");
+                                        String UserName = c.getString("UserName");
+                                        String Password = c.getString("Password");
+                                        String ResponceMessage = c.getString("ResponceMessage");
+                                        String ResponceText = c.getString("ResponceText");
+                                        String ReplaceableHoseName = c.getString("ReplaceableHoseName");
+                                        String IsHoseNameReplaced = c.getString("IsHoseNameReplaced");
+                                        String MacAddress = c.getString("MacAddress");
+                                        String IsBusy = c.getString("IsBusy");
+                                        String IsUpgrade = c.getString("IsUpgrade");
+                                        String PulserTimingAdjust = c.getString("PulserTimingAdjust");
+                                        String BluetoothCardReaderHF = c.getString("BluetoothCardReaderHF");
+                                        String IsDefective = c.getString("IsDefective");
+                                        String FilePath = c.getString("FilePath");
+                                        String ReconfigureLink = c.getString("ReconfigureLink");
+                                        AppConstants.UP_FilePath = FilePath;
+
+                                        AppConstants.BT_READER_NAME = BluetoothCardReaderHF;
+
+
+                                        //Current Fs wifi password
+                                        Constants.CurrFsPass = Password;
+
+                                        HashMap<String, String> map = new HashMap<>();
+                                        map.put("SiteId", SiteId);
+                                        map.put("HoseId", HoseId);
+                                        map.put("WifiSSId", WifiSSId);
+                                        map.put("ReplaceableHoseName", ReplaceableHoseName);
+                                        map.put("IsHoseNameReplaced", IsHoseNameReplaced);
+                                        map.put("item", WifiSSId);
+                                        map.put("MacAddress", MacAddress);
+                                        map.put("IsBusy", IsBusy);
+                                        map.put("IsUpgrade", IsUpgrade);
+                                        map.put("PulserTimingAdjust", PulserTimingAdjust);
+                                        map.put("ReconfigureLink", ReconfigureLink);
+
+                                        if (ResponceMessage.equalsIgnoreCase("success")) {
+                                            if (isNotNULL(SiteId) && isNotNULL(HoseId) && isNotNULL(WifiSSId)) {
+                                                SSIDList.add(map);
+                                            }
+                                        } else {
+                                            String errMsg = ResponceText;
+                                            Log.i(TAG, ResponceText);
+                                        }
 
 
 
+                                    }
+                                }
+
+                                //Start firmware upgrade process
+                                StartUpgradeProcess();
+
+
+                            } else if (ResponseMessageSite.equalsIgnoreCase("fail")) {
+                                Log.i(TAG, ResponseMessageSite);
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+
+
+                    } else {
+                        Log.i(TAG, "Unable to connect server. Please try again later!");
+                    }
+
+
+                    //-------------------------------------------------------------------------------------------
+
+
+                }
+
+            }
+
+        });
     }
 }

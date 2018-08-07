@@ -688,6 +688,11 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
         etPersonnelPin.setVisibility(View.VISIBLE);
         // etPersonnelPin.setText("");
 
+        int widthi = ActionBar.LayoutParams.WRAP_CONTENT;
+        int heighti = 0;
+        LinearLayout.LayoutParams parmsi = new LinearLayout.LayoutParams(widthi, heighti);
+        tv_enter_pin_no.setLayoutParams(parmsi);
+
     }
 
     public void DisplayScreenFobReadSuccess() {
@@ -725,6 +730,8 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
             objEntityClass.PersonFOBNumber = AppConstants.APDU_FOB_KEY;
             objEntityClass.FromNewFOBChange = "Y";
 
+            System.out.println("~~~~~~~~~~Personnel Fob Read~~~~~~~~FOB:"+AppConstants.APDU_FOB_KEY+"  Vehicle Number:"+String.valueOf(etPersonnelPin.getText()));
+            AppConstants.WriteinFile("~~~~~~~~~~Personnel Fob Read~~~~~~~~FOB:"+AppConstants.APDU_FOB_KEY+"  Vehicle Number:"+String.valueOf(etPersonnelPin.getText()));
 
             DeviceControlActivity_Pin.CheckValidPinOrFOBNUmber vehTestAsynTask1 = new DeviceControlActivity_Pin.CheckValidPinOrFOBNUmber(objEntityClass);
             vehTestAsynTask1.execute();
@@ -891,6 +898,15 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                 objEntityClass.FromNewFOBChange = "Y";
                 objEntityClass.FOBNumber = AppConstants.APDU_FOB_KEY;
                 AppConstants.FOB_KEY_VEHICLE = AppConstants.APDU_FOB_KEY;
+
+                if (AppConstants.APDU_FOB_KEY.equalsIgnoreCase(""))
+                {
+                    System.out.println("~~~~~~~~~~Personnel Entered manually~~~~~~~~Pin Number:"+etPersonnelPin.getText().toString().trim()+"  Fob:"+AppConstants.APDU_FOB_KEY);
+                    // AppConstants.WriteinFile("~~~~~~~~~~Vehicle Entered manually~~~~~~~~Vehicle Number:"+vehicleNumber+"  Fob:"+AppConstants.APDU_FOB_KEY);
+                }else{
+                    System.out.println("~~~~~~~~~~Personnel Fob Read~~~~~~~~Fob:"+AppConstants.APDU_FOB_KEY+"  Pin Number:"+etPersonnelPin.getText().toString().trim());
+                    // AppConstants.WriteinFile("~~~~~~~~~~Vehicle Fob Read~~~~~~~~Fob:"+AppConstants.APDU_FOB_KEY+"  Vehicle Number:"+vehicleNumber);
+                }
 
                 DeviceControlActivity_Pin.CheckVehicleRequireOdometerEntryAndRequireHourEntry vehTestAsynTask = new DeviceControlActivity_Pin.CheckVehicleRequireOdometerEntryAndRequireHourEntry(objEntityClass);
                 vehTestAsynTask.execute();

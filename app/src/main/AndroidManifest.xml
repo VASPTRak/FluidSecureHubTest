@@ -146,8 +146,6 @@
         <service android:name=".BackgroundServiceKeepDataTransferAlive"
             android:enabled="true" />
 
-        <service android:name="GlobalTouchService" > </service>
-
         <receiver
             android:name=".DeviceAdministratorClass"
             android:permission="android.permission.BIND_DEVICE_ADMIN">

@@ -1481,57 +1481,62 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
             //Get TankMonitoring details from FluidSecure Link
             String response1 = new CommandsGET().execute(URL_TDL_info).get();
             //String response1 = "{  \"tld\":{ \"level\":\"180, 212, 11, 34, 110, 175, 1, 47, 231, 15, 78, 65\"  }  }";
-
             AppConstants.WriteinFile("\n" + TAG + "Backgroundservice_AP_PIPE TankMonitorReading ~~~URL_TDL_info_Resp~~" + response1);
-            try {
-                JSONObject reader = null;
-                reader = new JSONObject(response1);
-
-                JSONObject tld = reader.getJSONObject("tld");
-                mac_address = tld.getString("Mac_address");
-                String Sensor_ID = tld.getString("Sensor_ID");
-                String Response_code = tld.getString("Response_code");
-                LSB = tld.getString("LSB");
-                MSB = tld.getString("MSB");
-                Tem_data = tld.getString("Tem_data");
-                String Checksum = tld.getString("Checksum");
+            if (response1.equalsIgnoreCase("")){
+                System.out.println("TLD response empty");
+            }else {
 
 
-                //Get mac address of probe
-                //String mac_str = GetMacAddressOfProbe(level);
-                //mac_address = ConvertToMacAddressFormat(mac_str);
+                try {
+                    JSONObject reader = null;
+                    reader = new JSONObject(response1);
 
-                //Calculate probe reading
-                //probe_reading = GetProbeReading(LSB,MSB);
+                    JSONObject tld = reader.getJSONObject("tld");
+                    mac_address = tld.getString("Mac_address");
+                    String Sensor_ID = tld.getString("Sensor_ID");
+                    String Response_code = tld.getString("Response_code");
+                    LSB = tld.getString("LSB");
+                    MSB = tld.getString("MSB");
+                    Tem_data = tld.getString("Tem_data");
+                    String Checksum = tld.getString("Checksum");
 
-                //probe_temperature = CalculateTemperature(Tem_data);
+
+                    //Get mac address of probe
+                    //String mac_str = GetMacAddressOfProbe(level);
+                    //mac_address = ConvertToMacAddressFormat(mac_str);
+
+                    //Calculate probe reading
+                    //probe_reading = GetProbeReading(LSB,MSB);
+
+                    //probe_temperature = CalculateTemperature(Tem_data);
 
 
-            } catch (JSONException e) {
-                e.printStackTrace();
-                AppConstants.WriteinFile("\n" + TAG + "TankMonitorReading ~~~JSONException~~" + e);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    AppConstants.WriteinFile("\n" + TAG + "TankMonitorReading ~~~JSONException~~" + e);
+                }
+
+                //-----------------------------------------------------------
+                String CurrentDeviceDate = CommonUtils.getTodaysDateInString();
+                TankMonitorEntity obj_entity = new TankMonitorEntity();
+                obj_entity.IMEI_UDID = AppConstants.getIMEI(BackgroundService_AP_PIPE.this);
+                obj_entity.FromSiteId = Integer.parseInt(AppConstants.SITE_ID);
+                // obj_entity.ProbeReading = probe_reading;
+                obj_entity.TLD = mac_address;
+                obj_entity.LSB = LSB;
+                obj_entity.MSB = MSB;
+                obj_entity.TLDTemperature = Tem_data;
+                obj_entity.ReadingDateTime = CurrentDeviceDate;//PrintDate;
+
+                SaveTankMonitorReadingy TestAsynTask = new SaveTankMonitorReadingy(obj_entity);
+                TestAsynTask.execute();
+                TestAsynTask.get();
+
+                String serverRes = TestAsynTask.response;
+
+                AppConstants.WriteinFile("\n" + TAG + "TankMonitorReading ~~~serverRes~~" + serverRes);
+
             }
-
-            //-----------------------------------------------------------
-            String CurrentDeviceDate = CommonUtils.getTodaysDateInString();
-            TankMonitorEntity obj_entity = new TankMonitorEntity();
-            obj_entity.IMEI_UDID = AppConstants.getIMEI(BackgroundService_AP_PIPE.this);
-            obj_entity.FromSiteId = Integer.parseInt(AppConstants.SITE_ID);
-            // obj_entity.ProbeReading = probe_reading;
-            obj_entity.TLD = mac_address;
-            obj_entity.LSB = LSB;
-            obj_entity.MSB = MSB;
-            obj_entity.TLDTemperature = Tem_data;
-            obj_entity.ReadingDateTime = CurrentDeviceDate;//PrintDate;
-
-            SaveTankMonitorReadingy TestAsynTask = new SaveTankMonitorReadingy(obj_entity);
-            TestAsynTask.execute();
-            TestAsynTask.get();
-
-            String serverRes = TestAsynTask.response;
-
-            AppConstants.WriteinFile("\n" + TAG + "TankMonitorReading ~~~serverRes~~" + serverRes);
-
 
         } catch (Exception e) {
             e.printStackTrace();

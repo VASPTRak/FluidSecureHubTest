@@ -101,6 +101,8 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
     Integer Pulses = 0;
     String iot_version = "";
     ProgressDialog loading;
+    public int count_InfoCmd = 0;
+    public int count_relayCmd = 0;
 
     private static final int SERVER_PORT = 2901;
     private static final String SERVER_IP = "192.168.4.1";
@@ -872,7 +874,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                                             @Override
                                             public void run() {
 
-                                               // loading.dismiss();
+                                                // loading.dismiss();
                                                 // startService(new Intent(DisplayMeterActivity.this, BackgroundService_AP_PIPE.class));
                                                 Intent serviceIntent = new Intent(DisplayMeterActivity.this, BackgroundService_AP_PIPE.class);
                                                 serviceIntent.putExtra("HTTP_URL", HTTP_URL);
@@ -993,24 +995,59 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
                         } else {
 
-                            AppConstants.WriteinFile("DisplayMeterActivity ~~~~~~~~~" + "Link is unavailable relay");
-                            AppConstants.colorToastBigFont(DisplayMeterActivity.this, " Link is unavailable", Color.RED);
-                            AppConstants.ClearEdittextFielsOnBack(DisplayMeterActivity.this); //Clear EditText on move to welcome activity.
-                            Intent intent = new Intent(DisplayMeterActivity.this, WelcomeActivity.class);
-                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                            startActivity(intent);
+                            count_relayCmd = count_relayCmd + 1;
+
+                            if (count_relayCmd > 1) {
+
+                                AppConstants.WriteinFile("DisplayMeterActivity ~~~~~~~~~" + "Link is unavailable relay");
+                                AppConstants.colorToastBigFont(DisplayMeterActivity.this, " Link is unavailable", Color.RED);
+                                AppConstants.ClearEdittextFielsOnBack(DisplayMeterActivity.this); //Clear EditText on move to welcome activity.
+                                Intent intent = new Intent(DisplayMeterActivity.this, WelcomeActivity.class);
+                                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                startActivity(intent);
+
+                            }else{
+
+                                AppConstants.WriteinFile("DisplayMeterActivity ~~~~~~~~~" + "Link is unavailable relay command Retry attempt: "+count_InfoCmd);
+                                AppConstants.colorToastBigFont(DisplayMeterActivity.this, "Link is unavailable Retry attempt"+count_relayCmd, Color.RED);
+                                new Handler().postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        btnStart.callOnClick();//retry
+                                    }
+                                },2000);
+
+
+                            }
 
                         }
 
 
                     } else {
 
-                        AppConstants.WriteinFile("DisplayMeterActivity ~~~~~~~~~" + "Link is unavailable info command");
-                        AppConstants.colorToastBigFont(DisplayMeterActivity.this, " Link is unavailable", Color.RED);
-                        AppConstants.ClearEdittextFielsOnBack(DisplayMeterActivity.this); //Clear EditText on move to welcome activity.
-                        Intent intent = new Intent(DisplayMeterActivity.this, WelcomeActivity.class);
-                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                        startActivity(intent);
+                        count_InfoCmd = count_InfoCmd + 1;
+
+                        if (count_InfoCmd > 1) {
+
+                            AppConstants.WriteinFile("DisplayMeterActivity ~~~~~~~~~" + "Link is unavailable info command");
+                            AppConstants.colorToastBigFont(DisplayMeterActivity.this, " Link is unavailable", Color.RED);
+                            AppConstants.ClearEdittextFielsOnBack(DisplayMeterActivity.this); //Clear EditText on move to welcome activity.
+                            Intent intent = new Intent(DisplayMeterActivity.this, WelcomeActivity.class);
+                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                            startActivity(intent);
+
+                        }else{
+
+                            AppConstants.WriteinFile("DisplayMeterActivity ~~~~~~~~~" + "Link is unavailable info command Retry attempt: "+count_InfoCmd);
+                            AppConstants.colorToastBigFont(DisplayMeterActivity.this, "Link is unavailable Retry attempt"+count_InfoCmd, Color.RED);
+                            new Handler().postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    btnStart.callOnClick();//retry
+                                }
+                            },2000);
+
+                        }
 
                     }
 
@@ -2582,127 +2619,127 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
 
 
-   /* public class SetBTConnectionPrinter extends AsyncTask<String, Void, String> {
+    /* public class SetBTConnectionPrinter extends AsyncTask<String, Void, String> {
+
+
+         @Override
+         protected String doInBackground(String... strings) {
+
+
+             try {
+                 BluetoothPrinter.findBT();
+                 BluetoothPrinter.openBT();
+
+                 System.out.println("printer. FindBT and OpenBT");
+             } catch (IOException e) {
+                 e.printStackTrace();
+             }
+
+
+             return null;
+         }
+     }*/
+    public class GetConnectedDevicesIP extends AsyncTask<String, Void, String> {
+        ProgressDialog dialog;
 
 
         @Override
-        protected String doInBackground(String... strings) {
+        protected void onPreExecute() {
+            dialog = new ProgressDialog(DisplayMeterActivity.this);
+            dialog.setMessage("Fetching connected device info..");
+            dialog.setCancelable(false);
+            dialog.show();
 
-
-            try {
-                BluetoothPrinter.findBT();
-                BluetoothPrinter.openBT();
-
-                System.out.println("printer. FindBT and OpenBT");
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-
-            return null;
         }
-    }*/
-   public class GetConnectedDevicesIP extends AsyncTask<String, Void, String> {
-       ProgressDialog dialog;
+
+        protected String doInBackground(String... arg0) {
 
 
-       @Override
-       protected void onPreExecute() {
-           dialog = new ProgressDialog(DisplayMeterActivity.this);
-           dialog.setMessage("Fetching connected device info..");
-           dialog.setCancelable(false);
-           dialog.show();
+            ListOfConnectedDevices.clear();
 
-       }
+            String resp = "";
 
-       protected String doInBackground(String... arg0) {
+            Thread thread = new Thread(new Runnable() {
 
+                @Override
+                public void run() {
+                    BufferedReader br = null;
+                    boolean isFirstLine = true;
 
-           ListOfConnectedDevices.clear();
+                    try {
+                        br = new BufferedReader(new FileReader("/proc/net/arp"));
+                        String line;
 
-           String resp = "";
+                        while ((line = br.readLine()) != null) {
+                            if (isFirstLine) {
+                                isFirstLine = false;
+                                continue;
+                            }
 
-           Thread thread = new Thread(new Runnable() {
+                            String[] splitted = line.split(" +");
 
-               @Override
-               public void run() {
-                   BufferedReader br = null;
-                   boolean isFirstLine = true;
+                            if (splitted != null && splitted.length >= 4) {
 
-                   try {
-                       br = new BufferedReader(new FileReader("/proc/net/arp"));
-                       String line;
+                                String ipAddress = splitted[0];
+                                String macAddress = splitted[3];
+                                System.out.println("IPAddress" + ipAddress);
+                                boolean isReachable = InetAddress.getByName(
+                                        splitted[0]).isReachable(500);  // this is network call so we cant do that on UI thread, so i take background thread.
+                                if (isReachable) {
+                                    Log.d("Device Information", ipAddress + " : "
+                                            + macAddress);
+                                }
 
-                       while ((line = br.readLine()) != null) {
-                           if (isFirstLine) {
-                               isFirstLine = false;
-                               continue;
-                           }
+                                if (ipAddress != null || macAddress != null) {
 
-                           String[] splitted = line.split(" +");
+                                    HashMap<String, String> map = new HashMap<>();
+                                    map.put("ipAddress", ipAddress);
+                                    map.put("macAddress", macAddress);
 
-                           if (splitted != null && splitted.length >= 4) {
+                                    ListOfConnectedDevices.add(map);
 
-                               String ipAddress = splitted[0];
-                               String macAddress = splitted[3];
-                               System.out.println("IPAddress" + ipAddress);
-                               boolean isReachable = InetAddress.getByName(
-                                       splitted[0]).isReachable(500);  // this is network call so we cant do that on UI thread, so i take background thread.
-                               if (isReachable) {
-                                   Log.d("Device Information", ipAddress + " : "
-                                           + macAddress);
-                               }
+                                }
+                                AppConstants.DetailsListOfConnectedDevices = ListOfConnectedDevices;
+                                System.out.println("DeviceConnected" + ListOfConnectedDevices);
 
-                               if (ipAddress != null || macAddress != null) {
+                            }
 
-                                   HashMap<String, String> map = new HashMap<>();
-                                   map.put("ipAddress", ipAddress);
-                                   map.put("macAddress", macAddress);
+                        }
 
-                                   ListOfConnectedDevices.add(map);
-
-                               }
-                               AppConstants.DetailsListOfConnectedDevices = ListOfConnectedDevices;
-                               System.out.println("DeviceConnected" + ListOfConnectedDevices);
-
-                           }
-
-                       }
-
-                   } catch (Exception e) {
-                       e.printStackTrace();
-                       AppConstants.WriteinFile("welcomeActivity ~~~~~~~~~" + "GetConnectedDevicesIP 1 --Exception " + e);
-                   } finally {
-                       try {
-                           br.close();
-                       } catch (IOException e) {
-                           e.printStackTrace();
-                           AppConstants.WriteinFile("welcomeActivity ~~~~~~~~~" + "GetConnectedDevicesIP 2 --Exception " + e);
-                       }
-                   }
-               }
-           });
-           thread.start();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        AppConstants.WriteinFile("welcomeActivity ~~~~~~~~~" + "GetConnectedDevicesIP 1 --Exception " + e);
+                    } finally {
+                        try {
+                            br.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                            AppConstants.WriteinFile("welcomeActivity ~~~~~~~~~" + "GetConnectedDevicesIP 2 --Exception " + e);
+                        }
+                    }
+                }
+            });
+            thread.start();
 
 
-           return resp;
+            return resp;
 
 
-       }
+        }
 
 
-       @Override
-       protected void onPostExecute(String result) {
+        @Override
+        protected void onPostExecute(String result) {
 
-           super.onPostExecute(result);
-           String strJson = result;
+            super.onPostExecute(result);
+            String strJson = result;
 
 
-           dialog.dismiss();
+            dialog.dismiss();
 
-       }
+        }
 
-   }
+    }
 
 
 

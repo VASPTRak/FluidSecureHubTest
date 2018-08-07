@@ -22,7 +22,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
-                android:layout_marginTop="15dp"
                 android:gravity="center"
                 android:orientation="vertical">
 
@@ -60,7 +59,6 @@
                 <TextView
                     android:id="@+id/tv_title"
                     android:gravity="center"
-                    android:layout_margin="20dp"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
@@ -89,7 +87,6 @@
                     android:id="@+id/tv_or"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_margin="20dp"
                     android:textColor="@color/Red"
                     android:textStyle="bold"
                     android:text="OR"
@@ -123,7 +120,7 @@
                     android:textStyle="bold"
                     android:paddingLeft="100dp"
                     android:paddingRight="100dp"
-                    android:layout_marginTop="25dp"
+                    android:layout_marginTop="10dp"
                     android:layout_marginBottom="20dp"
                     android:text="Fob Read Successfully"
                     android:textColor="@color/Red"

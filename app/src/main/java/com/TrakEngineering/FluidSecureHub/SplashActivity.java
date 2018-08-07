@@ -94,10 +94,6 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
 
-        /*if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
-            setGlobalMobileDatConnection();*/
-        EnableDeviceAdministratorPermission();
-
         CommonUtils.LogMessage(TAG, "SplashActivity", null);
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addApi(LocationServices.API)
@@ -799,24 +795,6 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
         // commit changes
         editor.commit();
     }
-
-    public void EnableDeviceAdministratorPermission(){
-
-        mDevicePolicyManager = (DevicePolicyManager)getSystemService(
-                Context.DEVICE_POLICY_SERVICE);
-        mComponentName = new ComponentName(this, DeviceAdministratorClass.class);
-
-        if( mDevicePolicyManager != null && mDevicePolicyManager.isAdminActive(mComponentName)) {
-            // Toast.makeText(getApplicationContext(),"Enable Device Administrator",Toast.LENGTH_LONG).show();
-            System.out.println("Device Administrator Is ON");
-        }else{
-            Intent intent = new Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN);
-            intent.putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, mComponentName);
-            intent.putExtra(DevicePolicyManager.EXTRA_ADD_EXPLANATION, "Administrator description");
-            startActivityForResult(intent, ADMIN_INTENT);
-        }
-    }
-
 
 }
 
