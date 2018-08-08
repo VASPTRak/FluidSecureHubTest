@@ -14,7 +14,7 @@ android {
         minSdkVersion 18
         targetSdkVersion 27
         versionCode 47
-        versionName "0.35.9"
+        versionName "0.35.10"
         multiDexEnabled true
     }
     buildTypes {

@@ -67,9 +67,14 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
             Log.i(TAG, "~~~~~~~~~~Begining~~~~~~~~~~");
             AppConstants.WriteinFile(TAG + "~~~~~~~~~~Begining~~~~~~~~~~");
 
-            DetailslistOfConnectedIP_KDTA.clear();
             ListConnectedHotspotIP_KDTA(); //new GetSSIDUsingLocation();
-            StartUpgradeProcess();
+
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    StartUpgradeProcess();
+                }
+            },4000);
 
 
         } catch (NullPointerException e) {
@@ -87,9 +92,8 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
 
         if (SSIDList != null && SSIDList.size() > 0) {
 
+            Log.i(TAG,"Hotspot connected devices: "+String.valueOf(DetailslistOfConnectedIP_KDTA.size()));
             for (int i = 0; i < SSIDList.size(); i++) {
-
-                Log.i(TAG,"Hotspot connected devices: "+String.valueOf(DetailslistOfConnectedIP_KDTA.size()));
 
                 String ReconfigureLink = SSIDList.get(i).get("ReconfigureLink");
                 String selSSID = SSIDList.get(i).get("WifiSSId");
@@ -182,6 +186,8 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
 
     public void ListConnectedHotspotIP_KDTA() {
 
+        DetailslistOfConnectedIP_KDTA.clear();
+
         Thread thread = new Thread(new Runnable() {
 
             @Override
@@ -205,7 +211,7 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
 
                             String ipAddress = splitted[0];
                             String macAddress = splitted[3];
-                            System.out.println("IPAddress" + ipAddress);
+
                             boolean isReachable = InetAddress.getByName(
                                     splitted[0]).isReachable(500);  // this is network call so we cant do that on UI thread, so i take background thread.
                             if (isReachable) {
@@ -224,25 +230,26 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
                                 //System.out.println("Details Of Connected HotspotIP" + listOfConnectedIP_KDTA);
                             }
 
-
                         }
+
 
                     }
 
                 } catch (Exception e) {
                     e.printStackTrace();
-                    AppConstants.WriteinFile("BackgroundService_AP_PIPE ~~~~~~~~~" + "ListConnectedHotspotIP_AP_PIPE 1 --Exception " + e);
+                    AppConstants.WriteinFile(TAG+ "ListConnectedHotspotIP_AP_PIPE 1 --Exception " + e);
                 } finally {
                     try {
                         br.close();
                     } catch (IOException e) {
                         e.printStackTrace();
-                        AppConstants.WriteinFile("BackgroundService_AP_PIPE ~~~~~~~~~" + "ListConnectedHotspotIP_AP_PIPE 2 --Exception " + e);
+                        AppConstants.WriteinFile(TAG + "ListConnectedHotspotIP_AP_PIPE 2 --Exception " + e);
                     }
                 }
             }
         });
         thread.start();
+
 
     }
 

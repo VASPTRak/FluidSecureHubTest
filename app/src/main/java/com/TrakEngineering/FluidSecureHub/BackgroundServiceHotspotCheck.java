@@ -62,7 +62,7 @@ public class BackgroundServiceHotspotCheck extends BackgroundService {
                         AppConstants.WriteinFile("BackgroundServiceHotspotCheck~~~~~~~~~" + "Hotspot ON--2");
 
 
-                    } else if (!isScreenOn(this) && CommonUtils.isHotspotEnabled(BackgroundServiceHotspotCheck.this)) {
+                    } /*else if (!isScreenOn(this) && CommonUtils.isHotspotEnabled(BackgroundServiceHotspotCheck.this)) {
 
 
                         if (Constants.FS_1STATUS.equalsIgnoreCase("FREE") && Constants.FS_2STATUS.equalsIgnoreCase("FREE") && Constants.FS_3STATUS.equalsIgnoreCase("FREE") && Constants.FS_4STATUS.equalsIgnoreCase("FREE")) {
@@ -73,7 +73,7 @@ public class BackgroundServiceHotspotCheck extends BackgroundService {
                             Log.i(TAG, "Can not disable hotspot, One of the link is busy...");
                         }
 
-                    } else {
+                    }*/ else {
 
                         Log.i(TAG, "Dont do anything");
 
