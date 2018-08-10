@@ -81,6 +81,8 @@ public class AppConstants {
      //public static String webIP = "http://103.8.126.241:8988/";//new for hotspot changes
 
     public static boolean FlickeringScreenOff;
+    public static String NoSleepRespTime = "";
+    public static String NoSleepCurrentTime = "";
 
     public static String APDU_FOB_KEY = "";
     public static String VehicleLocal_FOB_KEY = "";

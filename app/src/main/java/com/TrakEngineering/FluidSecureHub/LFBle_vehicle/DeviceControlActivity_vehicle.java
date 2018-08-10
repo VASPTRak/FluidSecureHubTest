@@ -393,7 +393,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
 
                     t.cancel();
                     // AppConstants.VehicleLocal_FOB_KEY = AppConstants.APDU_FOB_KEY;
-                    System.out.println("Success" + AppConstants.APDU_FOB_KEY);
+                    System.out.println("Successtttttttttttftrtrtrtrae" + AppConstants.APDU_FOB_KEY);
 
                     runOnUiThread(new Runnable() {
                         @Override
@@ -413,11 +413,10 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
                     }
                 }
 
-
             }
 
         };
-        t.schedule(tt, 1000, 1000);
+        t.schedule(tt, 2000, 2000);
 
     }
 
@@ -781,6 +780,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
 
                         AppConstants.WriteinFile("DeviceControlActivity_vehicle ~~~~~~~~~" + "CallSaveButtonFunctionality Vehicle entered is: " + vehicleNumber);
 
+
                         if (IsOdoMeterRequire.equalsIgnoreCase("True")) {
 
                             Intent intent = new Intent(DeviceControlActivity_vehicle.this, AcceptOdoActivity.class);//AcceptPinActivity
@@ -845,6 +845,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
 
                         } else {
 
+
                             //Here Onresume and Appconstants.APDU_FOB_KEY uncomment
                             IsNewFobVar = true;
                             btnSave.setEnabled(true);
@@ -885,7 +886,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
 
 
         } catch (Exception ex) {
-            Log.e(TAG, ex.getMessage());
+            ex.printStackTrace();
         }
     }
 
@@ -893,28 +894,29 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
 
         try {
 
+            AppConstants.VehicleLocal_FOB_KEY = "";
             String vehicleNumber = "";
             String pinNumber = "";
 
             if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS1")) {
                 pinNumber = Constants.AccPersonnelPIN_FS1;
-                vehicleNumber = editVehicleNumber.getText().toString().trim();
+                // vehicleNumber = editVehicleNumber.getText().toString().trim();
                 Constants.AccVehicleNumber_FS1 = vehicleNumber;
 
 
             } else if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS2")) {
                 pinNumber = Constants.AccPersonnelPIN;
-                vehicleNumber = editVehicleNumber.getText().toString().trim();
+                //  vehicleNumber = editVehicleNumber.getText().toString().trim();
                 Constants.AccVehicleNumber = vehicleNumber;
 
             } else if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS3")) {
                 pinNumber = Constants.AccPersonnelPIN_FS3;
-                vehicleNumber = editVehicleNumber.getText().toString().trim();
+                //  vehicleNumber = editVehicleNumber.getText().toString().trim();
                 Constants.AccVehicleNumber_FS3 = vehicleNumber;
 
             } else {
                 pinNumber = Constants.AccPersonnelPIN_FS4;
-                vehicleNumber = editVehicleNumber.getText().toString().trim();
+                //  vehicleNumber = editVehicleNumber.getText().toString().trim();
                 Constants.AccVehicleNumber_FS4 = vehicleNumber;
 
             }
@@ -975,6 +977,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
 
 
                 } else {
+
                     String ResponceText = jsonObject.getString("ResponceText");
                     String ValidationFailFor = jsonObject.getString("ValidationFailFor");
                     if (ValidationFailFor.equalsIgnoreCase("Pin")) {
@@ -1358,7 +1361,6 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
         btnSave.setClickable(true);
         btnSave.setVisibility(View.VISIBLE);
         btnCancel.setVisibility(View.VISIBLE);
-
 
 
 

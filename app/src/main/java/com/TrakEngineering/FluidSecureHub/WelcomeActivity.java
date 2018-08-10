@@ -1,5 +1,6 @@
 package com.TrakEngineering.FluidSecureHub;
 
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlarmManager;
@@ -63,6 +64,7 @@ import com.TrakEngineering.FluidSecureHub.LFBle_vehicle.DeviceControlActivity_ve
 import com.TrakEngineering.FluidSecureHub.WifiHotspot.WifiApManager;
 import com.TrakEngineering.FluidSecureHub.enity.AuthEntityClass;
 import com.TrakEngineering.FluidSecureHub.enity.RenameHose;
+import com.TrakEngineering.FluidSecureHub.enity.StatusForUpgradeVersionEntity;
 import com.TrakEngineering.FluidSecureHub.enity.UpdateMacAddressClass;
 import com.TrakEngineering.FluidSecureHub.enity.UserInfoEntity;
 import com.TrakEngineering.FluidSecureHub.server.ServerHandler;
@@ -82,13 +84,16 @@ import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsResult;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.gson.Gson;
+import com.squareup.okhttp.Callback;
 import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.RequestBody;
 import com.squareup.okhttp.Response;
+import com.squareup.okhttp.ResponseBody;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedInputStream;
@@ -104,8 +109,11 @@ import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.URL;
 import java.net.URLConnection;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
@@ -113,6 +121,7 @@ import java.util.Timer;
 import java.util.concurrent.TimeUnit;
 
 import static com.TrakEngineering.FluidSecureHub.R.id.textView;
+import static com.TrakEngineering.FluidSecureHub.server.ServerHandler.TEXT;
 import static com.google.android.gms.internal.zzid.runOnUiThread;
 
 
@@ -168,6 +177,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     ProgressDialog loading = null;
     String IpAddress = "", IsDefective = "False";
     Timer t;
+    Date date1, date2;
+    boolean EmailReaderNotConnected;
 
     String HTTP_URL = "";//"http://192.168.43.153:80/";//for pipe
     String URL_GET_PULSAR_FS1, URL_SET_PULSAR_FS1, URL_WIFI_FS1, URL_RELAY_FS1, URL_GET_PULSAR_FS2, URL_SET_PULSAR_FS2, URL_WIFI_FS2, URL_RELAY_FS2, URL_GET_PULSAR_FS3, URL_SET_PULSAR_FS3, URL_WIFI_FS3, URL_RELAY_FS3, URL_GET_PULSAR_FS4, URL_SET_PULSAR_FS4, URL_WIFI_FS4, URL_RELAY_FS4;
@@ -307,7 +318,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         KeepDataTransferAlive();
 
         //Reconnect BT reader if disconnected
-        RetryHfreaderConnection();
+        //RetryHfreaderConnection();
 
     }
 
@@ -635,6 +646,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             Constants.hotspotstayOn = true;
             loading = null;
         }
+
     }
 
     //Delete log files older than 1 month
@@ -1478,7 +1490,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 client.setReadTimeout(10, TimeUnit.SECONDS);
                 client.setWriteTimeout(10, TimeUnit.SECONDS);
 
-                RequestBody body = RequestBody.create(ServerHandler.TEXT, parm2);
+                RequestBody body = RequestBody.create(TEXT, parm2);
                 Request request = new Request.Builder()
                         .url(AppConstants.webURL)
                         .post(body)
@@ -1653,7 +1665,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 client.setReadTimeout(10, TimeUnit.SECONDS);
                 client.setWriteTimeout(10, TimeUnit.SECONDS);
 
-                RequestBody body = RequestBody.create(ServerHandler.TEXT, parm2);
+                RequestBody body = RequestBody.create(TEXT, parm2);
                 Request request = new Request.Builder()
                         .url(AppConstants.webURL)
                         .post(body)
@@ -1956,7 +1968,6 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                 loading.show();
 
                                 Constants.hotspotstayOn = false;
-
                                 //AppConstants.colorToast(WelcomeActivity.this, "Updating mac address please wait..", Color.RED);
                                 wifiApManager.setWifiApEnabled(null, false);  //Hotspot disabled
 
@@ -4376,14 +4387,14 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                     }, 500);
 
 
-                                    new Handler().postDelayed(new Runnable() {
+                                    /*new Handler().postDelayed(new Runnable() {
                                         @Override
                                         public void run() {
 
                                             transmitEscapeCommend();
 
                                         }
-                                    }, 1000);
+                                    }, 1000);*/
 
 
                                 } else {
@@ -4437,6 +4448,9 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
+
+                                EmailReaderNotConnected = false;
+                                AppConstants.NoSleepRespTime = CommonUtils.getTodaysDateTemp();//Date Two (d2)
                                 System.out.println("escape command response" + getResponseString(response, errorCode));
                                 mTxtEscapeResponse.setText(getResponseString(
                                         response, errorCode));
@@ -4736,6 +4750,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             mBluetoothGatt.disconnect();
             mBluetoothGatt.close();
             mBluetoothGatt = null;
+            Log.i(TAG, "Close GATT connection");
         }
 
         /* Create a new connection. */
@@ -4941,7 +4956,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
         if (escapeCommand != null && escapeCommand.length > 0) {
             /* Clear response field for result of escape command. */
-            System.out.println("No Sleep EscapeCommand");
+            // System.out.println("No Sleep EscapeCommand");
 
             /* Transmit escape command. */
             if (!mBluetoothReader.transmitEscapeCommand(escapeCommand)) {
@@ -5112,12 +5127,107 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             public void run() {
                 try {
                     while (!isInterrupted()) {
-                        Thread.sleep(1800000);//1800000 == 30 min 3600000== 1hr
+                        Thread.sleep(300000);//1800000 == 30 min 3600000== 1hr
+
 
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
+
                                 transmitEscapeCommend();//No Sleep command
+
+                                new Handler().postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+
+                                        AppConstants.NoSleepCurrentTime = CommonUtils.getTodaysDateTemp();
+
+                                        if (AppConstants.NoSleepRespTime.equalsIgnoreCase("")) {
+                                            Log.i(TAG, "Please check if HF reader is connected");
+                                        } else {
+
+                                            int diff = getDate(AppConstants.NoSleepCurrentTime);
+                                            if (diff >= 15) {//15
+                                                //Grater than 15 min no response from HF reader
+                                                //Send Email
+                                                Log.i(TAG, "HF reader response time diff is: " + diff);
+
+                                                if (EmailReaderNotConnected) {
+                                                    Log.i(TAG, "Email already sent");
+                                                    //Connect Reader
+                                                    connectReader();
+                                                } else {
+                                                    Log.i(TAG, "Send Email");
+                                                    SendEmailReaderNotConnectedAsyncCall();
+                                                    // EmailReaderNotConnected = true;
+                                                }
+
+                                            } else if (diff >= 10) {//10
+                                                //Grater than 10 min no response from HF reader
+                                                //Recreate main activity
+                                                Log.i(TAG, "HF reader response time diff is: " + diff);
+                                                Log.i(TAG, "Retry attempt 2 reader connect");
+                                                //Disable BT
+                                                final BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+                                                mBluetoothAdapter.disable();
+                                                Log.i(TAG, "BT OFF");
+                                                disconnectReader();
+
+                                                new Handler().postDelayed(new Runnable() {
+                                                    @Override
+                                                    public void run() {
+                                                        //Enable BT
+                                                        mBluetoothAdapter.enable();
+                                                        Log.i(TAG, "BT ON");
+                                                    }
+                                                }, 4000);
+
+                                                new Handler().postDelayed(new Runnable() {
+                                                    @Override
+                                                    public void run() {
+
+                                                        //Connect Reader
+                                                        connectReader();
+                                                    }
+                                                }, 6000);
+
+
+                                            } else if (diff >= 5) {//5
+                                                //Grater than 5 min no response from HF reader
+                                                //Recreate main activity
+                                                Log.i(TAG, "HF reader response time diff is: " + diff);
+                                                Log.i(TAG, "Retry attempt 1 reader connect");
+                                                //Disable BT
+                                                final BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+                                                mBluetoothAdapter.disable();
+                                                disconnectReader();
+
+                                                new Handler().postDelayed(new Runnable() {
+                                                    @Override
+                                                    public void run() {
+                                                        //Enable BT
+                                                        mBluetoothAdapter.enable();
+                                                    }
+                                                }, 2000);
+
+                                                new Handler().postDelayed(new Runnable() {
+                                                    @Override
+                                                    public void run() {
+
+                                                        //Connect Reader
+                                                        connectReader();
+                                                    }
+                                                }, 4000);
+
+
+                                            } else {
+                                                Log.i(TAG, "HF reader is working fine");
+                                            }
+                                        }
+
+                                    }
+                                }, 3000);
+
                             }
                         });
 
@@ -5139,7 +5249,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             public void run() {
                 try {
                     while (!isInterrupted()) {
-                        Thread.sleep(300000);//5 min --300000
+                        Thread.sleep(300000);
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
@@ -5153,7 +5263,6 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         });
                     }
                 } catch (InterruptedException e) {
-                    e.printStackTrace();
                 }
             }
         };
@@ -5161,5 +5270,100 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         t.start();
 
 
+    }
+
+    public int getDate(String CurrentTime) {
+
+        int DiffTime = 0;
+        try {
+
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            date1 = sdf.parse(CurrentTime);
+            date2 = sdf.parse(AppConstants.NoSleepRespTime);
+
+            long diff = date1.getTime() - date2.getTime();
+            long seconds = diff / 1000;
+            long minutes = seconds / 60;
+            long hours = minutes / 60;
+            long days = hours / 24;
+
+            DiffTime = (int) minutes;
+            //System.out.println("~~~Difference~~~" + minutes);
+
+        } catch (ParseException e) {
+            e.printStackTrace();
+        } catch (NullPointerException n) {
+            n.printStackTrace();
+        }
+
+        return DiffTime;
+    }
+
+    public void SendEmailReaderNotConnectedAsyncCall() {
+
+        UserInfoEntity userInfoEntity = CommonUtils.getCustomerDetails(WelcomeActivity.this);
+
+        StatusForUpgradeVersionEntity objEntityClass2 = new StatusForUpgradeVersionEntity();
+        objEntityClass2.IMEIUDID = AppConstants.getIMEI(WelcomeActivity.this);
+        //objEntityClass2.Email = CommonUtils.getCustomerDetails(WelcomeActivity.this).PersonEmail;
+        objEntityClass2.HubName = userInfoEntity.PersonName;
+        objEntityClass2.SiteName = userInfoEntity.FluidSecureSiteName;
+
+        Gson gson = new Gson();
+        String parm2 = gson.toJson(objEntityClass2);
+
+        String userEmail = CommonUtils.getCustomerDetails(WelcomeActivity.this).PersonEmail;
+        //----------------------------------------------------------------------------------
+        String parm1 = AppConstants.getIMEI(WelcomeActivity.this) + ":" + userEmail + ":" + "DefectiveBluetoothInfoEmail";
+        String authString = "Basic " + AppConstants.convertStingToBase64(parm1);
+
+
+        RequestBody body = RequestBody.create(TEXT, parm2);
+        OkHttpClient httpClient = new OkHttpClient();
+        Request request = new Request.Builder()
+                .url(AppConstants.webURL)
+                .post(body)
+                .addHeader("Authorization", authString)
+                .build();
+
+        httpClient.newCall(request).enqueue(new Callback() {
+            @SuppressLint("LongLogTag")
+            @Override
+            public void onFailure(Request request, IOException e) {
+                Log.e(TAG, "error in getting response");
+            }
+
+            @SuppressLint("LongLogTag")
+            @Override
+            public void onResponse(Response response) throws IOException {
+
+                ResponseBody responseBody = response.body();
+                if (!response.isSuccessful()) {
+                    throw new IOException("Error response " + response);
+                } else {
+
+                    String result = responseBody.string();
+                    System.out.println("Result" + result);
+
+                    try {
+
+                        JSONObject jsonObjectSite = null;
+                        jsonObjectSite = new JSONObject(result);
+
+                        String ResponseMessageSite = jsonObjectSite.getString(AppConstants.RES_MESSAGE);
+
+                        if (ResponseMessageSite.equalsIgnoreCase("success")) {
+
+                            EmailReaderNotConnected = true;
+                        }
+
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+            }
+
+        });
     }
 }

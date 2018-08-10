@@ -7,5 +7,8 @@ public class StatusForUpgradeVersionEntity {
     public String Email;
     public String IMEIUDID;
 
+    public String HubName;
+    public String SiteName;
+
 
 }
