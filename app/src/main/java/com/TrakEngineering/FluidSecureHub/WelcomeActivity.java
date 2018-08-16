@@ -5127,7 +5127,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             public void run() {
                 try {
                     while (!isInterrupted()) {
-                        Thread.sleep(300000);//1800000 == 30 min 3600000== 1hr
+                        Thread.sleep(60000);//1800000 == 30 min 3600000== 1hr
 
 
                         runOnUiThread(new Runnable() {
@@ -5147,7 +5147,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                         } else {
 
                                             int diff = getDate(AppConstants.NoSleepCurrentTime);
-                                            if (diff >= 15) {//15
+                                            if (diff >= 10) {//15
                                                 //Grater than 15 min no response from HF reader
                                                 //Send Email
                                                 Log.i(TAG, "HF reader response time diff is: " + diff);
@@ -5162,7 +5162,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                                     // EmailReaderNotConnected = true;
                                                 }
 
-                                            } else if (diff >= 10) {//10
+                                            } else if (diff >= 5) {//10
                                                 //Grater than 10 min no response from HF reader
                                                 //Recreate main activity
                                                 Log.i(TAG, "HF reader response time diff is: " + diff);
@@ -5192,7 +5192,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                                 }, 6000);
 
 
-                                            } else if (diff >= 5) {//5
+                                            } else if (diff >= 1) {//5
                                                 //Grater than 5 min no response from HF reader
                                                 //Recreate main activity
                                                 Log.i(TAG, "HF reader response time diff is: " + diff);

@@ -38,8 +38,8 @@ public class BackgroundServiceHotspotCheck extends BackgroundService {
             } else {
 
                 //Enable bluetooth
-                BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-                mBluetoothAdapter.enable();
+//                BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+//                mBluetoothAdapter.enable();
 
                 //Enable hotspot Logic
                 if (AppConstants.FlickeringScreenOff) {
