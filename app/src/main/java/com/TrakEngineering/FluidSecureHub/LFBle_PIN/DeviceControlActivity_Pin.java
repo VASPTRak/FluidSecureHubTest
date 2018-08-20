@@ -619,7 +619,6 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
 
         if (IsPersonHasFob.equalsIgnoreCase("true")) {
 
-
             // Linear_layout_Save_back_buttons.setVisibility(View.VISIBLE);
             btnCancel.setVisibility(View.VISIBLE);
             btnSave.setVisibility(View.INVISIBLE);
@@ -643,7 +642,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
             tv_dont_have_fob.setVisibility(View.INVISIBLE);
             tv_or.setVisibility(View.INVISIBLE);
 
-            // hideKeybord();
+            hideKeybord();
 
         } else {
 
@@ -676,7 +675,6 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
         LinearLayout.LayoutParams parms = new LinearLayout.LayoutParams(width, height);
         parms.gravity = Gravity.CENTER;
         tv_ok.setLayoutParams(parms);
-
 
         etPersonnelPin.setEnabled(true);
         btnSave.setEnabled(true);
@@ -730,8 +728,8 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
             objEntityClass.PersonFOBNumber = AppConstants.APDU_FOB_KEY;
             objEntityClass.FromNewFOBChange = "Y";
 
-            System.out.println("~~~~~~~~~~Personnel Fob Read~~~~~~~~FOB:"+AppConstants.APDU_FOB_KEY+"  Vehicle Number:"+String.valueOf(etPersonnelPin.getText()));
-            AppConstants.WriteinFile("~~~~~~~~~~Personnel Fob Read~~~~~~~~FOB:"+AppConstants.APDU_FOB_KEY+"  Vehicle Number:"+String.valueOf(etPersonnelPin.getText()));
+            System.out.println("~~~~~~~~~~Personnel Fob Read~~~~~~~~FOB:"+AppConstants.APDU_FOB_KEY+"  ~Pin Number:"+String.valueOf(etPersonnelPin.getText()));
+            AppConstants.WriteinFile("~~~~~~~~~~Personnel Fob Read~~~~~~~~FOB:"+AppConstants.APDU_FOB_KEY+"  ~Pin Number:"+String.valueOf(etPersonnelPin.getText()));
 
             DeviceControlActivity_Pin.CheckValidPinOrFOBNUmber vehTestAsynTask1 = new DeviceControlActivity_Pin.CheckValidPinOrFOBNUmber(objEntityClass);
             vehTestAsynTask1.execute();
@@ -779,16 +777,23 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                         LinearLayout.LayoutParams parms = new LinearLayout.LayoutParams(width, height);
                         parms.gravity = Gravity.CENTER;
                         tv_ok.setLayoutParams(parms);
-
                         tv_ok.setText("Invalid fob/card or Unassigned FOB");
 
-                        /*InputMethodManager inputMethodManager = (InputMethodManager) etPersonnelPin.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
-                        etPersonnelPin.requestFocus();
-                        inputMethodManager.showSoftInput(etPersonnelPin, 0);*/
+                        CommonUtils.showCustomMessageDilaog(DeviceControlActivity_Pin.this, "Message", ResponceMessage);
 
                     }else{
 
                         AcceptPinNumber();
+
+                        InputMethodManager inputMethodManager = (InputMethodManager) etPersonnelPin.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+                        etPersonnelPin.requestFocus();
+                        inputMethodManager.showSoftInput(etPersonnelPin, 0);
+
+                        if (IsPersonHasFob.equalsIgnoreCase("true")) {
+                            CommonUtils.SimpleMessageDilaog(DeviceControlActivity_Pin.this, "Message", ResponceMessage);
+                        }else{
+                            CommonUtils.showCustomMessageDilaog(DeviceControlActivity_Pin.this, "Message", ResponceMessage);
+                        }
                     }
 
                     Istimeout_Sec = true;
@@ -811,9 +816,6 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                     Linear_layout_Save_back_buttons.setVisibility(View.VISIBLE);
                     etPersonnelPin.setVisibility(View.VISIBLE);
                     etPersonnelPin.setText("");
-
-                    CommonUtils.showCustomMessageDilaog(DeviceControlActivity_Pin.this, "Message", ResponceMessage);
-
                 }
 
             }
@@ -902,10 +904,10 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                 if (AppConstants.APDU_FOB_KEY.equalsIgnoreCase(""))
                 {
                     System.out.println("~~~~~~~~~~Personnel Entered manually~~~~~~~~Pin Number:"+etPersonnelPin.getText().toString().trim()+"  Fob:"+AppConstants.APDU_FOB_KEY);
-                    // AppConstants.WriteinFile("~~~~~~~~~~Vehicle Entered manually~~~~~~~~Vehicle Number:"+vehicleNumber+"  Fob:"+AppConstants.APDU_FOB_KEY);
+                    AppConstants.WriteinFile("~~~~~~~~~~Personnel Entered manually~~~~~~~~Pin Number:"+etPersonnelPin.getText().toString().trim()+"  Fob:"+AppConstants.APDU_FOB_KEY);
                 }else{
                     System.out.println("~~~~~~~~~~Personnel Fob Read~~~~~~~~Fob:"+AppConstants.APDU_FOB_KEY+"  Pin Number:"+etPersonnelPin.getText().toString().trim());
-                    // AppConstants.WriteinFile("~~~~~~~~~~Vehicle Fob Read~~~~~~~~Fob:"+AppConstants.APDU_FOB_KEY+"  Vehicle Number:"+vehicleNumber);
+                    AppConstants.WriteinFile("~~~~~~~~~~Personnel Fob Read~~~~~~~~Fob:"+AppConstants.APDU_FOB_KEY+"  Pin Number:"+etPersonnelPin.getText().toString().trim());
                 }
 
                 DeviceControlActivity_Pin.CheckVehicleRequireOdometerEntryAndRequireHourEntry vehTestAsynTask = new DeviceControlActivity_Pin.CheckVehicleRequireOdometerEntryAndRequireHourEntry(objEntityClass);
@@ -954,23 +956,48 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                             asc.checkAllFields();
                         }
                     } else {
+
                         String ResponceText = jsonObject.getString("ResponceText");
                         String ValidationFailFor = jsonObject.getString("ValidationFailFor");
+
                         if (ValidationFailFor.equalsIgnoreCase("Pin")) {
+
                             AppConstants.colorToastBigFont(this, ResponceText, Color.RED);
-                            etPersonnelPin.setText("");
+
+                            //Clear Pin edit text
+                            if (Constants.CurrentSelectedHose.equals("FS1")) {
+                                Constants.AccPersonnelPIN_FS1 = "";
+                            } else if (Constants.CurrentSelectedHose.equals("FS2")) {
+                                Constants.AccPersonnelPIN = "";
+                            } else if (Constants.CurrentSelectedHose.equals("FS3")) {
+                                Constants.AccPersonnelPIN_FS3 = "";
+                            } else if (Constants.CurrentSelectedHose.equals("FS4")) {
+                                Constants.AccPersonnelPIN_FS4 = "";
+                            }
+
                             recreate();
 
                         } else if (ValidationFailFor.equalsIgnoreCase("Vehicle")) {
 
-                            Intent i = new Intent(this, AcceptVehicleActivity.class);
-                            i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                            startActivity(i);
+                            AppConstants.colorToastBigFont(this, ResponceText, Color.RED);
+
+                            /*AppConstants.colorToastBigFont(this, "Some thing went wrong Please try again..\n"+ResponceText, Color.RED);
+                            AppConstants.WriteinFile(TAG+" Some thing went wrong Please try again..(~else if~)\n"+ResponceText);
+                            AppConstants.ClearEdittextFielsOnBack(DeviceControlActivity_Pin.this); //Clear EditText on move to welcome activity.
+                            Intent intent = new Intent(DeviceControlActivity_Pin.this, WelcomeActivity.class);
+                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                            startActivity(intent);*/
 
                         } else {
+
                             AppConstants.colorToastBigFont(this, ResponceText, Color.RED);
-                            etPersonnelPin.setText("");
-                            recreate();
+
+                            /*AppConstants.colorToastBigFont(this, "Some thing went wrong Please try again..\n"+ResponceText, Color.RED);
+                            AppConstants.WriteinFile(TAG+" Some thing went wrong Please try again..(~else~)\n"+ResponceText);
+                            AppConstants.ClearEdittextFielsOnBack(DeviceControlActivity_Pin.this); //Clear EditText on move to welcome activity.
+                            Intent intent = new Intent(DeviceControlActivity_Pin.this, WelcomeActivity.class);
+                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                            startActivity(intent);*/
                         }
 
                     }

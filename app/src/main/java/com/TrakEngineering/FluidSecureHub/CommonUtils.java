@@ -50,6 +50,7 @@ import static android.content.Context.WIFI_SERVICE;
 import static com.TrakEngineering.FluidSecureHub.AppConstants.FluidSecureSiteName;
 import static com.TrakEngineering.FluidSecureHub.AppConstants.ISVehicleHasFob;
 import static com.TrakEngineering.FluidSecureHub.AppConstants.IsPersonHasFob;
+import static com.google.android.gms.internal.zzid.runOnUiThread;
 
 /**
  * Created by VASP-LAP on 08-09-2015.
@@ -288,6 +289,28 @@ public class CommonUtils {
 
 
             }
+        });
+
+    }
+
+    public static void SimpleMessageDilaog(final Activity context, final String title, final String message) {
+
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+
+                new AlertDialog.Builder(context)
+                        .setTitle(title)
+                        .setMessage(message)
+                        .setCancelable(false)
+                        .setPositiveButton("ok", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                // Whatever...
+                            }
+                        }).show();
+            }
+
         });
 
     }
