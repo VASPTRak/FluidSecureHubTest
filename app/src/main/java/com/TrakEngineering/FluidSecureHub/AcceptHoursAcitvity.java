@@ -12,7 +12,7 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 
-import static com.TrakEngineering.FluidSecureHub.WelcomeActivity.wifiApManager;
+import com.TrakEngineering.FluidSecureHub.LFBle_PIN.DeviceControlActivity_Pin;
 
 
 public class AcceptHoursAcitvity extends AppCompatActivity {
@@ -156,7 +156,7 @@ public class AcceptHoursAcitvity extends AppCompatActivity {
 
                 if (IsPersonnelPINRequireForHub.equalsIgnoreCase("True")) {
 
-                    Intent intent = new Intent(AcceptHoursAcitvity.this, AcceptPinActivity.class);//AcceptPinActivity
+                    Intent intent = new Intent(AcceptHoursAcitvity.this, DeviceControlActivity_Pin.class);//AcceptPinActivity
                     startActivity(intent);
 
                 } else if (IsDepartmentRequire.equalsIgnoreCase("True")) {

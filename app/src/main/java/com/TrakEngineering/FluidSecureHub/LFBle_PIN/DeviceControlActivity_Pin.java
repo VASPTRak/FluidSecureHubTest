@@ -1,7 +1,6 @@
 package com.TrakEngineering.FluidSecureHub.LFBle_PIN;
 
 import android.app.ActionBar;
-import android.app.ProgressDialog;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -15,7 +14,6 @@ import android.graphics.Rect;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.RequiresApi;
@@ -36,37 +34,22 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.TrakEngineering.FluidSecureHub.AcceptDeptActivity;
-import com.TrakEngineering.FluidSecureHub.AcceptHoursAcitvity;
-import com.TrakEngineering.FluidSecureHub.AcceptOdoActivity;
 import com.TrakEngineering.FluidSecureHub.AcceptOtherActivity;
-import com.TrakEngineering.FluidSecureHub.AcceptPinActivity;
 import com.TrakEngineering.FluidSecureHub.AcceptServiceCall;
-import com.TrakEngineering.FluidSecureHub.AcceptVehicleActivity;
 import com.TrakEngineering.FluidSecureHub.AppConstants;
 import com.TrakEngineering.FluidSecureHub.CommonUtils;
 import com.TrakEngineering.FluidSecureHub.Constants;
 import com.TrakEngineering.FluidSecureHub.R;
 import com.TrakEngineering.FluidSecureHub.WelcomeActivity;
-import com.TrakEngineering.FluidSecureHub.enity.AuthEntityClass;
 import com.TrakEngineering.FluidSecureHub.enity.CheckPinFobEntity;
 import com.TrakEngineering.FluidSecureHub.enity.VehicleRequireEntity;
 import com.TrakEngineering.FluidSecureHub.server.ServerHandler;
-import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.gson.Gson;
 
-import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.Timer;
 import java.util.TimerTask;
 

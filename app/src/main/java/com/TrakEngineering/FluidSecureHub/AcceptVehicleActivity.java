@@ -30,6 +30,7 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.TrakEngineering.FluidSecureHub.LFBle_PIN.DeviceControlActivity_Pin;
 import com.TrakEngineering.FluidSecureHub.enity.AuthEntityClass;
 import com.TrakEngineering.FluidSecureHub.enity.VehicleRequireEntity;
 import com.TrakEngineering.FluidSecureHub.server.ServerHandler;
@@ -469,7 +470,7 @@ public class AcceptVehicleActivity extends AppCompatActivity {
 
                         } else if (IsPersonnelPINRequireForHub.equalsIgnoreCase("True")) {
 
-                            Intent intent = new Intent(AcceptVehicleActivity.this, AcceptPinActivity.class);//AcceptPinActivity
+                            Intent intent = new Intent(AcceptVehicleActivity.this, DeviceControlActivity_Pin.class);//AcceptPinActivity
                             startActivity(intent);
 
                         } else if (IsDepartmentRequire.equalsIgnoreCase("True")) {
@@ -495,7 +496,7 @@ public class AcceptVehicleActivity extends AppCompatActivity {
                         String ValidationFailFor = jsonObject.getString("ValidationFailFor");
                         if (ValidationFailFor.equalsIgnoreCase("Pin")) {
                             AppConstants.colorToastBigFont(this, ResponceText, Color.RED);
-                            Intent i = new Intent(this, AcceptPinActivity.class);
+                            Intent i = new Intent(this, DeviceControlActivity_Pin.class);
                             startActivity(i);
 
                         } else {
@@ -624,7 +625,7 @@ public class AcceptVehicleActivity extends AppCompatActivity {
                     String ValidationFailFor = jsonObject.getString("ValidationFailFor");
                     if (ValidationFailFor.equalsIgnoreCase("Pin")) {
                         AppConstants.colorToastBigFont(this, ResponceText, Color.RED);
-                        Intent i = new Intent(this, AcceptPinActivity.class);
+                        Intent i = new Intent(this, DeviceControlActivity_Pin.class);
                         startActivity(i);
 
                     } else {

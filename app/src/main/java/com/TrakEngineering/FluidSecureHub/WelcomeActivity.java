@@ -2809,6 +2809,17 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 wifiConfig.SSID = AppConstants.HubName;
                 wifiConfig.preSharedKey = AppConstants.HubGeneratedpassword;
 
+                wifiApManager.setWifiApEnabled(null, false);  //Disable Hotspot
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+
+                        //Enable Hotsopt
+                        wifiApManager.setWifiApEnabled(null, true);
+
+                    }
+                }, 500);
+
             }
 
             Method setConfigMethod = wifiManager.getClass().getMethod("setWifiApConfiguration", WifiConfiguration.class);
