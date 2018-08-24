@@ -266,7 +266,6 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                 String FKey = AppConstants.APDU_FOB_KEY;
 
                 if (FKey.equalsIgnoreCase("")) {
-
                     CallSaveButtonFunctionality();//Press Enter fun
                 } else if (pin.equalsIgnoreCase("") && !FKey.equalsIgnoreCase("")) {
                     GetPinNuOnFobKeyDetection();
@@ -469,7 +468,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
 
             String Str_data = data.toString().trim();
             System.out.println("FOK_KEY Vehi " + Str_data);
-            AppConstants.WriteinFile(TAG + " ~~~~~~~~~" + "DeviceControlActivity_pin displayData Response LF: " + Str_data);
+            AppConstants.WriteinFile( TAG+" <<ForDev>> DeviceControlActivity_pin displayData Response LF: " + Str_data);
             String Str_check = Str_data.replace(" ", "");
             if (!Str_check.equalsIgnoreCase("000000")) {
                 try {
@@ -480,7 +479,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                     tv_fobkey.setText(Sep2.replace(" ", ""));
                 } catch (Exception ex) {
                     System.out.println(ex);
-                    AppConstants.WriteinFile(TAG + " ~~~~~~~~~" + "displayData Split Fob_Key  --Exception " + ex);
+                    AppConstants.WriteinFile( TAG+" <<ForDev>> displayData Split Fob_Key  --Exception " + ex);
                 }
 
                 if (!LF_FobKey.equalsIgnoreCase("")) {
@@ -498,7 +497,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
 
                 if (Count < 3) {
                     // Toast.makeText(getApplicationContext(),"Attempt to read Characteristic: "+Count, Toast.LENGTH_LONG).show();
-                    AppConstants.WriteinFile(TAG + " ~~~~~~~~~" + "DeviceControlActivity_pin displayData Attempt to read Characteristic: " + Count);
+                    AppConstants.WriteinFile( TAG+" <<ForDev>> DeviceControlActivity_pin displayData Attempt to read Characteristic: " + Count);
                     Count++;
                     if (mBluetoothLeServicePin != null) {
                         // mBluetoothLeServiceVehicle.readCharacteristic(characteristic);
@@ -711,8 +710,8 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
             objEntityClass.PersonFOBNumber = AppConstants.APDU_FOB_KEY;
             objEntityClass.FromNewFOBChange = "Y";
 
-            System.out.println("~~~~~~~~~~Personnel Fob Read~~~~~~~~FOB:"+AppConstants.APDU_FOB_KEY+"  ~Pin Number:"+String.valueOf(etPersonnelPin.getText()));
-            AppConstants.WriteinFile("~~~~~~~~~~Personnel Fob Read~~~~~~~~FOB:"+AppConstants.APDU_FOB_KEY+"  ~Pin Number:"+String.valueOf(etPersonnelPin.getText()));
+            System.out.println(TAG+"Personnel PIN: Read FOB:"+AppConstants.APDU_FOB_KEY+"  PIN Number: "+String.valueOf(etPersonnelPin.getText()));
+            AppConstants.WriteinFile(TAG+"Personnel PIN: Read FOB:"+AppConstants.APDU_FOB_KEY+"  PIN Number: "+String.valueOf(etPersonnelPin.getText()));
 
             DeviceControlActivity_Pin.CheckValidPinOrFOBNUmber vehTestAsynTask1 = new DeviceControlActivity_Pin.CheckValidPinOrFOBNUmber(objEntityClass);
             vehTestAsynTask1.execute();
@@ -733,6 +732,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
 
                 if (ResponceMessage.equalsIgnoreCase("success")) {
 
+                    AppConstants.WriteinFile(TAG +" Personnel Fob Read Success");
                     DisplayScreenFobReadSuccess();
                     tv_enter_pin_no.setText("Personnel Number:" + PersonPIN);
                     System.out.println("PersonFOBNumber.." + PersonFOBNumber + "PersonPin" + PersonPIN);
@@ -749,6 +749,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
 
                 } else {
 
+                    AppConstants.WriteinFile(TAG +" Personnel Fob Read Fail: "+ResponceMessage);
                     if (IsNewFob.equalsIgnoreCase("No")) {
                         AppConstants.APDU_FOB_KEY = "";
                         onResume();
@@ -886,11 +887,11 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
 
                 if (AppConstants.APDU_FOB_KEY.equalsIgnoreCase(""))
                 {
-                    System.out.println("~~~~~~~~~~Personnel Entered manually~~~~~~~~Pin Number:"+etPersonnelPin.getText().toString().trim()+"  Fob:"+AppConstants.APDU_FOB_KEY);
-                    AppConstants.WriteinFile("~~~~~~~~~~Personnel Entered manually~~~~~~~~Pin Number:"+etPersonnelPin.getText().toString().trim()+"  Fob:"+AppConstants.APDU_FOB_KEY);
+                    System.out.println(TAG+ " Personnel PIN: Entered manually: "+etPersonnelPin.getText().toString().trim()+"  Fob:"+AppConstants.APDU_FOB_KEY);
+                    AppConstants.WriteinFile(TAG+ " Personnel PIN: Entered manually: "+etPersonnelPin.getText().toString().trim()+"  Fob:"+AppConstants.APDU_FOB_KEY);
                 }else{
-                    System.out.println("~~~~~~~~~~Personnel Fob Read~~~~~~~~Fob:"+AppConstants.APDU_FOB_KEY+"  Pin Number:"+etPersonnelPin.getText().toString().trim());
-                    AppConstants.WriteinFile("~~~~~~~~~~Personnel Fob Read~~~~~~~~Fob:"+AppConstants.APDU_FOB_KEY+"  Pin Number:"+etPersonnelPin.getText().toString().trim());
+                    System.out.println(TAG+"Personnel PIN: Read FOB:"+AppConstants.APDU_FOB_KEY+"  PIN Number: "+String.valueOf(etPersonnelPin.getText()));
+                    AppConstants.WriteinFile(TAG+"Personnel PIN: Read FOB:"+AppConstants.APDU_FOB_KEY+"  PIN Number: "+String.valueOf(etPersonnelPin.getText()));
                 }
 
                 DeviceControlActivity_Pin.CheckVehicleRequireOdometerEntryAndRequireHourEntry vehTestAsynTask = new DeviceControlActivity_Pin.CheckVehicleRequireOdometerEntryAndRequireHourEntry(objEntityClass);
@@ -911,6 +912,9 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
 
                     if (ResponceMessage.equalsIgnoreCase("success")) {
 
+
+                        AppConstants.WriteinFile(TAG +" PIN Accepted:" + etPersonnelPin.getText().toString().trim());
+
                         btnSave.setClickable(false);
 
                         SharedPreferences sharedPrefODO = DeviceControlActivity_Pin.this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
@@ -919,7 +923,6 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                         String IsDepartmentRequire = sharedPrefODO.getString(AppConstants.IsDepartmentRequire, "");
                         String IsOtherRequire = sharedPrefODO.getString(AppConstants.IsOtherRequire, "");
 
-                        AppConstants.WriteinFile("DeviceControlActivity_Pin ~~~~~~~~~" + "CallSaveButtonFunctionality Personnel entered is: " + etPersonnelPin.getText().toString().trim());
 
                         if (IsDepartmentRequire.equalsIgnoreCase("True")) {
 
@@ -942,11 +945,12 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
 
                         String ResponceText = jsonObject.getString("ResponceText");
                         String ValidationFailFor = jsonObject.getString("ValidationFailFor");
+                        AppConstants.WriteinFile(TAG +" PIN rejected:" + etPersonnelPin.getText().toString().trim() +" Error:"+ResponceText);
 
                         if (ValidationFailFor.equalsIgnoreCase("Pin")) {
 
-                            AppConstants.colorToastBigFont(this, ResponceText, Color.RED);
-
+                            AppConstants.colorToastBigFont(this,  ResponceText, Color.RED);
+                            AppConstants.WriteinFile( TAG+" <<ForDev>> colorToastBigFont PIN Activity ValidationFor Pin" + ResponceText);
                             //Clear Pin edit text
                             if (Constants.CurrentSelectedHose.equals("FS1")) {
                                 Constants.AccPersonnelPIN_FS1 = "";
@@ -963,6 +967,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                         } else if (ValidationFailFor.equalsIgnoreCase("Vehicle")) {
 
                             AppConstants.colorToastBigFont(this, ResponceText, Color.RED);
+                            AppConstants.WriteinFile( TAG+" <<ForDev>> colorToastBigFont PIN Activity ValidationFor Vehicle" + ResponceText);
 
                             /*AppConstants.colorToastBigFont(this, "Some thing went wrong Please try again..\n"+ResponceText, Color.RED);
                             AppConstants.WriteinFile(TAG+" Some thing went wrong Please try again..(~else if~)\n"+ResponceText);
@@ -974,6 +979,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                         } else {
 
                             AppConstants.colorToastBigFont(this, ResponceText, Color.RED);
+                            AppConstants.WriteinFile( TAG+" <<ForDev>> colorToastBigFont PIN Activity ValidationFor Else" + ResponceText);
 
                             /*AppConstants.colorToastBigFont(this, "Some thing went wrong Please try again..\n"+ResponceText, Color.RED);
                             AppConstants.WriteinFile(TAG+" Some thing went wrong Please try again..(~else~)\n"+ResponceText);

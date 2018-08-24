@@ -423,6 +423,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         unregisterReceiver(mGattUpdateReceiver);
+        t.cancel();
         System.out.println("~~~~~~Onpause~~~~");
     }
 
@@ -441,7 +442,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
         System.out.println("~~~~~~OnStop~~~~");
         AppConstants.APDU_FOB_KEY = "";
         AppConstants.VehicleLocal_FOB_KEY = "";
-        t.cancel();//Stop timer FOB Key
+        t.cancel();
         ScreenOutTimeVehicle.cancel();//Stop screen out timer
     }
 
@@ -495,7 +496,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
 
             String Str_data = data.toString().trim();
             System.out.println("FOK_KEY Vehi " + Str_data);
-            AppConstants.WriteinFile(TAG + " ~~~~~~~~~" + "DeviceControlActivity_vehicle displayData Response LF: " + Str_data);
+            AppConstants.WriteinFile( TAG+" <<ForDev>> displayData Response LF: " + Str_data);
             String Str_check = Str_data.replace(" ", "");
 
             if (!Str_check.equalsIgnoreCase("000000")) {
@@ -508,13 +509,15 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
                     tv_fobkey.setText(Sep2.replace(" ", ""));
                 } catch (Exception ex) {
                     System.out.println(ex);
-                    AppConstants.WriteinFile(TAG + " ~~~~~~~~~" + "displayData Split Fob_Key  --Exception " + ex);
+                    AppConstants.WriteinFile( TAG+" <<ForDev>> displayData Split Fob_Key  --Exception " + ex);
                 }
 
                 if (!LF_FobKey.equalsIgnoreCase("")) {
                     tv_fob_number.setText("fob/card No: " + LF_FobKey);
                     AppConstants.APDU_FOB_KEY = LF_FobKey;
+                    System.out.println("Vehicle fob value"+AppConstants.APDU_FOB_KEY);
                     AppConstants.VehicleLocal_FOB_KEY = LF_FobKey;
+                    AppConstants.WriteinFile( TAG+" <<ForDev>> AppConstants.VehicleLocal_FOB_KEY~" + AppConstants.VehicleLocal_FOB_KEY);
                     //On LF Fob read success
                     editVehicleNumber.setText("");
                     Istimeout_Sec = false;
@@ -528,7 +531,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
 
             if (Count < 3) {
                 // Toast.makeText(getApplicationContext(), "Attempt to read Characteristic: " + Count, Toast.LENGTH_LONG).show();
-                AppConstants.WriteinFile(TAG + " ~~~~~~~~~" + "DeviceControlActivity_Vehicle displayData Attempt to read Characteristic: " + Count);
+                AppConstants.WriteinFile( TAG+" <<ForDev>> DeviceControlActivity_Vehicle displayData Attempt to read Characteristic: " + Count);
                 Count++;
                 if (mBluetoothLeServiceVehicle != null) {
                     // mBluetoothLeServiceVehicle.readCharacteristic(characteristic);
@@ -559,7 +562,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
 
     public void FobreadSuccess() {
 
-
+        AppConstants.VehicleLocal_FOB_KEY = "";
         GetVehicleNuOnFobKeyDetection();
 
         new Handler().postDelayed(new Runnable() {
@@ -567,7 +570,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
             public void run() {
                 CallSaveButtonFunctionality();//Press Enter fun
             }
-        }, 2000);
+        }, 1000);
 
 
     }
@@ -688,23 +691,23 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
                 String pinNumber = "";
 
                 if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS1")) {
-                    pinNumber = Constants.AccPersonnelPIN_FS1;
+                    //pinNumber = Constants.AccPersonnelPIN_FS1;
                     vehicleNumber = editVehicleNumber.getText().toString().trim();
                     Constants.AccVehicleNumber_FS1 = vehicleNumber;
 
 
                 } else if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS2")) {
-                    pinNumber = Constants.AccPersonnelPIN;
+                    //pinNumber = Constants.AccPersonnelPIN;
                     vehicleNumber = editVehicleNumber.getText().toString().trim();
                     Constants.AccVehicleNumber = vehicleNumber;
 
                 } else if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS3")) {
-                    pinNumber = Constants.AccPersonnelPIN_FS3;
+                    //pinNumber = Constants.AccPersonnelPIN_FS3;
                     vehicleNumber = editVehicleNumber.getText().toString().trim();
                     Constants.AccVehicleNumber_FS3 = vehicleNumber;
 
                 } else {
-                    pinNumber = Constants.AccPersonnelPIN_FS4;
+                    //pinNumber = Constants.AccPersonnelPIN_FS4;
                     vehicleNumber = editVehicleNumber.getText().toString().trim();
                     Constants.AccVehicleNumber_FS4 = vehicleNumber;
 
@@ -726,11 +729,11 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
                 vehTestAsynTask.get();
 
                 if (AppConstants.APDU_FOB_KEY.equalsIgnoreCase("")) {
-                    System.out.println("~~~~~~~~~~Vehicle Entered manually~~~~~~~~Vehicle Number:" + vehicleNumber + "  Fob:" + AppConstants.APDU_FOB_KEY);
-                    AppConstants.WriteinFile("~~~~~~~~~~Vehicle Entered manually~~~~~~~~Vehicle Number:" + vehicleNumber + "  Fob:" + AppConstants.APDU_FOB_KEY);
+                    System.out.println(TAG +" Vehcile number entered manually: " +  vehicleNumber + "  Fob: " + AppConstants.APDU_FOB_KEY);
+                    AppConstants.WriteinFile(TAG +" Vehcile number entered manually: " +  vehicleNumber + "  Fob: " + AppConstants.APDU_FOB_KEY);
                 } else {
-                    System.out.println("~~~~~~~~~~Vehicle Fob Read~~~~~~~~Fob:" + AppConstants.APDU_FOB_KEY + "  Vehicle Number:" + vehicleNumber);
-                    AppConstants.WriteinFile("~~~~~~~~~~Vehicle Fob Read~~~~~~~~Fob:" + AppConstants.APDU_FOB_KEY + "  Vehicle Number:" + vehicleNumber);
+                    System.out.println(TAG +" Vehcile number: Read FOB:" + AppConstants.APDU_FOB_KEY + "  Read No:" + vehicleNumber);
+                    AppConstants.WriteinFile(TAG +" Vehcile number: Read FOB:" + AppConstants.APDU_FOB_KEY + "  Read No:" + vehicleNumber);
                 }
 
 
@@ -746,6 +749,8 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
 
 
                     if (ResponceMessage.equalsIgnoreCase("success")) {
+
+                        AppConstants.WriteinFile(TAG +" Vehicle Accepted:" + vehicleNumber);
 
                         btnSave.setClickable(false);
                         IsNewFobVar = true;
@@ -775,9 +780,6 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
                         editor.putString("OdometerReasonabilityConditions", OdometerReasonabilityConditions);
                         editor.putString("CheckOdometerReasonable", CheckOdometerReasonable);
                         editor.commit();
-
-
-                        AppConstants.WriteinFile("DeviceControlActivity_vehicle ~~~~~~~~~" + "CallSaveButtonFunctionality Vehicle entered is: " + vehicleNumber);
 
 
                         if (IsOdoMeterRequire.equalsIgnoreCase("True")) {
@@ -819,9 +821,12 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
                         String ValidationFailFor = jsonObject.getString("ValidationFailFor");
                         String IsNewFob = jsonObject.getString("IsNewFob");
 
+                        AppConstants.WriteinFile(TAG +" Vehicle rejected:" + vehicleNumber +" Error:"+ResponceText);
+
                         if (ValidationFailFor.equalsIgnoreCase("Pin")) {
 
                             AppConstants.colorToastBigFont(this, ResponceText, Color.RED);
+                            AppConstants.WriteinFile( TAG+" <<ForDev>> colorToastBigFont Vehicle Activity ValidationFor Pin" + ResponceText);
 
                             IsNewFobVar = true;
                             /*AppConstants.colorToastBigFont(this, "Some thing went wrong Please try again..\n"+ResponceText, Color.RED);
@@ -902,28 +907,27 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
 
         try {
 
-            AppConstants.VehicleLocal_FOB_KEY = "";
             String vehicleNumber = "";
             String pinNumber = "";
 
             if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS1")) {
-                pinNumber = Constants.AccPersonnelPIN_FS1;
+                //pinNumber = Constants.AccPersonnelPIN_FS1;
                 // vehicleNumber = editVehicleNumber.getText().toString().trim();
                 Constants.AccVehicleNumber_FS1 = vehicleNumber;
 
 
             } else if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS2")) {
-                pinNumber = Constants.AccPersonnelPIN;
+                //pinNumber = Constants.AccPersonnelPIN;
                 //  vehicleNumber = editVehicleNumber.getText().toString().trim();
                 Constants.AccVehicleNumber = vehicleNumber;
 
             } else if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS3")) {
-                pinNumber = Constants.AccPersonnelPIN_FS3;
+                //pinNumber = Constants.AccPersonnelPIN_FS3;
                 //  vehicleNumber = editVehicleNumber.getText().toString().trim();
                 Constants.AccVehicleNumber_FS3 = vehicleNumber;
 
             } else {
-                pinNumber = Constants.AccPersonnelPIN_FS4;
+                //pinNumber = Constants.AccPersonnelPIN_FS4;
                 //  vehicleNumber = editVehicleNumber.getText().toString().trim();
                 Constants.AccVehicleNumber_FS4 = vehicleNumber;
 
@@ -939,8 +943,8 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
             objEntityClass.FOBNumber = AppConstants.APDU_FOB_KEY;
 
             //AppConstants.WriteinFile(TAG,"Vehicle Number");
-            System.out.println("~~~~~~~~~~Vehicle Fob Read~~~~~~~~FOB:" + AppConstants.APDU_FOB_KEY + "  Vehicle Number:" + vehicleNumber);
-            AppConstants.WriteinFile("~~~~~~~~~~Vehicle Fob Read~~~~~~~~FOB:" + AppConstants.APDU_FOB_KEY + "  Vehicle Number:" + vehicleNumber);
+            System.out.println(TAG+" Vehcile number: Read FOB:" + AppConstants.APDU_FOB_KEY + "  Read No:" + vehicleNumber);
+            AppConstants.WriteinFile(TAG +" Vehcile number: Read FOB:" + AppConstants.APDU_FOB_KEY + "  Read No:" + vehicleNumber);
             DeviceControlActivity_vehicle.CheckVehicleRequireOdometerEntryAndRequireHourEntry vehTestAsynTask = new DeviceControlActivity_vehicle.CheckVehicleRequireOdometerEntryAndRequireHourEntry(objEntityClass);
             vehTestAsynTask.execute();
             vehTestAsynTask.get();
@@ -958,7 +962,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
 
                 if (ResponceMessage.equalsIgnoreCase("success")) {
 
-
+                    AppConstants.WriteinFile(TAG +" Vehcile Fob Read Success");
                     IsOdoMeterRequire = jsonObject.getString("IsOdoMeterRequire");
                     String IsHoursRequire = jsonObject.getString("IsHoursRequire");
                     String VehicleNumber = jsonObject.getString("VehicleNumber");
@@ -989,6 +993,8 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
 
                     String ResponceText = jsonObject.getString("ResponceText");
                     String ValidationFailFor = jsonObject.getString("ValidationFailFor");
+
+                    AppConstants.WriteinFile(TAG +" Vehcile Fob Read Fail: "+ResponceText);
 
                     if (ValidationFailFor.equalsIgnoreCase("Pin")) {
 

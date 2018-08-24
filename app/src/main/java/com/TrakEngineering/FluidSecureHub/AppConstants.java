@@ -373,6 +373,30 @@ public class AppConstants {
     }
 
 
+    public static void AlertDialogFinishWithTitle(final Activity ctx, String title,String message
+    ) {
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(ctx);
+        alertDialogBuilder.setTitle(title);
+        alertDialogBuilder.setMessage(message);
+        alertDialogBuilder.setCancelable(true);
+
+        alertDialogBuilder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int arg1) {
+                        dialog.dismiss();
+                        ctx.finish();
+
+                    }
+                }
+
+        );
+
+        AlertDialog alertDialog = alertDialogBuilder.create();
+        alertDialog.show();
+    }
+
+
+
     public static void colorToast(Context ctx, String msg, int colr) {
         Toast toast = Toast.makeText(ctx, " " + msg + " ", Toast.LENGTH_LONG);
         toast.getView().setBackgroundColor(colr);

@@ -94,6 +94,7 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
 
+
         CommonUtils.LogMessage(TAG, "SplashActivity", null);
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addApi(LocationServices.API)
@@ -533,20 +534,22 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
                 } else if (ResponceText.equalsIgnoreCase("notapproved")) {
 
                     AlertDialogBox(SplashActivity.this, "Your Registration request is not approved yet.\nIt is marked Inactive in the Company Software.\nPlease contact your companyâ€™s administrator.");
+
                 } else if (ResponceText.equalsIgnoreCase("IMEI not exists")) {
 
-
-                    CommonUtils.showMessageDilaog(SplashActivity.this, "Error Message", ResponceText);
+                    //CommonUtils.showMessageDilaog(SplashActivity.this, "Error Message", ResponceText);
+                    AppConstants.AlertDialogFinish(SplashActivity.this,  ResponceText);
 
                 } else if (ResponceText.equalsIgnoreCase("No data found")) {
-                    CommonUtils.showMessageDilaog(SplashActivity.this, "Error Message", ResponceText);
+
+                    AppConstants.AlertDialogFinish(SplashActivity.this, ResponceText);
 
                 } else {
-                    CommonUtils.showMessageDilaog(SplashActivity.this, "Error Message", ResponceText);
+                    AppConstants.AlertDialogFinish(SplashActivity.this, ResponceText);
                 }
 
             } else {
-                CommonUtils.showMessageDilaog(SplashActivity.this, "Fuel Secure", "No Internet");
+                AppConstants.AlertDialogFinishWithTitle(SplashActivity.this, "Fuel Secure", "No Internet");
             }
 
 
