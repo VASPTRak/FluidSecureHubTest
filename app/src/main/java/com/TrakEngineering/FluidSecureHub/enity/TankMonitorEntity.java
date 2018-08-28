@@ -7,6 +7,7 @@ public class TankMonitorEntity {
     public int FromSiteId;
     public String ProbeReading;
     public String ReadingDateTime;
+    public String Response_code;
     public String TLDTemperature;
     public String TLD;
     public String LSB;

@@ -1388,6 +1388,7 @@ public class BackgroundService_AP extends BackgroundService {
         String LSB ="";
         String MSB ="";
         String Tem_data ="";
+        String Response_code ="";
 
         try {
 
@@ -1413,7 +1414,7 @@ public class BackgroundService_AP extends BackgroundService {
                     JSONObject tld = reader.getJSONObject("tld");
                     mac_address = tld.getString("Mac_address");
                     String Sensor_ID = tld.getString("Sensor_ID");
-                    String Response_code = tld.getString("Response_code");
+                    Response_code = tld.getString("Response_code");
                     LSB = tld.getString("LSB");
                     MSB = tld.getString("MSB");
                     Tem_data = tld.getString("Tem_data");
@@ -1446,6 +1447,7 @@ public class BackgroundService_AP extends BackgroundService {
                 obj_entity.MSB = MSB;
                 obj_entity.TLDTemperature = Tem_data;
                 obj_entity.ReadingDateTime = CurrentDeviceDate;//PrintDate;
+                obj_entity.Response_code = Response_code;//Response_code;
 
                 BackgroundService_AP.SaveTankMonitorReadingy TestAsynTask = new BackgroundService_AP.SaveTankMonitorReadingy(obj_entity);
                 TestAsynTask.execute();
