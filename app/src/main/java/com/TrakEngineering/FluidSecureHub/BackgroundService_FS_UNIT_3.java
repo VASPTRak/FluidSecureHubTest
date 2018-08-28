@@ -1454,7 +1454,7 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService {
                 obj_entity.MSB = MSB;
                 obj_entity.TLDTemperature = Tem_data;
                 obj_entity.ReadingDateTime = CurrentDeviceDate;//PrintDate;
-                obj_entity.Response_code = "159";//Response_code;//Response_code; //159 --
+                obj_entity.Response_code = Response_code;//Response_code; //159 --
 
                 BackgroundService_FS_UNIT_3.SaveTankMonitorReadingy TestAsynTask = new BackgroundService_FS_UNIT_3.SaveTankMonitorReadingy(obj_entity);
                 TestAsynTask.execute();
