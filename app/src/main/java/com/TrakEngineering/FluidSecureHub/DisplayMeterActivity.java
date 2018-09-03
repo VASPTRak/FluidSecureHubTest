@@ -1293,7 +1293,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                     int Initialcount = Integer.parseInt(joPulsarStat.getString("1:"));
                     String counts = "";
                     if (Initialcount > 0){
-                        counts = String.valueOf(Initialcount+1);
+                        counts = String.valueOf(Initialcount);
                     }else{
                         counts = String.valueOf(Initialcount);
                     }
