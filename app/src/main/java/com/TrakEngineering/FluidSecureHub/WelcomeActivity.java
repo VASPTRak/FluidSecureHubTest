@@ -150,7 +150,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     WifiManager mainWifi;
     StringBuilder sb = new StringBuilder();
 
-    ArrayList<HashMap<String, String>> ListOfBleDevices = new ArrayList<>();
+    public static ArrayList<HashMap<String, String>> ListOfBleDevices = new ArrayList<>();
     ArrayList<HashMap<String, String>> serverSSIDList = new ArrayList<>();
     ArrayList<HashMap<String, String>> ListOfConnectedDevices = new ArrayList<>();
     public static int SelectedItemPos;
@@ -268,6 +268,10 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     protected void onResume() {
         super.onResume();
 
+        //Scan for Near-by BLE devices
+        ListOfBleDevices.clear();
+        scanLeDevice(true);
+
         // only when screen turns on
         if (!ScreenReceiver.screenOff) {
             // this is when onResume() is called due to a screen state change
@@ -351,6 +355,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
         unregisterReceiver(mReceiver);
 
+        scanLeDevice(false);
+
     }
 
 
@@ -375,6 +381,13 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         TextView tvVersionNum = (TextView) findViewById(R.id.tvVersionNum);
         tvVersionNum.setText("Version " + CommonUtils.getVersionCode(WelcomeActivity.this));
 
+
+        mHandler = new Handler();
+        // Initializes a Bluetooth adapter.  For API level 18 and above, get a reference to
+        // BluetoothAdapter through BluetoothManager.
+        final BluetoothManager bluetoothManager =
+                (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
+        mBluetoothAdapter = bluetoothManager.getAdapter();
 
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addApi(LocationServices.API)
@@ -893,9 +906,9 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
     public void selectHoseAction(View v) {
 
-       /* //Scan for Near-by BLE devices
+        //Scan for Near-by BLE devices
         ListOfBleDevices.clear();
-        scanLeDevice(true);*/
+        scanLeDevice(true);
 
         //Reconnect BT reader if disconnected
         ConnectCount = 0;
@@ -5112,17 +5125,49 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             new BluetoothAdapter.LeScanCallback() {
 
                 @Override
-                public void onLeScan(final BluetoothDevice device, final int rssi, final byte[] scanRecord) {
+                public void onLeScan(final BluetoothDevice device, final int rssi, byte[] scanRecord) {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
 
-                            HashMap<String, String> map = new HashMap<>();
-                            map.put("BleName", device.getName());
-                            map.put("BleMacAddress", device.getAddress());
-                            map.put("BleRssi", String.valueOf(rssi));
+                            try {
 
-                            ListOfBleDevices.add(map);
+                                boolean AlreadyPresent = true;
+                                HashMap<String, String> map = new HashMap<>();
+                                map.put("BleName", device.getName());
+                                map.put("BleMacAddress", device.getAddress());
+                                map.put("BleRssi", String.valueOf(rssi));
+
+                                if (device.getName().equalsIgnoreCase("FSTag")) {
+
+                                    //  Log.i(TAG, "Ble device name: ~~FSTag~~" + device.getName());
+
+                                    if (ListOfBleDevices.size() != 0) {
+
+                                        for (int p = 0; p < ListOfBleDevices.size(); p++) {
+
+                                            String BleMacAddr = ListOfBleDevices.get(p).get("BleMacAddress");
+                                            if (device.getAddress().equalsIgnoreCase(BleMacAddr)) {
+                                                AlreadyPresent = false;
+                                            }
+                                        }
+
+                                    } else {
+                                        Log.i(TAG, "List not empty");
+                                    }
+
+
+                                    if (AlreadyPresent) {
+                                        ListOfBleDevices.add(map);
+                                    }
+
+                                } else {
+                                    Log.i(TAG, "Ble device name: ~~No Tag~~" + device.getName());
+                                }
+
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
 
                         }
                     });

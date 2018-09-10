@@ -11,5 +11,7 @@ public class UpgradeVersionEntity {
     public String Email;
     public String IMEIUDID;
 
+    public String FSTagMacAddress;
+
 
 }
