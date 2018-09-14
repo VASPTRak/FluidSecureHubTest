@@ -130,6 +130,7 @@ public class BackgroundService_AP extends BackgroundService {
     boolean isTransactionComp = false;
     double fillqty = 0;
     double Lastfillqty = 0;
+    int CNT_LAST = 0;
     Integer Pulses = 0;
     long sqliteID = 0;
     String printReceipt = "", IsFuelingStop = "0", IsLastTransaction = "0";
@@ -716,7 +717,14 @@ public class BackgroundService_AP extends BackgroundService {
                 }
 
 
-                convertCountToQuantity(counts);
+                //To avoid accepting Lower Quantity
+                int CNT_current = Integer.parseInt(counts);
+
+                if (CNT_LAST <= CNT_current) {
+                    CNT_LAST = CNT_current;
+
+                    convertCountToQuantity(counts);
+                }
 
 
                 if (!pulsar_secure_status.trim().isEmpty()) {
@@ -844,7 +852,14 @@ public class BackgroundService_AP extends BackgroundService {
                                     //String pulsar_status = joPulsarStat.getString("pulsar_status");
                                     //String pulsar_secure_status = joPulsarStat.getString("pulsar_secure_status");
 
-                                    convertCountToQuantity(counts);
+                                    //To avoid accepting Lower Quantity
+                                    int CNT_current = Integer.parseInt(counts);
+
+                                    if (CNT_LAST <= CNT_current) {
+                                        CNT_LAST = CNT_current;
+
+                                        convertCountToQuantity(counts);
+                                    }
 
                             /*
                             if (i == 0)
