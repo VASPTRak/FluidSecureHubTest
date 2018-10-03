@@ -235,49 +235,49 @@ public class AcceptFieldActivity extends AppCompatActivity {
 
                                     }else{
 
-                                    String ResponceData = jsonObject.getString("ResponceData");
+                                        String ResponceData = jsonObject.getString("ResponceData");
 
-                                    JSONObject jsonObjectRD = new JSONObject(ResponceData);
+                                        JSONObject jsonObjectRD = new JSONObject(ResponceData);
 
-                                    String TransactionId = jsonObjectRD.getString("TransactionId");
-                                    String VehicleId = jsonObjectRD.getString("VehicleId");
-                                    String PhoneNumber = jsonObjectRD.getString("PhoneNumber");
-                                    String PersonId = jsonObjectRD.getString("PersonId");
-                                    String PulseRatio = jsonObjectRD.getString("PulseRatio");
-                                    String MinLimit = jsonObjectRD.getString("MinLimit");
-                                    String FuelTypeId = jsonObjectRD.getString("FuelTypeId");
-                                    String ServerDate = jsonObjectRD.getString("ServerDate");
-                                    String IntervalToStopFuel = jsonObjectRD.getString("PulserStopTime");
-                                    String PrintDate = CommonUtils.getTodaysDateInStringPrint(ServerDate);
-                                    String Company = jsonObjectRD.getString("Company");
-                                    String Location = jsonObjectRD.getString("Location");
-                                    String PersonName = jsonObjectRD.getString("PersonName");
-                                    String BluetoothCardReader = jsonObjectRD.getString("BluetoothCardReader");
-                                    String PrinterName = jsonObjectRD.getString("PrinterName");
-                                    System.out.println("iiiiii" + IntervalToStopFuel);
-                                    String vehicleNumber="";
-                                    String accOther="";
+                                        String TransactionId = jsonObjectRD.getString("TransactionId");
+                                        String VehicleId = jsonObjectRD.getString("VehicleId");
+                                        String PhoneNumber = jsonObjectRD.getString("PhoneNumber");
+                                        String PersonId = jsonObjectRD.getString("PersonId");
+                                        String PulseRatio = jsonObjectRD.getString("PulseRatio");
+                                        String MinLimit = jsonObjectRD.getString("MinLimit");
+                                        String FuelTypeId = jsonObjectRD.getString("FuelTypeId");
+                                        String ServerDate = jsonObjectRD.getString("ServerDate");
+                                        String IntervalToStopFuel = jsonObjectRD.getString("PulserStopTime");
+                                        String PrintDate = CommonUtils.getTodaysDateInStringPrint(ServerDate);
+                                        String Company = jsonObjectRD.getString("Company");
+                                        String Location = jsonObjectRD.getString("Location");
+                                        String PersonName = jsonObjectRD.getString("PersonName");
+                                        String BluetoothCardReader = jsonObjectRD.getString("BluetoothCardReader");
+                                        String PrinterName = jsonObjectRD.getString("PrinterName");
+                                        System.out.println("iiiiii" + IntervalToStopFuel);
+                                        String vehicleNumber="";
+                                        String accOther="";
 
-                                    //For Print Recipt
-                                    String VehicleSum = "";
-                                    String DeptSum = "";
-                                    String VehPercentage = "";
-                                    String DeptPercentage = "";
-                                    String SurchargeType = "";
-                                    String ProductPrice = "";
+                                        //For Print Recipt
+                                        String VehicleSum = "";
+                                        String DeptSum = "";
+                                        String VehPercentage = "";
+                                        String DeptPercentage = "";
+                                        String SurchargeType = "";
+                                        String ProductPrice = "";
 
-                                    CommonUtils.SaveVehiFuelInPref(AcceptFieldActivity.this, TransactionId,VehicleId, PhoneNumber, PersonId, PulseRatio, MinLimit, FuelTypeId, ServerDate, IntervalToStopFuel,PrintDate,Company,Location,PersonName,BluetoothCardReader,PrinterName,vehicleNumber,accOther,VehicleSum,DeptSum,VehPercentage,DeptPercentage,SurchargeType,ProductPrice);
+                                        CommonUtils.SaveVehiFuelInPref(AcceptFieldActivity.this, TransactionId,VehicleId, PhoneNumber, PersonId, PulseRatio, MinLimit, FuelTypeId, ServerDate, IntervalToStopFuel,PrintDate,Company,Location,PersonName,BluetoothCardReader,PrinterName,vehicleNumber,accOther,VehicleSum,DeptSum,VehPercentage,DeptPercentage,SurchargeType,ProductPrice);
 
 
-                                    Intent intent = new Intent(AcceptFieldActivity.this, DisplayMeterActivity.class);
-                                    intent.putExtra(Constants.VEHICLE_NUMBER, vehicleNumber);
-                                    intent.putExtra(Constants.ODO_METER, etOdometer.getText().toString().trim());
-                                    intent.putExtra(Constants.DEPT, etDeptNumber.getText().toString().trim());
-                                    intent.putExtra(Constants.PPIN, etPersonnelPin.getText().toString().trim());
-                                    intent.putExtra(Constants.OTHERR, etOther.getText().toString().trim());
+                                        Intent intent = new Intent(AcceptFieldActivity.this, DisplayMeterActivity.class);
+                                        intent.putExtra(Constants.VEHICLE_NUMBER, vehicleNumber);
+                                        intent.putExtra(Constants.ODO_METER, etOdometer.getText().toString().trim());
+                                        intent.putExtra(Constants.DEPT, etDeptNumber.getText().toString().trim());
+                                        intent.putExtra(Constants.PPIN, etPersonnelPin.getText().toString().trim());
+                                        intent.putExtra(Constants.OTHERR, etOther.getText().toString().trim());
 
-                                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                                    startActivity(intent);
+                                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                        startActivity(intent);
 
                                     }
 

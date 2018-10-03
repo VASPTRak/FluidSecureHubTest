@@ -34,6 +34,7 @@ import java.util.regex.Pattern;
 
 import static com.TrakEngineering.FluidSecureHub.AppConstants.FluidSecureSiteName;
 import static com.TrakEngineering.FluidSecureHub.AppConstants.ISVehicleHasFob;
+import static com.TrakEngineering.FluidSecureHub.AppConstants.IsGateHub;
 import static com.TrakEngineering.FluidSecureHub.AppConstants.IsPersonHasFob;
 
 public class RegistrationActivity extends AppCompatActivity {
@@ -253,7 +254,7 @@ public class RegistrationActivity extends AppCompatActivity {
                 String ResponceMessage = jsonObj.getString(AppConstants.RES_MESSAGE);
 
                 if (ResponceMessage.equalsIgnoreCase("success")) {
-                    CommonUtils.SaveUserInPref(RegistrationActivity.this, userName, userMobile, userEmail, "","","","","", "", "","","", FluidSecureSiteName,ISVehicleHasFob, IsPersonHasFob);
+                    CommonUtils.SaveUserInPref(RegistrationActivity.this, userName, userMobile, userEmail, "","","","","", "", "","","", FluidSecureSiteName,ISVehicleHasFob, IsPersonHasFob,IsGateHub);
 
                     AlertDialogBox(RegistrationActivity.this, "Thank you for registering. \n\nYour request has been sent for the approval. You will be able to proceed with the application after your request has been approved by the administrator.");
                 } else if (ResponceMessage.equalsIgnoreCase("fail")) {
@@ -279,4 +280,3 @@ public class RegistrationActivity extends AppCompatActivity {
 
 
 }
-

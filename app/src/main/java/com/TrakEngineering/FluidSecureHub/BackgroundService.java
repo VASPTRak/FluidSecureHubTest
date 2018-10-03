@@ -30,7 +30,7 @@ import java.util.HashMap;
 public class BackgroundService extends Service {
 
     ServerHandler serverHandler = new ServerHandler();
-        DBController controller = new DBController(BackgroundService.this);
+    DBController controller = new DBController(BackgroundService.this);
 
     @Nullable
     @Override
@@ -45,7 +45,7 @@ public class BackgroundService extends Service {
 
 
 
-         ArrayList<HashMap<String, String>> StatusData = controller.getAllUpdateTranStatus();
+        ArrayList<HashMap<String, String>> StatusData = controller.getAllUpdateTranStatus();
 
         if (StatusData != null && StatusData.size() > 0) {
 
@@ -55,7 +55,7 @@ public class BackgroundService extends Service {
                 String jsonData = StatusData.get(i).get("jsonData");
                 String authString = StatusData.get(i).get("authString");
 
-                 new UploadTransactionStatus().execute(Id, jsonData, authString);
+                new UploadTransactionStatus().execute(Id, jsonData, authString);
 
             }
 

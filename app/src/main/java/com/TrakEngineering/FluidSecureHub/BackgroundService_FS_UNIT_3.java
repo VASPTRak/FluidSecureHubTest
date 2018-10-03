@@ -310,7 +310,7 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService {
             }
         } catch (NullPointerException e) {
             Log.d("Ex", e.getMessage());
-            AppConstants.WriteinFile("BackgroundService_FS_UNIT_3 ~~~~~~~~~" + "onStartCommand Execption " + e);
+            AppConstants.WriteinFile( TAG+" <<ForDev>> onStartCommand Execption " + e);
             this.stopSelf();
         }
 
@@ -338,9 +338,8 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService {
             @Override
             public void run() {
 
-                new CommandsPOST().execute(URL_RELAY, jsonRelayOn);//Relay ON swipe
-
-
+                //Call Relay On Function
+                RelayOnThreeAttempts();
             }
         }, 2500);
 
@@ -353,6 +352,38 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService {
 
         // return super.onStartCommand(intent, flags, startId);
         return Service.START_NOT_STICKY;
+    }
+
+    private void RelayOnThreeAttempts(){
+
+        String IsRelayOn = "";
+        try {
+            IsRelayOn = new CommandsPOST().execute(URL_RELAY, jsonRelayOn).get();//Relay ON First Attempt
+
+            JSONObject jsonObject = new JSONObject(IsRelayOn);
+            String relay_status1 = jsonObject.getString("relay_response");
+
+            if (relay_status1.equalsIgnoreCase("{\"status\":1}")) {
+                AppConstants.WriteinFile(TAG + " <<ForDev>> Relay On in first attempt");
+
+            } else {
+                Thread.sleep(1000);
+                IsRelayOn = new CommandsPOST().execute(URL_RELAY, jsonRelayOn).get();//Relay ON Second attempt
+
+                JSONObject jsonObjectSite = new JSONObject(IsRelayOn);
+                String relay_status2 = jsonObjectSite.getString("relay_response");
+                if (relay_status2.equalsIgnoreCase("{\"status\":1}")) {
+                    AppConstants.WriteinFile(TAG + " <<ForDev>> Relay On in Second attempt");
+                } else {
+                    Thread.sleep(1000);
+                    new CommandsPOST().execute(URL_RELAY, jsonRelayOn).get();//Relay ON Third attempt
+                    AppConstants.WriteinFile(TAG + " <<ForDev>> Third attempt to start relay");
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            AppConstants.WriteinFile(TAG + " <<ForDev>> RelayOnThreeAttempts. --Exception " + e);
+        }
     }
 
 
@@ -438,7 +469,7 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService {
 
             } catch (Exception e) {
                 Log.d("Ex", e.getMessage());
-                AppConstants.WriteinFile("BackgroundService_FS_UNIT_3 ~~~~~~~~~" + "CommandsPOST doInBackground Execption " + e);
+                AppConstants.WriteinFile( TAG+" <<ForDev>> CommandsPOST doInBackground Execption " + e);
                 stopSelf();
             }
 
@@ -455,7 +486,7 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService {
                 System.out.println("APFS_3 OUTPUT" + result);
 
             } catch (Exception e) {
-                AppConstants.WriteinFile("BackgroundService_FS_UNIT_3 ~~~~~~~~~" + "CommandsPOST OnPostExecution Execption " + e);
+                AppConstants.WriteinFile( TAG+" <<ForDev>> CommandsPOST OnPostExecution Execption " + e);
                 System.out.println(e);
                 stopSelf();
             }
@@ -484,7 +515,7 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService {
 
             } catch (Exception e) {
                 Log.d("Ex", e.getMessage());
-                AppConstants.WriteinFile("BackgroundService_FS_UNIT_3 ~~~~~~~~~" + "CommandsGET doInBackground Execption " + e);
+                AppConstants.WriteinFile( TAG+" <<ForDev>> CommandsGET doInBackground Execption " + e);
                 stopSelf();
             }
 
@@ -501,7 +532,7 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService {
 
             } catch (Exception e) {
 
-                AppConstants.WriteinFile("BackgroundService_FS_UNIT_3 ~~~~~~~~~" + "CommandsGET OnPostExecution Execption " + e);
+                AppConstants.WriteinFile( TAG+" <<ForDev>> CommandsGET OnPostExecution Execption " + e);
                 System.out.println(e);
                 stopSelf();
             }
@@ -538,7 +569,7 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService {
                         }else{
                             if (AttemptCount > 2) {
                                 //FS Link DisConnected
-                                AppConstants.WriteinFile("BackgroundService_FS_UNIT_3 ~~~~~~~~~" + "FS Link not connected" );
+                                AppConstants.WriteinFile( TAG+" <<ForDev>> CommandsGET FS Link not connected");
                                 stopTimer = false;
                                 new BackgroundService_FS_UNIT_3.CommandsPOST().execute(URL_RELAY, jsonRelayOff);
                                 Constants.FS_3STATUS = "FREE";
@@ -553,7 +584,7 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService {
 
                 } catch (Exception e) {
                     System.out.println(e);
-                    AppConstants.WriteinFile("BackgroundService_FS_UNIT_3 ~~~~~~~~~" + "startQuantityInterval Execption " + e);
+                    AppConstants.WriteinFile( TAG+" <<ForDev>> startQuantityInterval Execption " + e);
                 }
 
             }
@@ -591,7 +622,7 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService {
                 resp = response.body().string();
 
             } catch (Exception e) {
-                AppConstants.WriteinFile("BackgroundService_FS_UNIT_3 ~~~~~~~~~" + "GETPulsarQuantity doInBackground Execption " + e);
+                AppConstants.WriteinFile( TAG+" <<ForDev>> GETPulsarQuantity doInBackground Execption " + e);
                 Log.d("Ex", e.getMessage());
             }
 
@@ -625,7 +656,7 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService {
                 }
 
             } catch (Exception e) {
-                AppConstants.WriteinFile("BackgroundService_FS_UNIT_3 ~~~~~~~~~" + "GETPulsarQuantity onPostExecute Execption " + e);
+                AppConstants.WriteinFile( TAG+" <<ForDev>> GETPulsarQuantity onPostExecute Execption " + e);
                 System.out.println(e);
             }
 
@@ -681,7 +712,7 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService {
                         }
 
                     } catch (Exception e) {
-                        AppConstants.WriteinFile("BackgroundService_FS_UNIT_3 ~~~~~~~~~" + "GETPulsarQuantity onPostExecute Execption " + e);
+                        AppConstants.WriteinFile( TAG+" <<ForDev>> GETPulsarQuantity onPostExecute Execption " + e);
                         System.out.println(e);
                     }
 
@@ -734,6 +765,8 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService {
                     CNT_LAST = CNT_current;
 
                     convertCountToQuantity(counts);
+                }else{
+                    AppConstants.WriteinFile(TAG + " <<ForDev>> Count recorded from the link: " + counts);
                 }
 
 
@@ -810,12 +843,12 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService {
                         }
                     }
                 } catch (Exception e) {
-                    AppConstants.WriteinFile("BackgroundService_FS_UNIT_3 ~~~~~~~~~" + "quantity reach max limit1 Execption " + e);
+                    AppConstants.WriteinFile( TAG+" <<ForDev>> quantity reach max limit1 Execption " + e);
                 }
             }
         } catch (Exception e) {
             System.out.println(e);
-            AppConstants.WriteinFile("BackgroundService_FS_UNIT_3 ~~~~~~~~~" + "quantity reach max limit2 Execption " + e);
+            AppConstants.WriteinFile( TAG+" <<ForDev>> quantity reach max limit2 Execption " + e);
         }
     }
 
@@ -868,6 +901,8 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService {
                                         CNT_LAST = CNT_current;
 
                                         convertCountToQuantity(counts);
+                                    }else{
+                                        AppConstants.WriteinFile(TAG + " <<ForDev>> Count recorded from the link: " + counts);
                                     }
 
                             /*
@@ -896,7 +931,7 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService {
                                 }
                             }
                         } catch (Exception e) {
-                            AppConstants.WriteinFile("BackgroundService_FS_UNIT_3 ~~~~~~~~~" + "stopButtonFunctionality Execption " + e);
+                            AppConstants.WriteinFile( TAG+" <<ForDev>> stopButtonFunctionality Execption " + e);
                             System.out.println(e);
                         }
                     }
@@ -999,7 +1034,7 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService {
                 resp = response.body().string();
 
             } catch (Exception e) {
-                AppConstants.WriteinFile("BackgroundService_FS_UNIT_3 ~~~~~~~~~" + "GETFINALPulsar doInBackground Execption " + e);
+                AppConstants.WriteinFile( TAG+" <<ForDev>> GETFINALPulsar doInBackground Execption " + e);
                 Log.d("Ex", e.getMessage());
             }
 
@@ -1021,7 +1056,7 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService {
 
 
             } catch (Exception e) {
-                AppConstants.WriteinFile("BackgroundService_FS_UNIT_3 ~~~~~~~~~" + "GETFINALPulsar onPostExecute Execption " + e);
+                AppConstants.WriteinFile( TAG+" <<ForDev>> GETFINALPulsar onPostExecute Execption " + e);
                 System.out.println(e);
             }
 
@@ -1071,7 +1106,7 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService {
 
             }
         } catch (Exception e) {
-            AppConstants.WriteinFile("BackgroundService_FS_UNIT_3 ~~~~~~~~~" + "secondsTimeLogic Execption " + e);
+            AppConstants.WriteinFile( TAG+" <<ForDev>> secondsTimeLogic Execption " + e);
         }
     }
 
@@ -1133,7 +1168,7 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService {
         Gson gson = new Gson();
         String jsonData = gson.toJson(authEntityClass);
 
-        AppConstants.WriteinFile("BackgroundService_FS_UNIT_3 ~~~~~~~~~" + "InConvertCountToQuantity jsonData " + jsonData);
+        AppConstants.WriteinFile( TAG+" <<ForDev>> InConvertCountToQuantity jsonData " + jsonData);
 
         String userEmail = CommonUtils.getCustomerDetails_backgroundService_FS3(BackgroundService_FS_UNIT_3.this).PersonEmail;
         String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(BackgroundService_FS_UNIT_3.this) + ":" + userEmail + ":" + "TransactionComplete");
@@ -1317,7 +1352,7 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService {
             Gson gson = new Gson();
             String jsonData = gson.toJson(authEntityClass);
 
-            AppConstants.WriteinFile("BackgroundService_FS_UNIT_3 ~~~~~~~~~" + "InTransactionComplete jsonData " + jsonData);
+            AppConstants.WriteinFile( TAG+" <<ForDev>> InTransactionComplete jsonData " + jsonData);
             System.out.println("AP_FS_3 TrazComp......" + jsonData);
 
             String userEmail = CommonUtils.getCustomerDetails_backgroundService_FS3(this).PersonEmail;
@@ -1408,8 +1443,8 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService {
         String probe_temperature = "";
         String LSB ="";
         String MSB ="";
-        String Tem_data ="";
         String Response_code ="";
+        String Tem_data ="";
 
         try {
 
@@ -1422,7 +1457,7 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService {
             //Get TankMonitoring details from FluidSecure Link
             String response1 = new CommandsGET().execute(URL_TDL_info).get();
             // String response1 = "{  \"tld\":{ \"level\":\"180, 212, 11, 34, 110, 175, 1, 47, 231, 15, 78, 65\"  }  }";
-            AppConstants.WriteinFile("\n" + TAG + "Backgroundservice_FS_UNIT_3 TankMonitorReading ~~~URL_TDL_info_Resp~~" + response1);
+            AppConstants.WriteinFile("\n" + TAG + " TankMonitorReading ~~~URL_TDL_info_Resp~~\n" + response1);
 
             if (response1.equalsIgnoreCase("")){
                 System.out.println("TLD response empty");
@@ -1454,7 +1489,7 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService {
 
                 } catch (JSONException e) {
                     e.printStackTrace();
-                    AppConstants.WriteinFile(TAG + "TankMonitorReading ~~~JSONException~~" + e);
+                    AppConstants.WriteinFile( TAG+" <<ForDev>> TankMonitorReading ~~~JSONException~~" + e);
                 }
 
                 //-----------------------------------------------------------
@@ -1469,7 +1504,7 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService {
                 obj_entity.MSB = MSB;
                 obj_entity.TLDTemperature = Tem_data;
                 obj_entity.ReadingDateTime = CurrentDeviceDate;//PrintDate;
-                obj_entity.Response_code = Response_code;//Response_code; //159 --
+                obj_entity.Response_code = Response_code;//Response_code;
 
                 BackgroundService_FS_UNIT_3.SaveTankMonitorReadingy TestAsynTask = new BackgroundService_FS_UNIT_3.SaveTankMonitorReadingy(obj_entity);
                 TestAsynTask.execute();
@@ -1477,13 +1512,13 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService {
 
                 String serverRes = TestAsynTask.response;
 
-                AppConstants.WriteinFile(TAG + "TankMonitorReading ~~~serverRes~~" + serverRes);
+                AppConstants.WriteinFile( TAG+" <<ForDev>> TankMonitorReading ~~~serverRes~~" + serverRes);
 
             }
 
         } catch (Exception e) {
             e.printStackTrace();
-            AppConstants.WriteinFile(TAG + "TankMonitorReading ~~~Execption~~" + e);
+            AppConstants.WriteinFile( TAG+" <<ForDev>> TankMonitorReading ~~~Execption~~" + e);
         }
 
 
@@ -1626,7 +1661,7 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService {
                 new Handler().postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        AppConstants.WriteinFile("BackgroundService_AP~~~~~~~~~" + "SAVE TRANS locally");
+                        AppConstants.WriteinFile( TAG+" <<ForDev>> SAVE TRANS locally");
                         TransactionCompleteFunction();
 
                         System.out.println("AFTER SECONDS 15");
@@ -1850,7 +1885,7 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService {
             prove = finalpd / 128;
 
         } catch (Exception e) {
-            AppConstants.WriteinFile("\n" + TAG + "Backgroundservice_AP_PIPE GetProbeReading ~~~Exception~~" + e);
+            AppConstants.WriteinFile( TAG+" <<ForDev>> GetProbeReading ~~~Exception~~" + e);
         }
         return String.valueOf(prove);
     }
@@ -1934,13 +1969,13 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService {
 
                 } catch (Exception e) {
                     e.printStackTrace();
-                    AppConstants.WriteinFile("BackgroundService_FS_UNIT_3 ~~~~~~~~~" + "ListConnectedHotspotIP_FS_UNIT_3 1 --Exception " + e);
+                    AppConstants.WriteinFile( TAG+" <<ForDev>> ListConnectedHotspotIP_FS_UNIT_3 1 --Exception " + e);
                 } finally {
                     try {
                         br.close();
                     } catch (IOException e) {
                         e.printStackTrace();
-                        AppConstants.WriteinFile("BackgroundService_FS_UNIT_3 ~~~~~~~~~" + "ListConnectedHotspotIP_FS_UNIT_3 2 --Exception " + e);
+                        AppConstants.WriteinFile( TAG+" <<ForDev>> ListConnectedHotspotIP_FS_UNIT_3 2 --Exception " + e);
                     }
                 }
             }

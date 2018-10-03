@@ -24,7 +24,7 @@ import static com.TrakEngineering.FluidSecureHub.WelcomeActivity.wifiApManager;
 
 public class AcceptOdoActivity extends AppCompatActivity {
 
-    private static final String TAG = "AcceptOdoActivity :";
+    private static final String TAG = "AcceptOdoActivity ";
     private EditText editOdoTenths;
     private String vehicleNumber;
     private String odometerTenths;
@@ -207,7 +207,6 @@ public class AcceptOdoActivity extends AppCompatActivity {
                     C_AccOdoMeter = Constants.AccOdoMeter_FS4;
                 }
 
-                AppConstants.WriteinFile("AcceptOdoActivity~~~~~~~~~" + Constants.AccOdoMeter);
                 //allValid();
 
                 int PO = Integer.parseInt(PreviousOdo.trim());
@@ -217,6 +216,7 @@ public class AcceptOdoActivity extends AppCompatActivity {
 
                     if (OdometerReasonabilityConditions.trim().equalsIgnoreCase("1")) {
 
+                        AppConstants.WriteinFile( TAG+" Odometer: Entered" + C_AccOdoMeter);
                         if (C_AccOdoMeter >= PO && C_AccOdoMeter <= OL) {
                             //gooooo
                             allValid();
@@ -227,6 +227,8 @@ public class AcceptOdoActivity extends AppCompatActivity {
                                 //gooooo
                                 allValid();
                             } else {
+
+                                AppConstants.WriteinFile( TAG+" Odometer: Entered" + C_AccOdoMeter+" is not within the reasonability");
                                 editOdoTenths.setText("");
                                 AppConstants.colorToastBigFont(getApplicationContext(), "The odometer entered is not within the reasonability your administrator has assigned, please contact your administrator.", Color.RED);//Bad odometer! Please try again.
                             }
@@ -234,16 +236,20 @@ public class AcceptOdoActivity extends AppCompatActivity {
 
                     } else {
 
+
                         if (C_AccOdoMeter >= PO && C_AccOdoMeter <= OL) {
+                            AppConstants.WriteinFile( TAG+" Odometer: Entered" + C_AccOdoMeter);
                             ///gooooo
                             allValid();
                         } else {
                             editOdoTenths.setText("");
+                            AppConstants.WriteinFile( TAG+" Odometer: Entered" + C_AccOdoMeter+" is not within the reasonability");
                             AppConstants.colorToastBigFont(getApplicationContext(), "The odometer entered is not within the reasonability your administrator has assigned, please contact your administrator.", Color.RED);
                         }
                     }
                 } else {
 
+                    AppConstants.WriteinFile( TAG+" Odometer: Entered" + C_AccOdoMeter);
                     //comment By JB -it  must take ANY number they enter on the 4th try
                     allValid();
 

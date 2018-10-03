@@ -66,12 +66,23 @@ public class AppConstants {
     public static final String OtherLabel = "OtherLabel";
     public static final String TimeOut = "TimeOut";
     public static final String HubId = "HubId";
+    public static final String IsGateHub = "IsGateHub";
 
 
       // public static String webIP = "http://103.8.126.241:89/";//test
        public static String webIP = "http://fluidsecure.cloudapp.net/"; //live
       //public static String webIP = "http://103.8.126.241:93/";//New link for FS_AP
      //public static String webIP = "http://103.8.126.241:8988/";//new for hotspot changes
+
+
+    public static String ESP32_update = "NO";
+    public static String PIC_update = "NO";
+
+    public static String Server_mesage = "Server Not Connected..!!!";
+    public static String Server_Request;
+    public static String Server_Response;
+    public static String Header_data;
+
 
     public static boolean FlickeringScreenOff;
     public static String NoSleepRespTime = "";
@@ -372,7 +383,6 @@ public class AppConstants {
         alertDialog.show();
     }
 
-
     public static void AlertDialogFinishWithTitle(final Activity ctx, String title,String message
     ) {
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(ctx);
@@ -394,8 +404,6 @@ public class AppConstants {
         AlertDialog alertDialog = alertDialogBuilder.create();
         alertDialog.show();
     }
-
-
 
     public static void colorToast(Context ctx, String msg, int colr) {
         Toast toast = Toast.makeText(ctx, " " + msg + " ", Toast.LENGTH_LONG);
@@ -529,13 +537,13 @@ public class AppConstants {
 
             if (!file.exists()) {
                 if (file.mkdirs()) {
-                     //System.out.println("Create FSLog Folder");
+                    //System.out.println("Create FSLog Folder");
                 } else {
                     // System.out.println("Fail to create KavachLog folder");
                 }
             }
 
-             String dt = GetDateString(System.currentTimeMillis());
+            String dt = GetDateString(System.currentTimeMillis());
             File gpxfile = new File(file + "/Log_"+dt+".txt");
             if (!gpxfile.exists()) {
                 gpxfile.createNewFile();
@@ -544,7 +552,7 @@ public class AppConstants {
 
             FileWriter fileWritter = new FileWriter(gpxfile, true);
             BufferedWriter bufferWritter = new BufferedWriter(fileWritter);
-            bufferWritter.write(Calendar.getInstance().getTime() + "--" + str + " ");
+            bufferWritter.write("\n"+Calendar.getInstance().getTime() + "--" + str + " ");
             bufferWritter.close();
 
         } catch (IOException e) {

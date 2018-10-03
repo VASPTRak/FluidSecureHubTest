@@ -30,6 +30,16 @@ public class Constants {
 
     public static String CurrFsPass;
 
+    public static String ManualOdoScreenFree = "Yes";
+    public static String FA_OdometerRequired = "Yes";
+
+    public static String FS_1OdoScreen = "FREE";
+    public static String FS_2OdoScreen = "FREE";
+    public static String FS_3OdoScreen = "FREE";
+    public static String FS_4OdoScreen = "FREE";
+
+    public static String FA_Message = "";
+
 
     public static String FS_1STATUS = "FREE";
     public static String FS_2STATUS = "FREE";

@@ -480,6 +480,7 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
                     String IsPersonHasFob = jsonObject.getString("IsPersonHasFob");
                     String LFBluetoothCardReader = jsonObject.getString("LFBluetoothCardReader");
                     String LFBluetoothCardReaderMacAddress = jsonObject.getString("LFBluetoothCardReaderMacAddress");
+                    String IsGateHub = "False";//jsonObject.getString("IsGateHub");
 
 
                     storeBT_FOBDetails(BluetoothCardReader, BluetoothCardReaderMacAddress,LFBluetoothCardReader,LFBluetoothCardReaderMacAddress);
@@ -488,7 +489,7 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
                     System.out.println("BluetoothCardReader--" + response);
 
                     if (IsApproved.equalsIgnoreCase("True")) {
-                        CommonUtils.SaveUserInPref(SplashActivity.this, userName, userMobile, userEmail, "", IsDepartmentRequire, IsPersonnelPINRequire, IsOtherRequire, "", OtherLabel, TimeOut, HubId, IsPersonnelPINRequireForHub, FluidSecureSiteName,IsVehicleHasFob,IsPersonHasFob);
+                        CommonUtils.SaveUserInPref(SplashActivity.this, userName, userMobile, userEmail, "", IsDepartmentRequire, IsPersonnelPINRequire, IsOtherRequire, "", OtherLabel, TimeOut, HubId, IsPersonnelPINRequireForHub, FluidSecureSiteName,IsVehicleHasFob,IsPersonHasFob,IsGateHub);
 
                         if (IsLoginRequire.trim().equalsIgnoreCase("True")) {
                             AppConstants.Login_Email = userEmail;
@@ -542,10 +543,10 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
 
                 } else if (ResponceText.equalsIgnoreCase("No data found")) {
 
-                    AppConstants.AlertDialogFinish(SplashActivity.this, ResponceText);
+                    AppConstants.AlertDialogFinish(SplashActivity.this,  ResponceText);
 
                 } else {
-                    AppConstants.AlertDialogFinish(SplashActivity.this, ResponceText);
+                    AppConstants.AlertDialogFinish(SplashActivity.this,  ResponceText);
                 }
 
             } else {
@@ -800,4 +801,3 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
     }
 
 }
-

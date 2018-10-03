@@ -61,20 +61,20 @@ public class BluetoothReaderReciver extends BroadcastReceiver{
     public void onReceive(Context context, Intent intent) {
 
         ctx = context;
-        
+
         BluetoothAdapter bluetoothAdapter = null;
         BluetoothManager bluetoothManager = null;
         final String action = intent.getAction();
 
         if (!(mBluetoothReader instanceof Acr3901us1Reader)) {
-                /* Only ACR3901U-S1 require bonding. */
+            /* Only ACR3901U-S1 require bonding. */
             return;
         }
 
         if (BluetoothDevice.ACTION_BOND_STATE_CHANGED.equals(action)) {
             Log.i("A_pin Btreader", "ACTION_BOND_STATE_CHANGED");
 
-                /* Get bond (pairing) state */
+            /* Get bond (pairing) state */
             if (mBluetoothReaderManager == null) {
                 Log.w("A_pin Btreader", "Unable to initialize BluetoothReaderManager.");
                 return;
@@ -105,14 +105,14 @@ public class BluetoothReaderReciver extends BroadcastReceiver{
             Log.i("A_pin Btreader", "BroadcastReceiver - getBondState. state = "
                     + getBondingStatusString(bondState));
 
-                /* Enable notification */
+            /* Enable notification */
             if (bondState == BluetoothDevice.BOND_BONDED) {
                 if (mBluetoothReader != null) {
                     mBluetoothReader.enableNotification(true);
                 }
             }
 
-                /* Progress Dialog */
+            /* Progress Dialog */
             if (bondState == BluetoothDevice.BOND_BONDING) {
                 mProgressDialog = ProgressDialog.show(context,
                         "ACR3901U-S1", "Bonding...");
@@ -128,8 +128,8 @@ public class BluetoothReaderReciver extends BroadcastReceiver{
 
 
     /*
-   * Update listener
-   */
+     * Update listener
+     */
     private static void setListener(BluetoothReader reader) {
 
         /* Wait for authentication completed. */
@@ -145,7 +145,7 @@ public class BluetoothReaderReciver extends BroadcastReceiver{
                             public void run() {
                                 if (errorCode == BluetoothReader.ERROR_SUCCESS) {
 
-                                    
+
                                     //Toast.makeText(getApplicationContext(), "Authentication Success!", Toast.LENGTH_SHORT).show();
                                     //transmitEscapeCommend();
                                     Startpolling();//Start polling
@@ -196,7 +196,7 @@ public class BluetoothReaderReciver extends BroadcastReceiver{
 
                                 System.out.println("result APDU " + getResponseString(apdu, errorCode));
                                 String FobKey = getResponseString(apdu, errorCode);
- 
+
                             }
                         });
                     }
@@ -246,7 +246,7 @@ public class BluetoothReaderReciver extends BroadcastReceiver{
 
         //----------------Bluetooth reader------------------
 
-          /* Initialize BluetoothReaderGattCallback. */
+        /* Initialize BluetoothReaderGattCallback. */
         mGattCallback = new BluetoothReaderGattCallback();
 
         /* Register BluetoothReaderGattCallback's listeners */
@@ -376,9 +376,9 @@ public class BluetoothReaderReciver extends BroadcastReceiver{
     //-------------------Bluetooth Reader------------
 
     /*
-* Create a GATT connection with the reader. And detect the connected reader
-* once service list is available.
-*/
+     * Create a GATT connection with the reader. And detect the connected reader
+     * once service list is available.
+     */
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
     private static boolean connectReader() {
         BluetoothManager bluetoothManager = (BluetoothManager) ctx.getSystemService(Context.BLUETOOTH_SERVICE);
@@ -515,7 +515,7 @@ public class BluetoothReaderReciver extends BroadcastReceiver{
 
         try {
 
-        /* Retrieve master key from edit box. */
+            /* Retrieve master key from edit box. */
             byte masterKey[] = CommonUtils.toByteArray(CommonUtils.toHexString(DEFAULT_1255_MASTER_KEY.getBytes("UTF-8")));
 
 
@@ -559,7 +559,7 @@ public class BluetoothReaderReciver extends BroadcastReceiver{
 
     public static void TransmitApdu() {
 
-            /* Check for detected reader. */
+        /* Check for detected reader. */
         if (mBluetoothReader == null) {
             System.out.println("card_reader_not_ready");
             //Toast.makeText(getApplicationContext(), "card_reader_not_ready", Toast.LENGTH_SHORT).show();
@@ -571,7 +571,7 @@ public class BluetoothReaderReciver extends BroadcastReceiver{
 
         if (apduCommand != null && apduCommand.length > 0) {
 
-           /* Transmit APDU command. */
+            /* Transmit APDU command. */
             if (!mBluetoothReader.transmitApdu(apduCommand)) {
                 System.out.println("card_reader_not_ready");
                 //Toast.makeText(getApplicationContext(), "card_reader_not_ready", Toast.LENGTH_SHORT).show();
@@ -585,20 +585,20 @@ public class BluetoothReaderReciver extends BroadcastReceiver{
 
     public void transmitEscapeCommend(){
 
-            /* Check for detected reader. */
+        /* Check for detected reader. */
         if (mBluetoothReader == null) {
             System.out.println("card_reader_not_ready");
             return;
         }
 
-                /* Retrieve escape command from edit box. */
+        /* Retrieve escape command from edit box. */
         byte escapeCommand[] =  CommonUtils.toByteArray(DEFAULT_1255_ESCAPE_COMMAND);
 
         if (escapeCommand != null && escapeCommand.length > 0) {
-                    /* Clear response field for result of escape command. */
+            /* Clear response field for result of escape command. */
             System.out.println("No Data");
 
-                    /* Transmit escape command. */
+            /* Transmit escape command. */
             if (!mBluetoothReader.transmitEscapeCommand(escapeCommand)) {
                 System.out.println("card_reader_not_ready");
             }

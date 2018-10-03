@@ -221,6 +221,14 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
         new GetConnectedDevicesIP().execute();
         //Hide keyboard
         this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+
+        //Gate software AutoClick Start button
+        SharedPreferences sharedPrefODO = DisplayMeterActivity.this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
+        String IsGateHub = sharedPrefODO.getString(AppConstants.IsGateHub, "");
+        if (IsGateHub.equalsIgnoreCase("True")) {
+            btnStart.performClick();
+        }
+
     }
 
     @Override
@@ -260,8 +268,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
             }
         }, screenTimeOut);
 
-
-        AppConstants.WriteinFile("DisplayMeterActivity ~~~~~~~~~" + " In DisplayMeterActivity ");
+        AppConstants.WriteinFile( TAG+" <<ForDev>> In DisplayMeterActivity ");
 
         getListOfConnectedDevice();
 
@@ -781,6 +788,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
                 }
 
+
                 URL_GET_TXNID = HTTP_URL + "client?command=lasttxtnid";
                 URL_SET_TXNID = HTTP_URL + "config?command=txtnid";
                 URL_GET_PULSAR = HTTP_URL + "client?command=pulsar ";
@@ -862,7 +870,6 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                                         editor.putString("hoseid_fs1", AppConstants.UP_HoseId_fs1);
                                         editor.putString("fsversion_fs1", iot_version);
                                         editor.commit();
-
 
 
                                         //IF upgrade firmware true check below
@@ -999,7 +1006,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
                             if (count_relayCmd > 1) {
 
-                                AppConstants.WriteinFile("DisplayMeterActivity ~~~~~~~~~" + "Link is unavailable relay");
+                                AppConstants.WriteinFile( TAG+" <<ForDev>> Link is unavailable relay");
                                 AppConstants.colorToastBigFont(DisplayMeterActivity.this, " Link is unavailable", Color.RED);
                                 AppConstants.ClearEdittextFielsOnBack(DisplayMeterActivity.this); //Clear EditText on move to welcome activity.
                                 Intent intent = new Intent(DisplayMeterActivity.this, WelcomeActivity.class);
@@ -1008,9 +1015,10 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
                             }else{
 
-                                AppConstants.WriteinFile("DisplayMeterActivity ~~~~~~~~~" + "Link is unavailable relay command Retry attempt: "+count_InfoCmd);
+                                AppConstants.WriteinFile( TAG+" <<ForDev>> Link is unavailable relay command Retry attempt: "+count_InfoCmd);
                                 AppConstants.colorToastBigFont(DisplayMeterActivity.this, "Link is unavailable Retry attempt"+count_relayCmd, Color.RED);
                                 new Handler().postDelayed(new Runnable() {
+
                                     @Override
                                     public void run() {
                                         btnStart.callOnClick();//retry
@@ -1029,7 +1037,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
                         if (count_InfoCmd > 1) {
 
-                            AppConstants.WriteinFile("DisplayMeterActivity ~~~~~~~~~" + "Link is unavailable info command");
+                            AppConstants.WriteinFile( TAG+" <<ForDev>> Link is unavailable info command");
                             AppConstants.colorToastBigFont(DisplayMeterActivity.this, " Link is unavailable", Color.RED);
                             AppConstants.ClearEdittextFielsOnBack(DisplayMeterActivity.this); //Clear EditText on move to welcome activity.
                             Intent intent = new Intent(DisplayMeterActivity.this, WelcomeActivity.class);
@@ -1038,7 +1046,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
                         }else{
 
-                            AppConstants.WriteinFile("DisplayMeterActivity ~~~~~~~~~" + "Link is unavailable info command Retry attempt: "+count_InfoCmd);
+                            AppConstants.WriteinFile( TAG+" <<ForDev>> Link is unavailable info command Retry attempt: "+count_InfoCmd);
                             AppConstants.colorToastBigFont(DisplayMeterActivity.this, "Link is unavailable Retry attempt"+count_InfoCmd, Color.RED);
                             new Handler().postDelayed(new Runnable() {
                                 @Override
@@ -1281,7 +1289,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
             String respp = new CommandsGET().execute(URL_RECORD10_PULSAR).get();
 
-            AppConstants.WriteinFile("DisplayMeterActivity~~~~~~~~~" + "LAST TRANS RawData " + " LastTXNid" + LastTXNid + "Resp " + respp);
+            AppConstants.WriteinFile( TAG+" <<ForDev>> LAST TRANS RawData " + " LastTXNid" + LastTXNid + "Resp " + respp);
 
             if (LastTXNid.equals("-1")) {
                 System.out.println(LastTXNid);
@@ -1319,7 +1327,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                         String jsonData = gson.toJson(authEntityClass);
 
                         System.out.println("TrazComp......" + jsonData);
-                        AppConstants.WriteinFile("DisplayMeterActivity~~~~~~~~~" + "LAST TRANS jsonData " + jsonData);
+                        AppConstants.WriteinFile( TAG+" <<ForDev>> LAST TRANS jsonData " + jsonData);
 
                         String userEmail = CommonUtils.getCustomerDetails(DisplayMeterActivity.this).PersonEmail;
 
@@ -1346,13 +1354,13 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                         if (isInsert && Lastqty > 0) {
                             controller.insertTransactions(imap);
 
-                            AppConstants.WriteinFile("DisplayMeterActivity~~~~~~~~~" + "LAST TRANS SAVED in sqlite");
+                            AppConstants.WriteinFile( TAG+" <<ForDev>> LAST TRANS SAVED in sqlite");
                         }
 
 
                     } catch (Exception ex) {
 
-                        AppConstants.WriteinFile("DisplayMeterActivity~~~~~~~~~" + "LAST TRANS Exception " + ex.getMessage());
+                        AppConstants.WriteinFile( TAG+" <<ForDev>> LAST TRANS Exception " + ex.getMessage());
                     }
 
 
@@ -1360,7 +1368,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
             }
 
         } catch (Exception e) {
-            AppConstants.WriteinFile("DisplayMeterActivity~~~~~~~~~" + "LastTXNid Ex:" + e.getMessage() + " ");
+            AppConstants.WriteinFile( TAG+" <<ForDev>> LastTXNid Ex:" + e.getMessage() + " ");
         }
 
 
@@ -2708,13 +2716,13 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
                     } catch (Exception e) {
                         e.printStackTrace();
-                        AppConstants.WriteinFile("welcomeActivity ~~~~~~~~~" + "GetConnectedDevicesIP 1 --Exception " + e);
+                        AppConstants.WriteinFile( TAG+" <<ForDev>> GetConnectedDevicesIP 1 --Exception " + e);
                     } finally {
                         try {
                             br.close();
                         } catch (IOException e) {
                             e.printStackTrace();
-                            AppConstants.WriteinFile("welcomeActivity ~~~~~~~~~" + "GetConnectedDevicesIP 2 --Exception " + e);
+                            AppConstants.WriteinFile( TAG+" <<ForDev>> GetConnectedDevicesIP 2 --Exception " + e);
                         }
                     }
                 }

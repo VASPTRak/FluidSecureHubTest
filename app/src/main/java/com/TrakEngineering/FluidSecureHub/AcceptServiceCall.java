@@ -22,7 +22,7 @@ public class AcceptServiceCall {
     private ConnectionDetector cd;
     public Activity activity;
     String IsOdoMeterRequire = "", IsDepartmentRequire = "", IsPersonnelPINRequire = "", IsOtherRequire = "";
-
+    private static final String TAG = "AcceptServiceCall";
 
 
     public void checkAllFields() {
@@ -101,7 +101,7 @@ public class AcceptServiceCall {
 
             Gson gson = new Gson();
             String jsonData = gson.toJson(authEntityClass);
-            AppConstants.WriteinFile("~~~~~~~~~ Authorization Sequence Data ~~~~~~~~~~~" +jsonData);
+            AppConstants.WriteinFile(TAG+" Authorization Sequence Data: " +jsonData);
 
 
             cd = new ConnectionDetector(activity);

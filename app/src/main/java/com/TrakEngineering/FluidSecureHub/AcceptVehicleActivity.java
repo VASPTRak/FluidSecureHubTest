@@ -332,15 +332,15 @@ public class AcceptVehicleActivity extends AppCompatActivity {
 
     //============SoftKeyboard enable/disable Detection======
     private boolean isKeyboardShown(View rootView) {
-    /* 128dp = 32dp * 4, minimum button height 32dp and generic 4 rows soft keyboard */
+        /* 128dp = 32dp * 4, minimum button height 32dp and generic 4 rows soft keyboard */
         final int SOFT_KEYBOARD_HEIGHT_DP_THRESHOLD = 128;
 
         Rect r = new Rect();
         rootView.getWindowVisibleDisplayFrame(r);
         DisplayMetrics dm = rootView.getResources().getDisplayMetrics();
-    /* heightDiff = rootView height - status bar height (r.top) - visible frame height (r.bottom - r.top) */
+        /* heightDiff = rootView height - status bar height (r.top) - visible frame height (r.bottom - r.top) */
         int heightDiff = rootView.getBottom() - r.bottom;
-    /* Threshold size: dp to pixels, multiply with display density */
+        /* Threshold size: dp to pixels, multiply with display density */
         boolean isKeyboardShown = heightDiff > SOFT_KEYBOARD_HEIGHT_DP_THRESHOLD * dm.density;
 
         Log.d(TAG, "isKeyboardShown ? " + isKeyboardShown + ", heightDiff:" + heightDiff + ", density:" + dm.density
@@ -470,7 +470,7 @@ public class AcceptVehicleActivity extends AppCompatActivity {
 
                         } else if (IsPersonnelPINRequireForHub.equalsIgnoreCase("True")) {
 
-                            Intent intent = new Intent(AcceptVehicleActivity.this, DeviceControlActivity_Pin.class);//AcceptPinActivity
+                            Intent intent = new Intent(AcceptVehicleActivity.this, AcceptPinActivity.class);//AcceptPinActivity
                             startActivity(intent);
 
                         } else if (IsDepartmentRequire.equalsIgnoreCase("True")) {
@@ -496,7 +496,7 @@ public class AcceptVehicleActivity extends AppCompatActivity {
                         String ValidationFailFor = jsonObject.getString("ValidationFailFor");
                         if (ValidationFailFor.equalsIgnoreCase("Pin")) {
                             AppConstants.colorToastBigFont(this, ResponceText, Color.RED);
-                            Intent i = new Intent(this, DeviceControlActivity_Pin.class);
+                            Intent i = new Intent(this, AcceptPinActivity.class);
                             startActivity(i);
 
                         } else {
@@ -625,7 +625,7 @@ public class AcceptVehicleActivity extends AppCompatActivity {
                     String ValidationFailFor = jsonObject.getString("ValidationFailFor");
                     if (ValidationFailFor.equalsIgnoreCase("Pin")) {
                         AppConstants.colorToastBigFont(this, ResponceText, Color.RED);
-                        Intent i = new Intent(this, DeviceControlActivity_Pin.class);
+                        Intent i = new Intent(this, AcceptPinActivity.class);
                         startActivity(i);
 
                     } else {
@@ -854,7 +854,7 @@ public class AcceptVehicleActivity extends AppCompatActivity {
             tv_fob_number.setVisibility(View.GONE);
 
             // btnSave.setEnabled(false);
-           // editVehicleNumber.setEnabled(false);
+            // editVehicleNumber.setEnabled(false);
             //editVehicleNumber.setVisibility(View.INVISIBLE);
             Linear_layout_Save_back_buttons.setVisibility(View.VISIBLE);
 

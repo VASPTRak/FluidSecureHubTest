@@ -29,6 +29,7 @@ import static com.TrakEngineering.FluidSecureHub.BluetoothReaderReciver.ctx;
 
 public class BackgroundServiceBluetoothPrinter extends BackgroundService {
 
+    private String TAG = "BS_BluetoothPrinter ";
     String PrintRecipt = "";
     //--------------------------------------------------------------tst
     BluetoothAdapter mBluetoothAdapter;
@@ -132,7 +133,7 @@ public class BackgroundServiceBluetoothPrinter extends BackgroundService {
                     // RPP300 is the name of the bluetooth printer device
                     // we got this name from the list of paired devices
                     String MacAddr = AppConstants.PrinterMacAddress;
-                    AppConstants.WriteinFile("BluetoothPrinter~~~~~~~~~findBT_method" + "BT_PRINTER Mac Address:" + MacAddr);
+                    AppConstants.WriteinFile( TAG+" <<ForDev>> findBT_method" + "BT_PRINTER Mac Address:" + MacAddr);
                     if (MacAddr.equalsIgnoreCase(""))
                     {
 
@@ -148,7 +149,7 @@ public class BackgroundServiceBluetoothPrinter extends BackgroundService {
                             mmDevice = device;
                             break;
                         }else{
-                            AppConstants.WriteinFile("BluetoothPrinter~~~~~~~~~findBT_method" + "printer mac address blank");
+                            AppConstants.WriteinFile( TAG+" <<ForDev>> findBT_method" + "printer mac address blank");
                             Toast.makeText(ctx,"printer mac address blank",Toast.LENGTH_LONG).show();
                         }
 
@@ -157,8 +158,7 @@ public class BackgroundServiceBluetoothPrinter extends BackgroundService {
 
                 }
             }else{
-
-                AppConstants.WriteinFile("BluetoothPrinter~~~~~~~~~findBT_method" + "printer mac address blank");
+                AppConstants.WriteinFile( TAG+" <<ForDev>> findBT_method" + "printer mac address blank");
 
             }
 
@@ -173,8 +173,7 @@ public class BackgroundServiceBluetoothPrinter extends BackgroundService {
 
     public void openBT() throws IOException {
         try {
-
-            AppConstants.WriteinFile("BluetoothPrinter~~~~~~~~~OpenBT_method" + "BT_PRINTER Mac Address:");
+            AppConstants.WriteinFile( TAG+" <<ForDev>> OpenBT_method" + "BT_PRINTER Mac Address:");
             // Standard SerialPortService ID
             UUID uuid = UUID.fromString("00001101-0000-1000-8000-00805f9b34fb");
             mmSocket = mmDevice.createRfcommSocketToServiceRecord(uuid);
@@ -262,7 +261,7 @@ public class BackgroundServiceBluetoothPrinter extends BackgroundService {
     public void sendData(String printReceipt) throws IOException {
         try {
 
-            AppConstants.WriteinFile("BluetoothPrinter~~~~~~~~~SendData_method" + "BT_PRINTER Receipt"+printReceipt);
+            AppConstants.WriteinFile( TAG+" <<ForDev>> SendData_method" + "BT_PRINTER Receipt\n"+printReceipt);
             // the text typed by the user
             String msg = printReceipt+"\n\n\n\n\n";//myTextbox.getText().toString();
             msg += "\n";
@@ -292,6 +291,5 @@ public class BackgroundServiceBluetoothPrinter extends BackgroundService {
         }
     }
 
-
-
 }
+

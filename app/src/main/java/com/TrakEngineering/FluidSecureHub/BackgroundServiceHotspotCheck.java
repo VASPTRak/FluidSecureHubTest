@@ -37,9 +37,9 @@ public class BackgroundServiceHotspotCheck extends BackgroundService {
                 this.stopSelf();
             } else {
 
-                //Enable bluetooth
-//                BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-//                mBluetoothAdapter.enable();
+                /*//Enable bluetooth
+                BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+                mBluetoothAdapter.enable();*/
 
                 //Enable hotspot Logic
                 if (AppConstants.FlickeringScreenOff) {
@@ -51,7 +51,7 @@ public class BackgroundServiceHotspotCheck extends BackgroundService {
 
                     wifiApManager.setWifiApEnabled(null, true);  //Hotspot enabled
                     Log.i(TAG, "Connecting to hotspot, please wait....");
-                    AppConstants.WriteinFile("BackgroundServiceHotspotCheck~~~~~~~~~" + "Hotspot ON--1");
+                    AppConstants.WriteinFile( TAG+" <<ForDev>> Hotspot ON--1");
 
                 } else if (screenOff) {
 
@@ -59,8 +59,7 @@ public class BackgroundServiceHotspotCheck extends BackgroundService {
 
                         wifiApManager.setWifiApEnabled(null, true);  //Hotspot enabled
                         Log.i(TAG, "Connecting to hotspot, please wait....");
-                        AppConstants.WriteinFile("BackgroundServiceHotspotCheck~~~~~~~~~" + "Hotspot ON--2");
-
+                        AppConstants.WriteinFile( TAG+" <<ForDev>> Hotspot ON--2");
 
                     } /*else if (!isScreenOn(this) && CommonUtils.isHotspotEnabled(BackgroundServiceHotspotCheck.this)) {
 

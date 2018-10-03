@@ -6,7 +6,7 @@
     android:background="@color/white"
     android:orientation="vertical"
     android:id="@+id/linearLayout_MainActivity"
-    tools:context="com.TrakEngineering.FluidSecureHubTest.WelcomeActivity">
+    tools:context="com.TrakEngineering.FluidSecureHub.WelcomeActivity">
 
     <ScrollView
         android:layout_width="match_parent"
@@ -239,6 +239,81 @@
 
             </LinearLayout>
             <!--BT demo end     -->
+
+            <!--FSVM Demo Code Starts  -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:gravity="center"
+                android:text="Wating for FA message"
+                android:background="@color/colorFluid"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:textColor="#fff"
+                android:textSize="20sp"
+                android:id="@+id/tv_FA_message"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:orientation="vertical">
+
+
+                <Button
+                    android:id="@+id/btn_clear_data"
+                    android:layout_width="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_height="wrap_content"
+                    android:text="Click to clear Data" />
+
+                <Button
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:text="Display Message:"/>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:id="@+id/tv_Display_msg"
+                    android:textSize="25dp"/>
+
+                <Button
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:text="Request:"/>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/tv_request"
+                    android:textSize="25dp"/>
+
+
+                <Button
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:text="Response sent:"/>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/tv_response"
+                    android:textSize="25dp"/>
+
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="50dp"
+                    android:id="@+id/tv_file_address"
+                    android:textSize="25dp"/>
+
+
+
+
+            </LinearLayout>
+            <!--FSVM Demo Code ends  -->
+
 
             <TextView
                 android:id="@+id/textView"

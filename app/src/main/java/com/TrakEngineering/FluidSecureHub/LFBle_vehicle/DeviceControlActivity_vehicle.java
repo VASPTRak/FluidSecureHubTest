@@ -373,7 +373,14 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
 
 
         DisplayScreenInit();
-
+        //Gate software
+        SharedPreferences sharedPrefODO = DeviceControlActivity_vehicle.this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
+        String IsGateHub = sharedPrefODO.getString(AppConstants.IsGateHub, "");
+        if (IsGateHub.equalsIgnoreCase("True")) {
+            Istimeout_Sec = false;
+        }else{
+            Istimeout_Sec = true;
+        }
 
         TimeoutVehicleScreen();
         registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter());
@@ -787,8 +794,8 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
                         String OdoLimit = jsonObject.getString("OdoLimit");
                         String OdometerReasonabilityConditions = jsonObject.getString("OdometerReasonabilityConditions");
                         String CheckOdometerReasonable = jsonObject.getString("CheckOdometerReasonable");
-                       /* String PreviousHours = jsonObject.getString("PreviousHours");
-                        String HoursLimit = jsonObject.getString("HoursLimit");*/
+                        String PreviousHours = jsonObject.getString("PreviousHours");
+                        String HoursLimit = jsonObject.getString("HoursLimit");
 
 
                         SharedPreferences sharedPref = DeviceControlActivity_vehicle.this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
@@ -799,8 +806,8 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
                         editor.putString("OdoLimit", OdoLimit);
                         editor.putString("OdometerReasonabilityConditions", OdometerReasonabilityConditions);
                         editor.putString("CheckOdometerReasonable", CheckOdometerReasonable);
-//                        editor.putString("PreviousHours", PreviousHours);
-//                        editor.putString("HoursLimit", HoursLimit);
+                        editor.putString("PreviousHours", PreviousHours);
+                        editor.putString("HoursLimit", HoursLimit);
                         editor.commit();
 
 

@@ -51,11 +51,13 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -67,6 +69,8 @@ import com.TrakEngineering.FluidSecureHub.enity.RenameHose;
 import com.TrakEngineering.FluidSecureHub.enity.StatusForUpgradeVersionEntity;
 import com.TrakEngineering.FluidSecureHub.enity.UpdateMacAddressClass;
 import com.TrakEngineering.FluidSecureHub.enity.UserInfoEntity;
+import com.TrakEngineering.FluidSecureHub.server.DownloadFileHttp;
+import com.TrakEngineering.FluidSecureHub.server.MyServer;
 import com.TrakEngineering.FluidSecureHub.server.ServerHandler;
 import com.acs.bluetooth.Acr1255uj1Reader;
 import com.acs.bluetooth.Acr3901us1Reader;
@@ -128,7 +132,7 @@ import static com.google.android.gms.internal.zzid.runOnUiThread;
 public class WelcomeActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, View.OnClickListener, View.OnTouchListener {
 
 
-    private String TAG = " WelcomeActivity ";
+    private String TAG = "WelcomeActivity ";
     private float density;
     ProgressDialog dialog1;
     public int ConnectCount = 0;
@@ -140,15 +144,16 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             tv_FS4_hoseName, tv_fs1_stop, tv_fs2_stop, tv_fs3_stop, tv_fs4_stop, tv_fs1QTN, tv_fs2QTN, tv_fs3QTN, tv_fs4QTN, tv_fs1_pulseTxt, tv_fs2_pulseTxt, tv_fs3_pulseTxt, tv_fs4_pulseTxt, tv_fs1_Pulse, tv_fs2_Pulse, tv_fs3_Pulse, tv_fs4_Pulse;
     private ImageView imgFuelLogo;
     private TextView tvTitle;
-    private Button btnGo, btnRetryWifi;
+    private Button btnGo, btnRetryWifi,btn_clear_data;
     private ConnectionDetector cd;
     private double latitude = 0;
     private double longitude = 0;
-    private static final long SCAN_PERIOD = 3000;
-    TextView tvSSIDName, tv_NFS1, tv_NFS2, tv_NFS3, tv_NFS4;//tv_fs1_pulse
+    TextView tvSSIDName, tv_NFS1, tv_NFS2, tv_NFS3, tv_NFS4,tv_FA_message;//tv_fs1_pulse
+    TextView tv_request,tv_response,tv_Display_msg,tv_file_address;
     LinearLayout linearHose, linear_fs_1, linear_fs_2, linear_fs_3, linear_fs_4, linearLayout_MainActivity;
     WifiManager mainWifi;
     StringBuilder sb = new StringBuilder();
+    private MyServer server;
 
     public static ArrayList<HashMap<String, String>> ListOfBleDevices = new ArrayList<>();
     ArrayList<HashMap<String, String>> serverSSIDList = new ArrayList<>();
@@ -160,7 +165,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     static WifiApManager wifiApManager;
     boolean isTCancelled = false;
     int RetryOneAtemptConnectToSelectedSSSID = 0;
-    String ReaderFrequency = "", IsOdoMeterRequire = "", IsDepartmentRequire = "", IsPersonnelPINRequireForHub = "", IsPersonnelPINRequire = "", IsOtherRequire = "";
+    String ReaderFrequency = "", IsOdoMeterRequire = "", IsDepartmentRequire = "", IsPersonnelPINRequireForHub = "", IsPersonnelPINRequire = "", IsOtherRequire = "", IsGateHub = "";
     BroadcastReceiver mReceiver;
     //Upgrade firmware status for each hose
     public static boolean IsUpgradeInprogress_FS1 = false;
@@ -178,7 +183,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     String IpAddress = "", IsDefective = "False";
     Timer t;
     Date date1, date2;
-    boolean EmailReaderNotConnected;
+    boolean EmailReaderNotConnected, OnWelcomeActivity;
 
     String HTTP_URL = "";//"http://192.168.43.153:80/";//for pipe
     String URL_GET_PULSAR_FS1, URL_SET_PULSAR_FS1, URL_WIFI_FS1, URL_RELAY_FS1, URL_GET_PULSAR_FS2, URL_SET_PULSAR_FS2, URL_WIFI_FS2, URL_RELAY_FS2, URL_GET_PULSAR_FS3, URL_SET_PULSAR_FS3, URL_WIFI_FS3, URL_RELAY_FS3, URL_GET_PULSAR_FS4, URL_SET_PULSAR_FS4, URL_WIFI_FS4, URL_RELAY_FS4;
@@ -220,6 +225,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     private BluetoothAdapter mBluetoothAdapter;
     private boolean mScanning;
     private Handler mHandler;
+    private static final long SCAN_PERIOD = 3000;
 
     /* Reader to be connected. */
     private String mDeviceName;
@@ -268,6 +274,16 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     protected void onResume() {
         super.onResume();
 
+        MyServer.ctx = WelcomeActivity.this;
+
+        try {
+            server = new MyServer();
+            DownloadFileHttp abc = new DownloadFileHttp();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         //Scan for Near-by BLE devices
         ListOfBleDevices.clear();
         scanLeDevice(true);
@@ -312,6 +328,10 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         UpdateFSUI_seconds();
 
 
+        //Check ForGateSoftware
+        OnWelcomeActivity = true;
+        CheckForGateSoftware();
+
         //Write TimeStamp to txt file
         WriteTimestampToFile();
 
@@ -329,6 +349,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     @Override
     protected void onPause() {
 
+        OnWelcomeActivity = false;
         // when the screen is about to turn off
         if (ScreenReceiver.screenOff) {
             // this is the case when onPause() is called by the system due to a screen state change
@@ -345,6 +366,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     protected void onDestroy() {
         super.onDestroy();
 
+        OnWelcomeActivity = false;
         /* Stop to monitor bond state change */
         unregisterReceiver(mBroadcastReceiver);
         /* Disconnect Bluetooth reader */
@@ -380,7 +402,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
         TextView tvVersionNum = (TextView) findViewById(R.id.tvVersionNum);
         tvVersionNum.setText("Version " + CommonUtils.getVersionCode(WelcomeActivity.this));
-
+        AppConstants.WriteinFile(TAG + " App opened. App Version: " + CommonUtils.getVersionCode(WelcomeActivity.this));
 
         mHandler = new Handler();
         // Initializes a Bluetooth adapter.  For API level 18 and above, get a reference to
@@ -398,6 +420,28 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         mGoogleApiClient.connect();
 
         InItGUI();
+
+        tv_request = (TextView)findViewById(R.id.tv_request);
+        tv_response = (TextView)findViewById(R.id.tv_response);
+        tv_response = (TextView)findViewById(R.id.tv_response);
+        tv_Display_msg = (TextView)findViewById(R.id.tv_Display_msg);
+        tv_file_address = (TextView)findViewById(R.id.tv_file_address);
+        btn_clear_data = (Button)findViewById(R.id.btn_clear_data);
+        tv_file_address.setText("File Download url: http://192.168.43.1:8550/www/FSVM/FileName.bin");
+        UpdateServerMessages();
+
+        DownloadFile();
+
+        btn_clear_data.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                //AppConstants.Server_mesage = "???";
+                AppConstants.Header_data = "";
+                AppConstants.Server_Request = "";
+                AppConstants.Server_Response = "";
+            }
+        });
 
         //------------Initialize receiver -Screen On/Off------------
         IntentFilter filter = new IntentFilter(Intent.ACTION_SCREEN_ON);
@@ -453,7 +497,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         AppConstants.HubName = userInfoEntity.PersonName;
         tvTitle = (TextView) findViewById(textView);
         tvTitle.setText(AppConstants.Title);
-
+        AppConstants.WriteinFile(TAG + " Hub name: " + userInfoEntity.PersonName);
+        AppConstants.WriteinFile(TAG + " Site name: " + userInfoEntity.FluidSecureSiteName);
 
         wifiApManager = new WifiApManager(this);
 
@@ -622,8 +667,22 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     }
                 });
 
-        //////////////////////////////////////////////////////////////////////////////////////////////////////
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                BackgroundServiceFSNP();//FSNP
+            }
+        }, 1000);
 
+    }
+
+    public void BackgroundServiceFSNP() {
+
+        Calendar cal = Calendar.getInstance();
+        Intent name = new Intent(WelcomeActivity.this, BackgroundServiceFSNP.class);
+        PendingIntent pintent = PendingIntent.getService(getApplicationContext(), 0, name, 0);
+        AlarmManager alarm = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        alarm.setRepeating(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), 60000, pintent);
 
     }
 
@@ -634,7 +693,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         Intent name = new Intent(WelcomeActivity.this, BackgroundServiceHotspotCheck.class);
         PendingIntent pintent = PendingIntent.getService(getApplicationContext(), 0, name, 0);
         AlarmManager alarm = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        alarm.setRepeating(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), 5000, pintent); //60000
+        alarm.setRepeating(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), 60000, pintent); //60000
         //scan and enable hotspot if OFF
         Constants.hotspotstayOn = true;
 
@@ -654,6 +713,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     protected void onStop() {
         super.onStop();
 
+        OnWelcomeActivity = false;
         if (loading != null) {
             loading.dismiss();
             Constants.hotspotstayOn = true;
@@ -806,6 +866,57 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
         t.start();
 
+    }
+
+
+    public void CheckForGateSoftware() {
+
+        Thread t = new Thread() {
+
+            @Override
+            public void run() {
+                try {
+                    while (!isInterrupted()) {
+                        Thread.sleep(3000);
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (OnWelcomeActivity) {
+
+                                    //AutoSelect if single hose
+                                    SharedPreferences sharedPrefODO = WelcomeActivity.this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
+                                    IsGateHub = sharedPrefODO.getString(AppConstants.IsGateHub, "");
+                                    if (IsGateHub.equalsIgnoreCase("True")) {
+
+                                        try {
+
+                                            if (serverSSIDList != null && serverSSIDList.size() == 1 && IsGateHub.equalsIgnoreCase("True") && Constants.FS_1STATUS.equalsIgnoreCase("FREE") && Constants.FS_2STATUS.equalsIgnoreCase("FREE") && Constants.FS_3STATUS.equalsIgnoreCase("FREE") && Constants.FS_4STATUS.equalsIgnoreCase("FREE")) {
+
+                                                OnWelcomeActivity = false;
+                                                tvSSIDName.setText(serverSSIDList.get(0).get("WifiSSId"));
+                                                OnHoseSelected_OnClick(Integer.toString(0));
+                                                goButtonAction(null);
+
+
+                                            }
+
+                                        } catch (Exception e) {
+                                            System.out.println(e);
+                                            AppConstants.WriteinFile(TAG + " <<ForDev>> AutoSelect if single hose --Exception " + e);
+                                        }
+
+                                    }
+                                }
+
+                            }
+                        });
+                    }
+                } catch (InterruptedException e) {
+                }
+            }
+        };
+
+        t.start();
 
     }
 
@@ -852,6 +963,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
     private void InItGUI() {
 
+
         textDateTime = (TextView) findViewById(R.id.textDateTime);
         tv_fs1_Qty = (TextView) findViewById(R.id.tv_fs1_Qty);
         tv_fs2_Qty = (TextView) findViewById(R.id.tv_fs2_Qty);
@@ -882,6 +994,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         tv_NFS3 = (TextView) findViewById(R.id.tv_NFS3);
         tv_NFS4 = (TextView) findViewById(R.id.tv_NFS4);
 
+        tv_FA_message = (TextView) findViewById(R.id.tv_FA_message);
+
         tv_fs1QTN = (TextView) findViewById(R.id.tv_fs1QTN);
         tv_fs2QTN = (TextView) findViewById(R.id.tv_fs2QTN);
         tv_fs3QTN = (TextView) findViewById(R.id.tv_fs3QTN);
@@ -902,6 +1016,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
         btnGo = (Button) findViewById(R.id.btnGo);
         btnRetryWifi = (Button) findViewById(R.id.btnRetryWifi);
+        btn_clear_data = (Button) findViewById(R.id.btn_clear_data);
     }
 
     public void selectHoseAction(View v) {
@@ -919,6 +1034,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     }
 
     public void goButtonAction(View view) {
+
 
         try {
 
@@ -1112,8 +1228,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             Constants.AccPersonnelPIN_FS4 = "";
         }
 
-        AppConstants.WriteinFile("welcomeActivity ~~~~~~~~~" + "startWelcomeActivity hose selected" + AppConstants.CURRENT_SELECTED_SSID);
-
+        AppConstants.WriteinFile(TAG + " Selected hose: " + AppConstants.CURRENT_SELECTED_SSID);
 
         Intent intent = new Intent(WelcomeActivity.this, DeviceControlActivity_vehicle.class);
         startActivity(intent);
@@ -1168,27 +1283,6 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 } else {
                     Toast.makeText(getApplicationContext(), "Please make sure your connected to FS unit", Toast.LENGTH_SHORT).show();
                 }
-
-                //AutoSelect if single hose
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-
-                        try {
-                            //#73--Only one FS unit display
-                            String ReconfigureLink = serverSSIDList.get(0).get("ReconfigureLink");
-                            if (serverSSIDList != null && serverSSIDList.size() == 1 && ReconfigureLink.equalsIgnoreCase("true") && Constants.FS_1STATUS.equalsIgnoreCase("FREE")) {
-
-                                tvSSIDName.setText(serverSSIDList.get(0).get("WifiSSId"));
-                                OnHoseSelected_OnClick(Integer.toString(0));
-
-                            }
-                        } catch (Exception e) {
-                            System.out.println(e);
-                            AppConstants.WriteinFile("welcomeActivity ~~~~~~~~~" + "AutoSelect if single hose --Exception " + e);
-                        }
-                    }
-                }, 2000);
 
                 break;
 
@@ -1333,7 +1427,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             } catch (Exception ex) {
 
                 CommonUtils.LogMessage(TAG, "AuthTestAsynTask ", ex);
-                AppConstants.WriteinFile("welcomeActivity ~~~~~~~~~" + "GetAndroidSSID --Exception " + ex);
+                AppConstants.WriteinFile(TAG + " <<ForDev>> GetAndroidSSID --Exception " + ex);
             }
             return null;
         }
@@ -1348,7 +1442,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
         } catch (Exception ex) {
             CommonUtils.LogMessage(TAG, "onChangeWifiAction :", ex);
-            AppConstants.WriteinFile("welcomeActivity ~~~~~~~~~" + "onChangeWifiAction --Exception " + ex);
+            AppConstants.WriteinFile(TAG + " <<ForDev>> onChangeWifiAction --Exception " + ex);
         }
     }
 
@@ -1401,7 +1495,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                             status.startResolutionForResult(WelcomeActivity.this, REQUEST_CHECK_SETTINGS);
                         } catch (IntentSender.SendIntentException e) {
                             Log.i("Splash", "PendingIntent unable to execute request.");
-                            AppConstants.WriteinFile("welcomeActivity ~~~~~~~~~" + "PendingIntent unable to execute request. --Exception " + e);
+                            AppConstants.WriteinFile(TAG + " <<ForDev>> PendingIntent unable to execute request. --Exception " + e);
                         }
                         break;
                     case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
@@ -1503,7 +1597,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 client.setReadTimeout(10, TimeUnit.SECONDS);
                 client.setWriteTimeout(10, TimeUnit.SECONDS);
 
-                RequestBody body = RequestBody.create(TEXT, parm2);
+                RequestBody body = RequestBody.create(ServerHandler.TEXT, parm2);
                 Request request = new Request.Builder()
                         .url(AppConstants.webURL)
                         .post(body)
@@ -1518,7 +1612,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             } catch (Exception e) {
                 pd.dismiss();
                 System.out.println("Ex" + e.getMessage());
-                AppConstants.WriteinFile("welcomeActivity ~~~~~~~~~" + "GetSSIDUsingLocation doInBackground --Exception " + e);
+                AppConstants.WriteinFile(TAG + " <<ForDev>> GetSSIDUsingLocation doInBackground --Exception " + e);
             }
 
 
@@ -1577,6 +1671,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                 String PulserTimingAdjust = c.getString("PulserTimingAdjust");
                                 String IsDefective = c.getString("IsDefective");
                                 String ReconfigureLink = c.getString("ReconfigureLink");
+                                String FSNPMacAddress = c.getString("FSNPMacAddress");
 
                                 String FilePath = c.getString("FilePath");
                                 AppConstants.UP_FilePath = FilePath;
@@ -1597,6 +1692,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                 map.put("PulserTimingAdjust", PulserTimingAdjust);
                                 map.put("IsDefective", IsDefective);
                                 map.put("ReconfigureLink", ReconfigureLink);
+                                map.put("FSNPMacAddress", FSNPMacAddress);
 
                                 if (ResponceMessage.equalsIgnoreCase("success")) {
                                     if (isNotNULL(SiteId) && isNotNULL(HoseId) && isNotNULL(WifiSSId)) {
@@ -1632,7 +1728,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             } catch (Exception e) {
 
                 CommonUtils.LogMessage(TAG, " GetSSIDUsingLocation :" + result, e);
-                AppConstants.WriteinFile("welcomeActivity ~~~~~~~~~" + "GetSSIDUsingLocation onPostExecute --Exception " + e);
+                AppConstants.WriteinFile(TAG + " <<ForDev>> GetSSIDUsingLocation onPostExecute --Exception " + e);
             }
 
         }
@@ -1678,7 +1774,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 client.setReadTimeout(10, TimeUnit.SECONDS);
                 client.setWriteTimeout(10, TimeUnit.SECONDS);
 
-                RequestBody body = RequestBody.create(TEXT, parm2);
+                RequestBody body = RequestBody.create(ServerHandler.TEXT, parm2);
                 Request request = new Request.Builder()
                         .url(AppConstants.webURL)
                         .post(body)
@@ -1694,7 +1790,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             } catch (Exception e) {
                 pd.dismiss();
                 System.out.println("Ex" + e.getMessage());
-                AppConstants.WriteinFile("welcomeActivity ~~~~~~~~~" + "GetSSIDUsingLocation onPostExecute --Exception " + e);
+                AppConstants.WriteinFile(TAG + " <<ForDev>> GetSSIDUsingLocation onPostExecute --Exception " + e);
             }
 
 
@@ -1756,6 +1852,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                 String IsDefective = c.getString("IsDefective");
                                 String FilePath = c.getString("FilePath");
                                 String ReconfigureLink = c.getString("ReconfigureLink");
+                                String FSNPMacAddress = c.getString("FSNPMacAddress");
                                 AppConstants.UP_FilePath = FilePath;
 
                                 AppConstants.BT_READER_NAME = BluetoothCardReaderHF;
@@ -1776,6 +1873,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                 map.put("IsUpgrade", IsUpgrade);
                                 map.put("PulserTimingAdjust", PulserTimingAdjust);
                                 map.put("ReconfigureLink", ReconfigureLink);
+                                map.put("FSNPMacAddress", FSNPMacAddress);
 
                                 if (ResponceMessage.equalsIgnoreCase("success")) {
                                     if (isNotNULL(SiteId) && isNotNULL(HoseId) && isNotNULL(WifiSSId)) {
@@ -1792,21 +1890,29 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
 
                         }
-                        //HoseList Alert
-                        //alertSelectHoseList(tvLatLng.getText().toString() + "\n" + errMsg);
-
-                        //#73--Only one FS unit display
                         try {
+
                             String ReconfigureLink = serverSSIDList.get(0).get("ReconfigureLink");
-                            if (serverSSIDList != null && serverSSIDList.size() == 1 && ReconfigureLink.equalsIgnoreCase("true") && Constants.FS_1STATUS.equalsIgnoreCase("FREE")) {
+                            SharedPreferences sharedPrefODO = WelcomeActivity.this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
+                            IsGateHub = sharedPrefODO.getString(AppConstants.IsGateHub, "");
+                            if (serverSSIDList != null && serverSSIDList.size() == 1 && IsGateHub.equalsIgnoreCase("True") && Constants.FS_1STATUS.equalsIgnoreCase("FREE")) {
+
+                                Thread.sleep(1000);
+                                tvSSIDName.setText(serverSSIDList.get(0).get("WifiSSId"));
+                                OnHoseSelected_OnClick(Integer.toString(0));
+                                goButtonAction(null);
+
+                                //&& ReconfigureLink.equalsIgnoreCase("true")
+                            }else if (serverSSIDList != null && serverSSIDList.size() == 1 && Constants.FS_1STATUS.equalsIgnoreCase("FREE")) {
 
                                 tvSSIDName.setText(serverSSIDList.get(0).get("WifiSSId"));
                                 OnHoseSelected_OnClick(Integer.toString(0));
 
                             }
+
                         } catch (Exception e) {
                             System.out.println(e);
-                            AppConstants.WriteinFile("welcomeActivity ~~~~~~~~~" + "GetSSIDUsingLocationOnResume if only one hose autoselect   --Exception " + e);
+                            AppConstants.WriteinFile(TAG + " <<ForDev>> GetSSIDUsingLocationOnResume if only one hose autoselect   --Exception " + e);
                         }
 
 
@@ -1826,7 +1932,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             } catch (Exception e) {
 
                 CommonUtils.LogMessage(TAG, " GetSSIDUsingLocation :" + result, e);
-                AppConstants.WriteinFile("welcomeActivity ~~~~~~~~~" + "GetSSIDUsingLocationOnResume --Exception " + e);
+                AppConstants.WriteinFile(TAG + " <<ForDev>> GetSSIDUsingLocationOnResume --Exception " + e);
 
             }
 
@@ -2001,8 +2107,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                             } catch (Exception e) {
                                 loading.dismiss();
-                                AppConstants.WriteinFile("welcomeActivity ~~~~~~~~~" + "Updating mac address please wait.. --Exception " + e);
-
+                                AppConstants.WriteinFile(TAG + " <<ForDev>> Updating mac address please wait.. --Exception " + e);
                             }
 
 
@@ -2022,7 +2127,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                             }
                         } catch (Exception e) {
                             System.out.println(e);
-                            AppConstants.WriteinFile("welcomeActivity ~~~~~~~~~" + "DetailsListOfConnectedDevices --Empty ");
+                            AppConstants.WriteinFile(TAG + " <<ForDev>> DetailsListOfConnectedDevices --Empty ");
                         }
 
 
@@ -2235,13 +2340,13 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                     } catch (Exception e) {
                         e.printStackTrace();
-                        AppConstants.WriteinFile("welcomeActivity ~~~~~~~~~" + "GetConnectedDevicesIP 1 --Exception " + e);
+                        AppConstants.WriteinFile(TAG + " <<ForDev>> GetConnectedDevicesIP 1 --Exception " + e);
                     } finally {
                         try {
                             br.close();
                         } catch (IOException e) {
                             e.printStackTrace();
-                            AppConstants.WriteinFile("welcomeActivity ~~~~~~~~~" + "GetConnectedDevicesIP 2 --Exception " + e);
+                            AppConstants.WriteinFile(TAG + " <<ForDev>> GetConnectedDevicesIP 2 --Exception " + e);
                         }
                     }
                 }
@@ -2296,7 +2401,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
             } catch (Exception e) {
                 Log.d("Ex", e.getMessage());
-                AppConstants.WriteinFile("welcomeActivity ~~~~~~~~~" + "CommandsPOST  DoInBackground--Exception " + e);
+                AppConstants.WriteinFile(TAG + " <<ForDev>> CommandsPOST  DoInBackground--Exception " + e);
             }
 
 
@@ -2316,7 +2421,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             } catch (Exception e) {
 
                 System.out.println(e);
-                AppConstants.WriteinFile("welcomeActivity ~~~~~~~~~" + "CommandsPOST  onPostExecute --Exception " + e);
+                AppConstants.WriteinFile(TAG + " <<ForDev>> CommandsPOST  onPostExecute --Exception " + e);
             }
 
         }
@@ -2342,7 +2447,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 resp = response.body().string();
 
             } catch (Exception e) {
-                AppConstants.WriteinFile("welcomeActivity ~~~~~~~~~" + "CommandsGET_INFO  DoInBackground --Exception " + e);
+                AppConstants.WriteinFile(TAG + " <<ForDev>> CommandsPOST  CommandsGET_INFO  DoInBackground --Exception " + e);
                 Log.d("Ex", e.getMessage());
                 Constants.hotspotstayOn = true;
                 loading.dismiss();
@@ -2421,7 +2526,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 loading.dismiss();
                 Constants.hotspotstayOn = true;
                 Log.d("Ex", e.getMessage());
-                AppConstants.WriteinFile("welcomeActivity ~~~~~~~~~" + "CommandsPOST_ChangeHotspotSettings  DoInBackground --Exception " + e);
+                AppConstants.WriteinFile(TAG + " <<ForDev>> CommandsPOST_ChangeHotspotSettings  DoInBackground --Exception " + e);
             }
 
 
@@ -2444,7 +2549,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 loading.dismiss();
                 Constants.hotspotstayOn = true;
                 System.out.println(e);
-                AppConstants.WriteinFile("welcomeActivity ~~~~~~~~~" + "CommandsPOST_ChangeHotspotSettings  onpostExecution --Exception " + e);
+                AppConstants.WriteinFile(TAG + " <<ForDev>> CommandsPOST_ChangeHotspotSettings  onpostExecution --Exception " + e);
             }
 
         }
@@ -2469,7 +2574,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     // wifiManager.saveConfiguration();
                 }
             }catch (NullPointerException e){System.out.println(e);}*/
-            AppConstants.WriteinFile("welcomeActivity ~~~~~~~~~" + "WiFiConnectTask  IndoInBackground");
+            AppConstants.WriteinFile(TAG + " <<ForDev>> WiFiConnectTask  IndoInBackground");
             connectToWifiMarsh(AppConstants.CURRENT_SELECTED_SSID);
             // connectCustom(AppConstants.CURRENT_SELECTED_SSID);
 
@@ -2480,7 +2585,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         @Override
         protected void onPostExecute(String s) {
 
-            AppConstants.WriteinFile("welcomeActivity ~~~~~~~~~" + "WiFiConnectTask  InOnPostExecute");
+            AppConstants.WriteinFile(TAG + " <<ForDev>> WiFiConnectTask  InOnPostExecute");
 
             new Handler().postDelayed(new Runnable() {
                 @Override
@@ -2493,7 +2598,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     String ssid = wifiInfo.getSSID();
                     if (!(NetID == -1) && ssid.contains("\"" + AppConstants.CURRENT_SELECTED_SSID + "\"")) {
 
-                        AppConstants.WriteinFile("WelcomeActivity~~~~~~~~~" + "WIFI CONNECTED " + AppConstants.CURRENT_SELECTED_SSID);
+                        AppConstants.WriteinFile(TAG + " <<ForDev>> WIFI CONNECTED " + AppConstants.CURRENT_SELECTED_SSID);
                         AppConstants.colorToastBigFont(WelcomeActivity.this, "CONNECTED TO: " + AppConstants.CURRENT_SELECTED_SSID, Color.BLUE);
 
                         new Handler().postDelayed(new Runnable() {
@@ -2593,7 +2698,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                                 loading.dismiss();
                                                 Constants.hotspotstayOn = true;
                                                 System.out.println(e);
-                                                AppConstants.WriteinFile("welcomeActivity ~~~~~~~~~" + "WiFiConnectTask  UpdateMacAddressClass --Exception " + e);
+                                                AppConstants.WriteinFile(TAG + " <<ForDev>> WiFiConnectTask  UpdateMacAddressClass --Exception " + e);
                                             }
 
                                         }
@@ -2602,7 +2707,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                 } catch (Exception e) {
                                     e.printStackTrace();
                                     loading.dismiss();
-                                    AppConstants.WriteinFile("welcomeActivity ~~~~~~~~~" + "WiFiConnectTask  OnPostExecution --Exception " + e);
+                                    AppConstants.WriteinFile(TAG + " <<ForDev>> WiFiConnectTask  OnPostExecution --Exception " + e);
                                 }
                             }
                         }, 2000);
@@ -2619,7 +2724,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                     } else {
                         //String autoNetworkSwitch = getExternalString(DisplayMeterActivity.this, "com.android.settings","wifi_watchdog_connectivity_check", "Unknown");
-                        AppConstants.WriteinFile("WelcomeActivity~~~~~~~~~" + "WIFI NOT CONNECTED " + AppConstants.CURRENT_SELECTED_SSID);
+                        AppConstants.WriteinFile(TAG + " <<ForDev>> WIFI NOT CONNECTED " + AppConstants.CURRENT_SELECTED_SSID);
                         RetryOneAtemptConnectToSelectedSSSID += 1;
                         if (RetryOneAtemptConnectToSelectedSSSID < 4) {
                             //gooooo
@@ -2669,7 +2774,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         } catch (Exception e) {
             e.printStackTrace();
             loading.dismiss();
-            AppConstants.WriteinFile("welcomeActivity ~~~~~~~~~" + "connectToWifiMarsh --Exception " + e);
+            AppConstants.WriteinFile(TAG + " <<ForDev>> connectToWifiMarsh --Exception " + e);
         }
     }
 
@@ -2732,7 +2837,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 loading.dismiss();
                 Constants.hotspotstayOn = true;
                 CommonUtils.LogMessage("", "UpdateMACAddress ", ex);
-                AppConstants.WriteinFile("welcomeActivity ~~~~~~~~~" + "UpdateMacAsynTask doInBackground--Exception " + ex);
+                AppConstants.WriteinFile(TAG + " <<ForDev>> UpdateMacAsynTask doInBackground--Exception " + ex);
             }
             return response;
         }
@@ -2770,7 +2875,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 }
             } catch (Exception e) {
 
-                AppConstants.WriteinFile("welcomeActivity ~~~~~~~~~" + "UpdateMacAsynTask onPostExecute--Exception " + e);
+                AppConstants.WriteinFile(TAG + " <<ForDev>> UpdateMacAsynTask onPostExecute--Exception " + e);
 
             }
         }
@@ -3622,6 +3727,9 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         // Toast.makeText(getApplicationContext(),"FS_Count"+FS_Count,Toast.LENGTH_SHORT).show();
         if (Constants.FS_1STATUS.equalsIgnoreCase("FREE")) {
 
+            //Update FA Message on dashboard
+            tv_FA_message.setText(Constants.FA_Message);
+
             tv_fs1_Qty.setText(Constants.FS_1Gallons);
             tv_fs1_Pulse.setText(Constants.FS_1Pulse);
             tv_fs1_stop.setClickable(false);
@@ -3984,7 +4092,6 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     }
 
     public void OnHoseSelected_OnClick(String position) {
-
 
         //new GetConnectedDevicesIP().execute();//Refreshed donnected devices list on hose selection.
         String IpAddress = "";
@@ -4475,6 +4582,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                                 EmailReaderNotConnected = false;
                                 AppConstants.NoSleepRespTime = CommonUtils.getTodaysDateTemp();//Date Two (d2)
+                                AppConstants.WriteinFile(TAG + " Recieved Escape from BT reader.");
                                 System.out.println("escape command response" + getResponseString(response, errorCode));
                                 mTxtEscapeResponse.setText(getResponseString(
                                         response, errorCode));
@@ -4811,6 +4919,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         if (connectState == BluetoothReader.STATE_CONNECTING) {
             mTxtConnectionState.setText(R.string.connecting);
         } else if (connectState == BluetoothReader.STATE_CONNECTED) {
+            AppConstants.WriteinFile(TAG + " HF BT reader connected");
             mTxtConnectionState.setText(R.string.connected);
         } else if (connectState == BluetoothReader.STATE_DISCONNECTING) {
             mTxtConnectionState.setText(R.string.disconnecting);
@@ -5174,9 +5283,10 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 }
             };
 
+
     public void NoSleepEscapeCommand() {
 
-
+        AppConstants.WriteinFile(TAG + " Sending Escape to HF BT reader.");
         Thread tst = new Thread() {
 
             @Override
@@ -5200,6 +5310,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                                         if (AppConstants.NoSleepRespTime.equalsIgnoreCase("")) {
                                             Log.i(TAG, "Please check if HF reader is connected");
+                                            AppConstants.WriteinFile(TAG + " Please check if HF reader is connected");
                                         } else {
 
                                             int diff = getDate(AppConstants.NoSleepCurrentTime);
@@ -5210,10 +5321,12 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                                                 if (EmailReaderNotConnected) {
                                                     Log.i(TAG, "Email already sent");
+                                                    AppConstants.WriteinFile(TAG + " Email already sent");
                                                     //Connect Reader
                                                     connectReader();
                                                 } else {
                                                     Log.i(TAG, "Send Email");
+                                                    AppConstants.WriteinFile(TAG + " Send Email");
                                                     SendEmailReaderNotConnectedAsyncCall();
                                                     // EmailReaderNotConnected = true;
                                                 }
@@ -5223,10 +5336,12 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                                 //Recreate main activity
                                                 Log.i(TAG, "HF reader response time diff is: " + diff);
                                                 Log.i(TAG, "Retry attempt 2 reader connect");
+                                                AppConstants.WriteinFile(TAG + " Retry attempt 2 reader connect");
                                                 //Disable BT
                                                 final BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
                                                 mBluetoothAdapter.disable();
                                                 Log.i(TAG, "BT OFF");
+                                                AppConstants.WriteinFile(TAG + " BT OFF");
                                                 disconnectReader();
 
                                                 new Handler().postDelayed(new Runnable() {
@@ -5235,6 +5350,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                                         //Enable BT
                                                         mBluetoothAdapter.enable();
                                                         Log.i(TAG, "BT ON");
+                                                        AppConstants.WriteinFile(TAG + " BT ON");
                                                     }
                                                 }, 4000);
 
@@ -5253,6 +5369,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                                 //Recreate main activity
                                                 Log.i(TAG, "HF reader response time diff is: " + diff);
                                                 Log.i(TAG, "Retry attempt 1 reader connect");
+                                                AppConstants.WriteinFile(TAG + " Retry attempt 1 reader connect");
                                                 //Disable BT
                                                 final BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
                                                 mBluetoothAdapter.disable();
@@ -5278,6 +5395,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                                             } else {
                                                 Log.i(TAG, "HF reader is working fine");
+                                                AppConstants.WriteinFile(TAG + " HF reader is working fine");
                                             }
                                         }
 
@@ -5400,6 +5518,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                     String result = responseBody.string();
                     System.out.println("Result" + result);
+                    AppConstants.WriteinFile(TAG + " SendEmailReaderNotConnectedAsyncCall ~Result\n" + result);
 
                     try {
 
@@ -5409,7 +5528,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         String ResponseMessageSite = jsonObjectSite.getString(AppConstants.RES_MESSAGE);
 
                         if (ResponseMessageSite.equalsIgnoreCase("success")) {
-
+                            AppConstants.WriteinFile(TAG + " SendEmailReaderNotConnectedAsyncCall ~success");
                             EmailReaderNotConnected = true;
                         }
 
@@ -5421,5 +5540,49 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             }
 
         });
+    }
+
+    public void UpdateServerMessages() {
+
+        Thread t = new Thread() {
+
+            @Override
+            public void run() {
+                try {
+                    while (!isInterrupted()) {
+                        Thread.sleep(2000);
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run()  {
+
+                                tv_Display_msg.setText(AppConstants.Server_mesage);
+                                tv_request.setText(AppConstants.Header_data+"\n\n"+AppConstants.Server_Request);
+                                tv_response.setText(AppConstants.Server_Response);
+
+
+
+                            }
+                        });
+                    }
+                } catch (InterruptedException e) {
+                }
+            }
+        };
+
+        t.start();
+
+
+    }
+
+    public static void DownloadFile() {
+        File file = new File(Environment.getExternalStorageDirectory() + "/www/FSVM/");
+
+        if (!file.exists()) {
+            if (file.mkdirs()) {
+                System.out.println("Create FSVM");
+            } else {
+                System.out.println("Fail to create FSVM folder");
+            }
+        }
     }
 }
