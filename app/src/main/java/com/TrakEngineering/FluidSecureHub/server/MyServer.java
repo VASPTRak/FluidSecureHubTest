@@ -44,6 +44,8 @@ public class MyServer extends NanoHTTPD {
 
         try {
 
+            WelcomeActivity.WakeUpScreen(); //WakeUp Screen
+
             Map<String, String> param = session.getParms();
             String B = param.get("data");
             String A = param.get("vehicle");

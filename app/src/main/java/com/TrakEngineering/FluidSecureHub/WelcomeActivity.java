@@ -125,6 +125,7 @@ import java.util.Timer;
 import java.util.concurrent.TimeUnit;
 
 import static com.TrakEngineering.FluidSecureHub.R.id.textView;
+import static com.TrakEngineering.FluidSecureHub.server.MyServer.ctx;
 import static com.TrakEngineering.FluidSecureHub.server.ServerHandler.TEXT;
 import static com.google.android.gms.internal.zzid.runOnUiThread;
 
@@ -274,7 +275,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     protected void onResume() {
         super.onResume();
 
-        MyServer.ctx = WelcomeActivity.this;
+        ctx = WelcomeActivity.this;
 
         try {
             server = new MyServer();
@@ -5584,5 +5585,14 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 System.out.println("Fail to create FSVM folder");
             }
         }
+    }
+
+    public static void WakeUpScreen(){
+
+        //Enable Screen
+        PowerManager.WakeLock screenLock = ((PowerManager)ctx.getSystemService(POWER_SERVICE)).newWakeLock(
+                PowerManager.SCREEN_BRIGHT_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP, "TAG");
+        screenLock.acquire();
+
     }
 }
