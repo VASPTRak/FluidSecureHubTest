@@ -54,6 +54,7 @@ import com.squareup.okhttp.Request;
 import com.squareup.okhttp.RequestBody;
 import com.squareup.okhttp.Response;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.net.SocketTimeoutException;
@@ -376,9 +377,7 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
                 if (cd.isConnectingToInternet()) {
 
                     try {
-
-                        new CheckApproved().execute();
-
+                        new CallAppTxt().execute();
 
                     } catch (Exception e) {
 
@@ -800,4 +799,88 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
         editor.commit();
     }
 
+
+    public class CallAppTxt extends AsyncTask<Void, Void, String> {
+
+        public String resp = "";
+
+        protected String doInBackground(Void... arg0) {
+
+
+            try {
+
+
+                OkHttpClient client = new OkHttpClient();
+
+                Request request = new Request.Builder()
+                        .url("http://www.trakeng.com/app.txt")
+                        .build();
+
+                Response response = client.newCall(request).execute();
+                resp = response.body().string();
+
+            } catch (Exception e) {
+                Log.d("Ex", e.getMessage());
+            }
+
+
+            return resp;
+        }
+
+        @Override
+        protected void onPostExecute(String response) {
+
+            System.out.println("app txt--" + response);
+
+            try {
+
+                if (response.contains("FluidSecure")) {
+                    JSONObject jobj = new JSONObject(response);
+                    JSONArray jArry = jobj.getJSONArray("App");
+
+                    for (int i = 0; i < jArry.length(); i++) {
+                        JSONObject oj = (JSONObject) jArry.get(i);
+                        String appName = oj.getString("appName");
+                        String appLink = oj.getString("appLink");
+
+
+                        if (appName.trim().equalsIgnoreCase("FluidSecure")) {
+
+                            //store url from app txt file
+                            SharedPreferences sharedPref = SplashActivity.this.getSharedPreferences("storeAppTxtURL", Context.MODE_PRIVATE);
+                            SharedPreferences.Editor editor = sharedPref.edit();
+                            editor.putString("appLink", appLink);
+                            editor.apply();
+
+                            setUrlFromSharedPref(SplashActivity.this);
+
+                            new CheckApproved().execute();
+
+                            break;
+                        }
+                    }
+
+                }
+
+            } catch (Exception e) {
+               if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> App.txt-" + e.getMessage());
+            }
+
+
+        }
+    }
+
+    public static void setUrlFromSharedPref(Context ctx) {
+
+        SharedPreferences sharedPref = ctx.getSharedPreferences("storeAppTxtURL", Context.MODE_PRIVATE);
+        String appLink = sharedPref.getString("appLink", "");
+        if (appLink.trim().contains("http")) {
+
+            AppConstants.webIP = appLink.trim();
+            AppConstants.webURL = AppConstants.webIP + "HandlerTrak.ashx";
+            AppConstants.LoginURL = AppConstants.webIP + "LoginHandler.ashx";
+
+        }
+    }
 }
+

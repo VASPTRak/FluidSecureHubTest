@@ -98,7 +98,7 @@ public class BackgroundServiceFSNP extends BackgroundService {
         mBluetoothAdapter = bluetoothManager.getAdapter();
 
         Log.i(TAG," In onStartCommand....");
-        AppConstants.WriteinFile(TAG + " <<ForDev>> In onStartCommand....");
+        if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> In onStartCommand....");
 
        //advertise(true);
         Thread t = new Thread() {
@@ -275,7 +275,7 @@ public class BackgroundServiceFSNP extends BackgroundService {
 
         } catch (Exception e) {
             e.printStackTrace();
-            AppConstants.WriteinFile(TAG + " <<ForDev>> StartTransactionProcess" + e);
+            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> StartTransactionProcess" + e);
         }
 
     }
@@ -451,7 +451,7 @@ public class BackgroundServiceFSNP extends BackgroundService {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            AppConstants.WriteinFile(TAG + " <<ForDev>> ProcessFSNPDtails" + e);
+            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> ProcessFSNPDtails" + e);
         }
 
         //Save response data to sharedpreferance
@@ -466,7 +466,7 @@ public class BackgroundServiceFSNP extends BackgroundService {
 
                 if (Constants.ManualOdoScreenFree.equalsIgnoreCase("Yes")){
                     Log.i(TAG, " Enter Odometer manually");
-                    AppConstants.WriteinFile(TAG + " <<ForDev>> Enter Odometer manually");
+                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> Enter Odometer manually");
                     Constants.FS_1OdoScreen = "BUSY";
                     Constants.ManualOdoScreenFree = "No";
                     Toast.makeText(getApplicationContext(), "Direct to AcceptManualOdoActivityFA", Toast.LENGTH_SHORT).show();
@@ -479,14 +479,14 @@ public class BackgroundServiceFSNP extends BackgroundService {
 
 
                     Log.i(TAG, " Manuall Odometer screen busy");
-                    AppConstants.WriteinFile(TAG + " <<ForDev>> Manuall Odometer screen busy");
+                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> Manuall Odometer screen busy");
                 }
 
 
 
             }else{
 
-                AppConstants.WriteinFile(TAG + " <<ForDev>> Started BackgroundService_AP_PIPE for hose: "+SelectedHose);
+                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> Started BackgroundService_AP_PIPE for hose: "+SelectedHose);
                 Constants.FS_1STATUS = "BUSY";
                 Intent serviceIntent = new Intent(BackgroundServiceFSNP.this, BackgroundService_AP_PIPE.class);
                 serviceIntent.putExtra("HTTP_URL", HTTP_URL);
@@ -500,7 +500,7 @@ public class BackgroundServiceFSNP extends BackgroundService {
 
                 if (Constants.ManualOdoScreenFree.equalsIgnoreCase("Yes")){
                     Log.i(TAG, " Enter Odometer manually");
-                    AppConstants.WriteinFile(TAG + " <<ForDev>> Enter Odometer manually");
+                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> Enter Odometer manually");
                     Constants.FS_2OdoScreen = "BUSY";
                     Constants.ManualOdoScreenFree = "No";
                     Toast.makeText(getApplicationContext(), "Direct to AcceptManualOdoActivityFA", Toast.LENGTH_SHORT).show();
@@ -511,7 +511,7 @@ public class BackgroundServiceFSNP extends BackgroundService {
 
                 }else{
                     Log.i(TAG, " Manuall Odometer screen busy");
-                    AppConstants.WriteinFile(TAG + " <<ForDev>> Manuall Odometer screen busy");
+                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> Manuall Odometer screen busy");
 
                 }
 
@@ -520,7 +520,7 @@ public class BackgroundServiceFSNP extends BackgroundService {
             }else{
 
                 SelectedHose = "";
-                AppConstants.WriteinFile(TAG + " <<ForDev>> Started BackgroundService_AP for hose: "+SelectedHose);
+                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> Started BackgroundService_AP for hose: "+SelectedHose);
                 Constants.FS_2STATUS = "BUSY";
                 Intent serviceIntent = new Intent(BackgroundServiceFSNP.this, BackgroundService_AP.class);
                 serviceIntent.putExtra("HTTP_URL", HTTP_URL);
@@ -535,7 +535,7 @@ public class BackgroundServiceFSNP extends BackgroundService {
 
                 if (Constants.ManualOdoScreenFree.equalsIgnoreCase("Yes")){
                     Log.i(TAG, " Enter Odometer manually");
-                    AppConstants.WriteinFile(TAG + " <<ForDev>> Enter Odometer manually");
+                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> Enter Odometer manually");
                     Constants.FS_3OdoScreen = "BUSY";
                     Constants.ManualOdoScreenFree = "No";
                     Toast.makeText(getApplicationContext(), "Direct to AcceptManualOdoActivityFA", Toast.LENGTH_SHORT).show();
@@ -546,12 +546,12 @@ public class BackgroundServiceFSNP extends BackgroundService {
 
                 }else{
                     Log.i(TAG, " Manuall Odometer screen busy");
-                    AppConstants.WriteinFile(TAG + " <<ForDev>> Manuall Odometer screen busy");
+                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> Manuall Odometer screen busy");
                 }
 
             }else{
 
-                AppConstants.WriteinFile(TAG + " <<ForDev>> Started BackgroundService_FS_UNIT_3 for hose: "+SelectedHose);
+                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> Started BackgroundService_FS_UNIT_3 for hose: "+SelectedHose);
                 Constants.FS_3STATUS = "BUSY";
                 Intent serviceIntent = new Intent(BackgroundServiceFSNP.this, BackgroundService_FS_UNIT_3.class);
                 serviceIntent.putExtra("HTTP_URL", HTTP_URL);
@@ -567,7 +567,7 @@ public class BackgroundServiceFSNP extends BackgroundService {
 
                 if (Constants.ManualOdoScreenFree.equalsIgnoreCase("Yes")){
                     Log.i(TAG, " Enter Odometer manually");
-                    AppConstants.WriteinFile(TAG + " <<ForDev>> Enter Odometer manually");
+                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> Enter Odometer manually");
                     Constants.FS_4OdoScreen = "BUSY";
                     Constants.ManualOdoScreenFree = "No";
                     Toast.makeText(getApplicationContext(), "Direct to AcceptManualOdoActivityFA", Toast.LENGTH_SHORT).show();
@@ -578,14 +578,14 @@ public class BackgroundServiceFSNP extends BackgroundService {
 
                 }else{
                     Log.i(TAG, " Manuall Odometer screen busy");
-                    AppConstants.WriteinFile(TAG + " <<ForDev>> Manuall Odometer screen busy");
+                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> Manuall Odometer screen busy");
                 }
 
 
 
             }else{
 
-                AppConstants.WriteinFile(TAG + " <<ForDev>> Started BackgroundService_FS_UNIT_4 for hose: "+SelectedHose);
+                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> Started BackgroundService_FS_UNIT_4 for hose: "+SelectedHose);
                 Constants.FS_4STATUS = "BUSY";
                 Intent serviceIntent = new Intent(BackgroundServiceFSNP.this, BackgroundService_FS_UNIT_4.class);
                 serviceIntent.putExtra("HTTP_URL", HTTP_URL);
@@ -1035,7 +1035,7 @@ public class BackgroundServiceFSNP extends BackgroundService {
 
         } catch (Exception e) {
             e.printStackTrace();
-            AppConstants.WriteinFile(TAG + " <<ForDev>> CheckFSNPDetails" + e);
+            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> CheckFSNPDetails" + e);
         }
     }
 
@@ -1098,13 +1098,13 @@ public class BackgroundServiceFSNP extends BackgroundService {
 
                     } catch (Exception e) {
                         e.printStackTrace();
-                        AppConstants.WriteinFile(TAG + " <<ForDev>> GetConnectedDevicesIP 1 --Exception " + e);
+                        if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> GetConnectedDevicesIP 1 --Exception " + e);
                     } finally {
                         try {
                             br.close();
                         } catch (IOException e) {
                             e.printStackTrace();
-                            AppConstants.WriteinFile(TAG + " <<ForDev>> GetConnectedDevicesIP 2 --Exception " + e);
+                            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> GetConnectedDevicesIP 2 --Exception " + e);
                         }
                     }
                 }
@@ -1177,7 +1177,7 @@ public class BackgroundServiceFSNP extends BackgroundService {
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
-                    AppConstants.WriteinFile(TAG + " <<ForDev>> stopButtonFunctionality_FS1 Ex" + e);
+                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> stopButtonFunctionality_FS1 Ex" + e);
                 }
             }
         }, 1000);
@@ -1256,7 +1256,7 @@ public class BackgroundServiceFSNP extends BackgroundService {
             } catch (Exception e) {
                 e.printStackTrace();
                 Log.d("Ex", e.getMessage());
-                AppConstants.WriteinFile(TAG + " <<ForDev>> GETFINALPulsar_FS1 doInBackground Ex" + e);
+                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> GETFINALPulsar_FS1 doInBackground Ex" + e);
 
             }
 
@@ -1280,7 +1280,7 @@ public class BackgroundServiceFSNP extends BackgroundService {
             } catch (Exception e) {
 
                 e.printStackTrace();
-                AppConstants.WriteinFile(TAG + " <<ForDev>> GETFINALPulsar_FS1 onPostExecute Ex" + e);
+                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> GETFINALPulsar_FS1 onPostExecute Ex" + e);
             }
 
         }

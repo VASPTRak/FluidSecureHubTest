@@ -62,6 +62,7 @@ public class CommonUtils {
     public static String PATH_BIN_FILE1 = "user1.2048.new.5.bin";
 
     public static String FOLDER_PATH_FSVM_Firmware = Environment.getExternalStorageDirectory().getAbsolutePath() + "/www/FSVM/";
+    public static String FOLDER_PATH_FSNP_Firmware = Environment.getExternalStorageDirectory().getAbsolutePath() + "/www/FSNP/";
 
     public static void LogMessage(String TAG, String TheMessage, Exception ex) {
         String logmessage = getTodaysDateInString();
@@ -183,6 +184,7 @@ public class CommonUtils {
         }
 
     }
+
     public static String getTodaysDateInString() {
         Calendar c = Calendar.getInstance();
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -196,7 +198,6 @@ public class CommonUtils {
         String CurrantDate = df.format(c.getTime());
         return (CurrantDate);
     }
-
 
     public static String getTodaysDateInStringPrint(String ServerDate001) {
 
@@ -250,9 +251,6 @@ public class CommonUtils {
 
         return files;
     }
-
-
-
 
     public static String GetDateString(Long dateinms) {
         try {
@@ -316,7 +314,6 @@ public class CommonUtils {
 
     }
 
-
     public static void showMessageDilaog(final Activity context, String title, String message) {
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(context);
         // set title
@@ -356,7 +353,6 @@ public class CommonUtils {
         alertDialog.show();
     }
 
-
     public static void showNoInternetDialog(final Activity context) {
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(context);
         // set title
@@ -377,7 +373,6 @@ public class CommonUtils {
         // show it
         alertDialog.show();
     }
-
 
     public static void setMobileDataEnabled(Context context, boolean enabled) throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
 
@@ -404,7 +399,6 @@ public class CommonUtils {
 
         setMobileDataEnabledMethod.invoke(connectivityManager, pArg);
     }
-
 
     public static Boolean isMobileDataEnabled(Activity activity) {
         Object connectivityService = activity.getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -450,6 +444,16 @@ public class CommonUtils {
         return false;
     }
 
+    public static void SaveLogFlagInPref(Activity activity,boolean data, String key){
+
+        SharedPreferences pref = activity.getSharedPreferences(Constants.PREF_Log_Data, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = pref.edit();
+        editor.putBoolean(key, data);
+        editor.commit();
+
+
+    }
+
     public static void SaveDataInPref(Activity activity, String data, String valueType) {
 
         SharedPreferences sharedPref = activity.getSharedPreferences(Constants.PREF_COLUMN_SITE, Context.MODE_PRIVATE);
@@ -483,6 +487,7 @@ public class CommonUtils {
 
         editor.commit();
     }
+
 
     public static void SaveVehiFuelInPref_FS1(Context activity, String TransactionId_FS1,String VehicleId_FS1, String PhoneNumber_FS1, String PersonId_FS1, String PulseRatio_FS1, String MinLimit_FS1, String FuelTypeId_FS1, String ServerDate_FS1, String IntervalToStopFuel_FS1,String PrintDate_FS1,String Company_FS1,String Location_FS1,String PersonName_FS1,String PrinterMacAddress_FS1,String PrinterName_FS1,String vehicleNumber_FS1,String accOther_FS1,String VehicleSum_FS1,String DeptSum_FS1,String VehPercentage_FS1,String DeptPercentage_FS1,String SurchargeType_FS1,String ProductPrice_FS1) {
 

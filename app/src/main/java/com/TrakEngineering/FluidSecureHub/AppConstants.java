@@ -68,15 +68,16 @@ public class AppConstants {
     public static final String HubId = "HubId";
     public static final String IsGateHub = "IsGateHub";
 
-
-      // public static String webIP = "http://103.8.126.241:89/";//test
-       public static String webIP = "http://fluidsecure.cloudapp.net/"; //live
-      //public static String webIP = "http://103.8.126.241:93/";//New link for FS_AP
-     //public static String webIP = "http://103.8.126.241:8988/";//new for hotspot changes
-
+    public static String webIP; // = "http://103.8.126.241:89/";//test
+    public static String webURL = webIP + "HandlerTrak.ashx";
+    public static String LoginURL = webIP + "LoginHandler.ashx";
+    // public static String webIP = "http://fluidsecure.cloudapp.net/"; //live
+    //public static String webIP = "http://103.8.126.241:93/";//New link for FS_AP
+    //public static String webIP = "http://103.8.126.241:8988/";//new for hotspot changes
 
     public static String ESP32_update = "NO";
     public static String PIC_update = "NO";
+    public static boolean GenerateLogs;
 
     public static String Server_mesage = "Server Not Connected..!!!";
     public static String Server_Request;
@@ -92,6 +93,7 @@ public class AppConstants {
     public static String VehicleLocal_FOB_KEY = "";
     public static String PinLocal_FOB_KEY = "";
     public static String FS_selected;
+    public static String LastSelectedHose;
     public static String BLUETOOTH_PRINTER_NAME;
     public static String PrinterMacAddress;
     public static String BT_READER_NAME;
@@ -108,9 +110,6 @@ public class AppConstants {
     public static String UP_HoseId_fs2;
     public static String UP_HoseId_fs3;
     public static String UP_HoseId_fs4;
-
-    public static String webURL = webIP + "HandlerTrak.ashx";
-    public static String LoginURL = webIP + "LoginHandler.ashx";
 
 
     public static String Title = "";

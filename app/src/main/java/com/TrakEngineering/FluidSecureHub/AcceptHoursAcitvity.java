@@ -161,7 +161,7 @@ public class AcceptHoursAcitvity extends AppCompatActivity {
 
                     if (OdometerReasonabilityConditions.trim().equalsIgnoreCase("1")) {
 
-                        AppConstants.WriteinFile(TAG + " Hours: Entered" + C_AccHours);
+                        if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " Hours: Entered" + C_AccHours);
                         if (C_AccHours >= PO && C_AccHours <= OL) {
                             //gooooo
                             allValid();
@@ -173,7 +173,7 @@ public class AcceptHoursAcitvity extends AppCompatActivity {
                                 allValid();
                             } else {
 
-                                AppConstants.WriteinFile(TAG + " Hours: Entered" + C_AccHours + " is not within the reasonability");
+                                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " Hours: Entered" + C_AccHours + " is not within the reasonability");
                                 etHours.setText("");
                                 AppConstants.colorToastBigFont(getApplicationContext(), "The Hours entered is not within the reasonability your administrator has assigned, please contact your administrator.", Color.RED);//Bad odometer! Please try again.
                             }
@@ -183,18 +183,18 @@ public class AcceptHoursAcitvity extends AppCompatActivity {
 
 
                         if (C_AccHours >= PO && C_AccHours <= OL) {
-                            AppConstants.WriteinFile(TAG + " Hours: Entered" + C_AccHours);
+                            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " Hours: Entered" + C_AccHours);
                             ///gooooo
                             allValid();
                         } else {
                             etHours.setText("");
-                            AppConstants.WriteinFile(TAG + " Hours: Entered" + C_AccHours + " is not within the reasonability");
+                            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " Hours: Entered" + C_AccHours + " is not within the reasonability");
                             AppConstants.colorToastBigFont(getApplicationContext(), "The Hours entered is not within the reasonability your administrator has assigned, please contact your administrator.", Color.RED);
                         }
                     }
                 } else {
 
-                    AppConstants.WriteinFile(TAG + " Hours: Entered" + C_AccHours);
+                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " Hours: Entered" + C_AccHours);
                     //comment By JB -it  must take ANY number they enter on the 4th try
                     allValid();
 

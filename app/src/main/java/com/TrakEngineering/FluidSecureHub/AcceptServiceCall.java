@@ -101,7 +101,7 @@ public class AcceptServiceCall {
 
             Gson gson = new Gson();
             String jsonData = gson.toJson(authEntityClass);
-            AppConstants.WriteinFile(TAG+" Authorization Sequence Data: " +jsonData);
+            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG+" Authorization Sequence Data: " +jsonData);
 
 
             cd = new ConnectionDetector(activity);

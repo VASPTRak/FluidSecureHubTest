@@ -212,7 +212,6 @@
             android:fitsSystemWindows="true"
             android:windowSoftInputMode="adjustResize" />
         <activity android:name=".SelectFSActivity" />
-        <activity android:name=".ActivityFobKeyReader" />
 
     </application>
 

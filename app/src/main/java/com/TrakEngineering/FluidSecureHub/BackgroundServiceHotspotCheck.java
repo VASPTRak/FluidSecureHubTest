@@ -51,7 +51,7 @@ public class BackgroundServiceHotspotCheck extends BackgroundService {
 
                     wifiApManager.setWifiApEnabled(null, true);  //Hotspot enabled
                     Log.i(TAG, "Connecting to hotspot, please wait....");
-                    AppConstants.WriteinFile( TAG+" <<ForDev>> Hotspot ON--1");
+                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+" <<ForDev>> Hotspot ON--1");
 
                 } else if (screenOff) {
 
@@ -59,7 +59,7 @@ public class BackgroundServiceHotspotCheck extends BackgroundService {
 
                         wifiApManager.setWifiApEnabled(null, true);  //Hotspot enabled
                         Log.i(TAG, "Connecting to hotspot, please wait....");
-                        AppConstants.WriteinFile( TAG+" <<ForDev>> Hotspot ON--2");
+                        if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+" <<ForDev>> Hotspot ON--2");
 
                     } /*else if (!isScreenOn(this) && CommonUtils.isHotspotEnabled(BackgroundServiceHotspotCheck.this)) {
 
@@ -67,7 +67,7 @@ public class BackgroundServiceHotspotCheck extends BackgroundService {
                         if (Constants.FS_1STATUS.equalsIgnoreCase("FREE") && Constants.FS_2STATUS.equalsIgnoreCase("FREE") && Constants.FS_3STATUS.equalsIgnoreCase("FREE") && Constants.FS_4STATUS.equalsIgnoreCase("FREE")) {
                             wifiApManager.setWifiApEnabled(null, false);  //Hotspot disable
                             Log.i(TAG, "Disable hotspot, please wait....");
-                            AppConstants.WriteinFile("BackgroundServiceHotspotCheck~~~~~~~~~" + "Hotspot OFF");
+                            if (AppConstants.GenerateLogs)AppConstants.WriteinFile("BackgroundServiceHotspotCheck~~~~~~~~~" + "Hotspot OFF");
                         } else {
                             Log.i(TAG, "Can not disable hotspot, One of the link is busy...");
                         }

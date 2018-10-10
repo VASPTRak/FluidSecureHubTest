@@ -14,7 +14,7 @@ android {
         minSdkVersion 18
         targetSdkVersion 27
         versionCode 47
-        versionName "0.36.3"
+        versionName "0.36.5"
         multiDexEnabled true
     }
     buildTypes {
@@ -33,9 +33,6 @@ android {
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
 
-
-    compile files('libs/acsaj-1.0.0.jar')
-    compile files('libs/acsbt-1.0.0preview9.jar')
     compile 'com.google.code.gson:gson:2.2.4'
     compile 'com.squareup.okhttp:okhttp:2.0.0'
     compile 'com.android.support:appcompat-v7:25.3.1'
@@ -62,6 +59,8 @@ dependencies {
     compile 'com.squareup.retrofit2:retrofit:2.3.0'
     compile 'com.squareup.retrofit2:converter-gson:2.3.0'
     compile 'com.squareup.retrofit2:converter-scalars:2.3.0'
+
+    implementation project(':acsbt')
 
 
 }

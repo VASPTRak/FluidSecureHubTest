@@ -468,7 +468,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
 
             String Str_data = data.toString().trim();
             System.out.println("FOK_KEY Vehi " + Str_data);
-            AppConstants.WriteinFile( TAG+" <<ForDev>> DeviceControlActivity_pin displayData Response LF: " + Str_data);
+            if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+" <<ForDev>> DeviceControlActivity_pin displayData Response LF: " + Str_data);
             String Str_check = Str_data.replace(" ", "");
             if (!Str_check.equalsIgnoreCase("000000")) {
                 try {
@@ -479,7 +479,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                     tv_fobkey.setText(Sep2.replace(" ", ""));
                 } catch (Exception ex) {
                     System.out.println(ex);
-                    AppConstants.WriteinFile( TAG+" <<ForDev>> displayData Split Fob_Key  --Exception " + ex);
+                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+" <<ForDev>> displayData Split Fob_Key  --Exception " + ex);
                 }
 
                 if (!LF_FobKey.equalsIgnoreCase("")) {
@@ -497,7 +497,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
 
                 if (Count < 3) {
                     // Toast.makeText(getApplicationContext(),"Attempt to read Characteristic: "+Count, Toast.LENGTH_LONG).show();
-                    AppConstants.WriteinFile( TAG+" <<ForDev>> DeviceControlActivity_pin displayData Attempt to read Characteristic: " + Count);
+                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+" <<ForDev>> DeviceControlActivity_pin displayData Attempt to read Characteristic: " + Count);
                     Count++;
                     if (mBluetoothLeServicePin != null) {
                         // mBluetoothLeServiceVehicle.readCharacteristic(characteristic);
@@ -711,7 +711,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
             objEntityClass.FromNewFOBChange = "Y";
 
             System.out.println(TAG+"Personnel PIN: Read FOB:"+AppConstants.APDU_FOB_KEY+"  PIN Number: "+String.valueOf(etPersonnelPin.getText()));
-            AppConstants.WriteinFile(TAG+"Personnel PIN: Read FOB:"+AppConstants.APDU_FOB_KEY+"  PIN Number: "+String.valueOf(etPersonnelPin.getText()));
+            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG+"Personnel PIN: Read FOB:"+AppConstants.APDU_FOB_KEY+"  PIN Number: "+String.valueOf(etPersonnelPin.getText()));
 
             DeviceControlActivity_Pin.CheckValidPinOrFOBNUmber vehTestAsynTask1 = new DeviceControlActivity_Pin.CheckValidPinOrFOBNUmber(objEntityClass);
             vehTestAsynTask1.execute();
@@ -732,7 +732,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
 
                 if (ResponceMessage.equalsIgnoreCase("success")) {
 
-                    AppConstants.WriteinFile(TAG +" Personnel Fob Read Success");
+                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG +" Personnel Fob Read Success");
                     DisplayScreenFobReadSuccess();
                     tv_enter_pin_no.setText("Personnel Number:" + PersonPIN);
                     System.out.println("PersonFOBNumber.." + PersonFOBNumber + "PersonPin" + PersonPIN);
@@ -749,7 +749,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
 
                 } else {
 
-                    AppConstants.WriteinFile(TAG +" Personnel Fob Read Fail: "+ResponceMessage);
+                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG +" Personnel Fob Read Fail: "+ResponceMessage);
                     if (IsNewFob.equalsIgnoreCase("No")) {
                         AppConstants.APDU_FOB_KEY = "";
                         onResume();
@@ -888,10 +888,10 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                 if (AppConstants.APDU_FOB_KEY.equalsIgnoreCase(""))
                 {
                     System.out.println(TAG+ " Personnel PIN: Entered manually: "+etPersonnelPin.getText().toString().trim()+"  Fob:"+AppConstants.APDU_FOB_KEY);
-                    AppConstants.WriteinFile(TAG+ " Personnel PIN: Entered manually: "+etPersonnelPin.getText().toString().trim()+"  Fob:"+AppConstants.APDU_FOB_KEY);
+                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG+ " Personnel PIN: Entered manually: "+etPersonnelPin.getText().toString().trim()+"  Fob:"+AppConstants.APDU_FOB_KEY);
                 }else{
                     System.out.println(TAG+"Personnel PIN: Read FOB:"+AppConstants.APDU_FOB_KEY+"  PIN Number: "+String.valueOf(etPersonnelPin.getText()));
-                    AppConstants.WriteinFile(TAG+"Personnel PIN: Read FOB:"+AppConstants.APDU_FOB_KEY+"  PIN Number: "+String.valueOf(etPersonnelPin.getText()));
+                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG+"Personnel PIN: Read FOB:"+AppConstants.APDU_FOB_KEY+"  PIN Number: "+String.valueOf(etPersonnelPin.getText()));
                 }
 
                 DeviceControlActivity_Pin.CheckVehicleRequireOdometerEntryAndRequireHourEntry vehTestAsynTask = new DeviceControlActivity_Pin.CheckVehicleRequireOdometerEntryAndRequireHourEntry(objEntityClass);
@@ -913,7 +913,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                     if (ResponceMessage.equalsIgnoreCase("success")) {
 
 
-                        AppConstants.WriteinFile(TAG +" PIN Accepted:" + etPersonnelPin.getText().toString().trim());
+                        if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG +" PIN Accepted:" + etPersonnelPin.getText().toString().trim());
 
                         btnSave.setClickable(false);
 
@@ -945,12 +945,12 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
 
                         String ResponceText = jsonObject.getString("ResponceText");
                         String ValidationFailFor = jsonObject.getString("ValidationFailFor");
-                        AppConstants.WriteinFile(TAG +" PIN rejected:" + etPersonnelPin.getText().toString().trim() +" Error:"+ResponceText);
+                        if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG +" PIN rejected:" + etPersonnelPin.getText().toString().trim() +" Error:"+ResponceText);
 
                         if (ValidationFailFor.equalsIgnoreCase("Pin")) {
 
                             AppConstants.colorToastBigFont(this,  ResponceText, Color.RED);
-                            AppConstants.WriteinFile( TAG+" <<ForDev>> colorToastBigFont PIN Activity ValidationFor Pin" + ResponceText);
+                            if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+" <<ForDev>> colorToastBigFont PIN Activity ValidationFor Pin" + ResponceText);
                             //Clear Pin edit text
                             if (Constants.CurrentSelectedHose.equals("FS1")) {
                                 Constants.AccPersonnelPIN_FS1 = "";
@@ -967,10 +967,10 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                         } else if (ValidationFailFor.equalsIgnoreCase("Vehicle")) {
 
                             AppConstants.colorToastBigFont(this, ResponceText, Color.RED);
-                            AppConstants.WriteinFile( TAG+" <<ForDev>> colorToastBigFont PIN Activity ValidationFor Vehicle" + ResponceText);
+                            if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+" <<ForDev>> colorToastBigFont PIN Activity ValidationFor Vehicle" + ResponceText);
 
                             /*AppConstants.colorToastBigFont(this, "Some thing went wrong Please try again..\n"+ResponceText, Color.RED);
-                            AppConstants.WriteinFile(TAG+" Some thing went wrong Please try again..(~else if~)\n"+ResponceText);
+                            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG+" Some thing went wrong Please try again..(~else if~)\n"+ResponceText);
                             AppConstants.ClearEdittextFielsOnBack(DeviceControlActivity_Pin.this); //Clear EditText on move to welcome activity.
                             Intent intent = new Intent(DeviceControlActivity_Pin.this, WelcomeActivity.class);
                             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -979,10 +979,10 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                         } else {
 
                             AppConstants.colorToastBigFont(this, ResponceText, Color.RED);
-                            AppConstants.WriteinFile( TAG+" <<ForDev>> colorToastBigFont PIN Activity ValidationFor Else" + ResponceText);
+                            if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+" <<ForDev>> colorToastBigFont PIN Activity ValidationFor Else" + ResponceText);
 
                             /*AppConstants.colorToastBigFont(this, "Some thing went wrong Please try again..\n"+ResponceText, Color.RED);
-                            AppConstants.WriteinFile(TAG+" Some thing went wrong Please try again..(~else~)\n"+ResponceText);
+                            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG+" Some thing went wrong Please try again..(~else~)\n"+ResponceText);
                             AppConstants.ClearEdittextFielsOnBack(DeviceControlActivity_Pin.this); //Clear EditText on move to welcome activity.
                             Intent intent = new Intent(DeviceControlActivity_Pin.this, WelcomeActivity.class);
                             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);

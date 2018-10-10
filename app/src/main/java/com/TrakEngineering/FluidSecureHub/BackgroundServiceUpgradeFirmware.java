@@ -84,7 +84,7 @@ public class BackgroundServiceUpgradeFirmware extends BackgroundService {
                 ChangeUpgradeProcessFlag();
             }
         } catch (NullPointerException e) {
-            AppConstants.WriteinFile(TAG + "onStartCommand Execption " + e);
+            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "onStartCommand Execption " + e);
             Log.d("Ex", e.getMessage());
             this.stopSelf();
         }
@@ -120,7 +120,7 @@ public class BackgroundServiceUpgradeFirmware extends BackgroundService {
 
             } catch (Exception e) {
                 Log.d("Ex", e.getMessage());
-                AppConstants.WriteinFile(TAG+ "CommandsPOST doInBackground Execption " + e);
+                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG+ "CommandsPOST doInBackground Execption " + e);
                 stopSelf();
             }
 
@@ -138,7 +138,7 @@ public class BackgroundServiceUpgradeFirmware extends BackgroundService {
 
             } catch (Exception e) {
 
-                AppConstants.WriteinFile(TAG + "CommandsPOST onPostExecute Execption " + e);
+                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "CommandsPOST onPostExecute Execption " + e);
                 System.out.println(e);
                 stopSelf();
             }

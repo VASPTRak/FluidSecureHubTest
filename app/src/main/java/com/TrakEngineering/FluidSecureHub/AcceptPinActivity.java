@@ -1,27 +1,16 @@
 package com.TrakEngineering.FluidSecureHub;
 
-import android.annotation.SuppressLint;
-import android.app.ProgressDialog;
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothGatt;
-import android.bluetooth.BluetoothManager;
-import android.bluetooth.BluetoothProfile;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Rect;
-import android.media.AudioManager;
 import android.os.AsyncTask;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.Handler;
-import android.preference.PreferenceManager;
 import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.text.Html;
 import android.text.InputType;
 import android.util.DisplayMetrics;
@@ -29,40 +18,27 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewTreeObserver;
-import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.TrakEngineering.FluidSecureHub.enity.CheckPinFobEntity;
 import com.TrakEngineering.FluidSecureHub.enity.VehicleRequireEntity;
 import com.TrakEngineering.FluidSecureHub.server.ServerHandler;
-import com.acs.audiojack.AudioJackReader;
-import com.acs.audiojack.DukptReceiver;
-import com.acs.bluetooth.Acr1255uj1Reader;
-import com.acs.bluetooth.Acr3901us1Reader;
-import com.acs.bluetooth.BluetoothReader;
-import com.acs.bluetooth.BluetoothReaderGattCallback;
-import com.acs.bluetooth.BluetoothReaderManager;
 import com.google.gson.Gson;
 
 import org.json.JSONObject;
 
-import java.io.UnsupportedEncodingException;
-import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
-
-import static com.google.android.gms.common.GooglePlayServicesUtil.getErrorString;
 
 public class AcceptPinActivity extends AppCompatActivity {
 
     EditText etPersonnelPin;
-    TextView tv_or,tv_fob_Reader,tv_fob_number, tv_enter_pin_no, tv_return, tv_swipekeybord, tv_ok, tv_dont_have_fob;
+    TextView tv_or, tv_fob_Reader, tv_fob_number, tv_enter_pin_no, tv_return, tv_swipekeybord, tv_ok, tv_dont_have_fob;
     Button btnSave, btnCancel;
     String IsOdoMeterRequire = "", IsDepartmentRequire = "", IsPersonnelPINRequire = "", IsOtherRequire = "";
     String TimeOutinMinute;
@@ -71,7 +47,7 @@ public class AcceptPinActivity extends AppCompatActivity {
     int FobRetryCount = 0;
     RelativeLayout footer_keybord;
     LinearLayout Linear_layout_Save_back_buttons;
-    Timer t,ScreenOutTime;
+    Timer t, ScreenOutTime;
 
 
     @Override
@@ -184,7 +160,6 @@ public class AcceptPinActivity extends AppCompatActivity {
         }
 
 
-
         btnSave = (Button) findViewById(R.id.btnSave);
         btnCancel = (Button) findViewById(R.id.btnCancel);
         tv_fob_Reader = (TextView) findViewById(R.id.tv_fob_Reader);
@@ -236,7 +211,6 @@ public class AcceptPinActivity extends AppCompatActivity {
                 }
             }
         });
-
 
 
         tv_swipekeybord.setOnClickListener(new View.OnClickListener() {
@@ -450,20 +424,20 @@ public class AcceptPinActivity extends AppCompatActivity {
             if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS1")) {
                 Constants.AccPersonnelPIN_FS1 = etPersonnelPin.getText().toString().trim();
 
-                vehicleNumber=Constants.AccVehicleNumber_FS1 ;
+                vehicleNumber = Constants.AccVehicleNumber_FS1;
 
             } else if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS2")) {
                 Constants.AccPersonnelPIN = etPersonnelPin.getText().toString().trim();
 
-                vehicleNumber=Constants.AccVehicleNumber ;
+                vehicleNumber = Constants.AccVehicleNumber;
 
             } else if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS3")) {
                 Constants.AccPersonnelPIN_FS3 = etPersonnelPin.getText().toString().trim();
 
-                vehicleNumber=Constants.AccVehicleNumber_FS3 ;
+                vehicleNumber = Constants.AccVehicleNumber_FS3;
             } else {
                 Constants.AccPersonnelPIN_FS4 = etPersonnelPin.getText().toString().trim();
-                vehicleNumber=Constants.AccVehicleNumber_FS4 ;
+                vehicleNumber = Constants.AccVehicleNumber_FS4;
             }
 
             Istimeout_Sec = false;
@@ -523,8 +497,7 @@ public class AcceptPinActivity extends AppCompatActivity {
                             asc.activity = AcceptPinActivity.this;
                             asc.checkAllFields();
                         }
-                    }
-                    else {
+                    } else {
                         String ResponceText = jsonObject.getString("ResponceText");
                         String ValidationFailFor = jsonObject.getString("ValidationFailFor");
                         if (ValidationFailFor.equalsIgnoreCase("Pin")) {
@@ -546,9 +519,7 @@ public class AcceptPinActivity extends AppCompatActivity {
 
                     }
                 }
-            }
-            catch (Exception e)
-            {
+            } catch (Exception e) {
 
             }
 
@@ -688,7 +659,7 @@ public class AcceptPinActivity extends AppCompatActivity {
 
     public void showKeybord() {
 
-        InputMethodManager imm = (InputMethodManager)  getSystemService(Context.INPUT_METHOD_SERVICE);
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, InputMethodManager.HIDE_IMPLICIT_ONLY);
     }
 

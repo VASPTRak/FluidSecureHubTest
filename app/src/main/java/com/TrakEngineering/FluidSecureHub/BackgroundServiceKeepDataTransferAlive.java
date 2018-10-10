@@ -35,8 +35,14 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.MalformedURLException;
+import java.net.Socket;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
@@ -59,6 +65,9 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
     public static ArrayList<HashMap<String, String>> DetailslistOfConnectedIP_KDTA = new ArrayList<>();
     public static ArrayList<String> listOfConnectedIP_KDTA = new ArrayList<String>();
 
+    private static int SERVER_PORT = 80;
+    private static String SERVER_IP = "";
+
     @SuppressLint("LongLogTag")
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -66,7 +75,7 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
         try {
             super.onStart(intent, startId);
             Log.i(TAG, "~~~~~~~~~~Begining~~~~~~~~~~");
-            // AppConstants.WriteinFile(TAG + "~~~~~~~~~~Begining~~~~~~~~~~");
+            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "~~~~~~~~~~Begining~~~~~~~~~~");
 
             ListConnectedHotspotIP_KDTA(); //new GetSSIDUsingLocation();
 
@@ -79,7 +88,7 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
 
 
         } catch (NullPointerException e) {
-            AppConstants.WriteinFile( TAG+" <<ForDev>> onStartCommand Execption " + e);
+            if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+" <<ForDev>> onStartCommand Execption " + e);
             Log.d("Ex", e.getMessage());
             this.stopSelf();
         }
@@ -91,95 +100,114 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
     @SuppressLint("LongLogTag")
     public void StartUpgradeProcess() {
 
-        if (SSIDList != null && SSIDList.size() > 0) {
+        try {
 
-            Log.i(TAG, "Hotspot connected devices: " + String.valueOf(DetailslistOfConnectedIP_KDTA.size()));
-            for (int i = 0; i < SSIDList.size(); i++) {
 
-                String ReconfigureLink = SSIDList.get(i).get("ReconfigureLink");
-                String selSSID = SSIDList.get(i).get("WifiSSId");
-                String IsBusy = SSIDList.get(i).get("IsBusy");
-                String selMacAddress = SSIDList.get(i).get("MacAddress");
-                String selSiteId = SSIDList.get(i).get("SiteId");
-                String hoseID = SSIDList.get(i).get("HoseId");
-                String IsUpgrade = SSIDList.get(i).get("IsUpgrade"); //"Y";//
+            if (SSIDList != null && SSIDList.size() > 0) {
 
-                for (int k = 0; k < DetailslistOfConnectedIP_KDTA.size(); k++) {
-                    String Mac_Addr = DetailslistOfConnectedIP_KDTA.get(k).get("macAddress");
-                    if (selMacAddress.equalsIgnoreCase(Mac_Addr)) {
-                        // URL_INFO = "http://" + DetailslistOfConnectedIP_KDTA.get(k).get("ipAddress") + ":80/";
-                        HTTP_URL_TEST = "http://" + DetailslistOfConnectedIP_KDTA.get(k).get("ipAddress") + ":80/";
+                Log.i(TAG, "Hotspot connected devices: " + String.valueOf(DetailslistOfConnectedIP_KDTA.size()));
+                for (int i = 0; i < SSIDList.size(); i++) {
 
-                        try {
+                    boolean IsHoseBusy = IsHoseBusyCheckLocally(i);
+                    String ReconfigureLink = SSIDList.get(i).get("ReconfigureLink");
+                    String selSSID = SSIDList.get(i).get("WifiSSId");
+                    String IsBusy = SSIDList.get(i).get("IsBusy");
+                    String selMacAddress = SSIDList.get(i).get("MacAddress");
+                    String selSiteId = SSIDList.get(i).get("SiteId");
+                    String hoseID = SSIDList.get(i).get("HoseId");
+                    String IsUpgrade = SSIDList.get(i).get("IsUpgrade"); //"Y";//
 
-                            Log.i(TAG, "HTTP_URL_TEST: " + HTTP_URL_TEST);
-                            //If ipaddress is not empty
-                            String iot_version = "";
+                    for (int k = 0; k < DetailslistOfConnectedIP_KDTA.size(); k++) {
+                        String Mac_Addr = DetailslistOfConnectedIP_KDTA.get(k).get("macAddress");
+                        if (IsHoseBusy && selMacAddress.equalsIgnoreCase(Mac_Addr)) {
+                            // URL_INFO = "http://" + DetailslistOfConnectedIP_KDTA.get(k).get("ipAddress") + ":80/";
+                            HTTP_URL_TEST = "http://" + DetailslistOfConnectedIP_KDTA.get(k).get("ipAddress") + ":80/";
 
-                            URL_INFO = HTTP_URL_TEST + "client?command=info";
-                            AppConstants.WriteinFile(TAG+" Sending getinfo to hose: "+ selSSID);
-                            String FSStatus = new CommandsGET().execute(URL_INFO).get();//Info command
-                            if (FSStatus.startsWith("{") && FSStatus.contains("Version") && IsUpgrade.equalsIgnoreCase("Y")) {
-                                Log.i(TAG, "Info Command response" + FSStatus);
-                                AppConstants.WriteinFile(TAG+" got info response from hose : "+ selSSID+"\n"+FSStatus);
+                            try {
 
-                                HTTP_URL = HTTP_URL_TEST;
-                                URL_UPGRADE_START = HTTP_URL + "upgrade?command=start";
-                                URL_RESET = HTTP_URL + "upgrade?command=reset";
 
-                                try {
+                                SERVER_IP = DetailslistOfConnectedIP_KDTA.get(k).get("ipAddress");
+                                // new TCPClientTask().execute(SERVER_IP);
+                                 new UDPClientTask().execute(SERVER_IP);
 
-                                    JSONObject jsonObj = new JSONObject(FSStatus);
-                                    String userData = jsonObj.getString("Version");
-                                    JSONObject jsonObject = new JSONObject(userData);
 
-                                    String sdk_version = jsonObject.getString("sdk_version");
-                                    String mac_address = jsonObject.getString("mac_address");
-                                    iot_version = jsonObject.getString("iot_version");
+                              /*  Log.i(TAG, "HTTP_URL_TEST: " + HTTP_URL_TEST);
+                                //If ipaddress is not empty
+                                String iot_version = "";
 
-                                    DownloadFirmwareFile();//Download firmware file
+                                URL_INFO = HTTP_URL_TEST + "client?command=info";
+                                if (AppConstants.GenerateLogs)
+                                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " Sending getinfo to hose: " + selSSID);
+                                String FSStatus = new CommandsGET().execute(URL_INFO).get();//Info command
+                                if (FSStatus.startsWith("{") && FSStatus.contains("Version") && IsUpgrade.equalsIgnoreCase("Y")) {
+                                    Log.i(TAG, "Info Command response" + FSStatus);
+                                    if (AppConstants.GenerateLogs)
+                                        if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " got info response from hose : " + selSSID + "\n" + FSStatus);
 
-                                    if (i == 0) {
-                                        //Hose one selected
-                                        WelcomeActivity.IsUpgradeInprogress_FS1 = true;
-                                    } else if (i == 1) {
-                                        //Hose two selected
-                                        WelcomeActivity.IsUpgradeInprogress_FS2 = true;
-                                    } else if (i == 2) {
-                                        //Hose three selected
-                                        WelcomeActivity.IsUpgradeInprogress_FS3 = true;
-                                    } else if (i == 3) {
-                                        //Hose four selected
-                                        WelcomeActivity.IsUpgradeInprogress_FS4 = true;
-                                    } else {
-                                        //Something went wrong
+                                    HTTP_URL = HTTP_URL_TEST;
+                                    URL_UPGRADE_START = HTTP_URL + "upgrade?command=start";
+                                    URL_RESET = HTTP_URL + "upgrade?command=reset";
+
+                                    try {
+
+                                        JSONObject jsonObj = new JSONObject(FSStatus);
+                                        String userData = jsonObj.getString("Version");
+                                        JSONObject jsonObject = new JSONObject(userData);
+
+                                        String sdk_version = jsonObject.getString("sdk_version");
+                                        String mac_address = jsonObject.getString("mac_address");
+                                        iot_version = jsonObject.getString("iot_version");
+
+                                        DownloadFirmwareFile();//Download firmware file
+
+                                        if (i == 0) {
+                                            //Hose one selected
+                                            WelcomeActivity.IsUpgradeInprogress_FS1 = true;
+                                        } else if (i == 1) {
+                                            //Hose two selected
+                                            WelcomeActivity.IsUpgradeInprogress_FS2 = true;
+                                        } else if (i == 2) {
+                                            //Hose three selected
+                                            WelcomeActivity.IsUpgradeInprogress_FS3 = true;
+                                        } else if (i == 3) {
+                                            //Hose four selected
+                                            WelcomeActivity.IsUpgradeInprogress_FS4 = true;
+                                        } else {
+                                            //Something went wrong
+                                        }
+
+                                        if (!iot_version.equalsIgnoreCase("")) {
+                                            CheckForUpdateFirmware(hoseID, iot_version, String.valueOf(i));
+                                        }
+
+
+                                    } catch (JSONException e) {
+                                        e.printStackTrace();
                                     }
 
-                                    if (!iot_version.equalsIgnoreCase("")) {
-                                        CheckForUpdateFirmware(hoseID, iot_version, String.valueOf(i));
-                                    }
+                                } else {
+                                    Log.i(TAG, "Info Command response" + FSStatus);
+                                    if (AppConstants.GenerateLogs)
+                                        if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " got info response from hose : " + selSSID + "\n" + FSStatus);
+                                }*/
 
 
-                                } catch (JSONException e) {
-                                    e.printStackTrace();
-                                }
-
-                            } else {
-                                Log.i(TAG, "Info Command response" + FSStatus);
-                                AppConstants.WriteinFile(TAG+" got info response from hose : "+ selSSID+"\n"+FSStatus);
+                            } catch (Exception e) {
+                                e.printStackTrace();
                             }
-
-
-                        } catch (Exception e) {
-                            e.printStackTrace();
                         }
                     }
-                }
 
+                }
+            } else {
+                Log.i(TAG, "SSID List Empty");
+                if (AppConstants.GenerateLogs)
+                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> SSID List Empty");
             }
-        } else {
-            Log.i(TAG, "SSID List Empty");
-            AppConstants.WriteinFile( TAG+" <<ForDev>> SSID List Empty");
+
+        }catch (Exception e){
+            e.printStackTrace();
+            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> StartUpgradeProcess Exception: "+e);
         }
     }
 
@@ -236,13 +264,13 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
 
                 } catch (Exception e) {
                     e.printStackTrace();
-                    AppConstants.WriteinFile( TAG+" <<ForDev>> ListConnectedHotspotIP_AP_PIPE 1 --Exception " + e);
+                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+" <<ForDev>> ListConnectedHotspotIP_AP_PIPE 1 --Exception " + e);
                 } finally {
                     try {
                         br.close();
                     } catch (IOException e) {
                         e.printStackTrace();
-                        AppConstants.WriteinFile( TAG+" <<ForDev>> ListConnectedHotspotIP_AP_PIPE 2 --Exception " + e);
+                        //    if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+" <<ForDev>> ListConnectedHotspotIP_AP_PIPE 2 --Exception " + e);
                     }
                 }
             }
@@ -277,8 +305,8 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
             try {
 
                 OkHttpClient client = new OkHttpClient();
-                client.setConnectTimeout(15, TimeUnit.SECONDS);
-                client.setReadTimeout(15, TimeUnit.SECONDS);
+                client.setConnectTimeout(10, TimeUnit.SECONDS);
+                client.setReadTimeout(10, TimeUnit.SECONDS);
 
                 Request request = new Request.Builder()
                         .url(param[0])
@@ -316,7 +344,7 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
     public void CheckForUpdateFirmware(final String hoseid, String iot_version, final String FS_selected) {
 
         Log.i(TAG, "Upgrade for Hose: " + FS_selected + "\nFirmware Version: " + iot_version + "Hose ID: " + hoseid);
-        AppConstants.WriteinFile( TAG+" <<ForDev>> Upgrade for Hose: " + FS_selected + "\nFirmware Version: " + iot_version + "Hose ID: " + hoseid);
+        if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+" <<ForDev>> Upgrade for Hose: " + FS_selected + "\nFirmware Version: " + iot_version + "Hose ID: " + hoseid);
 
         SharedPreferences sharedPrefODO = this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
         String HubId = sharedPrefODO.getString(AppConstants.HubId, "");// HubId equals to personId
@@ -368,12 +396,12 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
             } catch (Exception e) {
                 e.printStackTrace();
                 Log.i(TAG, " UpgradeCurrentVersionWithUgradableVersion 1 " + e);
-                AppConstants.WriteinFile( TAG+" <<ForDev>> UpgradeCurrentVersionWithUgradableVersion 1 " + e);
+                //   if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+" <<ForDev>> UpgradeCurrentVersionWithUgradableVersion 1 " + e);
             }
 
         } else {
             Log.i(TAG, "Upgrade fail Hose id empty");
-            AppConstants.WriteinFile( TAG+" <<ForDev>> Upgrade fail Hose id empty");
+            if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+" <<ForDev>> Upgrade fail Hose id empty");
         }
 
     }
@@ -404,7 +432,7 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
 
             } catch (Exception e) {
                 Log.i(TAG, " CommandsPOST Exception" + e);
-                AppConstants.WriteinFile( TAG+" <<ForDev>> CommandsPOST doInBackground Execption " + e);
+                //   if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+" <<ForDev>> CommandsPOST doInBackground Execption " + e);
                 stopSelf();
             }
 
@@ -422,7 +450,7 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
                 System.out.println(" OUTPUT" + result);
 
             } catch (Exception e) {
-                AppConstants.WriteinFile( TAG+" <<ForDev>> CommandsPOST onPostExecute Execption " + e);
+                if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+" <<ForDev>> CommandsPOST onPostExecute Execption " + e);
                 Log.i(TAG, " CommandsPOST Exception" + e);
                 stopSelf();
             }
@@ -462,7 +490,7 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
             } catch (Exception e) {
                 ChangeUpgradeProcessFlag();
                 Log.i(TAG, " OkHttpFileUpload doInBackground Exception" + e);
-                AppConstants.WriteinFile( TAG+" <<ForDev>> OkHttpFileUpload doInBackground Exception" + e);
+                if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+" <<ForDev>> OkHttpFileUpload doInBackground Exception" + e);
             }
 
 
@@ -484,12 +512,12 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
 
                             String ResetRespo = new CommandsPOST().execute(URL_RESET, "").get();
                             Log.i(TAG, " Reset command Response: " + ResetRespo);
-                            AppConstants.WriteinFile( TAG+" <<ForDev>> Reset command Response: " + ResetRespo);
+                            //   if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+" <<ForDev>> Reset command Response: " + ResetRespo);
 
                         } catch (Exception e) {
 
                             Log.i(TAG, " OkHttpFileUpload CommandsPOST Exception" + e);
-                            AppConstants.WriteinFile( TAG+" <<ForDev>> OkHttpFileUpload CommandsPOST doInBackground Execption " + e);
+                            //   if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+" <<ForDev>> OkHttpFileUpload CommandsPOST doInBackground Execption " + e);
                         }
                         ChangeUpgradeProcessFlag();
                         System.out.println("AFTER SECONDS 5");
@@ -500,7 +528,7 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
             } catch (Exception e) {
                 ChangeUpgradeProcessFlag();
                 Log.i(TAG, " OkHttpFileUpload onPostExecute Exception" + e);
-                AppConstants.WriteinFile( TAG+" <<ForDev>> OkHttpFileUpload onPostExecute Exception" + e);
+                if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+" <<ForDev>> OkHttpFileUpload onPostExecute Exception" + e);
 
             }
 
@@ -561,7 +589,7 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
             //AppConstants.AlertDialogBox(WelcomeActivity.this, "Please check File is present in FSBin Folder in Internal(Device) Storage");
             System.out.println("Please check File is present in FSBin Folder in Internal(Device) Storage");
             Log.i(TAG, " Please check File is present in FSBin Folder in Internal(Device) Storage");
-            AppConstants.WriteinFile( TAG+" <<ForDev>> Please check File is present in FSBin Folder in Internal(Device) Storage");
+            //    if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+" <<ForDev>> Please check File is present in FSBin Folder in Internal(Device) Storage");
         }
 
         if (AppConstants.UP_FilePath != null)
@@ -652,7 +680,7 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
 
             } catch (Exception e) {
                 Log.i(TAG, " GetUpgrateFirmwareStatus doInBackground " + e);
-                AppConstants.WriteinFile( TAG+" <<ForDev>> GetUpgrateFirmwareStatus doInBackground " + e);
+                if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+" <<ForDev>> GetUpgrateFirmwareStatus doInBackground " + e);
             }
 
             return response;
@@ -679,7 +707,7 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
 
                         String cmpresponse = new CommandsPOST().execute(URL_UPGRADE_START, "").get();
                         Log.i(TAG, " GetUpgrateFirmwareStatus CommandsPOST Response" + cmpresponse);
-                        AppConstants.WriteinFile( TAG+" <<ForDev>> GetUpgrateFirmwareStatus CommandsPOST Response" + cmpresponse);
+                        //   if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+" <<ForDev>> GetUpgrateFirmwareStatus CommandsPOST Response" + cmpresponse);
 
                         //upgrade bin
                         String LocalPath = CommonUtils.FOLDER_PATH + CommonUtils.PATH_BIN_FILE1;
@@ -704,14 +732,14 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
                 } else {
                     ChangeUpgradeProcessFlag();
                     Log.i(TAG, " GetUpgrateFirmwareStatus Something Went wrong");
-                    AppConstants.WriteinFile( TAG+" <<ForDev>> GetUpgrateFirmwareStatus Something Went wrong");
+                    //   if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+" <<ForDev>> GetUpgrateFirmwareStatus Something Went wrong");
                 }
 
 
             } catch (Exception e) {
 
                 Log.i(TAG, " GetUpgrateFirmwareStatus onPostExecute " + e);
-                AppConstants.WriteinFile( TAG+" <<ForDev>> GetUpgrateFirmwareStatus onPostExecute " + e);
+                //   if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+" <<ForDev>> GetUpgrateFirmwareStatus onPostExecute " + e);
             }
 
         }
@@ -743,7 +771,7 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
 
             } catch (Exception e) {
                 Log.i(TAG, " GetUpgrateFirmwareStatus doInBackground " + e);
-                AppConstants.WriteinFile( TAG+" <<ForDev>> GetUpgrateFirmwareStatus doInBackground " + e);
+                if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+" <<ForDev>> GetUpgrateFirmwareStatus doInBackground " + e);
             }
 
             return response;
@@ -758,4 +786,156 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
 
         }
     }
+
+    public boolean IsHoseBusyCheckLocally(int i){
+
+//        If selected hose is busy logic
+//        if (i == 0 && Constants.FS_1STATUS.equalsIgnoreCase("FREE") ) { return true; }
+//        else if (i == 1 && Constants.FS_2STATUS.equalsIgnoreCase("FREE")){return true; }
+//        else if (i == 2 && Constants.FS_3STATUS.equalsIgnoreCase("FREE")){return true; }
+//        else if (i == 3 && Constants.FS_4STATUS.equalsIgnoreCase("FREE")){return true; }
+
+        if (Constants.FS_1STATUS.equalsIgnoreCase("FREE") && Constants.FS_2STATUS.equalsIgnoreCase("FREE") && Constants.FS_3STATUS.equalsIgnoreCase("FREE") && Constants.FS_4STATUS.equalsIgnoreCase("FREE")){
+            return true;
+        }
+
+        return false;
+    }
+
+    public class TCPClientTask extends AsyncTask<String, Void, String> {
+
+        String response = "";
+
+        @SuppressLint("LongLogTag")
+        @Override
+        protected String doInBackground(String... serverip) {
+
+            String SERVER_IP = serverip[0];
+            String strcmd =  "GET /client?command=info HTTP/1.1\r\nContent-Type: application/json; charset=utf-8\r\nContent-Length: \r\nHost: 192.168.4.1\r\nConnection: Keep-Alive\r\nAccept-Encoding: gzip\r\nUser-Agent: okhttp/3.6.0\r\n\r\n";
+
+
+            try {
+                String host = SERVER_IP;//"192.168.43.210";//url.getHost();
+                int port = SERVER_PORT;
+
+                // Open a TCP connection
+                Socket socket  = new Socket(host, port);
+                // Send the request over the socket
+                PrintWriter writer = new PrintWriter(socket.getOutputStream());
+                writer.print(strcmd);
+                writer.flush();
+                // Read the response
+                BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                StringBuilder InfoRespo = new StringBuilder();
+                String next_record = null;
+                while ((next_record = reader.readLine()) != null) {
+
+                    InfoRespo.append(next_record);
+                    System.out.println(next_record);
+
+                }
+                Log.i(TAG," InfoRespo: "+InfoRespo);
+                socket.close();
+            } catch (MalformedURLException ex) {
+                ex.printStackTrace();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+            return response;
+        }
+
+        @SuppressLint("LongLogTag")
+        @Override
+        protected void onPostExecute(String res) {
+
+            Log.i(TAG,"Socket response"+res);
+
+        }
+
+    }
+
+
+    public class UDPClientTask extends AsyncTask<String, Void, String> {
+
+        String response = "";
+
+        @SuppressLint("LongLogTag")
+        @Override
+        protected String doInBackground(String... serverip) {
+
+            String SERVER_IP = serverip[0];
+            String strcmd =  "/client?command=info"; //"GET /client?command=info HTTP/1.1\r\nContent-Type: application/json; charset=utf-8\r\nContent-Length: \r\nHost: 192.168.4.1\r\nConnection: Keep-Alive\r\nAccept-Encoding: gzip\r\nUser-Agent: okhttp/3.6.0\r\n\r\n";
+
+
+            try {
+                String messageStr = strcmd;
+                int server_port = 80;
+                InetAddress local = InetAddress.getByName(SERVER_IP);
+                int msg_length = messageStr.length();
+                byte[] message = messageStr.getBytes();
+
+
+                DatagramSocket s = new DatagramSocket();
+                //
+
+                DatagramPacket p = new DatagramPacket(message, msg_length, local, server_port);
+                s.send(p);//properly able to send data. i receive data to server
+
+               /* for (int i = 0; i <= 20; i++) {
+                    final int value = i;
+                    message = new byte[30000];
+                    p = new DatagramPacket(message,message.length );
+                    s.receive(p); //keeps on waiting here but i am sending data back from server, but it never receives
+                    final byte[] data =  p.getData();;
+                    try {
+
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+
+                }*/
+            }
+            catch(Exception ex)
+            {
+                ex.printStackTrace();
+            }
+
+
+           /* try {
+                String host = SERVER_IP;//"192.168.43.210";//url.getHost();
+                int port = SERVER_PORT;
+
+
+                byte[] message = strcmd.getBytes();
+
+                // Get the internet address of the specified host
+                InetAddress address = InetAddress.getByName(host);
+
+                // Initialize a datagram packet with data and address
+                DatagramPacket packet = new DatagramPacket(message, message.length,
+                        address, port);
+
+                // Create a datagram socket, send the packet through it, close it.
+                DatagramSocket dsocket = new DatagramSocket();
+                dsocket.send(packet);
+                dsocket.close();
+                System.out.println("Sent");
+            } catch (Exception e) {
+                System.err.println(e);
+            }*/
+
+            return response;
+        }
+
+        @SuppressLint("LongLogTag")
+        @Override
+        protected void onPostExecute(String res) {
+
+            Log.i(TAG,"Socket response"+res);
+
+        }
+
+    }
+
 }
