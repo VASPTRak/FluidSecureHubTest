@@ -377,7 +377,8 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
                 if (cd.isConnectingToInternet()) {
 
                     try {
-                        new CallAppTxt().execute();
+
+                       new CallAppTxt().execute();
 
                     } catch (Exception e) {
 
@@ -479,9 +480,10 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
                     String IsPersonHasFob = jsonObject.getString("IsPersonHasFob");
                     String LFBluetoothCardReader = jsonObject.getString("LFBluetoothCardReader");
                     String LFBluetoothCardReaderMacAddress = jsonObject.getString("LFBluetoothCardReaderMacAddress");
+                    String IsLogging = jsonObject.getString("IsLogging");
                     String IsGateHub = "False";//jsonObject.getString("IsGateHub");
 
-
+                    CommonUtils.SaveLogFlagInPref(SplashActivity.this,IsLogging,"LogRequiredFlag");//Save logging to preferances
                     storeBT_FOBDetails(BluetoothCardReader, BluetoothCardReaderMacAddress,LFBluetoothCardReader,LFBluetoothCardReaderMacAddress);
 
 

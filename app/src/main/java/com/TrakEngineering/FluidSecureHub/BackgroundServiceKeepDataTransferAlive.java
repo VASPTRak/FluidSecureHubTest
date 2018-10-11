@@ -127,8 +127,8 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
 
 
                                 SERVER_IP = DetailslistOfConnectedIP_KDTA.get(k).get("ipAddress");
-                                // new TCPClientTask().execute(SERVER_IP);
-                                 new UDPClientTask().execute(SERVER_IP);
+                                 new TCPClientTask().execute(SERVER_IP);
+                                //  new UDPClientTask().execute(SERVER_IP);
 
 
                               /*  Log.i(TAG, "HTTP_URL_TEST: " + HTTP_URL_TEST);

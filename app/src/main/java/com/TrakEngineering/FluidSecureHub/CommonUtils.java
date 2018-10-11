@@ -444,11 +444,11 @@ public class CommonUtils {
         return false;
     }
 
-    public static void SaveLogFlagInPref(Activity activity,boolean data, String key){
+    public static void SaveLogFlagInPref(Activity activity,String data, String key){
 
         SharedPreferences pref = activity.getSharedPreferences(Constants.PREF_Log_Data, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = pref.edit();
-        editor.putBoolean(key, data);
+        editor.putString(key, data);
         editor.commit();
 
 

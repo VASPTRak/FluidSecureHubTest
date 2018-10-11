@@ -147,7 +147,6 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     private ImageView imgFuelLogo;
     private TextView tvTitle;
     private Button btnGo, btnRetryWifi,btn_clear_data;
-    private CheckBox IsLogRequired;
     private ConnectionDetector cd;
     private double latitude = 0;
     private double longitude = 0;
@@ -404,7 +403,6 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
         density = getResources().getDisplayMetrics().density;
 
-        IsLogRequired = (CheckBox) findViewById(R.id.cb_logs_req);
         TextView tvVersionNum = (TextView) findViewById(R.id.tvVersionNum);
         tvVersionNum.setText("Version " + CommonUtils.getVersionCode(WelcomeActivity.this));
 
@@ -441,19 +439,6 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         UpdateServerMessages();
         DownloadFile();
 
-        IsLogRequired.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-
-                if (isChecked){
-                    CommonUtils.SaveLogFlagInPref(WelcomeActivity.this,true,"LogRequiredFlag");
-                   // Toast.makeText(getApplicationContext(),"log required True",Toast.LENGTH_LONG).show();
-                }else{
-                    CommonUtils.SaveLogFlagInPref(WelcomeActivity.this,false,"LogRequiredFlag");
-                   // Toast.makeText(getApplicationContext(),"log required False",Toast.LENGTH_LONG).show();
-                }
-            }
-        });
 
         btn_clear_data.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -519,7 +504,6 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         AppConstants.HubName = userInfoEntity.PersonName;
         tvTitle = (TextView) findViewById(textView);
         tvTitle.setText(AppConstants.Title);
-        IsLogRequired.setText("logging\nRequired");
         AppConstants.WriteinFile(TAG + " Hub name: " + userInfoEntity.PersonName);
         AppConstants.WriteinFile(TAG + " Site name: " + userInfoEntity.FluidSecureSiteName);
 
@@ -5668,10 +5652,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     public void CheckIfLogIsRequired(){
 
         SharedPreferences sharedPref = this.getSharedPreferences(Constants.PREF_Log_Data, Context.MODE_PRIVATE);
-        AppConstants.GenerateLogs = sharedPref.getBoolean("LogRequiredFlag",true);
-        IsLogRequired.setChecked(AppConstants.GenerateLogs);
-
-       if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " App opened. App Version: " + CommonUtils.getVersionCode(WelcomeActivity.this));
+        AppConstants.GenerateLogs = Boolean.parseBoolean(sharedPref.getString("LogRequiredFlag","True"));
+        System.out.println("AppConstants.GenerateLogs"+AppConstants.GenerateLogs);
 
     }
 }

@@ -315,11 +315,6 @@
             </LinearLayout>
             <!--FSVM Demo Code ends  -->
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:weightSum="2">
 
                 <TextView
                     android:id="@+id/textView"
@@ -334,24 +329,6 @@
                     android:textColor="#fff"
                     android:textSize="20sp"
                     android:layout_weight="1"/>
-
-                <CheckBox
-                    android:id="@+id/cb_logs_req"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="@color/colorFluid"
-                    android:textAppearance="?android:attr/textAppearanceLarge"
-                    android:textColor="#fff"
-                    android:textSize="20sp"
-                    android:padding="20dp"
-                    android:buttonTint="@color/white"
-                    android:text="Logging required   "/>
-
-
-
-            </LinearLayout>
-
-
 
             <TextView
                 android:id="@+id/tv_test"
