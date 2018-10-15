@@ -378,7 +378,11 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
 
                     try {
 
-                       new CallAppTxt().execute();
+                      // new CallAppTxt().execute();
+
+                        setUrlFromSharedPref(SplashActivity.this);
+
+                        new CheckApproved().execute();
 
                     } catch (Exception e) {
 
@@ -875,10 +879,10 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
     public static void setUrlFromSharedPref(Context ctx) {
 
         SharedPreferences sharedPref = ctx.getSharedPreferences("storeAppTxtURL", Context.MODE_PRIVATE);
-        String appLink = sharedPref.getString("appLink", "");
+        String appLink = sharedPref.getString("appLink", "http://fluidsecure.cloudapp.net/");
         if (appLink.trim().contains("http")) {
 
-            AppConstants.webIP = appLink.trim();
+            AppConstants.webIP = "http://fluidsecure.cloudapp.net/";//appLink.trim();
             AppConstants.webURL = AppConstants.webIP + "HandlerTrak.ashx";
             AppConstants.LoginURL = AppConstants.webIP + "LoginHandler.ashx";
 

@@ -139,6 +139,7 @@ public class AcceptServiceCall {
                             String MinLimit_FS1 = jsonObjectRD.getString("MinLimit");
                             String FuelTypeId_FS1 = jsonObjectRD.getString("FuelTypeId");
                             String ServerDate_FS1 = jsonObjectRD.getString("ServerDate");
+                            String IsTLDCall_FS1 = jsonObjectRD.getString("IsTLDCall");
                             String IntervalToStopFuel_FS1 = jsonObjectRD.getString("PumpOffTime");
                             String PrintDate_FS1 = CommonUtils.getTodaysDateInStringPrint(ServerDate_FS1);
 
@@ -161,7 +162,7 @@ public class AcceptServiceCall {
                             String ProductPrice_FS1 = jsonObjectRD.getString("ProductPrice");
 
 
-                            CommonUtils.SaveVehiFuelInPref_FS1(activity, TransactionId_FS1,VehicleId_FS1, PhoneNumber_FS1, PersonId_FS1, PulseRatio_FS1, MinLimit_FS1, FuelTypeId_FS1, ServerDate_FS1, IntervalToStopFuel_FS1,PrintDate_FS1,Company_FS1,Location_FS1,PersonName_FS1,PrinterMacAddress_FS1,PrinterName_FS1,vehicleNumber,accOther,VehicleSum_FS1,DeptSum_FS1,VehPercentage_FS1,DeptPercentage_FS1,SurchargeType_FS1,ProductPrice_FS1);
+                            CommonUtils.SaveVehiFuelInPref_FS1(activity, TransactionId_FS1,VehicleId_FS1, PhoneNumber_FS1, PersonId_FS1, PulseRatio_FS1, MinLimit_FS1, FuelTypeId_FS1, ServerDate_FS1, IntervalToStopFuel_FS1,PrintDate_FS1,Company_FS1,Location_FS1,PersonName_FS1,PrinterMacAddress_FS1,PrinterName_FS1,vehicleNumber,accOther,VehicleSum_FS1,DeptSum_FS1,VehPercentage_FS1,DeptPercentage_FS1,SurchargeType_FS1,ProductPrice_FS1,IsTLDCall_FS1);
 
 
                             Intent intent = new Intent(activity, DisplayMeterActivity.class);
@@ -190,6 +191,7 @@ public class AcceptServiceCall {
                             String FuelTypeId = jsonObjectRD.getString("FuelTypeId");
                             String ServerDate = jsonObjectRD.getString("ServerDate");
                             String IntervalToStopFuel = jsonObjectRD.getString("PumpOffTime");
+                            String IsTLDCall1 = jsonObjectRD.getString("IsTLDCall");
                             String PrintDate = CommonUtils.getTodaysDateInStringPrint(ServerDate);
                             String Company = jsonObjectRD.getString("Company");
                             String CurrentString = jsonObjectRD.getString("Location");
@@ -209,7 +211,7 @@ public class AcceptServiceCall {
                             String SurchargeType = jsonObjectRD.getString("SurchargeType");
                             String ProductPrice = jsonObjectRD.getString("ProductPrice");
 
-                            CommonUtils.SaveVehiFuelInPref(activity, TransactionId, VehicleId, PhoneNumber, PersonId, PulseRatio, MinLimit, FuelTypeId, ServerDate, IntervalToStopFuel,PrintDate,Company,Location,PersonName,PrinterMacAddress,PrinterName,vehicleNumber,accOther,VehicleSum,DeptSum,VehPercentage,DeptPercentage,SurchargeType,ProductPrice);
+                            CommonUtils.SaveVehiFuelInPref(activity, TransactionId, VehicleId, PhoneNumber, PersonId, PulseRatio, MinLimit, FuelTypeId, ServerDate, IntervalToStopFuel,PrintDate,Company,Location,PersonName,PrinterMacAddress,PrinterName,vehicleNumber,accOther,VehicleSum,DeptSum,VehPercentage,DeptPercentage,SurchargeType,ProductPrice,IsTLDCall1);
 
                             Intent intent = new Intent(activity, DisplayMeterActivity.class);
                             intent.putExtra(Constants.VEHICLE_NUMBER, Constants.AccVehicleNumber);
@@ -238,6 +240,7 @@ public class AcceptServiceCall {
                             String FuelTypeId_FS3 = jsonObjectRD.getString("FuelTypeId");
                             String ServerDate_FS3 = jsonObjectRD.getString("ServerDate");
                             String IntervalToStopFuel_FS3 = jsonObjectRD.getString("PumpOffTime");
+                            String IsTLDCall_FS3 = jsonObjectRD.getString("IsTLDCall");
                             String PrintDate_FS3 = CommonUtils.getTodaysDateInStringPrint(ServerDate_FS3);
                             String Company_FS3 = jsonObjectRD.getString("Company");
                             String CurrentString = jsonObjectRD.getString("Location");
@@ -257,7 +260,7 @@ public class AcceptServiceCall {
                             String SurchargeType_FS3 = jsonObjectRD.getString("SurchargeType");
                             String ProductPrice_FS3 = jsonObjectRD.getString("ProductPrice");
 
-                            CommonUtils.SaveVehiFuelInPref_FS3(activity, TransactionId_FS3,VehicleId_FS3, PhoneNumber_FS3, PersonId_FS3, PulseRatio_FS3, MinLimit_FS3, FuelTypeId_FS3, ServerDate_FS3, IntervalToStopFuel_FS3,PrintDate_FS3,Company_FS3,Location_FS3,PersonName_FS3,PrinterMacAddress_FS3,PrinterName_FS3,vehicleNumber,accOther,VehicleSum_FS3,DeptSum_FS3,VehPercentage_FS3,DeptPercentage_FS3,SurchargeType_FS3,ProductPrice_FS3);
+                            CommonUtils.SaveVehiFuelInPref_FS3(activity, TransactionId_FS3,VehicleId_FS3, PhoneNumber_FS3, PersonId_FS3, PulseRatio_FS3, MinLimit_FS3, FuelTypeId_FS3, ServerDate_FS3, IntervalToStopFuel_FS3,PrintDate_FS3,Company_FS3,Location_FS3,PersonName_FS3,PrinterMacAddress_FS3,PrinterName_FS3,vehicleNumber,accOther,VehicleSum_FS3,DeptSum_FS3,VehPercentage_FS3,DeptPercentage_FS3,SurchargeType_FS3,ProductPrice_FS3,IsTLDCall_FS3);
 
 
                             Intent intent = new Intent(activity, DisplayMeterActivity.class);
@@ -286,6 +289,7 @@ public class AcceptServiceCall {
                             String FuelTypeId_FS4 = jsonObjectRD.getString("FuelTypeId");
                             String ServerDate_FS4 = jsonObjectRD.getString("ServerDate");
                             String IntervalToStopFuel_FS4 = jsonObjectRD.getString("PumpOffTime");
+                            String IsTLDCall_FS4 = jsonObjectRD.getString("IsTLDCall");
                             String PrintDate_FS4 = CommonUtils.getTodaysDateInStringPrint(ServerDate_FS4);
                             String Company_FS4 = jsonObjectRD.getString("Company");
                             String CurrentString = jsonObjectRD.getString("Location");
@@ -306,7 +310,7 @@ public class AcceptServiceCall {
                             String ProductPrice_FS4 = jsonObjectRD.getString("ProductPrice");
 
 
-                            CommonUtils.SaveVehiFuelInPref_FS4(activity, TransactionId_FS4,VehicleId_FS4, PhoneNumber_FS4, PersonId_FS4, PulseRatio_FS4, MinLimit_FS4, FuelTypeId_FS4, ServerDate_FS4, IntervalToStopFuel_FS4,PrintDate_FS4,Company_FS4,Location_FS4,PersonName_FS4,PrinterMacAddress_FS4,PrinterName_FS4,vehicleNumber,accOther,VehicleSum_FS4,DeptSum_FS4,VehPercentage_FS4,DeptPercentage_FS4,SurchargeType_FS4,ProductPrice_FS4);
+                            CommonUtils.SaveVehiFuelInPref_FS4(activity, TransactionId_FS4,VehicleId_FS4, PhoneNumber_FS4, PersonId_FS4, PulseRatio_FS4, MinLimit_FS4, FuelTypeId_FS4, ServerDate_FS4, IntervalToStopFuel_FS4,PrintDate_FS4,Company_FS4,Location_FS4,PersonName_FS4,PrinterMacAddress_FS4,PrinterName_FS4,vehicleNumber,accOther,VehicleSum_FS4,DeptSum_FS4,VehPercentage_FS4,DeptPercentage_FS4,SurchargeType_FS4,ProductPrice_FS4,IsTLDCall_FS4);
 
 
                             Intent intent = new Intent(activity, DisplayMeterActivity.class);

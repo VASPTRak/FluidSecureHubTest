@@ -94,6 +94,15 @@ public class ServerResponse implements Serializable {
     @SerializedName("CheckOdometerReasonable")
     private String CheckOdometerReasonable;
 
+
+    @SerializedName("IsFSNPUpgradable")
+    private String IsFSNPUpgradable;
+
+
+
+    @SerializedName("IsTLDCall")
+    private String IsTLDCall;
+
     //--------------------------
 
 
@@ -102,7 +111,7 @@ public class ServerResponse implements Serializable {
                           String MinLimit, String SiteId, String PulseRatio, String PersonId, String FuelTypeId, String PhoneNumber, String ServerDate,
                           String PumpOnTime, String PumpOffTime, String PulserStopTime, String TransactionId, String FirmwareVersion, String FilePath,
                           String FOBNumber, String Company, String Location, String PersonName, String PrinterName, String PrinterMacAddress, String VehicleSum,
-                          String DeptSum, String VehPercentage, String DeptPercentage, String SurchargeType, String ProductPrice, String parameter, String VehicleNumber, String RequireManualOdo,String PreviousOdo,String OdoLimit,String OdometerReasonabilityConditions,String CheckOdometerReasonable) {
+                          String DeptSum, String VehPercentage, String DeptPercentage, String SurchargeType, String ProductPrice, String parameter, String VehicleNumber, String RequireManualOdo,String PreviousOdo,String OdoLimit,String OdometerReasonabilityConditions,String CheckOdometerReasonable,String IsFSNPUpgradable,String IsTLDCall) {
 
         this.username = username;
         this.password = password;
@@ -143,6 +152,8 @@ public class ServerResponse implements Serializable {
         this.OdoLimit = OdoLimit;
         this.OdometerReasonabilityConditions = OdometerReasonabilityConditions;
         this.CheckOdometerReasonable = CheckOdometerReasonable;
+        this.IsFSNPUpgradable = IsFSNPUpgradable;
+        this.IsTLDCall = IsTLDCall;
 
 
     }
@@ -459,6 +470,22 @@ public class ServerResponse implements Serializable {
 
     public void setCheckOdometerReasonable(String checkOdometerReasonable) {
         CheckOdometerReasonable = checkOdometerReasonable;
+    }
+
+    public String getIsFSNPUpgradable() {
+        return IsFSNPUpgradable;
+    }
+
+    public void setIsFSNPUpgradable(String isFSNPUpgradable) {
+        IsFSNPUpgradable = isFSNPUpgradable;
+    }
+
+    public String getIsTLDCall() {
+        return IsTLDCall;
+    }
+
+    public void setIsTLDCall(String isTLDCall) {
+        IsTLDCall = isTLDCall;
     }
 
 

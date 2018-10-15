@@ -46,6 +46,7 @@ import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Call;
@@ -100,7 +101,9 @@ public class BackgroundServiceFSNP extends BackgroundService {
         Log.i(TAG," In onStartCommand....");
         if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> In onStartCommand....");
 
-       //advertise(true);
+
+
+        //advertise(true);
         Thread t = new Thread() {
 
             @Override
@@ -137,6 +140,7 @@ public class BackgroundServiceFSNP extends BackgroundService {
 
                     if(!mScanning){
                         Log.i(TAG, "scanLeDevice function is disable");
+                        scanLeDevice(true); //Scan for BLE devices
                     }
 
                 }
@@ -146,6 +150,7 @@ public class BackgroundServiceFSNP extends BackgroundService {
         t.start();
 
         Log.i(TAG, "InstantID MacAddress  scanLeDevice");
+        if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> scanLeDevice function started ");
         scanLeDevice(true); //Scan for BLE devices
 
 
@@ -154,7 +159,7 @@ public class BackgroundServiceFSNP extends BackgroundService {
 
     private void scanLeDevice(final boolean enable) {
 
-        Log.e("lecallback"," scan start");
+        // Log.e("lecallback"," scan start");
         if (enable) {
             // Stops scanning after a pre-defined scan period.
             /*mHandler.postDelayed(new Runnable() {
@@ -187,7 +192,7 @@ public class BackgroundServiceFSNP extends BackgroundService {
                     BLE_rssi = rssi; //RSSI value  //RSSI value
                     //-----------------------------------
 
-                    Log.e("lecallback"," checkFinish");
+                    // Log.e("lecallback"," checkFinish");
                     if (BlemacAddressList.contains(BLE_MacAddress)) {
 
                         //-----Code added to get belo values
@@ -224,9 +229,11 @@ public class BackgroundServiceFSNP extends BackgroundService {
                                 String InstanceID_cmd = ConvertHextoASCII(es.getInstanceIdAsString());
                                 Log.i(TAG," InstanceID_cmd:" + InstanceID_cmd);
 
+                                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> InstanceID_cmd: "+InstanceID_cmd);
                                 if (InstanceID_cmd.equalsIgnoreCase("sutnoz")) {//sutnoz
 
                                     Log.i(TAG," Stop transaction process");
+                                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> Stop transaction process FSNP MacAddress "+BLE_MacAddress);
                                     //If hose is busy then Stop transaction/background service
                                     BLE_MacAddressStp = BLE_MacAddress;
                                     Constants.FA_Message = "";
@@ -234,6 +241,7 @@ public class BackgroundServiceFSNP extends BackgroundService {
 
                                 } else {
                                     Log.i(TAG," Start transaction process");
+                                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> Start transaction process FSNP MacAddress "+BLE_MacAddress);
                                     Constants.FA_Message = "";
                                     StartTransactionProcess();
                                 }
@@ -258,6 +266,7 @@ public class BackgroundServiceFSNP extends BackgroundService {
             boolean SCall = IsServerCallRequired();
             if (SCall == true) {
 
+                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> StartTransactionProcess ServerCallRequired");
                 Log.i(TAG," Server call");
                 String userEmail = CommonUtils.getCustomerDetails_backgroundService(BackgroundServiceFSNP.this).PersonEmail;
                 String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(BackgroundServiceFSNP.this) + ":" + userEmail + ":" + "CheckAndValidateFSNPDetails");
@@ -348,7 +357,8 @@ public class BackgroundServiceFSNP extends BackgroundService {
 
             }
         } catch (Exception e) {
-           e.printStackTrace();
+            e.printStackTrace();
+            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> StopTransactionProcess Execption ~1 "+e);
         }
 
 
@@ -358,6 +368,7 @@ public class BackgroundServiceFSNP extends BackgroundService {
             SelectedHoseStp = "";
             if (IpAddress != "" || IpAddress != null) {
 
+                //   if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> Stop Hose: "+SelectedHoseStp+" ~BackgroundService_AP_PIPE");
                 Constants.FS_1STATUS = "FREE";
                 stopService(new Intent(BackgroundServiceFSNP.this, BackgroundService_AP_PIPE.class));
                 stopButtonFunctionality_FS1();
@@ -370,6 +381,7 @@ public class BackgroundServiceFSNP extends BackgroundService {
         } else if (SelectedHoseStp.equalsIgnoreCase("1") && !Constants.FS_2STATUS.equalsIgnoreCase("FREE")) {
 
             SelectedHoseStp = "";
+            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> Stop Hose: "+SelectedHoseStp+" ~BackgroundService_AP");
             if (IpAddress != "" || IpAddress != null) {
 
                 Constants.FS_2STATUS = "FREE";
@@ -386,8 +398,9 @@ public class BackgroundServiceFSNP extends BackgroundService {
             SelectedHoseStp = "";
             if (IpAddress != "" || IpAddress != null) {
 
+                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> Stop Hose: "+SelectedHoseStp+" ~BackgroundService_FS_UNIT_3");
                 Constants.FS_3STATUS = "FREE";
-                stopService(new Intent(BackgroundServiceFSNP.this, BackgroundService_AP.class));
+                stopService(new Intent(BackgroundServiceFSNP.this, BackgroundService_FS_UNIT_3.class));
                 stopButtonFunctionality_FS1();
 
             } else {
@@ -400,8 +413,9 @@ public class BackgroundServiceFSNP extends BackgroundService {
             SelectedHoseStp = "";
             if (IpAddress != "" || IpAddress != null) {
 
+                //   if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> Stop Hose: "+SelectedHoseStp+" ~BackgroundService_FS_UNIT_4");
                 Constants.FS_4STATUS = "FREE";
-                stopService(new Intent(BackgroundServiceFSNP.this, BackgroundService_AP.class));
+                stopService(new Intent(BackgroundServiceFSNP.this, BackgroundService_FS_UNIT_4.class));
                 stopButtonFunctionality_FS1();
 
             } else {
@@ -419,7 +433,7 @@ public class BackgroundServiceFSNP extends BackgroundService {
     public String ProcessFSNPDtails(String serverRes, String RespTxt, String BLE_MacAddress, String VehicleId, String MinLimit, String SiteId, String PulseRatio, String PersonId, String FuelTypeId, String PhoneNumber, String ServerDate,
                                     String PumpOnTime, String PumpOffTime, String PulserStopTime, String TransactionId, String FirmwareVersion, String FilePath,
                                     String FOBNumber, String Company, String Location, String PersonName, String PrinterName, String PrinterMacAddress, String VehicleSum,
-                                    String DeptSum, String VehPercentage, String DeptPercentage, String SurchargeType, String ProductPrice, String parameter, String FSNPMacAddress, String RequireManualOdo, String VehicleNumber) {
+                                    String DeptSum, String VehPercentage, String DeptPercentage, String SurchargeType, String ProductPrice, String parameter, String FSNPMacAddress, String RequireManualOdo, String VehicleNumber,String IsTLDCall) {
 
 
         //get ip address of current selected hose to form url
@@ -458,7 +472,7 @@ public class BackgroundServiceFSNP extends BackgroundService {
         SaveDataToSharedPreferances(serverRes, RespTxt, SelectedHose, VehicleId, MinLimit, SiteId, PulseRatio, PersonId, FuelTypeId, PhoneNumber, ServerDate,
                 PumpOnTime, PumpOffTime, PulserStopTime, TransactionId, FirmwareVersion, FilePath,
                 FOBNumber, Company, Location, PersonName, PrinterName, PrinterMacAddress, VehicleSum,
-                DeptSum, VehPercentage, DeptPercentage, SurchargeType, ProductPrice, parameter);
+                DeptSum, VehPercentage, DeptPercentage, SurchargeType, ProductPrice, parameter,IsTLDCall);
 
         if (SelectedHose.equalsIgnoreCase("0") && !HTTP_URL.equals("") && Constants.FS_1STATUS.equalsIgnoreCase("FREE")) {
 
@@ -466,7 +480,7 @@ public class BackgroundServiceFSNP extends BackgroundService {
 
                 if (Constants.ManualOdoScreenFree.equalsIgnoreCase("Yes")){
                     Log.i(TAG, " Enter Odometer manually");
-                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> Enter Odometer manually");
+                    //    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> Enter Odometer manually");
                     Constants.FS_1OdoScreen = "BUSY";
                     Constants.ManualOdoScreenFree = "No";
                     Toast.makeText(getApplicationContext(), "Direct to AcceptManualOdoActivityFA", Toast.LENGTH_SHORT).show();
@@ -476,10 +490,8 @@ public class BackgroundServiceFSNP extends BackgroundService {
                     startActivity(intent);
 
                 }else{
-
-
                     Log.i(TAG, " Manuall Odometer screen busy");
-                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> Manuall Odometer screen busy");
+                    //    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> Manuall Odometer screen busy");
                 }
 
 
@@ -500,7 +512,7 @@ public class BackgroundServiceFSNP extends BackgroundService {
 
                 if (Constants.ManualOdoScreenFree.equalsIgnoreCase("Yes")){
                     Log.i(TAG, " Enter Odometer manually");
-                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> Enter Odometer manually");
+                    //   if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> Enter Odometer manually");
                     Constants.FS_2OdoScreen = "BUSY";
                     Constants.ManualOdoScreenFree = "No";
                     Toast.makeText(getApplicationContext(), "Direct to AcceptManualOdoActivityFA", Toast.LENGTH_SHORT).show();
@@ -511,16 +523,15 @@ public class BackgroundServiceFSNP extends BackgroundService {
 
                 }else{
                     Log.i(TAG, " Manuall Odometer screen busy");
-                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> Manuall Odometer screen busy");
+                    //    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> Manuall Odometer screen busy");
 
                 }
-
 
 
             }else{
 
                 SelectedHose = "";
-                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> Started BackgroundService_AP for hose: "+SelectedHose);
+                //   if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> Started BackgroundService_AP for hose: "+SelectedHose);
                 Constants.FS_2STATUS = "BUSY";
                 Intent serviceIntent = new Intent(BackgroundServiceFSNP.this, BackgroundService_AP.class);
                 serviceIntent.putExtra("HTTP_URL", HTTP_URL);
@@ -535,7 +546,7 @@ public class BackgroundServiceFSNP extends BackgroundService {
 
                 if (Constants.ManualOdoScreenFree.equalsIgnoreCase("Yes")){
                     Log.i(TAG, " Enter Odometer manually");
-                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> Enter Odometer manually");
+                    //    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> Enter Odometer manually");
                     Constants.FS_3OdoScreen = "BUSY";
                     Constants.ManualOdoScreenFree = "No";
                     Toast.makeText(getApplicationContext(), "Direct to AcceptManualOdoActivityFA", Toast.LENGTH_SHORT).show();
@@ -546,12 +557,12 @@ public class BackgroundServiceFSNP extends BackgroundService {
 
                 }else{
                     Log.i(TAG, " Manuall Odometer screen busy");
-                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> Manuall Odometer screen busy");
+                    //   if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> Manuall Odometer screen busy");
                 }
 
             }else{
 
-                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> Started BackgroundService_FS_UNIT_3 for hose: "+SelectedHose);
+                //    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> Started BackgroundService_FS_UNIT_3 for hose: "+SelectedHose);
                 Constants.FS_3STATUS = "BUSY";
                 Intent serviceIntent = new Intent(BackgroundServiceFSNP.this, BackgroundService_FS_UNIT_3.class);
                 serviceIntent.putExtra("HTTP_URL", HTTP_URL);
@@ -567,7 +578,7 @@ public class BackgroundServiceFSNP extends BackgroundService {
 
                 if (Constants.ManualOdoScreenFree.equalsIgnoreCase("Yes")){
                     Log.i(TAG, " Enter Odometer manually");
-                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> Enter Odometer manually");
+                    //     if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> Enter Odometer manually");
                     Constants.FS_4OdoScreen = "BUSY";
                     Constants.ManualOdoScreenFree = "No";
                     Toast.makeText(getApplicationContext(), "Direct to AcceptManualOdoActivityFA", Toast.LENGTH_SHORT).show();
@@ -578,14 +589,14 @@ public class BackgroundServiceFSNP extends BackgroundService {
 
                 }else{
                     Log.i(TAG, " Manuall Odometer screen busy");
-                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> Manuall Odometer screen busy");
+                    //    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> Manuall Odometer screen busy");
                 }
 
 
 
             }else{
 
-                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> Started BackgroundService_FS_UNIT_4 for hose: "+SelectedHose);
+                //   if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> Started BackgroundService_FS_UNIT_4 for hose: "+SelectedHose);
                 Constants.FS_4STATUS = "BUSY";
                 Intent serviceIntent = new Intent(BackgroundServiceFSNP.this, BackgroundService_FS_UNIT_4.class);
                 serviceIntent.putExtra("HTTP_URL", HTTP_URL);
@@ -603,7 +614,7 @@ public class BackgroundServiceFSNP extends BackgroundService {
     public String SaveDataToSharedPreferances(String serverRes, String RespTxt, String SelectedHose, String VehicleId_sp, String MinLimit_sp, String SiteId_sp, String PulseRatio_sp, String PersonId_sp, String FuelTypeId_sp, String PhoneNumber_sp, String ServerDate_sp,
                                               String PumpOnTime_sp, String PumpOffTime_sp, String PulserStopTime_sp, String TransactionId_sp, String FirmwareVersion_sp, String FilePath_sp,
                                               String FOBNumber_sp, String Company_sp, String Location_sp, String PersonName_sp, String PrinterName_sp, String PrinterMacAddress_sp, String VehicleSum_sp,
-                                              String DeptSum_sp, String VehPercentage_sp, String DeptPercentage_sp, String SurchargeType_sp, String ProductPrice_sp, String parameter_sp) {
+                                              String DeptSum_sp, String VehPercentage_sp, String DeptPercentage_sp, String SurchargeType_sp, String ProductPrice_sp, String parameter_sp,String IsTLDCall) {
 
 
         //Parse server response and store it to Shared preferances to use in background services
@@ -658,9 +669,10 @@ public class BackgroundServiceFSNP extends BackgroundService {
                         String DeptPercentage_FS1 = DeptPercentage_sp;
                         String SurchargeType_FS1 = SurchargeType_sp;
                         String ProductPrice_FS1 = ProductPrice_sp;
+                        String IsTLDCall_FS1 = IsTLDCall;
 
 
-                        CommonUtils.SaveVehiFuelInPref_FS1(BackgroundServiceFSNP.this, TransactionId_FS1, VehicleId_FS1, PhoneNumber_FS1, PersonId_FS1, PulseRatio_FS1, MinLimit_FS1, FuelTypeId_FS1, ServerDate_FS1, IntervalToStopFuel_FS1, PrintDate_FS1, Company_FS1, Location_FS1, PersonName_FS1, PrinterMacAddress_FS1, PrinterName_FS1, vehicleNumber, accOther, VehicleSum_FS1, DeptSum_FS1, VehPercentage_FS1, DeptPercentage_FS1, SurchargeType_FS1, ProductPrice_FS1);
+                        CommonUtils.SaveVehiFuelInPref_FS1(BackgroundServiceFSNP.this, TransactionId_FS1, VehicleId_FS1, PhoneNumber_FS1, PersonId_FS1, PulseRatio_FS1, MinLimit_FS1, FuelTypeId_FS1, ServerDate_FS1, IntervalToStopFuel_FS1, PrintDate_FS1, Company_FS1, Location_FS1, PersonName_FS1, PrinterMacAddress_FS1, PrinterName_FS1, vehicleNumber, accOther, VehicleSum_FS1, DeptSum_FS1, VehPercentage_FS1, DeptPercentage_FS1, SurchargeType_FS1, ProductPrice_FS1,IsTLDCall_FS1);
 
 
                     } else if (SelectedHose.equalsIgnoreCase("1")) {
@@ -693,9 +705,10 @@ public class BackgroundServiceFSNP extends BackgroundService {
                         String DeptPercentage = DeptPercentage_sp;
                         String SurchargeType = SurchargeType_sp;
                         String ProductPrice = ProductPrice_sp;
+                        String IsTLDCall1 = IsTLDCall;
 
 
-                        CommonUtils.SaveVehiFuelInPref(BackgroundServiceFSNP.this, TransactionId, VehicleId, PhoneNumber, PersonId, PulseRatio, MinLimit, FuelTypeId, ServerDate, IntervalToStopFuel, PrintDate, Company, Location, PersonName, PrinterMacAddress, PrinterName, vehicleNumber, accOther, VehicleSum, DeptSum, VehPercentage, DeptPercentage, SurchargeType, ProductPrice);
+                        CommonUtils.SaveVehiFuelInPref(BackgroundServiceFSNP.this, TransactionId, VehicleId, PhoneNumber, PersonId, PulseRatio, MinLimit, FuelTypeId, ServerDate, IntervalToStopFuel, PrintDate, Company, Location, PersonName, PrinterMacAddress, PrinterName, vehicleNumber, accOther, VehicleSum, DeptSum, VehPercentage, DeptPercentage, SurchargeType, ProductPrice,IsTLDCall1);
 
 
                     } else if (SelectedHose.equalsIgnoreCase("2")) {
@@ -727,9 +740,10 @@ public class BackgroundServiceFSNP extends BackgroundService {
                         String DeptPercentage_FS3 = DeptPercentage_sp;
                         String SurchargeType_FS3 = SurchargeType_sp;
                         String ProductPrice_FS3 = ProductPrice_sp;
+                        String IsTLDCall_FS3 = IsTLDCall;
 
 
-                        CommonUtils.SaveVehiFuelInPref_FS3(BackgroundServiceFSNP.this, TransactionId_FS3, VehicleId_FS3, PhoneNumber_FS3, PersonId_FS3, PulseRatio_FS3, MinLimit_FS3, FuelTypeId_FS3, ServerDate_FS3, IntervalToStopFuel_FS3, PrintDate_FS3, Company_FS3, Location_FS3, PersonName_FS3, PrinterMacAddress_FS3, PrinterName_FS3, vehicleNumber, accOther, VehicleSum_FS3, DeptSum_FS3, VehPercentage_FS3, DeptPercentage_FS3, SurchargeType_FS3, ProductPrice_FS3);
+                        CommonUtils.SaveVehiFuelInPref_FS3(BackgroundServiceFSNP.this, TransactionId_FS3, VehicleId_FS3, PhoneNumber_FS3, PersonId_FS3, PulseRatio_FS3, MinLimit_FS3, FuelTypeId_FS3, ServerDate_FS3, IntervalToStopFuel_FS3, PrintDate_FS3, Company_FS3, Location_FS3, PersonName_FS3, PrinterMacAddress_FS3, PrinterName_FS3, vehicleNumber, accOther, VehicleSum_FS3, DeptSum_FS3, VehPercentage_FS3, DeptPercentage_FS3, SurchargeType_FS3, ProductPrice_FS3,IsTLDCall_FS3);
 
                     } else if (SelectedHose.equalsIgnoreCase("3")) {
 
@@ -759,9 +773,10 @@ public class BackgroundServiceFSNP extends BackgroundService {
                         String DeptPercentage_FS4 = DeptPercentage_sp;
                         String SurchargeType_FS4 = SurchargeType_sp;
                         String ProductPrice_FS4 = ProductPrice_sp;
+                        String IsTLDCall_FS4 = IsTLDCall;
 
 
-                        CommonUtils.SaveVehiFuelInPref_FS4(BackgroundServiceFSNP.this, TransactionId_FS4, VehicleId_FS4, PhoneNumber_FS4, PersonId_FS4, PulseRatio_FS4, MinLimit_FS4, FuelTypeId_FS4, ServerDate_FS4, IntervalToStopFuel_FS4, PrintDate_FS4, Company_FS4, Location_FS4, PersonName_FS4, PrinterMacAddress_FS4, PrinterName_FS4, vehicleNumber, accOther, VehicleSum_FS4, DeptSum_FS4, VehPercentage_FS4, DeptPercentage_FS4, SurchargeType_FS4, ProductPrice_FS4);
+                        CommonUtils.SaveVehiFuelInPref_FS4(BackgroundServiceFSNP.this, TransactionId_FS4, VehicleId_FS4, PhoneNumber_FS4, PersonId_FS4, PulseRatio_FS4, MinLimit_FS4, FuelTypeId_FS4, ServerDate_FS4, IntervalToStopFuel_FS4, PrintDate_FS4, Company_FS4, Location_FS4, PersonName_FS4, PrinterMacAddress_FS4, PrinterName_FS4, vehicleNumber, accOther, VehicleSum_FS4, DeptSum_FS4, VehPercentage_FS4, DeptPercentage_FS4, SurchargeType_FS4, ProductPrice_FS4,IsTLDCall_FS4);
 
 
                     } else {
@@ -903,6 +918,7 @@ public class BackgroundServiceFSNP extends BackgroundService {
             Call<ServerResponse> call = service.post(authString, paramObject.toString());
 
             call.enqueue(new Callback<ServerResponse>() {
+                @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
                 @Override
                 public void onResponse(Call<ServerResponse> call, retrofit2.Response<ServerResponse> response) {
                     BusProvider.getInstance().post(new ServerEvent(response.body()));
@@ -925,8 +941,6 @@ public class BackgroundServiceFSNP extends BackgroundService {
                         String PumpOffTime = response.body().getPumpOffTime();
                         String PulserStopTime = response.body().getPulserStopTime();
                         String TransactionId = response.body().getTransactionId();
-                        String FirmwareVersion = response.body().getFirmwareVersion();
-                        String FilePath = response.body().getFilePath();
                         String FOBNumber = response.body().getFOBNumber();
                         String Company = response.body().getCompany();
                         String Location = response.body().getLocation();
@@ -942,8 +956,17 @@ public class BackgroundServiceFSNP extends BackgroundService {
                         String VehicleNumber = response.body().getVehicleNumber();
                         String RequireManualOdo = response.body().getRequireManualOdo();
                         String parameter = response.body().getParameter();
+                        String FirmwareVersion = response.body().getFirmwareVersion();
+                        String FilePath = response.body().getFilePath();
+                        String IsFSNPUpgradable = response.body().getIsFSNPUpgradable();
+                        String IsTLDCall = response.body().getIsTLDCall();
 
                         try {
+
+                           /* if (IsFSNPUpgradable.equalsIgnoreCase("Y")){
+                                UpgradeNozzle(FilePath,FirmwareVersion);
+                            }*/
+
 
                             String PreviousOdo = response.body().getPreviousOdo();
                             String OdoLimit = response.body().getOdoLimit();
@@ -972,12 +995,12 @@ public class BackgroundServiceFSNP extends BackgroundService {
 
                         // if (response.body().getVehicleId() != null && !response.body().getVehicleId().isEmpty()) {}
                         Log.i(TAG, " CheckFSNPDetails Response success");
-
+                        //     if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> CheckFSNPDetails Response success");
 
                         ProcessFSNPDtails(response.body().getResponceMessage(), response.body().getResponceText(), BLE_MacAddress, VehicleId, MinLimit, SiteId, PulseRatio, PersonId, FuelTypeId, PhoneNumber, ServerDate,
                                 PumpOnTime, PumpOffTime, PulserStopTime, TransactionId, FirmwareVersion, FilePath,
                                 FOBNumber, Company, Location, PersonName, PrinterName, PrinterMacAddress, VehicleSum,
-                                DeptSum, VehPercentage, DeptPercentage, SurchargeType, ProductPrice, parameter, FSNPMacAddress,RequireManualOdo,VehicleNumber);
+                                DeptSum, VehPercentage, DeptPercentage, SurchargeType, ProductPrice, parameter, FSNPMacAddress,RequireManualOdo,VehicleNumber,IsTLDCall);
                         //Toast.makeText(getApplicationContext(),"success",Toast.LENGTH_SHORT).show();
 
                     }  else {
@@ -1004,7 +1027,7 @@ public class BackgroundServiceFSNP extends BackgroundService {
                                         if (!fsnpName.isEmpty()) {
 
                                             Constants.FA_Message = RespMsg + " " + RespTxt + " " + fsnpName;
-
+                                            ///   if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> CheckFSNPDetails Response fail msg: "+RespMsg + " " + RespTxt + " " + fsnpName);
                                         }
 
                                         if (ps < 3) {
@@ -1028,7 +1051,7 @@ public class BackgroundServiceFSNP extends BackgroundService {
                     // handle execution failures like no internet connectivity
                     BusProvider.getInstance().post(new ErrorEvent(-2, t.getMessage()));
                     Log.i(TAG, "Something went wrong in retrofit call --handle execution failures like no internet connectivity.");
-                   // Toast.makeText(getApplicationContext(), "Something went wrong in retrofit call", Toast.LENGTH_SHORT).show();
+                    //    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> Something went wrong in retrofit call --handle execution failures like no internet connectivity.");
                 }
             });
 
@@ -1173,6 +1196,8 @@ public class BackgroundServiceFSNP extends BackgroundService {
                             }
 
 
+                        }else{
+                            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> GETFINALPulsar_FS1 Result: "+result);
                         }
                     }
                 } catch (Exception e) {
@@ -1302,12 +1327,28 @@ public class BackgroundServiceFSNP extends BackgroundService {
 
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    public void UpgradeNozzle(String filePath, String firmwareVersion){
+
+        String[] parts = filePath.split("/");
+        String FileName = parts[5]; // FSNP.bin
+
+
+       // new BackgroundServiceDownloadFirmware.DownloadFileFromURL_FSNP().execute(filePath, FileName);
+
+        String RawUuidStr = "NOZZLEUPGRADE"+firmwareVersion;
+
+        //Broadcast Upgrade FSNP Flag
+        advertise(true,RawUuidStr);
+
+    }
+
     //BELOW CODE FOR ADVERTISING EDDYSTONE FORMAT
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    private void advertise(boolean UpgradeFNP) {
+    private void advertise(boolean UpgradeFNP, String rawUuidStr) {
         //To check if Bluetooth Multiple Advertising is supported on the Device
         if( !BluetoothAdapter.getDefaultAdapter().isMultipleAdvertisementSupported() ) {
-            Toast.makeText( this, "Multiple advertisement not supported", Toast.LENGTH_SHORT ).show();
+            Log.e(TAG,"Multiple advertisement not supported");
             //start.setEnabled(false);
         }
 
@@ -1316,15 +1357,17 @@ public class BackgroundServiceFSNP extends BackgroundService {
         AdvertiseSettings settings = new AdvertiseSettings.Builder().setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_BALANCED).setTxPowerLevel(AdvertiseSettings.ADVERTISE_TX_POWER_HIGH).setConnectable(true).build();
 
         //We make Parcel UUID(UUID can be generated online) and Advertise Data object
-       // ParcelUuid pUuid = ParcelUuid.fromString("4db3d4ff-eda4-46e8-bd89-9a7b1f63cc83");
-        ParcelUuid pUuid = ParcelUuid.fromString("0000FEAA-0000-1000-8000-00805F9B34FB");
+        //ParcelUuid pUuid = ParcelUuid.fromString("0000FEAA-0000-1000-8000-00805F9B34FB");
+
+        String StrUUID = GenerateUUID(rawUuidStr);
+        ParcelUuid pUuid = ParcelUuid.fromString(StrUUID);
 
         //building servicedata
         byte txPower = (byte) -16;
         byte FrameType = 0x00;
         byte[] namespaceBytes =toByteArray("01020304050607080910"); //01020304050607080910   NOZZLEUPGRADEXXX.
         Log.e("nB",Integer.toString(namespaceBytes.length));
-        byte[] instanceBytes =toByteArray("AABBCCDDEEFF");
+        byte[] instanceBytes =toByteArray("AABBCCDDEEFF");//AABBCCDDEEFF
         Log.e("instanceIdlength",Integer.toString(instanceBytes.length));
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         try {
@@ -1364,6 +1407,13 @@ public class BackgroundServiceFSNP extends BackgroundService {
             advertiser.stopAdvertising(advertisingCallback);
         }
 
+    }
+
+    protected String GenerateUUID(String rawUuidStr){
+
+        UUID uniqueId = null;
+        uniqueId = UUID.nameUUIDFromBytes(rawUuidStr.getBytes());
+        return uniqueId.toString();
     }
 
     private byte[] toByteArray(String hexString) {

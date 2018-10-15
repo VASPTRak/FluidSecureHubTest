@@ -119,7 +119,7 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
     SimpleDateFormat sdformat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
 
     private String vehicleNumber, odometerTenths = "0", dNumber = "", pNumber = "", oText = "", hNumber = "";
-    String LinkName, OtherName, IsOtherRequire, OtherLabel, VehicleNumber, PrintDate, CompanyName, Location, PersonName, PrinterMacAddress, PrinterName, TransactionId, VehicleId, PhoneNumber, PersonId, PulseRatio, MinLimit, FuelTypeId, ServerDate, IntervalToStopFuel;
+    String LinkName, OtherName, IsOtherRequire, OtherLabel, VehicleNumber, PrintDate, CompanyName, Location, PersonName, PrinterMacAddress, PrinterName, TransactionId, VehicleId, PhoneNumber, PersonId, PulseRatio, MinLimit, FuelTypeId, ServerDate, IntervalToStopFuel,IsTLDCall;
 
     public static String FOLDER_PATH = Environment.getExternalStorageDirectory().getAbsolutePath() + "/FSBin/";
     public static String PATH_BIN_FILE1 = "user1.2048.new.5.bin";
@@ -216,6 +216,7 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
                 FuelTypeId = sharedPref.getString("FuelTypeId_FS1", "");
                 ServerDate = sharedPref.getString("ServerDate_FS1", "");
                 IntervalToStopFuel = sharedPref.getString("IntervalToStopFuel_FS1", "0");
+                IsTLDCall = sharedPref.getString("IsTLDCall_FS1", "False");
 
                 LinkName = AppConstants.CURRENT_SELECTED_SSID;
 
@@ -1268,8 +1269,9 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
 
     public void TransactionCompleteFunction() {
 
-        TankMonitorReading(); //Get Tank Monitor Reading and save it to server
-
+        if (IsTLDCall.equalsIgnoreCase("True")) {
+            TankMonitorReading(); //Get Tank Monitor Reading and save it to server
+        }
         ////////////////////--UpgradeCurrentVersion to server--///////////////////////////////////////////////////////
 
         SharedPreferences myPrefUP = this.getSharedPreferences(Constants.PREF_FS_UPGRADE, 0);

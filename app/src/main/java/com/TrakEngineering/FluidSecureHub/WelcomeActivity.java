@@ -425,7 +425,6 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
         InItGUI();
 
-
         tv_request = (TextView)findViewById(R.id.tv_request);
         tv_response = (TextView)findViewById(R.id.tv_response);
         tv_response = (TextView)findViewById(R.id.tv_response);
@@ -5512,7 +5511,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         StatusForUpgradeVersionEntity objEntityClass2 = new StatusForUpgradeVersionEntity();
         objEntityClass2.IMEIUDID = AppConstants.getIMEI(WelcomeActivity.this);
         //objEntityClass2.Email = CommonUtils.getCustomerDetails(WelcomeActivity.this).PersonEmail;
-        objEntityClass2.HubName = userInfoEntity.PersonName;
+        objEntityClass2.HubName =  userInfoEntity.PersonName;
         objEntityClass2.SiteName = userInfoEntity.FluidSecureSiteName;
 
         Gson gson = new Gson();
@@ -5550,6 +5549,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                     String result = responseBody.string();
                     System.out.println("Result" + result);
+                    System.out.println("SendEmailReaderNotConnectedAsyncCall: Result"+result);
                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " SendEmailReaderNotConnectedAsyncCall ~Result\n" + result);
 
                     try {

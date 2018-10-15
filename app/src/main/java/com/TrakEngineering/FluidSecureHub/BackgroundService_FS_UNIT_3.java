@@ -115,7 +115,7 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService {
     SimpleDateFormat sdformat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
 
     private String vehicleNumber, odometerTenths = "0", dNumber = "", pNumber = "", oText = "", hNumber = "";
-    String LinkName, OtherName, IsOtherRequire, OtherLabel, VehicleNumber, PrintDate, CompanyName, Location, PersonName, PrinterMacAddress, PrinterName, TransactionId, VehicleId, PhoneNumber, PersonId, PulseRatio, MinLimit, FuelTypeId, ServerDate, IntervalToStopFuel;
+    String LinkName, OtherName, IsOtherRequire, OtherLabel, VehicleNumber, PrintDate, CompanyName, Location, PersonName, PrinterMacAddress, PrinterName, TransactionId, VehicleId, PhoneNumber, PersonId, PulseRatio, MinLimit, FuelTypeId, ServerDate, IntervalToStopFuel,IsTLDCall;
 
     public static String FOLDER_PATH = Environment.getExternalStorageDirectory().getAbsolutePath() + "/FSBin/";
     public static String PATH_BIN_FILE1 = "user1.2048.new.5.bin";
@@ -209,6 +209,7 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService {
                 FuelTypeId = sharedPref.getString("FuelTypeId_FS3", "");
                 ServerDate = sharedPref.getString("ServerDate_FS3", "");
                 IntervalToStopFuel = sharedPref.getString("IntervalToStopFuel_FS3", "0");
+                IsTLDCall = sharedPref.getString("IsTLDCall_FS3", "False");
 
                 LinkName = AppConstants.CURRENT_SELECTED_SSID;
 
@@ -1224,7 +1225,9 @@ public class BackgroundService_FS_UNIT_3 extends BackgroundService {
 
     public void TransactionCompleteFunction() {
 
-        TankMonitorReading(); //Get Tank Monitor Reading and save it to server
+        if (IsTLDCall.equalsIgnoreCase("True")) {
+            TankMonitorReading(); //Get Tank Monitor Reading and save it to server
+        }
 
         ////////////////////--UpgradeCurrentVersion to server--///////////////////////////////////////////////////////
 
