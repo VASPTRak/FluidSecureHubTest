@@ -843,6 +843,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
                                 AppConstants.colorToastBigFont(DisplayMeterActivity.this, "The link is busy, please try after some time.", Color.RED);
                                 AppConstants.ClearEdittextFielsOnBack(DisplayMeterActivity.this); //Clear EditText on move to welcome activity.
+                                BackgroundServiceKeepDataTransferAlive.IstoggleRequired_DA = true;
                                 Intent intent = new Intent(DisplayMeterActivity.this, WelcomeActivity.class);
                                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                                 startActivity(intent);

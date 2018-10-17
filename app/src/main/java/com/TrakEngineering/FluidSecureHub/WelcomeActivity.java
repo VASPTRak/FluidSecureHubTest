@@ -185,7 +185,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     String IpAddress = "", IsDefective = "False";
     Timer t;
     Date date1, date2;
-    boolean EmailReaderNotConnected, OnWelcomeActivity;
+    boolean EmailReaderNotConnected;
+    public static boolean OnWelcomeActivity;
 
     String HTTP_URL = "";//"http://192.168.43.153:80/";//for pipe
     String URL_GET_PULSAR_FS1, URL_SET_PULSAR_FS1, URL_WIFI_FS1, URL_RELAY_FS1, URL_GET_PULSAR_FS2, URL_SET_PULSAR_FS2, URL_WIFI_FS2, URL_RELAY_FS2, URL_GET_PULSAR_FS3, URL_SET_PULSAR_FS3, URL_WIFI_FS3, URL_RELAY_FS3, URL_GET_PULSAR_FS4, URL_SET_PULSAR_FS4, URL_WIFI_FS4, URL_RELAY_FS4;

@@ -45,11 +45,15 @@ import java.net.MalformedURLException;
 import java.net.Socket;
 import java.net.URL;
 import java.net.URLConnection;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
+import static com.TrakEngineering.FluidSecureHub.WelcomeActivity.wifiApManager;
 import static com.TrakEngineering.FluidSecureHub.server.ServerHandler.TEXT;
 
 public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
@@ -60,13 +64,16 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
     String URL_UPGRADE_START = HTTP_URL + "upgrade?command=start";
     String URL_RESET = HTTP_URL + "upgrade?command=reset";
     String URL_INFO = HTTP_URL + "client?command=info";
-    private static final String TAG = "BS__KeepDataTransferAlive";
+    private static final String TAG = "BS__KDTAlive";
     public static ArrayList<HashMap<String, String>> SSIDList = new ArrayList<>();
     public static ArrayList<HashMap<String, String>> DetailslistOfConnectedIP_KDTA = new ArrayList<>();
-    public static ArrayList<String> listOfConnectedIP_KDTA = new ArrayList<String>();
+    public ArrayList<String> listOfConnectedMacAddress_KDTA = new ArrayList<String>();
 
     private static int SERVER_PORT = 80;
     private static String SERVER_IP = "";
+    public static  boolean IstoggleRequired_KDTA,IstoggleRequired_DA;
+    public String ToggleExeTime = "",CurrentTime ="";
+    Date date1, date2;
 
     @SuppressLint("LongLogTag")
     @Override
@@ -75,9 +82,11 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
         try {
             super.onStart(intent, startId);
             Log.i(TAG, "~~~~~~~~~~Begining~~~~~~~~~~");
-            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "~~~~~~~~~~Begining~~~~~~~~~~");
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + "~~~~~~~~~~Begining~~~~~~~~~~");
 
-            ListConnectedHotspotIP_KDTA(); //new GetSSIDUsingLocation();
+            ListConnectedHotspotIP_KDTA();
+
 
             new Handler().postDelayed(new Runnable() {
                 @Override
@@ -88,7 +97,8 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
 
 
         } catch (NullPointerException e) {
-            if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+" <<ForDev>> onStartCommand Execption " + e);
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + " <<ForDev>> onStartCommand Execption " + e);
             Log.d("Ex", e.getMessage());
             this.stopSelf();
         }
@@ -108,7 +118,7 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
                 Log.i(TAG, "Hotspot connected devices: " + String.valueOf(DetailslistOfConnectedIP_KDTA.size()));
                 for (int i = 0; i < SSIDList.size(); i++) {
 
-                    boolean IsHoseBusy = IsHoseBusyCheckLocally(i);
+                    boolean IsHoseBusy = IsHoseBusyCheckLocally();
                     String ReconfigureLink = SSIDList.get(i).get("ReconfigureLink");
                     String selSSID = SSIDList.get(i).get("WifiSSId");
                     String IsBusy = SSIDList.get(i).get("IsBusy");
@@ -117,18 +127,26 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
                     String hoseID = SSIDList.get(i).get("HoseId");
                     String IsUpgrade = SSIDList.get(i).get("IsUpgrade"); //"Y";//
 
+
+                    if (!IsFsConnected(selMacAddress)){
+
+                        IstoggleRequired_KDTA = true;
+                        Log.i(TAG,"Link Not Connected ~"+"MacAddress:"+selMacAddress+" SSID:"+selSSID);
+
+                    }
+
                     for (int k = 0; k < DetailslistOfConnectedIP_KDTA.size(); k++) {
                         String Mac_Addr = DetailslistOfConnectedIP_KDTA.get(k).get("macAddress");
+
+                        //Check for connected link,If connceted execute info command
+                        //also include upgrate link firmware code
                         if (IsHoseBusy && selMacAddress.equalsIgnoreCase(Mac_Addr)) {
-                            // URL_INFO = "http://" + DetailslistOfConnectedIP_KDTA.get(k).get("ipAddress") + ":80/";
-                            HTTP_URL_TEST = "http://" + DetailslistOfConnectedIP_KDTA.get(k).get("ipAddress") + ":80/";
 
                             try {
 
-
                                 SERVER_IP = DetailslistOfConnectedIP_KDTA.get(k).get("ipAddress");
-                                 new TCPClientTask().execute(SERVER_IP);
-                                //  new UDPClientTask().execute(SERVER_IP);
+                                new TCPClientTask().execute(SERVER_IP);
+                                // new UDPClientTask().execute(SERVER_IP);
 
 
                               /*  Log.i(TAG, "HTTP_URL_TEST: " + HTTP_URL_TEST);
@@ -202,18 +220,41 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
             } else {
                 Log.i(TAG, "SSID List Empty");
                 if (AppConstants.GenerateLogs)
-                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> SSID List Empty");
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + " <<ForDev>> SSID List Empty");
             }
 
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
-            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> StartUpgradeProcess Exception: "+e);
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + " <<ForDev>> StartUpgradeProcess Exception: " + e);
         }
+
+
+        //Check If hotspot Toggle required
+        boolean IsHoseBusy = IsHoseBusyCheckLocally();
+        String CurrDate = CommonUtils.getTodaysDateTemp();
+        int diff = getDate(CurrDate);
+        Log.i(TAG,"Time Difference: "+diff);
+
+        if (IsHoseBusy && WelcomeActivity.OnWelcomeActivity && IstoggleRequired_DA){
+            //Toggle required by Display meater activity
+            Log.i(TAG,"Toggle ~~ Display MeterActivity");
+            ToggleHotspot();
+        }else if (IsHoseBusy && WelcomeActivity.OnWelcomeActivity && IstoggleRequired_KDTA && diff > 60){
+            //Toggle required by KeepDataAlive background service activity
+            Log.i(TAG,"Toggle ~~ KeepDataAlive BS");
+            ToggleHotspot();
+        }else{
+            Log.i(TAG,"Toggle ~~ No Need to toggle");
+        }
+
     }
 
     public void ListConnectedHotspotIP_KDTA() {
 
         DetailslistOfConnectedIP_KDTA.clear();
+        listOfConnectedMacAddress_KDTA.clear();
 
         Thread thread = new Thread(new Runnable() {
 
@@ -246,6 +287,8 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
                                         + macAddress);
                             }
 
+
+
                             if (ipAddress != null || macAddress != null) {
 
                                 HashMap<String, String> map = new HashMap<>();
@@ -253,8 +296,9 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
                                 map.put("macAddress", macAddress);
 
                                 DetailslistOfConnectedIP_KDTA.add(map);
-                                //listOfConnectedIP_KDTA.add("http://"+ ipAddress +":80/");
-                                //System.out.println("Details Of Connected HotspotIP" + listOfConnectedIP_KDTA);
+
+                                //Add IP of all connected decices to list
+                                listOfConnectedMacAddress_KDTA.add(macAddress);
                             }
 
                         }
@@ -264,7 +308,8 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
 
                 } catch (Exception e) {
                     e.printStackTrace();
-                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+" <<ForDev>> ListConnectedHotspotIP_AP_PIPE 1 --Exception " + e);
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + " <<ForDev>> ListConnectedHotspotIP_AP_PIPE 1 --Exception " + e);
                 } finally {
                     try {
                         br.close();
@@ -344,7 +389,8 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
     public void CheckForUpdateFirmware(final String hoseid, String iot_version, final String FS_selected) {
 
         Log.i(TAG, "Upgrade for Hose: " + FS_selected + "\nFirmware Version: " + iot_version + "Hose ID: " + hoseid);
-        if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+" <<ForDev>> Upgrade for Hose: " + FS_selected + "\nFirmware Version: " + iot_version + "Hose ID: " + hoseid);
+        if (AppConstants.GenerateLogs)
+            AppConstants.WriteinFile(TAG + " <<ForDev>> Upgrade for Hose: " + FS_selected + "\nFirmware Version: " + iot_version + "Hose ID: " + hoseid);
 
         SharedPreferences sharedPrefODO = this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
         String HubId = sharedPrefODO.getString(AppConstants.HubId, "");// HubId equals to personId
@@ -401,7 +447,8 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
 
         } else {
             Log.i(TAG, "Upgrade fail Hose id empty");
-            if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+" <<ForDev>> Upgrade fail Hose id empty");
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + " <<ForDev>> Upgrade fail Hose id empty");
         }
 
     }
@@ -450,7 +497,8 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
                 System.out.println(" OUTPUT" + result);
 
             } catch (Exception e) {
-                if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+" <<ForDev>> CommandsPOST onPostExecute Execption " + e);
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " <<ForDev>> CommandsPOST onPostExecute Execption " + e);
                 Log.i(TAG, " CommandsPOST Exception" + e);
                 stopSelf();
             }
@@ -490,7 +538,8 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
             } catch (Exception e) {
                 ChangeUpgradeProcessFlag();
                 Log.i(TAG, " OkHttpFileUpload doInBackground Exception" + e);
-                if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+" <<ForDev>> OkHttpFileUpload doInBackground Exception" + e);
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " <<ForDev>> OkHttpFileUpload doInBackground Exception" + e);
             }
 
 
@@ -528,7 +577,8 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
             } catch (Exception e) {
                 ChangeUpgradeProcessFlag();
                 Log.i(TAG, " OkHttpFileUpload onPostExecute Exception" + e);
-                if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+" <<ForDev>> OkHttpFileUpload onPostExecute Exception" + e);
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " <<ForDev>> OkHttpFileUpload onPostExecute Exception" + e);
 
             }
 
@@ -680,7 +730,8 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
 
             } catch (Exception e) {
                 Log.i(TAG, " GetUpgrateFirmwareStatus doInBackground " + e);
-                if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+" <<ForDev>> GetUpgrateFirmwareStatus doInBackground " + e);
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " <<ForDev>> GetUpgrateFirmwareStatus doInBackground " + e);
             }
 
             return response;
@@ -771,7 +822,8 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
 
             } catch (Exception e) {
                 Log.i(TAG, " GetUpgrateFirmwareStatus doInBackground " + e);
-                if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+" <<ForDev>> GetUpgrateFirmwareStatus doInBackground " + e);
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " <<ForDev>> GetUpgrateFirmwareStatus doInBackground " + e);
             }
 
             return response;
@@ -787,15 +839,9 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
         }
     }
 
-    public boolean IsHoseBusyCheckLocally(int i){
+    public boolean IsHoseBusyCheckLocally() {
 
-//        If selected hose is busy logic
-//        if (i == 0 && Constants.FS_1STATUS.equalsIgnoreCase("FREE") ) { return true; }
-//        else if (i == 1 && Constants.FS_2STATUS.equalsIgnoreCase("FREE")){return true; }
-//        else if (i == 2 && Constants.FS_3STATUS.equalsIgnoreCase("FREE")){return true; }
-//        else if (i == 3 && Constants.FS_4STATUS.equalsIgnoreCase("FREE")){return true; }
-
-        if (Constants.FS_1STATUS.equalsIgnoreCase("FREE") && Constants.FS_2STATUS.equalsIgnoreCase("FREE") && Constants.FS_3STATUS.equalsIgnoreCase("FREE") && Constants.FS_4STATUS.equalsIgnoreCase("FREE")){
+        if (Constants.FS_1STATUS.equalsIgnoreCase("FREE") && Constants.FS_2STATUS.equalsIgnoreCase("FREE") && Constants.FS_3STATUS.equalsIgnoreCase("FREE") && Constants.FS_4STATUS.equalsIgnoreCase("FREE")) {
             return true;
         }
 
@@ -811,7 +857,7 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
         protected String doInBackground(String... serverip) {
 
             String SERVER_IP = serverip[0];
-            String strcmd =  "GET /client?command=info HTTP/1.1\r\nContent-Type: application/json; charset=utf-8\r\nContent-Length: \r\nHost: 192.168.4.1\r\nConnection: Keep-Alive\r\nAccept-Encoding: gzip\r\nUser-Agent: okhttp/3.6.0\r\n\r\n";
+            String strcmd = "GET /client?command=info HTTP/1.1\r\nContent-Type: application/json; charset=utf-8\r\nContent-Length: \r\nHost: 192.168.4.1\r\nConnection: Keep-Alive\r\nAccept-Encoding: gzip\r\nUser-Agent: okhttp/3.6.0\r\n\r\n";
 
 
             try {
@@ -819,7 +865,7 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
                 int port = SERVER_PORT;
 
                 // Open a TCP connection
-                Socket socket  = new Socket(host, port);
+                Socket socket = new Socket(host, port);
                 // Send the request over the socket
                 PrintWriter writer = new PrintWriter(socket.getOutputStream());
                 writer.print(strcmd);
@@ -834,7 +880,8 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
                     System.out.println(next_record);
 
                 }
-                Log.i(TAG," InfoRespo: "+InfoRespo);
+                Log.i(TAG, " InfoRespo: " + InfoRespo);
+                response = InfoRespo.toString();
                 socket.close();
             } catch (MalformedURLException ex) {
                 ex.printStackTrace();
@@ -848,12 +895,14 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
         @Override
         protected void onPostExecute(String res) {
 
-            Log.i(TAG,"Socket response"+res);
+            Log.i(TAG, "Socket response" + res);
+            if (!res.contains("Version")){
+                new UDPClientTask().execute(SERVER_IP);
+            }
 
         }
 
     }
-
 
     public class UDPClientTask extends AsyncTask<String, Void, String> {
 
@@ -864,8 +913,7 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
         protected String doInBackground(String... serverip) {
 
             String SERVER_IP = serverip[0];
-            String strcmd =  "/client?command=info"; //"GET /client?command=info HTTP/1.1\r\nContent-Type: application/json; charset=utf-8\r\nContent-Length: \r\nHost: 192.168.4.1\r\nConnection: Keep-Alive\r\nAccept-Encoding: gzip\r\nUser-Agent: okhttp/3.6.0\r\n\r\n";
-
+            String strcmd = "/client?command=info"; //"GET /client?command=info HTTP/1.1\r\nContent-Type: application/json; charset=utf-8\r\nContent-Length: \r\nHost: 192.168.4.1\r\nConnection: Keep-Alive\r\nAccept-Encoding: gzip\r\nUser-Agent: okhttp/3.6.0\r\n\r\n";
 
             try {
                 String messageStr = strcmd;
@@ -876,7 +924,6 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
 
 
                 DatagramSocket s = new DatagramSocket();
-                //
 
                 DatagramPacket p = new DatagramPacket(message, msg_length, local, server_port);
                 s.send(p);//properly able to send data. i receive data to server
@@ -895,9 +942,7 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
                     }
 
                 }*/
-            }
-            catch(Exception ex)
-            {
+            } catch (Exception ex) {
                 ex.printStackTrace();
             }
 
@@ -932,10 +977,67 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
         @Override
         protected void onPostExecute(String res) {
 
-            Log.i(TAG,"Socket response"+res);
+            Log.i(TAG, "Socket response" + res);
 
         }
 
+    }
+
+    public boolean IsFsConnected(String toMatchString) {
+
+        for (String MacAddress : listOfConnectedMacAddress_KDTA) {
+            if (MacAddress.contains(toMatchString))
+                return true;
+        }
+        return false;
+    }
+
+    public void ToggleHotspot(){
+
+        ToggleExeTime = CommonUtils.getTodaysDateTemp();//Date Two (d2)
+
+        wifiApManager.setWifiApEnabled(null, false);  //Hotspot Disable
+
+        try {
+            Thread.sleep(3000);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        wifiApManager.setWifiApEnabled(null, true);  //Hotspot enabled
+
+        IstoggleRequired_KDTA = false;
+        IstoggleRequired_DA = false;
+        Log.i(TAG,"ToggleHotspot finish");
+        AppConstants.WriteinFile(TAG + " <<ForDev>> ToggleHotspot");
+    }
+
+    private int getDate(String CurrentTime) {
+
+        int DiffTime = 0;
+        try {
+
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            date1 = sdf.parse(CurrentTime);
+            date2 = sdf.parse(ToggleExeTime);
+
+            long diff = date1.getTime() - date2.getTime();
+            long seconds = diff / 1000;
+            long minutes = seconds / 60;
+            long hours = minutes / 60;
+            long days = hours / 24;
+
+            DiffTime = (int) minutes;
+            //System.out.println("~~~Difference~~~" + minutes);
+
+        } catch (ParseException e) {
+            if (ToggleExeTime.equalsIgnoreCase("")) { ToggleExeTime = CommonUtils.getTodaysDateTemp();}
+            e.printStackTrace();
+        } catch (NullPointerException n) {
+            n.printStackTrace();
+        }
+
+        return DiffTime;
     }
 
 }
