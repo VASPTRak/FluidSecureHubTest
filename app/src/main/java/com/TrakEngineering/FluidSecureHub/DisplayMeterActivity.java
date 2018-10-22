@@ -838,6 +838,8 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                             JSONObject jsonObject = new JSONObject(userData);
                             String status = jsonObject.getString("status");
 
+                            if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+" <<ForDev>> Relay_result " + " Status: " + status);
+
                             //IF relay status zero go back to dashboard
                             if (status.equalsIgnoreCase("1")) {
 

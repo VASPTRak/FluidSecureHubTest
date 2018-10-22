@@ -48,6 +48,7 @@ import com.TrakEngineering.FluidSecureHub.enity.VehicleRequireEntity;
 import com.TrakEngineering.FluidSecureHub.server.ServerHandler;
 import com.google.gson.Gson;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.Timer;
@@ -98,7 +99,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
     EditText etPersonnelPin;
     TextView tv_enter_pin_no, tv_ok;
     Button btnSave, btnCancel, btn_ReadFobAgain;
-    String IsPersonHasFob = "", IsOdoMeterRequire = "", IsDepartmentRequire = "", IsPersonnelPINRequire = "", IsOtherRequire = "";
+    String IsPersonHasFob = "", IsOdoMeterRequire = "", IsDepartmentRequire = "", IsPersonnelPINRequire = "", IsOtherRequire = "",IsVehicleNumberRequire = "";
     String TimeOutinMinute;
 
     int FobReadingCount = 0;
@@ -189,6 +190,20 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
         mDeviceAddress = sharedPre2.getString("LFBluetoothCardReaderMacAddress", "");
         HFDeviceName = sharedPre2.getString("BluetoothCardReader", "");
         HFDeviceAddress = sharedPre2.getString("BTMacAddress", "");
+
+
+        SharedPreferences sharedPrefODO = DeviceControlActivity_Pin.this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
+        IsDepartmentRequire = sharedPrefODO.getString(AppConstants.IsDepartmentRequire, "");
+        IsPersonnelPINRequire = sharedPrefODO.getString(AppConstants.IsPersonnelPINRequire, "");
+        IsOtherRequire = sharedPrefODO.getString(AppConstants.IsOtherRequire, "");
+        IsVehicleNumberRequire = sharedPrefODO.getString(AppConstants.IsVehicleNumberRequire, "");
+
+        SharedPreferences sharedPref = DeviceControlActivity_Pin.this.getSharedPreferences(Constants.PREF_COLUMN_SITE, Context.MODE_PRIVATE);
+        String dataSite = sharedPref.getString(Constants.PREF_COLUMN_SITE, "");
+
+        SITE_ID = parseSiteData(dataSite);
+        AppConstants.SITE_ID = SITE_ID;
+
         // Sets up UI references.
         tv_fobkey = (TextView) findViewById(R.id.tv_fobkey);
         etInput = (EditText) findViewById(R.id.etInput);
@@ -348,7 +363,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
         LF_FobKey = "";
 
         btnSave.setClickable(true);
-
+/*
         //Set/Reset EnterPin text
         if (Constants.CurrentSelectedHose.equals("FS1")) {
             etPersonnelPin.setText(Constants.AccPersonnelPIN_FS1);
@@ -358,7 +373,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
             etPersonnelPin.setText(Constants.AccPersonnelPIN_FS3);
         } else if (Constants.CurrentSelectedHose.equals("FS4")) {
             etPersonnelPin.setText(Constants.AccPersonnelPIN_FS4);
-        }
+        }*/
 
         DisplayScreenInit();
 
@@ -611,7 +626,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
             parmsi.weight = 0;
             btnSave.setLayoutParams(parmsi);
 
-            int widthp = 0;
+            int widthp = ActionBar.LayoutParams.MATCH_PARENT;
             int heightp = 0;
             LinearLayout.LayoutParams parms = new LinearLayout.LayoutParams(widthp, heightp);
             parms.gravity = Gravity.CENTER;
@@ -638,7 +653,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
             btnCancel.setVisibility(View.VISIBLE);
             btnSave.setVisibility(View.VISIBLE);
 
-            int width = 450;
+            int width = ActionBar.LayoutParams.MATCH_PARENT;
             int height = ActionBar.LayoutParams.WRAP_CONTENT;
             LinearLayout.LayoutParams parms = new LinearLayout.LayoutParams(width, height);
             parms.gravity = Gravity.CENTER;
@@ -883,6 +898,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                 objEntityClass.RequestFromAPP = "AP";
                 objEntityClass.FromNewFOBChange = "Y";
                 objEntityClass.FOBNumber = AppConstants.APDU_FOB_KEY;
+                objEntityClass.IsVehicleNumberRequire = IsVehicleNumberRequire;
                 AppConstants.FOB_KEY_VEHICLE = AppConstants.APDU_FOB_KEY;
 
                 if (AppConstants.APDU_FOB_KEY.equalsIgnoreCase(""))
@@ -970,7 +986,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                             if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+" <<ForDev>> colorToastBigFont PIN Activity ValidationFor Vehicle" + ResponceText);
 
                             /*AppConstants.colorToastBigFont(this, "Some thing went wrong Please try again..\n"+ResponceText, Color.RED);
-                            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG+" Some thing went wrong Please try again..(~else if~)\n"+ResponceText);
+                             if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG+" Some thing went wrong Please try again..(~else if~)\n"+ResponceText);
                             AppConstants.ClearEdittextFielsOnBack(DeviceControlActivity_Pin.this); //Clear EditText on move to welcome activity.
                             Intent intent = new Intent(DeviceControlActivity_Pin.this, WelcomeActivity.class);
                             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -982,7 +998,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                             if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+" <<ForDev>> colorToastBigFont PIN Activity ValidationFor Else" + ResponceText);
 
                             /*AppConstants.colorToastBigFont(this, "Some thing went wrong Please try again..\n"+ResponceText, Color.RED);
-                            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG+" Some thing went wrong Please try again..(~else~)\n"+ResponceText);
+                             if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG+" Some thing went wrong Please try again..(~else~)\n"+ResponceText);
                             AppConstants.ClearEdittextFielsOnBack(DeviceControlActivity_Pin.this); //Clear EditText on move to welcome activity.
                             Intent intent = new Intent(DeviceControlActivity_Pin.this, WelcomeActivity.class);
                             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -992,7 +1008,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                     }
                 }
             } catch (Exception e) {
-
+                e.printStackTrace();
             }
 
                    /* if (IsOtherRequire.equalsIgnoreCase("True")) {
@@ -1118,7 +1134,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
         btnCancel.setVisibility(View.VISIBLE);
         btnSave.setVisibility(View.VISIBLE);
 
-        int width = 450;
+        int width = ActionBar.LayoutParams.MATCH_PARENT;
         int height = ActionBar.LayoutParams.WRAP_CONTENT;
         LinearLayout.LayoutParams parms = new LinearLayout.LayoutParams(width, height);
         parms.gravity = Gravity.CENTER;
@@ -1131,6 +1147,42 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
         btnSave.setLayoutParams(parmsi);
 
 
+    }
+
+    public String parseSiteData(String dataSite) {
+        String ssiteId = "";
+        try {
+            if (dataSite != null) {
+                JSONArray jsonArray = new JSONArray(dataSite);
+
+                for (int i = 0; i < jsonArray.length(); i++) {
+                    JSONObject jo = jsonArray.getJSONObject(i);
+
+                    String SiteId = jo.getString("SiteId");
+                    String SiteNumber = jo.getString("SiteNumber");
+                    String SiteName = jo.getString("SiteName");
+                    String SiteAddress = jo.getString("SiteAddress");
+                    String Latitude = jo.getString("Latitude");
+                    String Longitude = jo.getString("Longitude");
+                    String HoseId = jo.getString("HoseId");
+                    String HoseNumber = jo.getString("HoseNumber");
+                    String WifiSSId = jo.getString("WifiSSId");
+                    String UserName = jo.getString("UserName");
+                    String Password = jo.getString("Password");
+
+                    System.out.println("Wifi Password...." + Password);
+
+                    //AppConstants.WIFI_PASSWORD = "";
+
+                    ssiteId = SiteId;
+                }
+            }
+        } catch (Exception ex) {
+
+            CommonUtils.LogMessage(TAG, "", ex);
+        }
+
+        return ssiteId;
     }
 
 }

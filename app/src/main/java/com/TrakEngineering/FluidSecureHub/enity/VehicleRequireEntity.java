@@ -14,6 +14,7 @@ public class VehicleRequireEntity {
     public String FOBNumber;
     public String FOBNumberPin;
     public String FromNewFOBChange;
+    public String IsVehicleNumberRequire;
 
 
 }

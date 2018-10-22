@@ -21,11 +21,19 @@ public class AcceptServiceCall {
 
     private ConnectionDetector cd;
     public Activity activity;
-    String IsOdoMeterRequire = "", IsDepartmentRequire = "", IsPersonnelPINRequire = "", IsOtherRequire = "";
+    String IsOdoMeterRequire = "", IsDepartmentRequire = "", IsPersonnelPINRequire = "", IsOtherRequire = "",IsVehicleNumberRequire = "";
     private static final String TAG = "AcceptServiceCall";
 
 
     public void checkAllFields() {
+
+
+        SharedPreferences sharedPrefODO = activity.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
+
+        IsDepartmentRequire = sharedPrefODO.getString(AppConstants.IsDepartmentRequire, "");
+        IsPersonnelPINRequire = sharedPrefODO.getString(AppConstants.IsPersonnelPINRequire, "");
+        IsOtherRequire = sharedPrefODO.getString(AppConstants.IsOtherRequire, "");
+        IsVehicleNumberRequire = sharedPrefODO.getString(AppConstants.IsVehicleNumberRequire, "");
 
 
         String pinNumber = "";
@@ -75,7 +83,6 @@ public class AcceptServiceCall {
         try {
 
 
-
             AuthEntityClass authEntityClass = new AuthEntityClass();
 
             authEntityClass.VehicleNumber = vehicleNumber;
@@ -92,6 +99,7 @@ public class AcceptServiceCall {
             authEntityClass.RequestFrom = "A";
             authEntityClass.RequestFromAPP ="AP";
             authEntityClass.HubId = AppConstants.HUB_ID;
+            authEntityClass.IsVehicleNumberRequire = IsVehicleNumberRequire;
 
             authEntityClass.CurrentLat = "" + Constants.Latitude;
             authEntityClass.CurrentLng = "" + Constants.Longitude;

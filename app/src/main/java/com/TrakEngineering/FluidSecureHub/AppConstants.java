@@ -67,6 +67,7 @@ public class AppConstants {
     public static final String TimeOut = "TimeOut";
     public static final String HubId = "HubId";
     public static final String IsGateHub = "IsGateHub";
+    public static final String IsVehicleNumberRequire = "IsVehicleNumberRequire";
 
     public static String webIP; // = "http://103.8.126.241:89/";//test
     public static String webURL = webIP + "HandlerTrak.ashx";
@@ -151,6 +152,7 @@ public class AppConstants {
     public static String LAST_CONNECTED_SSID;
     public static String SELECTED_MACADDRESS;
     public static String CURRENT_SELECTED_SSID;
+    public static String CURRENT_SELECTED_SSID_ReqTLDCall;
     public static String CURRENT_HOSE_SSID;
     public static String CURRENT_SELECTED_SITEID;
     public static String UPDATE_MACADDRESS;

@@ -20,6 +20,7 @@ public class AuthEntityClass {
     public String CurrentLng;
     public String AppInfo;
     public String RequestFromAPP;
+    public String IsVehicleNumberRequire;
     public String HubId;
 
     public String TransactionId;

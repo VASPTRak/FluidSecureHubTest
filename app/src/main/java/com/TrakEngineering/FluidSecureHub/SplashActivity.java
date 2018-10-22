@@ -486,6 +486,7 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
                     String LFBluetoothCardReaderMacAddress = jsonObject.getString("LFBluetoothCardReaderMacAddress");
                     String IsLogging = jsonObject.getString("IsLogging");
                     String IsGateHub = "False";//jsonObject.getString("IsGateHub");
+                    String IsVehicleNumberRequire = "True";//jsonObject.getString("IsVehicleNumberRequire");
 
                     CommonUtils.SaveLogFlagInPref(SplashActivity.this,IsLogging,"LogRequiredFlag");//Save logging to preferances
                     storeBT_FOBDetails(BluetoothCardReader, BluetoothCardReaderMacAddress,LFBluetoothCardReader,LFBluetoothCardReaderMacAddress);
@@ -494,7 +495,7 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
                     System.out.println("BluetoothCardReader--" + response);
 
                     if (IsApproved.equalsIgnoreCase("True")) {
-                        CommonUtils.SaveUserInPref(SplashActivity.this, userName, userMobile, userEmail, "", IsDepartmentRequire, IsPersonnelPINRequire, IsOtherRequire, "", OtherLabel, TimeOut, HubId, IsPersonnelPINRequireForHub, FluidSecureSiteName,IsVehicleHasFob,IsPersonHasFob,IsGateHub);
+                        CommonUtils.SaveUserInPref(SplashActivity.this, userName, userMobile, userEmail, "", IsDepartmentRequire, IsPersonnelPINRequire, IsOtherRequire, "", OtherLabel, TimeOut, HubId, IsPersonnelPINRequireForHub, FluidSecureSiteName,IsVehicleHasFob,IsPersonHasFob,IsGateHub,IsVehicleNumberRequire);
 
                         if (IsLoginRequire.trim().equalsIgnoreCase("True")) {
                             AppConstants.Login_Email = userEmail;

@@ -463,7 +463,7 @@ public class CommonUtils {
     }
 
     public static void SaveUserInPref(Activity activity, String userName, String userMobile, String userEmail, String IsOdoMeterRequire,
-                                      String IsDepartmentRequire, String IsPersonnelPINRequire, String IsOtherRequire, String IsHoursRequire, String OtherLabel, String TimeOut, String HubId, String IsPersonnelPINRequireForHub, String fluidSecureSiteName, String IsVehicleHasFob, String isPersonHasFob,String IsGateHub) {
+                                      String IsDepartmentRequire, String IsPersonnelPINRequire, String IsOtherRequire, String IsHoursRequire, String OtherLabel, String TimeOut, String HubId, String IsPersonnelPINRequireForHub, String fluidSecureSiteName, String IsVehicleHasFob, String isPersonHasFob,String IsGateHub,String IsVehicleNumberRequire) {
 
         SharedPreferences sharedPref = activity.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPref.edit();
@@ -484,6 +484,7 @@ public class CommonUtils {
         editor.putString(IsPersonHasFob,  isPersonHasFob);
         editor.putString(FluidSecureSiteName,  fluidSecureSiteName);
         editor.putString(AppConstants.IsGateHub,  IsGateHub);
+        editor.putString(AppConstants.IsVehicleNumberRequire,  IsVehicleNumberRequire);
 
         editor.commit();
     }

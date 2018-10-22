@@ -50,6 +50,7 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
@@ -58,6 +59,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
+import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -110,6 +112,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.URL;
@@ -125,13 +128,14 @@ import java.util.Set;
 import java.util.Timer;
 import java.util.concurrent.TimeUnit;
 
+import static android.os.Build.VERSION.SDK_INT;
 import static com.TrakEngineering.FluidSecureHub.R.id.textView;
 import static com.TrakEngineering.FluidSecureHub.server.MyServer.ctx;
 import static com.TrakEngineering.FluidSecureHub.server.ServerHandler.TEXT;
 import static com.google.android.gms.internal.zzid.runOnUiThread;
 
 
-public class WelcomeActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, View.OnClickListener, View.OnTouchListener {
+public class WelcomeActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, View.OnClickListener, View.OnTouchListener{
 
 
     private String TAG = "WelcomeActivity ";
@@ -146,12 +150,13 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             tv_FS4_hoseName, tv_fs1_stop, tv_fs2_stop, tv_fs3_stop, tv_fs4_stop, tv_fs1QTN, tv_fs2QTN, tv_fs3QTN, tv_fs4QTN, tv_fs1_pulseTxt, tv_fs2_pulseTxt, tv_fs3_pulseTxt, tv_fs4_pulseTxt, tv_fs1_Pulse, tv_fs2_Pulse, tv_fs3_Pulse, tv_fs4_Pulse;
     private ImageView imgFuelLogo;
     private TextView tvTitle;
-    private Button btnGo, btnRetryWifi,btn_clear_data;
+    private Spinner SpinBroadcastChannel;
+    private Button btnGo, btnRetryWifi, btn_clear_data;
     private ConnectionDetector cd;
     private double latitude = 0;
     private double longitude = 0;
-    TextView tvSSIDName, tv_NFS1, tv_NFS2, tv_NFS3, tv_NFS4,tv_FA_message;//tv_fs1_pulse
-    TextView tv_request,tv_response,tv_Display_msg,tv_file_address;
+    TextView tvSSIDName, tv_NFS1, tv_NFS2, tv_NFS3, tv_NFS4, tv_FA_message;//tv_fs1_pulse
+    TextView tv_request, tv_response, tv_Display_msg, tv_file_address;
     LinearLayout linearHose, linear_fs_1, linear_fs_2, linear_fs_3, linear_fs_4, linearLayout_MainActivity;
     WifiManager mainWifi;
     StringBuilder sb = new StringBuilder();
@@ -167,7 +172,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     static WifiApManager wifiApManager;
     boolean isTCancelled = false;
     int RetryOneAtemptConnectToSelectedSSSID = 0;
-    String ReaderFrequency = "", IsOdoMeterRequire = "", IsDepartmentRequire = "", IsPersonnelPINRequireForHub = "", IsPersonnelPINRequire = "", IsOtherRequire = "", IsGateHub = "";
+    String ReaderFrequency = "", IsOdoMeterRequire = "", IsDepartmentRequire = "", IsPersonnelPINRequireForHub = "", IsPersonnelPINRequire = "", IsOtherRequire = "", IsGateHub = "",IsVehicleNumberRequire = "";
     BroadcastReceiver mReceiver;
     //Upgrade firmware status for each hose
     public static boolean IsUpgradeInprogress_FS1 = false;
@@ -200,6 +205,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     String URL_INFO = "";
     String URL_UPDATE_FS_INFO = "";
     String FOLDER_PATH = Environment.getExternalStorageDirectory().getAbsolutePath() + "/FSBin/";
+    private WifiManager.LocalOnlyHotspotReservation mReservation;
 
 //============Bluetooth reader Gatt==============
 
@@ -279,7 +285,6 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
         //TODO MyServer FSVM
         ctx = WelcomeActivity.this;
-
         try {
             server = new MyServer();
             DownloadFileHttp abc = new DownloadFileHttp();
@@ -386,8 +391,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     }
 
 
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -426,19 +430,18 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
         InItGUI();
 
-        tv_request = (TextView)findViewById(R.id.tv_request);
-        tv_response = (TextView)findViewById(R.id.tv_response);
-        tv_response = (TextView)findViewById(R.id.tv_response);
-        tv_Display_msg = (TextView)findViewById(R.id.tv_Display_msg);
-        tv_file_address = (TextView)findViewById(R.id.tv_file_address);
-        btn_clear_data = (Button)findViewById(R.id.btn_clear_data);
+        tv_request = (TextView) findViewById(R.id.tv_request);
+        tv_response = (TextView) findViewById(R.id.tv_response);
+        tv_response = (TextView) findViewById(R.id.tv_response);
+        tv_Display_msg = (TextView) findViewById(R.id.tv_Display_msg);
+        tv_file_address = (TextView) findViewById(R.id.tv_file_address);
+        btn_clear_data = (Button) findViewById(R.id.btn_clear_data);
         tv_file_address.setText("File Download url: http://192.168.43.1:8550/www/FSVM/FileName.bin");
 
 
         setUrlFromSharedPref(this);//Set url App Txt URL
         UpdateServerMessages();
         DownloadFile();
-
 
         btn_clear_data.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -492,6 +495,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             AppConstants.getAllFilesInDir(file);
         }
 
+
         new GetConnectedDevicesIP().execute(); //getListOfConnectedDevice();
 
         //Enable Background service to check hotspot
@@ -509,8 +513,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
         wifiApManager = new WifiApManager(this);
 
-        //Set Hotspot name and password
         setHotspotNamePassword(this);
+
 
         // Display current date time u
         Thread myThread = null;
@@ -532,7 +536,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                 String mobDevName = AppConstants.getDeviceName().toLowerCase();
                 System.out.println("oooooooooo" + mobDevName);
-                if (mobDevName.contains("moto") && android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                if (mobDevName.contains("moto") && SDK_INT >= Build.VERSION_CODES.M) {
 
                     DBController controller = new DBController(WelcomeActivity.this);
                     ArrayList<HashMap<String, String>> uData = controller.getAllTransaction();
@@ -910,7 +914,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                                         } catch (Exception e) {
                                             System.out.println(e);
-                                           if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> AutoSelect if single hose --Exception " + e);
+                                            if (AppConstants.GenerateLogs)
+                                                AppConstants.WriteinFile(TAG + " <<ForDev>> AutoSelect if single hose --Exception " + e);
                                         }
 
                                     }
@@ -1051,7 +1056,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             LocationManager locationManager = (LocationManager) WelcomeActivity.this.getSystemService(Context.LOCATION_SERVICE);
             boolean statusOfGPS = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
 
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+            if (SDK_INT >= android.os.Build.VERSION_CODES.M) {
 
                 if (!statusOfGPS) {
                     turnGPSOn();
@@ -1224,6 +1229,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         IsPersonnelPINRequire = sharedPrefODO.getString(AppConstants.IsPersonnelPINRequire, "");
         IsPersonnelPINRequireForHub = sharedPrefODO.getString(AppConstants.IsPersonnelPINRequireForHub, "");
         IsOtherRequire = sharedPrefODO.getString(AppConstants.IsOtherRequire, "");
+        IsVehicleNumberRequire = sharedPrefODO.getString(AppConstants.IsVehicleNumberRequire, "");
 
         //Skip PinActivity and pass pin= "";
         if (Constants.CurrentSelectedHose.equals("FS1")) {
@@ -1236,10 +1242,18 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             Constants.AccPersonnelPIN_FS4 = "";
         }
 
-        //  if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " Selected hose: " + AppConstants.CURRENT_SELECTED_SSID);
+        //   if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " Selected hose: " + AppConstants.CURRENT_SELECTED_SSID);
 
-        Intent intent = new Intent(WelcomeActivity.this, DeviceControlActivity_vehicle.class);
-        startActivity(intent);
+        if (IsVehicleNumberRequire.equalsIgnoreCase("True")){
+            Intent intent = new Intent(WelcomeActivity.this, DeviceControlActivity_vehicle.class);
+            startActivity(intent);
+        }else{
+
+            Intent intent = new Intent(WelcomeActivity.this, DeviceControlActivity_Pin.class);
+            startActivity(intent);
+        }
+
+
 
         /*if (ReaderFrequency.equalsIgnoreCase("hfr")) {
             Intent intent = new Intent(WelcomeActivity.this, AcceptVehicleActivity.class);
@@ -1435,7 +1449,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             } catch (Exception ex) {
 
                 CommonUtils.LogMessage(TAG, "AuthTestAsynTask ", ex);
-               if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> GetAndroidSSID --Exception " + ex);
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " <<ForDev>> GetAndroidSSID --Exception " + ex);
             }
             return null;
         }
@@ -1450,7 +1465,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
         } catch (Exception ex) {
             CommonUtils.LogMessage(TAG, "onChangeWifiAction :", ex);
-           if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> onChangeWifiAction --Exception " + ex);
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + " <<ForDev>> onChangeWifiAction --Exception " + ex);
         }
     }
 
@@ -1503,7 +1519,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                             status.startResolutionForResult(WelcomeActivity.this, REQUEST_CHECK_SETTINGS);
                         } catch (IntentSender.SendIntentException e) {
                             Log.i("Splash", "PendingIntent unable to execute request.");
-                           if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> PendingIntent unable to execute request. --Exception " + e);
+                            if (AppConstants.GenerateLogs)
+                                AppConstants.WriteinFile(TAG + " <<ForDev>> PendingIntent unable to execute request. --Exception " + e);
                         }
                         break;
                     case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
@@ -1620,7 +1637,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             } catch (Exception e) {
                 pd.dismiss();
                 System.out.println("Ex" + e.getMessage());
-               if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> GetSSIDUsingLocation doInBackground --Exception " + e);
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " <<ForDev>> GetSSIDUsingLocation doInBackground --Exception " + e);
             }
 
 
@@ -1680,6 +1698,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                 String IsDefective = c.getString("IsDefective");
                                 String ReconfigureLink = c.getString("ReconfigureLink");
                                 String FSNPMacAddress = c.getString("FSNPMacAddress");
+                                String IsTLDCall = c.getString("IsTLDCall");
 
                                 String FilePath = c.getString("FilePath");
                                 AppConstants.UP_FilePath = FilePath;
@@ -1701,6 +1720,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                 map.put("IsDefective", IsDefective);
                                 map.put("ReconfigureLink", ReconfigureLink);
                                 map.put("FSNPMacAddress", FSNPMacAddress);
+                                map.put("IsTLDCall", IsTLDCall);
 
                                 if (ResponceMessage.equalsIgnoreCase("success")) {
                                     if (isNotNULL(SiteId) && isNotNULL(HoseId) && isNotNULL(WifiSSId)) {
@@ -1736,7 +1756,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             } catch (Exception e) {
 
                 CommonUtils.LogMessage(TAG, " GetSSIDUsingLocation :" + result, e);
-               if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> GetSSIDUsingLocation onPostExecute --Exception " + e);
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " <<ForDev>> GetSSIDUsingLocation onPostExecute --Exception " + e);
             }
 
         }
@@ -1798,7 +1819,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             } catch (Exception e) {
                 pd.dismiss();
                 System.out.println("Ex" + e.getMessage());
-               if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> GetSSIDUsingLocation onPostExecute --Exception " + e);
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " <<ForDev>> GetSSIDUsingLocation onPostExecute --Exception " + e);
             }
 
 
@@ -1863,6 +1885,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                 String FilePath = c.getString("FilePath");
                                 String ReconfigureLink = c.getString("ReconfigureLink");
                                 String FSNPMacAddress = c.getString("FSNPMacAddress");
+                                String IsTLDCall = c.getString("IsTLDCall");
                                 AppConstants.UP_FilePath = FilePath;
 
                                 AppConstants.BT_READER_NAME = BluetoothCardReaderHF;
@@ -1884,6 +1907,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                 map.put("PulserTimingAdjust", PulserTimingAdjust);
                                 map.put("ReconfigureLink", ReconfigureLink);
                                 map.put("FSNPMacAddress", FSNPMacAddress);
+                                map.put("IsTLDCall", IsTLDCall);
 
                                 if (ResponceMessage.equalsIgnoreCase("success")) {
 
@@ -1914,12 +1938,12 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                 goButtonAction(null);
 
                                 //&& ReconfigureLink.equalsIgnoreCase("true")
-                            }else if (serverSSIDList != null && serverSSIDList.size() == 1 && Constants.FS_1STATUS.equalsIgnoreCase("FREE")) {
+                            } else if (serverSSIDList != null && serverSSIDList.size() == 1 && Constants.FS_1STATUS.equalsIgnoreCase("FREE")) {
 
                                 tvSSIDName.setText(serverSSIDList.get(0).get("WifiSSId"));
                                 OnHoseSelected_OnClick(Integer.toString(0));
 
-                            }else if (serverSSIDList != null && AppConstants.LastSelectedHose != null && Constants.FS_1STATUS.equalsIgnoreCase("FREE") && Constants.FS_2STATUS.equalsIgnoreCase("FREE") && Constants.FS_3STATUS.equalsIgnoreCase("FREE") && Constants.FS_4STATUS.equalsIgnoreCase("FREE")){
+                            } else if (serverSSIDList != null && AppConstants.LastSelectedHose != null && Constants.FS_1STATUS.equalsIgnoreCase("FREE") && Constants.FS_2STATUS.equalsIgnoreCase("FREE") && Constants.FS_3STATUS.equalsIgnoreCase("FREE") && Constants.FS_4STATUS.equalsIgnoreCase("FREE")) {
 
                                 Thread.sleep(1000);
                                 tvSSIDName.setText(serverSSIDList.get(Integer.parseInt(AppConstants.LastSelectedHose)).get("WifiSSId"));
@@ -1930,7 +1954,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                         } catch (Exception e) {
                             System.out.println(e);
-                           if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> GetSSIDUsingLocationOnResume if only one hose autoselect   --Exception " + e);
+                            if (AppConstants.GenerateLogs)
+                                AppConstants.WriteinFile(TAG + " <<ForDev>> GetSSIDUsingLocationOnResume if only one hose autoselect   --Exception " + e);
                         }
 
 
@@ -1950,7 +1975,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             } catch (Exception e) {
 
                 CommonUtils.LogMessage(TAG, " GetSSIDUsingLocation :" + result, e);
-               if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> GetSSIDUsingLocationOnResume --Exception " + e);
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " <<ForDev>> GetSSIDUsingLocationOnResume --Exception " + e);
 
             }
 
@@ -2019,11 +2045,13 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 SelectedItemPos = position;
                 String ReconfigureLink = serverSSIDList.get(SelectedItemPos).get("ReconfigureLink");
                 String selSSID = serverSSIDList.get(SelectedItemPos).get("WifiSSId");
+                String IsTLDCall = serverSSIDList.get(SelectedItemPos).get("IsTLDCall");
                 String IsBusy = serverSSIDList.get(SelectedItemPos).get("IsBusy");
                 String selMacAddress = serverSSIDList.get(SelectedItemPos).get("MacAddress");
                 String selSiteId = serverSSIDList.get(SelectedItemPos).get("SiteId");
                 String hoseID = serverSSIDList.get(SelectedItemPos).get("HoseId");
                 String IsUpgrade = serverSSIDList.get(SelectedItemPos).get("IsUpgrade"); //"Y";
+                AppConstants.CURRENT_SELECTED_SSID_ReqTLDCall = IsTLDCall;
                 AppConstants.CURRENT_SELECTED_SSID = selSSID;
                 AppConstants.CURRENT_HOSE_SSID = hoseID;
                 AppConstants.CURRENT_SELECTED_SITEID = selSiteId;
@@ -2126,7 +2154,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                             } catch (Exception e) {
                                 loading.dismiss();
-                               if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> Updating mac address please wait.. --Exception " + e);
+                                if (AppConstants.GenerateLogs)
+                                    AppConstants.WriteinFile(TAG + " <<ForDev>> Updating mac address please wait.. --Exception " + e);
                             }
 
 
@@ -2146,7 +2175,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                             }
                         } catch (Exception e) {
                             System.out.println(e);
-                           if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> DetailsListOfConnectedDevices --Empty ");
+                            if (AppConstants.GenerateLogs)
+                                AppConstants.WriteinFile(TAG + " <<ForDev>> DetailsListOfConnectedDevices --Empty ");
                         }
 
 
@@ -2363,13 +2393,15 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                     } catch (Exception e) {
                         e.printStackTrace();
-                       if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> GetConnectedDevicesIP 1 --Exception " + e);
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + " <<ForDev>> GetConnectedDevicesIP 1 --Exception " + e);
                     } finally {
                         try {
                             br.close();
                         } catch (IOException e) {
                             e.printStackTrace();
-                           if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> GetConnectedDevicesIP 2 --Exception " + e);
+                            if (AppConstants.GenerateLogs)
+                                AppConstants.WriteinFile(TAG + " <<ForDev>> GetConnectedDevicesIP 2 --Exception " + e);
                         }
                     }
                 }
@@ -2424,7 +2456,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
             } catch (Exception e) {
                 Log.d("Ex", e.getMessage());
-               if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> CommandsPOST  DoInBackground--Exception " + e);
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " <<ForDev>> CommandsPOST  DoInBackground--Exception " + e);
             }
 
 
@@ -2444,7 +2477,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             } catch (Exception e) {
 
                 System.out.println(e);
-               if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> CommandsPOST  onPostExecute --Exception " + e);
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " <<ForDev>> CommandsPOST  onPostExecute --Exception " + e);
             }
 
         }
@@ -2470,7 +2504,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 resp = response.body().string();
 
             } catch (Exception e) {
-               if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> CommandsPOST  CommandsGET_INFO  DoInBackground --Exception " + e);
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " <<ForDev>> CommandsPOST  CommandsGET_INFO  DoInBackground --Exception " + e);
                 Log.d("Ex", e.getMessage());
                 Constants.hotspotstayOn = true;
                 loading.dismiss();
@@ -2549,7 +2584,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 loading.dismiss();
                 Constants.hotspotstayOn = true;
                 Log.d("Ex", e.getMessage());
-               if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> CommandsPOST_ChangeHotspotSettings  DoInBackground --Exception " + e);
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " <<ForDev>> CommandsPOST_ChangeHotspotSettings  DoInBackground --Exception " + e);
             }
 
 
@@ -2572,34 +2608,86 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 loading.dismiss();
                 Constants.hotspotstayOn = true;
                 System.out.println(e);
-               if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> CommandsPOST_ChangeHotspotSettings  onpostExecution --Exception " + e);
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " <<ForDev>> CommandsPOST_ChangeHotspotSettings  onpostExecution --Exception " + e);
             }
 
         }
     }
 
     private class WiFiConnectTask extends AsyncTask<String, Void, String> {
-        // Do the long-running work in here
+
         protected String doInBackground(String... asd) {
 
-/*
-            //Forget Netwotk
-            try {
-                WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(android.content.Context.WIFI_SERVICE);
-                List<WifiConfiguration> list = wifiManager.getConfiguredNetworks();
-                for (WifiConfiguration i : list) {
+            //Connect to wifi with Password connectToWifiMarsh
+            String networkSSID = AppConstants.CURRENT_SELECTED_SSID;
 
-                    if (i.SSID.equalsIgnoreCase("\"" + AppConstants.CURRENT_SELECTED_SSID + "\"")) {
-                        wifiManager.disableNetwork(i.networkId);
-                        break;
-                    }
-                    // wifiManager.removeNetwork(i.networkId);
-                    // wifiManager.saveConfiguration();
+            try {
+
+                //Method to connect to WIFI Network (Second test)
+                WifiManager wifi = (WifiManager) getApplicationContext().getSystemService(android.content.Context.WIFI_SERVICE);
+                WifiConfiguration config = new WifiConfiguration();
+                WifiInfo info = wifi.getConnectionInfo(); //get WifiInfo
+                int id = info.getNetworkId(); //get id of currently connected network
+
+                config.SSID = "\"" + networkSSID + "\"";
+                config.preSharedKey = "\"" + Constants.CurrFsPass + "\"";
+                if (Constants.CurrFsPass.isEmpty()) {
+                    config.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
+                } else {
+                    config.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.WPA_PSK);
                 }
-            }catch (NullPointerException e){System.out.println(e);}*/
-           if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> WiFiConnectTask  IndoInBackground");
-            connectToWifiMarsh(AppConstants.CURRENT_SELECTED_SSID);
-            // connectCustom(AppConstants.CURRENT_SELECTED_SSID);
+
+                int netID = wifi.addNetwork(config);
+
+                int tempConfigId = getExistingNetworkId(config.SSID);
+
+                if (tempConfigId != -1) {
+                    netID = tempConfigId;
+                }
+
+                boolean disconnect = wifi.disconnect();
+                wifi.disableNetwork(id); //disable current network
+                boolean enabled = wifi.enableNetwork(netID, true);
+                boolean connected = wifi.reconnect();
+
+                System.out.println("Wifi Connection test");
+
+               /* wifiManager.disconnect();
+                wifiManager.enableNetwork(netId, true);
+                wifiManager.reconnect();
+
+                //----------------
+
+                WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(android.content.Context.WIFI_SERVICE);
+                WifiConfiguration wc = new WifiConfiguration();
+
+
+                wc.SSID = "\"" + networkSSID + "\"";
+                wc.preSharedKey = "\"" + Constants.CurrFsPass + "\"";
+
+                wc.allowedProtocols.set(WifiConfiguration.Protocol.WPA);
+                wc.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.WPA_PSK);
+
+
+                wifiManager.setWifiEnabled(true);
+                int netId = getExistingNetworkId(networkSSID);
+
+                if (netId == -1) {
+                    netId = wifiManager.addNetwork(wc);
+                }
+
+                wifiManager.disconnect();
+                wifiManager.enableNetwork(netId, true);
+                wifiManager.reconnect();*/
+
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                loading.dismiss();
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " <<ForDev>> connectToWifiMarsh --Exception " + e);
+            }
 
             return "";
         }
@@ -2608,7 +2696,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         @Override
         protected void onPostExecute(String s) {
 
-           if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> WiFiConnectTask  InOnPostExecute");
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + " <<ForDev>> WiFiConnectTask  InOnPostExecute");
 
             new Handler().postDelayed(new Runnable() {
                 @Override
@@ -2621,8 +2710,10 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     String ssid = wifiInfo.getSSID();
                     if (!(NetID == -1) && ssid.contains("\"" + AppConstants.CURRENT_SELECTED_SSID + "\"")) {
 
-                       if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> WIFI CONNECTED " + AppConstants.CURRENT_SELECTED_SSID);
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + " <<ForDev>> WIFI CONNECTED " + AppConstants.CURRENT_SELECTED_SSID);
                         AppConstants.colorToastBigFont(WelcomeActivity.this, "CONNECTED TO: " + AppConstants.CURRENT_SELECTED_SSID, Color.BLUE);
+
 
                         new Handler().postDelayed(new Runnable() {
                             @Override
@@ -2640,7 +2731,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                 btnRetryWifi.setVisibility(View.GONE);
 
                             }
-                        }, 1000);
+                        }, 2000);
 
                         new Handler().postDelayed(new Runnable() {
                             @Override
@@ -2721,7 +2812,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                                 loading.dismiss();
                                                 Constants.hotspotstayOn = true;
                                                 System.out.println(e);
-                                               if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> WiFiConnectTask  UpdateMacAddressClass --Exception " + e);
+                                                if (AppConstants.GenerateLogs)
+                                                    AppConstants.WriteinFile(TAG + " <<ForDev>> WiFiConnectTask  UpdateMacAddressClass --Exception " + e);
                                             }
 
                                         }
@@ -2730,10 +2822,11 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                 } catch (Exception e) {
                                     e.printStackTrace();
                                     loading.dismiss();
-                                   if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> WiFiConnectTask  OnPostExecution --Exception " + e);
+                                    if (AppConstants.GenerateLogs)
+                                        AppConstants.WriteinFile(TAG + " <<ForDev>> WiFiConnectTask  OnPostExecution --Exception " + e);
                                 }
                             }
-                        }, 2000);
+                        }, 10000);
 
                        /* //Check For Rename
                         new Handler().postDelayed(new Runnable() {
@@ -2747,7 +2840,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                     } else {
                         //String autoNetworkSwitch = getExternalString(DisplayMeterActivity.this, "com.android.settings","wifi_watchdog_connectivity_check", "Unknown");
-                       if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> WIFI NOT CONNECTED " + AppConstants.CURRENT_SELECTED_SSID);
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + " <<ForDev>> WIFI NOT CONNECTED " + AppConstants.CURRENT_SELECTED_SSID);
                         RetryOneAtemptConnectToSelectedSSSID += 1;
                         if (RetryOneAtemptConnectToSelectedSSSID < 4) {
                             //gooooo
@@ -2768,38 +2862,6 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         }
     }
 
-    //Connect to wifi with Password
-    public void connectToWifiMarsh(String networkSSID) {
-
-
-        try {
-            WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(android.content.Context.WIFI_SERVICE);
-            WifiConfiguration wc = new WifiConfiguration();
-
-
-            wc.SSID = "\"" + networkSSID + "\"";
-            wc.preSharedKey = "\"" + Constants.CurrFsPass + "\"";
-
-            wc.allowedProtocols.set(WifiConfiguration.Protocol.WPA);
-            wc.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.WPA_PSK);
-
-
-            wifiManager.setWifiEnabled(true);
-            int netId = getExistingNetworkId(networkSSID);
-
-            if (netId == -1) {
-                netId = wifiManager.addNetwork(wc);
-            }
-
-            wifiManager.disconnect();
-            wifiManager.enableNetwork(netId, true);
-            wifiManager.reconnect();
-        } catch (Exception e) {
-            e.printStackTrace();
-            loading.dismiss();
-           if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> connectToWifiMarsh --Exception " + e);
-        }
-    }
 
     private int getExistingNetworkId(String SSID) {
 
@@ -2860,7 +2922,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 loading.dismiss();
                 Constants.hotspotstayOn = true;
                 CommonUtils.LogMessage("", "UpdateMACAddress ", ex);
-               if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> UpdateMacAsynTask doInBackground--Exception " + ex);
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " <<ForDev>> UpdateMacAsynTask doInBackground--Exception " + ex);
             }
             return response;
         }
@@ -2898,46 +2961,61 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 }
             } catch (Exception e) {
 
-               if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> UpdateMacAsynTask onPostExecute--Exception " + e);
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " <<ForDev>> UpdateMacAsynTask onPostExecute--Exception " + e);
 
             }
         }
     }
 
-    public boolean setHotspotNamePassword(Context context) {//String newName, String newKey,
+
+    private boolean ChangeHotspotBroadcastChannel(Context context, int i){
+
         try {
+
+            WifiManager wifiManager = (WifiManager) context.getSystemService(ctx.WIFI_SERVICE);
+            Method getConfigMethod = getConfigMethod = wifiManager.getClass().getMethod("getWifiApConfiguration");
+            WifiConfiguration wifiConfig = (WifiConfiguration) getConfigMethod.invoke(wifiManager);
+
+
+            Method getWifiApConfigurationMethod = wifiManager.getClass().getMethod("getWifiApConfiguration");
+            wifiConfig=(WifiConfiguration)getWifiApConfigurationMethod.invoke(wifiManager);
+
+            //Log.i("Writing HotspotData", "\nSSID:" + netConfig.SSID + "\nPassword:" + netConfig.preSharedKey + "\n");
+
+//                Field wcBand = WifiConfiguration.class.getField("apBand");
+//                int vb = wcBand.getInt(wifiConfig);
+//                Log.i("Band was", "val=" + vb);
+//                wcBand.setInt(wifiConfig, 2); // 2Ghz
+
+            // For Channel change
+            Field wcFreq = WifiConfiguration.class.getField("apChannel");
+            int val = wcFreq.getInt(wifiConfig);
+            Log.i("Config was", "val=" + val);
+            wcFreq.setInt(wifiConfig,i); // channel 11
+
+            Method setWifiApConfigurationMethod = wifiManager.getClass().getMethod("setWifiApConfiguration", WifiConfiguration.class);
+            setWifiApConfigurationMethod.invoke(wifiManager, wifiConfig);
+
+            // For Saving Data
+            wifiManager.saveConfiguration();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
+        return false;
+    }
+
+    public boolean setHotspotNamePassword(Context context) {
+        try {
+
             WifiManager wifiManager = (WifiManager) context.getSystemService(context.WIFI_SERVICE);
             Method getConfigMethod = wifiManager.getClass().getMethod("getWifiApConfiguration");
             WifiConfiguration wifiConfig = (WifiConfiguration) getConfigMethod.invoke(wifiManager);
 
 
-            //Temp###########
-           /* String CurrentHotspotName = wifiConfig.SSID;
-            String CurrentHotspotPassword = wifiConfig.preSharedKey;
-            if (CurrentHotspotName.equals("FS_AP_TEST") && CurrentHotspotPassword.equals("12345678")) {
-                //Do nothing
-            } else {
-
-                wifiConfig.SSID = "FS_AP_TEST";
-                wifiConfig.preSharedKey = "12345678";
-
-               *//* //Disable hotspot
-                wifiApManager.setWifiApEnabled(null, false);
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-
-                        //Enable Hotsopt
-                        wifiApManager.setWifiApEnabled(null, true);
-
-                    }
-                }, 100);*//*
-
-                AppConstants.AlertDialogFinish(WelcomeActivity.this, "Configured Hotspot, Please restart the application");
-
-            }*/
-
-            //Temp##########
 
             AppConstants.HubGeneratedpassword = PasswordGeneration();
             String CurrentHotspotName = wifiConfig.SSID;
@@ -2950,6 +3028,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 wifiConfig.SSID = AppConstants.HubName;
                 wifiConfig.preSharedKey = AppConstants.HubGeneratedpassword;
 
+                //Toggle Wifi..
                 wifiApManager.setWifiApEnabled(null, false);  //Disable Hotspot
                 new Handler().postDelayed(new Runnable() {
                     @Override
@@ -4605,7 +4684,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                                 EmailReaderNotConnected = false;
                                 AppConstants.NoSleepRespTime = CommonUtils.getTodaysDateTemp();//Date Two (d2)
-                               if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " Recieved Escape from BT reader.");
+                                if (AppConstants.GenerateLogs)
+                                    AppConstants.WriteinFile(TAG + " Recieved Escape from BT reader.");
                                 System.out.println("escape command response" + getResponseString(response, errorCode));
                                 mTxtEscapeResponse.setText(getResponseString(
                                         response, errorCode));
@@ -4942,7 +5022,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         if (connectState == BluetoothReader.STATE_CONNECTING) {
             mTxtConnectionState.setText(R.string.connecting);
         } else if (connectState == BluetoothReader.STATE_CONNECTED) {
-            //  if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " HF BT reader connected");
+            //   if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " HF BT reader connected");
             mTxtConnectionState.setText(R.string.connected);
         } else if (connectState == BluetoothReader.STATE_DISCONNECTING) {
             mTxtConnectionState.setText(R.string.disconnecting);
@@ -5321,7 +5401,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                             public void run() {
 
                                 if (Constants.FS_1STATUS.equalsIgnoreCase("FREE") && Constants.FS_2STATUS.equalsIgnoreCase("FREE") && Constants.FS_3STATUS.equalsIgnoreCase("FREE") && Constants.FS_4STATUS.equalsIgnoreCase("FREE")) {
-                                   if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " Sending Escape to HF BT reader.");
+                                    if (AppConstants.GenerateLogs)
+                                        AppConstants.WriteinFile(TAG + " Sending Escape to HF BT reader.");
                                     transmitEscapeCommend();//No Sleep command
                                     new Handler().postDelayed(new Runnable() {
                                         @Override
@@ -5331,7 +5412,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                                             if (AppConstants.NoSleepRespTime.equalsIgnoreCase("")) {
                                                 Log.i(TAG, "Please check if HF reader is connected");
-                                                //if (AppConstants.GenerateLogs)if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " Please check if HF reader is connected");
+                                                //if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " Please check if HF reader is connected");
                                             } else {
 
                                                 int diff = getDate(AppConstants.NoSleepCurrentTime);
@@ -5342,7 +5423,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                                                     if (EmailReaderNotConnected) {
                                                         Log.i(TAG, "Email already sent");
-                                                        //  if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " Email already sent");
+                                                        //   if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " Email already sent");
                                                         //Connect Reader
                                                         connectReader();
                                                     } else {
@@ -5350,7 +5431,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                                         Log.i(TAG, "Send Email");
                                                         if (AppConstants.GenerateLogs)
                                                             if (AppConstants.GenerateLogs)
-                                                                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " Send Email");
+                                                                AppConstants.WriteinFile(TAG + " Send Email");
                                                         SendEmailReaderNotConnectedAsyncCall();
                                                     }
 
@@ -5361,12 +5442,12 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                                     Log.i(TAG, "Retry attempt 2 reader connect");
                                                     if (AppConstants.GenerateLogs)
                                                         if (AppConstants.GenerateLogs)
-                                                            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " Retry attempt 2 reader connect");
+                                                            AppConstants.WriteinFile(TAG + " Retry attempt 2 reader connect");
                                                     //Disable BT
                                                     final BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
                                                     mBluetoothAdapter.disable();
                                                     Log.i(TAG, "BT OFF");
-                                                    //  if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " BT OFF");
+                                                    //   if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " BT OFF");
                                                     disconnectReader();
 
                                                     new Handler().postDelayed(new Runnable() {
@@ -5375,7 +5456,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                                             //Enable BT
                                                             mBluetoothAdapter.enable();
                                                             Log.i(TAG, "BT ON");
-                                                            //     if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " BT ON");
+                                                            //      if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " BT ON");
                                                         }
                                                     }, 4000);
 
@@ -5396,7 +5477,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                                     Log.i(TAG, "Retry attempt 1 reader connect");
                                                     if (AppConstants.GenerateLogs)
                                                         if (AppConstants.GenerateLogs)
-                                                            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " Retry attempt 1 reader connect");
+                                                            AppConstants.WriteinFile(TAG + " Retry attempt 1 reader connect");
                                                     //Disable BT
                                                     final BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
                                                     mBluetoothAdapter.disable();
@@ -5424,7 +5505,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                                     Log.i(TAG, "HF reader is working fine");
                                                     if (AppConstants.GenerateLogs)
                                                         if (AppConstants.GenerateLogs)
-                                                            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " HF reader is working fine");
+                                                            AppConstants.WriteinFile(TAG + " HF reader is working fine");
                                                 }
                                             }
 
@@ -5438,7 +5519,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
-                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " NoSleepEscapeCommand Exception: "+e);
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + " NoSleepEscapeCommand Exception: " + e);
                 }
             }
         };
@@ -5512,7 +5594,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         StatusForUpgradeVersionEntity objEntityClass2 = new StatusForUpgradeVersionEntity();
         objEntityClass2.IMEIUDID = AppConstants.getIMEI(WelcomeActivity.this);
         //objEntityClass2.Email = CommonUtils.getCustomerDetails(WelcomeActivity.this).PersonEmail;
-        objEntityClass2.HubName =  userInfoEntity.PersonName;
+        objEntityClass2.HubName = userInfoEntity.PersonName;
         objEntityClass2.SiteName = userInfoEntity.FluidSecureSiteName;
 
         Gson gson = new Gson();
@@ -5550,8 +5632,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                     String result = responseBody.string();
                     System.out.println("Result" + result);
-                    System.out.println("SendEmailReaderNotConnectedAsyncCall: Result"+result);
-                   if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " SendEmailReaderNotConnectedAsyncCall ~Result\n" + result);
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + " SendEmailReaderNotConnectedAsyncCall ~Result\n" + result);
 
                     try {
 
@@ -5561,7 +5643,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         String ResponseMessageSite = jsonObjectSite.getString(AppConstants.RES_MESSAGE);
 
                         if (ResponseMessageSite.equalsIgnoreCase("success")) {
-                            //    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " SendEmailReaderNotConnectedAsyncCall ~success");
+                            //     if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " SendEmailReaderNotConnectedAsyncCall ~success");
                             EmailReaderNotConnected = true;
                         }
 
@@ -5586,12 +5668,11 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         Thread.sleep(2000);
                         runOnUiThread(new Runnable() {
                             @Override
-                            public void run()  {
+                            public void run() {
 
                                 tv_Display_msg.setText(AppConstants.Server_mesage);
-                                tv_request.setText(AppConstants.Header_data+"\n\n"+AppConstants.Server_Request);
+                                tv_request.setText(AppConstants.Header_data + "\n\n" + AppConstants.Server_Request);
                                 tv_response.setText(AppConstants.Server_Response);
-
 
 
                             }
@@ -5641,13 +5722,49 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         }
     }
 
-    public static void WakeUpScreen(){
+    public static void WakeUpScreen() {
 
         //Enable Screen
-        PowerManager.WakeLock screenLock = ((PowerManager)ctx.getSystemService(POWER_SERVICE)).newWakeLock(
+        PowerManager.WakeLock screenLock = ((PowerManager) ctx.getSystemService(POWER_SERVICE)).newWakeLock(
                 PowerManager.SCREEN_BRIGHT_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP, "TAG");
         screenLock.acquire();
 
+    }
+
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private void turnOnHotspot() {
+        WifiManager manager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+
+        manager.startLocalOnlyHotspot(new WifiManager.LocalOnlyHotspotCallback() {
+
+            @Override
+            public void onStarted(WifiManager.LocalOnlyHotspotReservation reservation) {
+                super.onStarted(reservation);
+                Log.d(TAG, "Wifi Hotspot is on now");
+                mReservation = reservation;
+
+            }
+
+            @Override
+            public void onStopped() {
+                super.onStopped();
+                Log.d(TAG, "onStopped: ");
+            }
+
+            @Override
+            public void onFailed(int reason) {
+                super.onFailed(reason);
+                Log.d(TAG, "onFailed: ");
+            }
+        }, new Handler());
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private void turnOffHotspot() {
+        if (mReservation != null) {
+            mReservation.close();
+        }
     }
 
     public void CheckIfLogIsRequired(){
@@ -5657,4 +5774,5 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         System.out.println("AppConstants.GenerateLogs"+AppConstants.GenerateLogs);
 
     }
+
 }

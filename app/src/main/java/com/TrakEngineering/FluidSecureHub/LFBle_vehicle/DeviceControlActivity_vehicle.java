@@ -116,7 +116,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
     private static final String TAG = "DeviceControl_vehicle";
     public static String SITE_ID = "0";
     private EditText editVehicleNumber;
-    String FSTagMacAddress = "", IsVehicleHasFob = "", IsOdoMeterRequire = "", IsDepartmentRequire = "", IsPersonnelPINRequire = "", IsPersonnelPINRequireForHub = "", IsOtherRequire = "";
+    String FSTagMacAddress = "", IsVehicleHasFob = "", IsOdoMeterRequire = "", IsDepartmentRequire = "", IsPersonnelPINRequire = "", IsPersonnelPINRequireForHub = "", IsOtherRequire = "",IsVehicleNumberRequire = "";
     Button btnCancel, btnSave, btn_ReadFobAgain, btnFStag;
     GoogleApiClient mGoogleApiClient;
     public static double CurrentLat = 0, CurrentLng = 0;
@@ -249,6 +249,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
         IsPersonnelPINRequire = sharedPrefODO.getString(AppConstants.IsPersonnelPINRequire, "");
         IsOtherRequire = sharedPrefODO.getString(AppConstants.IsOtherRequire, "");
         TimeOutinMinute = sharedPrefODO.getString(AppConstants.TimeOut, "1");
+        IsVehicleNumberRequire = sharedPrefODO.getString(AppConstants.IsVehicleNumberRequire, "");
         AppConstants.HUB_ID = sharedPrefODO.getString(AppConstants.HubId, "");
 
 
@@ -748,6 +749,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
                 objEntityClass.RequestFromAPP = "AP";
                 objEntityClass.FromNewFOBChange = "Y";
                 objEntityClass.FOBNumber = AppConstants.APDU_FOB_KEY;
+                objEntityClass.IsVehicleNumberRequire = IsVehicleNumberRequire;
 
                 DeviceControlActivity_vehicle.CheckVehicleRequireOdometerEntryAndRequireHourEntry vehTestAsynTask = new DeviceControlActivity_vehicle.CheckVehicleRequireOdometerEntryAndRequireHourEntry(objEntityClass);
                 vehTestAsynTask.execute();
@@ -859,7 +861,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
 
                             IsNewFobVar = true;
                             /*AppConstants.colorToastBigFont(this, "Some thing went wrong Please try again..\n"+ResponceText, Color.RED);
-                            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG+" Some thing went wrong Please try again..\n"+ResponceText);
+                             if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG+" Some thing went wrong Please try again..\n"+ResponceText);
                             AppConstants.ClearEdittextFielsOnBack(DeviceControlActivity_vehicle.this); //Clear EditText on move to welcome activity.
                             Intent intent = new Intent(DeviceControlActivity_vehicle.this, WelcomeActivity.class);
                             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -970,8 +972,9 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
             objEntityClass.PersonnelPIN = pinNumber;
             objEntityClass.RequestFromAPP = "AP";
             objEntityClass.FOBNumber = AppConstants.APDU_FOB_KEY;
+            objEntityClass.IsVehicleNumberRequire = IsVehicleNumberRequire;
 
-            //if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG,"Vehicle Number");
+            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG+"Vehicle Number");
             System.out.println(TAG + " Vehcile number: Read FOB:" + AppConstants.APDU_FOB_KEY + "  Read No:" + vehicleNumber);
             if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " Vehcile number: Read FOB:" + AppConstants.APDU_FOB_KEY + "  Read No:" + vehicleNumber);
             DeviceControlActivity_vehicle.CheckVehicleRequireOdometerEntryAndRequireHourEntry vehTestAsynTask = new DeviceControlActivity_vehicle.CheckVehicleRequireOdometerEntryAndRequireHourEntry(objEntityClass);
@@ -1056,7 +1059,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
                         btnSave.setVisibility(View.VISIBLE);
                         String content = "Enter your <br><b>VEHICLE ID</b> in<br> the green box below";
 
-                        int width = 450;
+                        int width = ActionBar.LayoutParams.MATCH_PARENT;
                         int height = ActionBar.LayoutParams.WRAP_CONTENT;
                         LinearLayout.LayoutParams parms = new LinearLayout.LayoutParams(width, height);
                         parms.gravity = Gravity.CENTER;
@@ -1249,7 +1252,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
             tv_fob_number.setVisibility(View.GONE);
             Linear_layout_Save_back_buttons.setVisibility(View.VISIBLE);
 
-            int width = 0;
+            int width = ActionBar.LayoutParams.MATCH_PARENT;//0; ////temp
             int height = ActionBar.LayoutParams.WRAP_CONTENT;
             LinearLayout.LayoutParams parms = new LinearLayout.LayoutParams(width, height);
             editVehicleNumber.setLayoutParams(parms);
@@ -1275,7 +1278,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
             btnSave.setVisibility(View.VISIBLE);
             btnCancel.setVisibility(View.VISIBLE);
 
-            int width = 450;
+            int width = ActionBar.LayoutParams.MATCH_PARENT;
             int height = ActionBar.LayoutParams.WRAP_CONTENT;
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(width, height);
             params.gravity = Gravity.CENTER;
@@ -1394,7 +1397,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
 
 
         //Enable EditText
-        int width = 450;
+        int width = ActionBar.LayoutParams.MATCH_PARENT;
         int height = ActionBar.LayoutParams.WRAP_CONTENT;
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(width, height);
         params.gravity = Gravity.CENTER;
