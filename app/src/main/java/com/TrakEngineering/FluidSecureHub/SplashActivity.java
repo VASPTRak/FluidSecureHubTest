@@ -485,8 +485,9 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
                     String LFBluetoothCardReader = jsonObject.getString("LFBluetoothCardReader");
                     String LFBluetoothCardReaderMacAddress = jsonObject.getString("LFBluetoothCardReaderMacAddress");
                     String IsLogging = jsonObject.getString("IsLogging");
-                    String IsGateHub = "False";//jsonObject.getString("IsGateHub");
-                    String IsVehicleNumberRequire = "True";//jsonObject.getString("IsVehicleNumberRequire");
+                    String IsGateHub = jsonObject.getString("IsGateHub");
+                    String IsVehicleNumberRequire = jsonObject.getString("IsVehicleNumberRequire");
+                    int WifiChannelToUse = jsonObject.getInt("WifiChannelToUse");
 
                     CommonUtils.SaveLogFlagInPref(SplashActivity.this,IsLogging,"LogRequiredFlag");//Save logging to preferances
                     storeBT_FOBDetails(BluetoothCardReader, BluetoothCardReaderMacAddress,LFBluetoothCardReader,LFBluetoothCardReaderMacAddress);
@@ -495,7 +496,7 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
                     System.out.println("BluetoothCardReader--" + response);
 
                     if (IsApproved.equalsIgnoreCase("True")) {
-                        CommonUtils.SaveUserInPref(SplashActivity.this, userName, userMobile, userEmail, "", IsDepartmentRequire, IsPersonnelPINRequire, IsOtherRequire, "", OtherLabel, TimeOut, HubId, IsPersonnelPINRequireForHub, FluidSecureSiteName,IsVehicleHasFob,IsPersonHasFob,IsGateHub,IsVehicleNumberRequire);
+                        CommonUtils.SaveUserInPref(SplashActivity.this, userName, userMobile, userEmail, "", IsDepartmentRequire, IsPersonnelPINRequire, IsOtherRequire, "", OtherLabel, TimeOut, HubId, IsPersonnelPINRequireForHub, FluidSecureSiteName,IsVehicleHasFob,IsPersonHasFob,IsGateHub,IsVehicleNumberRequire,WifiChannelToUse);
 
                         if (IsLoginRequire.trim().equalsIgnoreCase("True")) {
                             AppConstants.Login_Email = userEmail;
@@ -572,9 +573,7 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
 
         protected String doInBackground(Void... arg0) {
 
-
             try {
-
 
                 MediaType TEXT = MediaType.parse("application/x-www-form-urlencoded");
 

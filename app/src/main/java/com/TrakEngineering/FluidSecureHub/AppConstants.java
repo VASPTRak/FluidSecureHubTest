@@ -68,6 +68,7 @@ public class AppConstants {
     public static final String HubId = "HubId";
     public static final String IsGateHub = "IsGateHub";
     public static final String IsVehicleNumberRequire = "IsVehicleNumberRequire";
+    public static final String WifiChannelToUse = "WifiChannelToUse";
 
     public static String webIP; // = "http://103.8.126.241:89/";//test
     public static String webURL = webIP + "HandlerTrak.ashx";

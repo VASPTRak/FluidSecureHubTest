@@ -173,6 +173,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     boolean isTCancelled = false;
     int RetryOneAtemptConnectToSelectedSSSID = 0;
     String ReaderFrequency = "", IsOdoMeterRequire = "", IsDepartmentRequire = "", IsPersonnelPINRequireForHub = "", IsPersonnelPINRequire = "", IsOtherRequire = "", IsGateHub = "",IsVehicleNumberRequire = "";
+    int WifiChannelToUse = 11;
     BroadcastReceiver mReceiver;
     //Upgrade firmware status for each hose
     public static boolean IsUpgradeInprogress_FS1 = false;
@@ -3011,36 +3012,52 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     public boolean setHotspotNamePassword(Context context) {
         try {
 
+            SharedPreferences sharedPrefODO = WelcomeActivity.this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
+            IsOtherRequire = sharedPrefODO.getString(AppConstants.IsOtherRequire, "");
+            WifiChannelToUse = sharedPrefODO.getInt(AppConstants.WifiChannelToUse,11);
+
             WifiManager wifiManager = (WifiManager) context.getSystemService(context.WIFI_SERVICE);
             Method getConfigMethod = wifiManager.getClass().getMethod("getWifiApConfiguration");
             WifiConfiguration wifiConfig = (WifiConfiguration) getConfigMethod.invoke(wifiManager);
 
-
-
             AppConstants.HubGeneratedpassword = PasswordGeneration();
             String CurrentHotspotName = wifiConfig.SSID;
             String CurrentHotspotPassword = wifiConfig.preSharedKey;
+
             if (CurrentHotspotName.equals(AppConstants.HubName) && CurrentHotspotPassword.equals(AppConstants.HubGeneratedpassword)) {
                 //No need to change hotspot username password
+                //ChangeHotspotBroadcastChannel(WelcomeActivity.this,index);
+
+                // For Channel change
+                Field wcFreq = WifiConfiguration.class.getField("apChannel");
+                int val = wcFreq.getInt(wifiConfig);
+                Log.i("Config was", "val=" + val);
+                wcFreq.setInt(wifiConfig,WifiChannelToUse); // channel 11
 
             } else {
 
                 wifiConfig.SSID = AppConstants.HubName;
                 wifiConfig.preSharedKey = AppConstants.HubGeneratedpassword;
 
-                //Toggle Wifi..
-                wifiApManager.setWifiApEnabled(null, false);  //Disable Hotspot
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-
-                        //Enable Hotsopt
-                        wifiApManager.setWifiApEnabled(null, true);
-
-                    }
-                }, 500);
+                // For Channel change
+                Field wcFreq = WifiConfiguration.class.getField("apChannel");
+                int val = wcFreq.getInt(wifiConfig);
+                Log.i("Config was", "val=" + val);
+                wcFreq.setInt(wifiConfig,WifiChannelToUse); // channel 11
 
             }
+
+            //Toggle Wifi..
+            wifiApManager.setWifiApEnabled(null, false);  //Disable Hotspot
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+
+                    //Enable Hotsopt
+                    wifiApManager.setWifiApEnabled(null, true);
+
+                }
+            }, 500);
 
             Method setConfigMethod = wifiManager.getClass().getMethod("setWifiApConfiguration", WifiConfiguration.class);
             setConfigMethod.invoke(wifiManager, wifiConfig);

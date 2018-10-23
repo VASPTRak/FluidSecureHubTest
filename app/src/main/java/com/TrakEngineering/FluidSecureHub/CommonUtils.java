@@ -463,7 +463,7 @@ public class CommonUtils {
     }
 
     public static void SaveUserInPref(Activity activity, String userName, String userMobile, String userEmail, String IsOdoMeterRequire,
-                                      String IsDepartmentRequire, String IsPersonnelPINRequire, String IsOtherRequire, String IsHoursRequire, String OtherLabel, String TimeOut, String HubId, String IsPersonnelPINRequireForHub, String fluidSecureSiteName, String IsVehicleHasFob, String isPersonHasFob,String IsGateHub,String IsVehicleNumberRequire) {
+                                      String IsDepartmentRequire, String IsPersonnelPINRequire, String IsOtherRequire, String IsHoursRequire, String OtherLabel, String TimeOut, String HubId, String IsPersonnelPINRequireForHub, String fluidSecureSiteName, String IsVehicleHasFob, String isPersonHasFob,String IsGateHub,String IsVehicleNumberRequire,int WifiChannelToUse) {
 
         SharedPreferences sharedPref = activity.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPref.edit();
@@ -485,9 +485,11 @@ public class CommonUtils {
         editor.putString(FluidSecureSiteName,  fluidSecureSiteName);
         editor.putString(AppConstants.IsGateHub,  IsGateHub);
         editor.putString(AppConstants.IsVehicleNumberRequire,  IsVehicleNumberRequire);
+        editor.putInt(AppConstants.WifiChannelToUse,  WifiChannelToUse);
 
         editor.commit();
     }
+
 
     public static void SaveVehiFuelInPref_FS1(Context activity, String TransactionId_FS1,String VehicleId_FS1, String PhoneNumber_FS1, String PersonId_FS1, String PulseRatio_FS1, String MinLimit_FS1, String FuelTypeId_FS1, String ServerDate_FS1, String IntervalToStopFuel_FS1,String PrintDate_FS1,String Company_FS1,String Location_FS1,String PersonName_FS1,String PrinterMacAddress_FS1,String PrinterName_FS1,String vehicleNumber_FS1,String accOther_FS1,String VehicleSum_FS1,String DeptSum_FS1,String VehPercentage_FS1,String DeptPercentage_FS1,String SurchargeType_FS1,String ProductPrice_FS1,String IsTLDCall_FS1) {
 
