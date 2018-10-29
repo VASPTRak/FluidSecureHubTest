@@ -3172,7 +3172,6 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                             convertCountToQuantity_fs1(counts);
 
-
                             if (i == 2) {
 
                                 new Handler().postDelayed(new Runnable() {
@@ -3182,9 +3181,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                     }
                                 }, 1000);
 
-
                             }
-
 
                         }
                     }
