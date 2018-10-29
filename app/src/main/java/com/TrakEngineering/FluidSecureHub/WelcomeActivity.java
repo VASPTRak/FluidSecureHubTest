@@ -3032,7 +3032,22 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 Field wcFreq = WifiConfiguration.class.getField("apChannel");
                 int val = wcFreq.getInt(wifiConfig);
                 Log.i("Config was", "val=" + val);
-                wcFreq.setInt(wifiConfig,WifiChannelToUse); // channel 11
+                if (WifiChannelToUse != val){
+                    wcFreq.setInt(wifiConfig,WifiChannelToUse); // channel 11
+                    //Toggle Wifi..
+                    wifiApManager.setWifiApEnabled(null, false);  //Disable Hotspot
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+
+                            //Enable Hotsopt
+                            wifiApManager.setWifiApEnabled(null, true);
+
+                        }
+                    }, 500);
+
+                }
+
 
             } else {
 
@@ -3043,21 +3058,23 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 Field wcFreq = WifiConfiguration.class.getField("apChannel");
                 int val = wcFreq.getInt(wifiConfig);
                 Log.i("Config was", "val=" + val);
-                wcFreq.setInt(wifiConfig,WifiChannelToUse); // channel 11
+                if (WifiChannelToUse != val){
+                    wcFreq.setInt(wifiConfig,WifiChannelToUse); // channel 11
+                }
+
+                //Toggle Wifi..
+                wifiApManager.setWifiApEnabled(null, false);  //Disable Hotspot
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+
+                        //Enable Hotsopt
+                        wifiApManager.setWifiApEnabled(null, true);
+
+                    }
+                }, 500);
 
             }
-
-            //Toggle Wifi..
-            wifiApManager.setWifiApEnabled(null, false);  //Disable Hotspot
-            new Handler().postDelayed(new Runnable() {
-                @Override
-                public void run() {
-
-                    //Enable Hotsopt
-                    wifiApManager.setWifiApEnabled(null, true);
-
-                }
-            }, 500);
 
             Method setConfigMethod = wifiManager.getClass().getMethod("setWifiApConfiguration", WifiConfiguration.class);
             setConfigMethod.invoke(wifiManager, wifiConfig);
