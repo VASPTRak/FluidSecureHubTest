@@ -80,6 +80,7 @@ public class AppConstants {
     public static String ESP32_update = "NO";
     public static String PIC_update = "NO";
     public static boolean GenerateLogs;
+    public static boolean EnableFA;
 
     public static String Server_mesage = "Server Not Connected..!!!";
     public static String Server_Request;

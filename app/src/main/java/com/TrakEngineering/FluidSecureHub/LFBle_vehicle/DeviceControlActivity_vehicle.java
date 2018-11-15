@@ -116,7 +116,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
     private static final String TAG = "DeviceControl_vehicle";
     public static String SITE_ID = "0";
     private EditText editVehicleNumber;
-    String FSTagMacAddress = "", IsVehicleHasFob = "", IsOdoMeterRequire = "", IsDepartmentRequire = "", IsPersonnelPINRequire = "", IsPersonnelPINRequireForHub = "", IsOtherRequire = "",IsVehicleNumberRequire = "";
+    String FSTagMacAddress = "", IsVehicleHasFob = "", IsOdoMeterRequire = "", IsDepartmentRequire = "", IsPersonnelPINRequire = "", IsPersonnelPINRequireForHub = "", IsOtherRequire = "",IsVehicleNumberRequire = "",IsGateHub = "";
     Button btnCancel, btnSave, btn_ReadFobAgain, btnFStag;
     GoogleApiClient mGoogleApiClient;
     public static double CurrentLat = 0, CurrentLng = 0;
@@ -251,6 +251,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
         TimeOutinMinute = sharedPrefODO.getString(AppConstants.TimeOut, "1");
         IsVehicleNumberRequire = sharedPrefODO.getString(AppConstants.IsVehicleNumberRequire, "");
         AppConstants.HUB_ID = sharedPrefODO.getString(AppConstants.HubId, "");
+        IsGateHub = sharedPrefODO.getString(AppConstants.IsGateHub, "");
 
 
         SharedPreferences sharedPref = DeviceControlActivity_vehicle.this.getSharedPreferences(Constants.PREF_COLUMN_SITE, Context.MODE_PRIVATE);
@@ -374,9 +375,6 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
 
 
         DisplayScreenInit();
-        //Gate software
-        SharedPreferences sharedPrefODO = DeviceControlActivity_vehicle.this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
-        String IsGateHub = sharedPrefODO.getString(AppConstants.IsGateHub, "");
         if (IsGateHub.equalsIgnoreCase("True")) {
             Istimeout_Sec = false;
         }else{
@@ -813,12 +811,12 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
                         editor.commit();
 
 
-                        if (IsOdoMeterRequire.equalsIgnoreCase("True")) {
+                        if (IsOdoMeterRequire.equalsIgnoreCase("True") && !IsGateHub.equalsIgnoreCase("True")) {
 
                             Intent intent = new Intent(DeviceControlActivity_vehicle.this, AcceptOdoActivity.class);//AcceptPinActivity
                             startActivity(intent);
 
-                        } else if (IsHoursRequire.equalsIgnoreCase("True")) {
+                        } else if (IsHoursRequire.equalsIgnoreCase("True") && !IsGateHub.equalsIgnoreCase("True")) {
 
                             Intent intent = new Intent(DeviceControlActivity_vehicle.this, AcceptHoursAcitvity.class);
                             startActivity(intent);
@@ -828,13 +826,13 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
                             Intent intent = new Intent(DeviceControlActivity_vehicle.this, DeviceControlActivity_Pin.class);//AcceptPinActivity
                             startActivity(intent);
 
-                        } else if (IsDepartmentRequire.equalsIgnoreCase("True")) {
+                        } else if (IsDepartmentRequire.equalsIgnoreCase("True") && !IsGateHub.equalsIgnoreCase("True")) {
 
 
                             Intent intent = new Intent(DeviceControlActivity_vehicle.this, AcceptDeptActivity.class);
                             startActivity(intent);
 
-                        } else if (IsOtherRequire.equalsIgnoreCase("True")) {
+                        } else if (IsOtherRequire.equalsIgnoreCase("True") && !IsGateHub.equalsIgnoreCase("True")) {
 
                             Intent intent = new Intent(DeviceControlActivity_vehicle.this, AcceptOtherActivity.class);
                             startActivity(intent);
@@ -1043,7 +1041,11 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
 
                     } else {
 
-                        Istimeout_Sec = true;
+                        if (IsGateHub.equalsIgnoreCase("True")) {
+                            Istimeout_Sec = false;
+                        }else{
+                            Istimeout_Sec = true;
+                        }
                         TimeoutVehicleScreen();
                         tv_enter_vehicle_no.setText("Invalid FOB or Unassigned FOB");
                         int widthi = ActionBar.LayoutParams.WRAP_CONTENT;

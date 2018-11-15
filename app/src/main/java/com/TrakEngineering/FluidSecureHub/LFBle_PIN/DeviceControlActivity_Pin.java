@@ -99,7 +99,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
     EditText etPersonnelPin;
     TextView tv_enter_pin_no, tv_ok;
     Button btnSave, btnCancel, btn_ReadFobAgain;
-    String IsPersonHasFob = "", IsOdoMeterRequire = "", IsDepartmentRequire = "", IsPersonnelPINRequire = "", IsOtherRequire = "",IsVehicleNumberRequire = "";
+    String IsPersonHasFob = "", IsOdoMeterRequire = "", IsDepartmentRequire = "", IsPersonnelPINRequire = "", IsOtherRequire = "",IsVehicleNumberRequire = "",IsGateHub;
     String TimeOutinMinute;
 
     int FobReadingCount = 0;
@@ -197,9 +197,11 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
         IsPersonnelPINRequire = sharedPrefODO.getString(AppConstants.IsPersonnelPINRequire, "");
         IsOtherRequire = sharedPrefODO.getString(AppConstants.IsOtherRequire, "");
         IsVehicleNumberRequire = sharedPrefODO.getString(AppConstants.IsVehicleNumberRequire, "");
+        IsGateHub = sharedPrefODO.getString(AppConstants.IsGateHub, "");
 
         SharedPreferences sharedPref = DeviceControlActivity_Pin.this.getSharedPreferences(Constants.PREF_COLUMN_SITE, Context.MODE_PRIVATE);
         String dataSite = sharedPref.getString(Constants.PREF_COLUMN_SITE, "");
+
 
         SITE_ID = parseSiteData(dataSite);
         AppConstants.SITE_ID = SITE_ID;
@@ -341,7 +343,12 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
         showKeybord();
         AppConstants.APDU_FOB_KEY = "";
         AppConstants.PinLocal_FOB_KEY = "";
-        Istimeout_Sec = true;
+        if (IsGateHub.equalsIgnoreCase("True")) {
+            Istimeout_Sec = false;
+        }else{
+            Istimeout_Sec = true;
+        }
+
         TimeoutPinScreen();
         registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter());
         if (mBluetoothLeServicePin != null) {
@@ -795,7 +802,11 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                         }
                     }
 
-                    Istimeout_Sec = true;
+                    if (IsGateHub.equalsIgnoreCase("True")) {
+                        Istimeout_Sec = false;
+                    }else{
+                        Istimeout_Sec = true;
+                    }
                     TimeoutPinScreen();
                     btnSave.setEnabled(true);
                     tv_fob_number.setText("");

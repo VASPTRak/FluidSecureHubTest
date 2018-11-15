@@ -454,6 +454,16 @@ public class CommonUtils {
 
     }
 
+    public static void FA_FlagSavePref(Activity activity,boolean data, String key){
+
+        SharedPreferences pref = activity.getSharedPreferences(Constants.PREF_FA_Data, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = pref.edit();
+        editor.putBoolean(key,data);
+        editor.commit();
+
+
+    }
+
     public static void SaveDataInPref(Activity activity, String data, String valueType) {
 
         SharedPreferences sharedPref = activity.getSharedPreferences(Constants.PREF_COLUMN_SITE, Context.MODE_PRIVATE);

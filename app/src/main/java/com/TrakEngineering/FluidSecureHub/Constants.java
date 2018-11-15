@@ -58,6 +58,7 @@ public class Constants {
     public static final String PREF_COLUMN_USER = "UserData";
     public static final String PREF_COLUMN_SITE = "SiteData";
     public static final String PREF_Log_Data = "LogData";
+    public static final String PREF_FA_Data = "FAData";
     public static final String PREF_VehiFuel = "SaveVehiFuelInPref";
     public static final String PREF_FS_UPGRADE = "SaveFSUpgrade";
 

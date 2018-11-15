@@ -488,7 +488,9 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
                     String IsGateHub = jsonObject.getString("IsGateHub");
                     String IsVehicleNumberRequire = jsonObject.getString("IsVehicleNumberRequire");
                     int WifiChannelToUse = jsonObject.getInt("WifiChannelToUse");
+                    boolean fa_data = Boolean.parseBoolean(jsonObject.getString("EnbDisHubForFA"));
 
+                    CommonUtils.FA_FlagSavePref(SplashActivity.this,fa_data,"FAData");
                     CommonUtils.SaveLogFlagInPref(SplashActivity.this,IsLogging,"LogRequiredFlag");//Save logging to preferances
                     storeBT_FOBDetails(BluetoothCardReader, BluetoothCardReaderMacAddress,LFBluetoothCardReader,LFBluetoothCardReaderMacAddress);
 
@@ -537,7 +539,6 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
 
                     startActivity(new Intent(SplashActivity.this, RegistrationActivity.class));
                     finish();
-
 
                 } else if (ResponceText.equalsIgnoreCase("notapproved")) {
 

@@ -122,7 +122,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
     boolean isTransactionComp = false;
     ServerHandler serverHandler = new ServerHandler();
 
-    String EMPTY_Val = "",IsFuelingStop = "0",IsLastTransaction = "1";
+    String EMPTY_Val = "", IsFuelingStop = "0", IsLastTransaction = "1";
 
     public String HTTP_URL = "";
     public String URL_GET_TXNID = "";
@@ -222,14 +222,18 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
         //Hide keyboard
         this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 
-        //Gate software AutoClick Start button
-        SharedPreferences sharedPrefODO = DisplayMeterActivity.this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
-        String IsGateHub = sharedPrefODO.getString(AppConstants.IsGateHub, "");
-        if (IsGateHub.equalsIgnoreCase("True")) {
-            btnStart.performClick();
+
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
 
+        CompleteTasksbeforeStartbuttonClick();
+
+
     }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -268,7 +272,8 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
             }
         }, screenTimeOut);
 
-        if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+" <<ForDev>> In DisplayMeterActivity ");
+        if (AppConstants.GenerateLogs)
+            AppConstants.WriteinFile(TAG + " <<ForDev>> In DisplayMeterActivity ");
 
         getListOfConnectedDevice();
 
@@ -759,316 +764,57 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
             case R.id.btnStart:
 
-                /*loading = new ProgressDialog(DisplayMeterActivity.this);
-                loading.setCancelable(true);
-                loading.setMessage("Please wait..");
-                loading.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-                loading.show();*/
-
-                //new SetBTConnectionPrinter().execute();
-
-                SharedPreferences sharedPrefODO = DisplayMeterActivity.this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
-                IsOdoMeterRequire = sharedPrefODO.getString(AppConstants.IsOdoMeterRequire, "");
-                String HubId = sharedPrefODO.getString(AppConstants.HubId, "");
-
                 btnStart.setClickable(false);
-                btnStart.setBackgroundColor(Color.parseColor("#f5f1f0"));
-                btnStart.setTextColor(R.color.black);
-                btnCancel.setClickable(false);
-                Istimeout_Sec = false;
-                String macaddress = AppConstants.SELECTED_MACADDRESS;
-
-                for (int i = 0; i < AppConstants.DetailsListOfConnectedDevices.size(); i++) {
-                    String MA_ConnectedDevices = AppConstants.DetailsListOfConnectedDevices.get(i).get("macAddress");
-                    if (macaddress.equalsIgnoreCase(MA_ConnectedDevices)) {
-                        String IpAddress = AppConstants.DetailsListOfConnectedDevices.get(i).get("ipAddress");
-                        HTTP_URL = "http://" + IpAddress + ":80/";
-
-                    }
-
-                }
+                btnStart.setBackgroundColor(Color.parseColor("#F88800"));
 
 
-                URL_GET_TXNID = HTTP_URL + "client?command=lasttxtnid";
-                URL_SET_TXNID = HTTP_URL + "config?command=txtnid";
-                URL_GET_PULSAR = HTTP_URL + "client?command=pulsar ";
-                URL_RECORD10_PULSAR = HTTP_URL + "client?command=record10";
-                URL_INFO = HTTP_URL + "client?command=info";
-                URL_RELAY = HTTP_URL + "config?command=relay";
-
-                String PulserTimingAd = HTTP_URL + "config?command=pulsar";
-                URL_SET_PULSAR = HTTP_URL + "config?command=pulsar";
-
-
-                //Check if Hose connected to hotspot or not
                 try {
-                    //Info command commented
-                 /*   String FSStatus = new CommandsGET().execute(URL_INFO).get();
-                    System.out.print("psssss" + FSStatus);
-                    if (FSStatus.startsWith("{") && FSStatus.contains("Version")) {
-
-                        try {
-
-                            JSONObject jsonObj = new JSONObject(FSStatus);
-                            String userData = jsonObj.getString("Version");
-                            JSONObject jsonObject = new JSONObject(userData);
-
-                            String sdk_version = jsonObject.getString("sdk_version");
-                            String mac_address = jsonObject.getString("mac_address");
-                            iot_version = jsonObject.getString("iot_version");
-
-
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-                    }*/
-
-                    GetLastTransaction();
-
-                    String Result_PulserTimingAdjust = new CommandsPOST().execute(PulserTimingAd, "{\"pulsar_status\":{\"sampling_time_ms\":" + AppConstants.PulserTimingAdjust + "}}").get();
-
-                    String Relay_result = new CommandsGET().execute(URL_RELAY).get();
-
-                    if (Relay_result.trim().startsWith("{") && Relay_result.trim().contains("relay_response")) {
-
-                        try {
-
-                            JSONObject jsonObj = new JSONObject(Relay_result);
-                            String userData = jsonObj.getString("relay_response");
-                            JSONObject jsonObject = new JSONObject(userData);
-                            String status = jsonObject.getString("status");
-
-                            if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+" <<ForDev>> Relay_result " + " Status: " + status);
-
-                            //IF relay status zero go back to dashboard
-                            if (status.equalsIgnoreCase("1")) {
-
-                                AppConstants.colorToastBigFont(DisplayMeterActivity.this, "The link is busy, please try after some time.", Color.RED);
-                                AppConstants.ClearEdittextFielsOnBack(DisplayMeterActivity.this); //Clear EditText on move to welcome activity.
-                                BackgroundServiceKeepDataTransferAlive.IstoggleRequired_DA = true;
-                                Intent intent = new Intent(DisplayMeterActivity.this, WelcomeActivity.class);
-                                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                                startActivity(intent);
-
-
-                            } else {
-
-                                new Handler().postDelayed(new Runnable() {
-                                    @Override
-                                    public void run() {
-
-                                        //We use pumppff time insted pulseroff time
-                                        long pulsar_off_time = (stopAutoFuelSeconds * 1000) + 3000;
-                                        new CommandsPOST().execute(URL_SET_PULSAR, "{\"pulsar_status\":{\"pulsar_off_time\":" + pulsar_off_time + "}}");
-
-                                    }
-                                }, 1000);
-
-
-                                if (AppConstants.FS_selected.equalsIgnoreCase("0")) {
-
-                                    //Store Hose ID and Firmware version in sharedpreferance
-                                    SharedPreferences sharedPref = DisplayMeterActivity.this.getSharedPreferences(Constants.PREF_FS_UPGRADE, Context.MODE_PRIVATE);
-                                    SharedPreferences.Editor editor = sharedPref.edit();
-                                    editor.putString("hoseid_fs1", AppConstants.UP_HoseId_fs1);
-                                    editor.putString("fsversion_fs1", iot_version);
-                                    editor.commit();
-
-
-                                    //IF upgrade firmware true check below
-                                    if (AppConstants.UP_Upgrade) {
-                                        CheckForUpdateFirmware(AppConstants.UP_HoseId_fs1, iot_version, AppConstants.FS_selected);
-                                    }
-
-                                    new Handler().postDelayed(new Runnable() {
-                                        @Override
-                                        public void run() {
-
-                                            // loading.dismiss();
-                                            // startService(new Intent(DisplayMeterActivity.this, BackgroundService_AP_PIPE.class));
-                                            Intent serviceIntent = new Intent(DisplayMeterActivity.this, BackgroundService_AP_PIPE.class);
-                                            serviceIntent.putExtra("HTTP_URL", HTTP_URL);
-                                            startService(serviceIntent);
-
-                                            //  ActivityHandler.GetBacktoWelcomeActivity();
-
-                                            Intent i = new Intent(DisplayMeterActivity.this, WelcomeActivity.class);
-                                            i.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                                            startActivity(i);
-
-                                        }
-                                    }, 1500);
-
-
-                                } else if (AppConstants.FS_selected.equalsIgnoreCase("1")) {
-
-                                    new Handler().postDelayed(new Runnable() {
-                                        @Override
-                                        public void run() {
-
-                                            //Store Hose ID and Firmware version in sharedpreferance
-                                            SharedPreferences sharedPref = DisplayMeterActivity.this.getSharedPreferences(Constants.PREF_FS_UPGRADE, Context.MODE_PRIVATE);
-                                            SharedPreferences.Editor editor = sharedPref.edit();
-                                            editor.putString("hoseid_fs2", AppConstants.UP_HoseId_fs2);
-                                            editor.putString("fsversion_fs2", iot_version);
-                                            editor.commit();
-
-                                            //IF upgrade firmware true check below
-                                            if (AppConstants.UP_Upgrade) {
-                                                CheckForUpdateFirmware(AppConstants.UP_HoseId_fs2, iot_version, AppConstants.FS_selected);
-                                            }
-
-                                            //startService(new Intent(DisplayMeterActivity.this, BackgroundService_AP.class));
-                                            Intent serviceIntent = new Intent(DisplayMeterActivity.this, BackgroundService_AP.class);
-                                            serviceIntent.putExtra("HTTP_URL", HTTP_URL);
-                                            startService(serviceIntent);
-
-                                            // ActivityHandler.GetBacktoWelcomeActivity();
-
-                                            Intent i = new Intent(DisplayMeterActivity.this, WelcomeActivity.class);
-                                            i.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                                            startActivity(i);
-
-                                        }
-                                    }, 1500);
-                                } else if (AppConstants.FS_selected.equalsIgnoreCase("2")) {
-
-                                    new Handler().postDelayed(new Runnable() {
-                                        @Override
-                                        public void run() {
-
-                                            //Store Hose ID and Firmware version in sharedpreferance
-                                            SharedPreferences sharedPref = DisplayMeterActivity.this.getSharedPreferences(Constants.PREF_FS_UPGRADE, Context.MODE_PRIVATE);
-                                            SharedPreferences.Editor editor = sharedPref.edit();
-                                            editor.putString("hoseid_fs3", AppConstants.UP_HoseId_fs3);
-                                            editor.putString("fsversion_fs3", iot_version);
-                                            editor.commit();
-
-                                            //IF upgrade firmware true check below
-                                            if (AppConstants.UP_Upgrade) {
-                                                CheckForUpdateFirmware(AppConstants.UP_HoseId_fs3, iot_version, AppConstants.FS_selected);
-                                            }
-
-                                            //startService(new Intent(DisplayMeterActivity.this, BackgroundService_AP.class));
-                                            Intent serviceIntent = new Intent(DisplayMeterActivity.this, BackgroundService_FS_UNIT_3.class);
-                                            serviceIntent.putExtra("HTTP_URL", HTTP_URL);
-                                            startService(serviceIntent);
-
-                                            //ActivityHandler.GetBacktoWelcomeActivity();
-                                            Intent i = new Intent(DisplayMeterActivity.this, WelcomeActivity.class);
-                                            i.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                                            startActivity(i);
-
-                                        }
-                                    }, 1500);
-                                } else if (AppConstants.FS_selected.equalsIgnoreCase("3")) {
-
-                                    new Handler().postDelayed(new Runnable() {
-                                        @Override
-                                        public void run() {
-
-                                            //Store Hose ID and Firmware version in sharedpreferance
-                                            SharedPreferences sharedPref = DisplayMeterActivity.this.getSharedPreferences(Constants.PREF_FS_UPGRADE, Context.MODE_PRIVATE);
-                                            SharedPreferences.Editor editor = sharedPref.edit();
-                                            editor.putString("hoseid_fs4", AppConstants.UP_HoseId_fs4);
-                                            editor.putString("fsversion_fs4", iot_version);
-                                            editor.commit();
-
-                                            //IF upgrade firmware true check below
-                                            if (AppConstants.UP_Upgrade) {
-                                                CheckForUpdateFirmware(AppConstants.UP_HoseId_fs4, iot_version, AppConstants.FS_selected);
-                                            }
-
-                                            //startService(new Intent(DisplayMeterActivity.this, BackgroundService_AP.class));
-                                            Intent serviceIntent = new Intent(DisplayMeterActivity.this, BackgroundService_FS_UNIT_4.class);//change background service to fsunite3
-                                            serviceIntent.putExtra("HTTP_URL", HTTP_URL);
-                                            startService(serviceIntent);
-
-                                            // ActivityHandler.GetBacktoWelcomeActivity();
-
-                                            Intent i = new Intent(DisplayMeterActivity.this, WelcomeActivity.class);
-                                            i.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                                            startActivity(i);
-
-
-                                        }
-                                    }, 1500);
-                                }
-
-
-                            }
-
-
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-
-                    } else {
-
-                        count_relayCmd = count_relayCmd + 1;
-
-                        if (count_relayCmd > 1) {
-
-                            if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+" <<ForDev>> Link is unavailable relay");
-                            AppConstants.colorToastBigFont(DisplayMeterActivity.this, " Link is unavailable", Color.RED);
-                            AppConstants.ClearEdittextFielsOnBack(DisplayMeterActivity.this); //Clear EditText on move to welcome activity.
-                            Intent intent = new Intent(DisplayMeterActivity.this, WelcomeActivity.class);
-                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                            startActivity(intent);
-
-                        }else{
-
-                            if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+" <<ForDev>> Link is unavailable relay command Retry attempt: "+count_InfoCmd);
-                            AppConstants.colorToastBigFont(DisplayMeterActivity.this, "Link is unavailable Retry attempt"+count_relayCmd, Color.RED);
-                            new Handler().postDelayed(new Runnable() {
-
-                                @Override
-                                public void run() {
-                                    btnStart.callOnClick();//retry
-                                }
-                            },2000);
-
-
-                        }
-
-                    }
-
-/*                  Info command else commented
-                    } else {
-
-                        count_InfoCmd = count_InfoCmd + 1;
-
-                        if (count_InfoCmd > 1) {
-
-                             if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+" <<ForDev>> Link is unavailable info command");
-                            AppConstants.colorToastBigFont(DisplayMeterActivity.this, " Link is unavailable", Color.RED);
-                            AppConstants.ClearEdittextFielsOnBack(DisplayMeterActivity.this); //Clear EditText on move to welcome activity.
-                            Intent intent = new Intent(DisplayMeterActivity.this, WelcomeActivity.class);
-                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                            startActivity(intent);
-
-                        }else{
-
-                             if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+" <<ForDev>> Link is unavailable info command Retry attempt: "+count_InfoCmd);
-                            AppConstants.colorToastBigFont(DisplayMeterActivity.this, "Link is unavailable Retry attempt"+count_InfoCmd, Color.RED);
-                            new Handler().postDelayed(new Runnable() {
-                                @Override
-                                public void run() {
-                                    btnStart.callOnClick();//retry
-                                }
-                            },2000);
-
-                        }
-
-                    }*/
-
-
+                    Thread.sleep(1000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
-                } catch (ExecutionException e) {
-                    e.printStackTrace();
                 }
 
+                if (AppConstants.FS_selected.equalsIgnoreCase("0")) {
+
+                    Intent serviceIntent = new Intent(DisplayMeterActivity.this, BackgroundService_AP_PIPE.class);
+                    serviceIntent.putExtra("HTTP_URL", HTTP_URL);
+                    startService(serviceIntent);
+
+                    Intent i = new Intent(DisplayMeterActivity.this, WelcomeActivity.class);
+                    i.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                    startActivity(i);
+
+
+                } else if (AppConstants.FS_selected.equalsIgnoreCase("1")) {
+
+                    Intent serviceIntent = new Intent(DisplayMeterActivity.this, BackgroundService_AP.class);
+                    serviceIntent.putExtra("HTTP_URL", HTTP_URL);
+                    startService(serviceIntent);
+
+                    Intent i = new Intent(DisplayMeterActivity.this, WelcomeActivity.class);
+                    i.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                    startActivity(i);
+
+                } else if (AppConstants.FS_selected.equalsIgnoreCase("2")) {
+
+                    Intent serviceIntent = new Intent(DisplayMeterActivity.this, BackgroundService_FS_UNIT_3.class);
+                    serviceIntent.putExtra("HTTP_URL", HTTP_URL);
+                    startService(serviceIntent);
+
+                    Intent i = new Intent(DisplayMeterActivity.this, WelcomeActivity.class);
+                    i.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                    startActivity(i);
+
+                } else if (AppConstants.FS_selected.equalsIgnoreCase("3")) {
+
+                    Intent serviceIntent = new Intent(DisplayMeterActivity.this, BackgroundService_FS_UNIT_4.class);//change background service to fsunite3
+                    serviceIntent.putExtra("HTTP_URL", HTTP_URL);
+                    startService(serviceIntent);
+
+                    Intent i = new Intent(DisplayMeterActivity.this, WelcomeActivity.class);
+                    i.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                    startActivity(i);
+                }
 
                 break;
 
@@ -1106,6 +852,244 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
         }
     }
 
+    @SuppressLint("ResourceAsColor")
+    public void CompleteTasksbeforeStartbuttonClick() {
+
+        SharedPreferences sharedPrefODO = DisplayMeterActivity.this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
+        IsOdoMeterRequire = sharedPrefODO.getString(AppConstants.IsOdoMeterRequire, "");
+        String HubId = sharedPrefODO.getString(AppConstants.HubId, "");
+
+        BtnStartStateChange(false);
+        btnCancel.setClickable(false);
+        Istimeout_Sec = false;
+        String macaddress = AppConstants.SELECTED_MACADDRESS;
+
+
+        for (int i = 0; i < AppConstants.DetailsListOfConnectedDevices.size(); i++) {
+            String MA_ConnectedDevices = AppConstants.DetailsListOfConnectedDevices.get(i).get("macAddress");
+            if (macaddress.equalsIgnoreCase(MA_ConnectedDevices)) {
+                String IpAddress = AppConstants.DetailsListOfConnectedDevices.get(i).get("ipAddress");
+                HTTP_URL = "http://" + IpAddress + ":80/";
+
+            }
+
+        }
+
+        URL_GET_TXNID = HTTP_URL + "client?command=lasttxtnid";
+        URL_SET_TXNID = HTTP_URL + "config?command=txtnid";
+        URL_GET_PULSAR = HTTP_URL + "client?command=pulsar ";
+        URL_RECORD10_PULSAR = HTTP_URL + "client?command=record10";
+        URL_INFO = HTTP_URL + "client?command=info";
+        URL_RELAY = HTTP_URL + "config?command=relay";
+
+        String PulserTimingAd = HTTP_URL + "config?command=pulsar";
+        URL_SET_PULSAR = HTTP_URL + "config?command=pulsar";
+
+
+        //Check if Hose connected to hotspot or not
+        try {
+            //Info command commented
+            String FSStatus = new CommandsGET().execute(URL_INFO).get();
+            if (FSStatus.startsWith("{") && FSStatus.contains("Version")) {
+
+                try {
+
+                    JSONObject jsonObj = new JSONObject(FSStatus);
+                    String userData = jsonObj.getString("Version");
+                    JSONObject jsonObject = new JSONObject(userData);
+
+                    String sdk_version = jsonObject.getString("sdk_version");
+                    String mac_address = jsonObject.getString("mac_address");
+                    iot_version = jsonObject.getString("iot_version");
+
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+
+                GetLastTransaction();
+
+                String Result_PulserTimingAdjust = new CommandsPOST().execute(PulserTimingAd, "{\"pulsar_status\":{\"sampling_time_ms\":" + AppConstants.PulserTimingAdjust + "}}").get();
+
+                String Relay_result = new CommandsGET().execute(URL_RELAY).get();
+
+                if (Relay_result.trim().startsWith("{") && Relay_result.trim().contains("relay_response")) {
+
+                    try {
+
+                        JSONObject jsonObj = new JSONObject(Relay_result);
+                        String userData = jsonObj.getString("relay_response");
+                        JSONObject jsonObject = new JSONObject(userData);
+                        String status = jsonObject.getString("status");
+
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + " <<ForDev>> Relay_result " + " Status: " + status);
+
+                        //IF relay status zero go back to dashboard
+                        if (status.equalsIgnoreCase("1")) {
+
+                            AppConstants.colorToastBigFont(DisplayMeterActivity.this, "The link is busy, please try after some time.", Color.RED);
+                            AppConstants.ClearEdittextFielsOnBack(DisplayMeterActivity.this); //Clear EditText on move to welcome activity.
+                            Intent intent = new Intent(DisplayMeterActivity.this, WelcomeActivity.class);
+                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                            startActivity(intent);
+
+
+                        } else {
+
+                            //We use pumppff time insted pulseroff time
+                            long pulsar_off_time = (stopAutoFuelSeconds * 1000) + 3000;
+                            new CommandsPOST().execute(URL_SET_PULSAR, "{\"pulsar_status\":{\"pulsar_off_time\":" + pulsar_off_time + "}}");
+
+                            if (AppConstants.FS_selected.equalsIgnoreCase("0")) {
+
+                                //Store Hose ID and Firmware version in sharedpreferance
+                                SharedPreferences sharedPref = DisplayMeterActivity.this.getSharedPreferences(Constants.PREF_FS_UPGRADE, Context.MODE_PRIVATE);
+                                SharedPreferences.Editor editor = sharedPref.edit();
+                                editor.putString("hoseid_fs1", AppConstants.UP_HoseId_fs1);
+                                editor.putString("fsversion_fs1", iot_version);
+                                editor.commit();
+
+
+                                //IF upgrade firmware true check below
+                                if (AppConstants.UP_Upgrade) {
+                                    CheckForUpdateFirmware(AppConstants.UP_HoseId_fs1, iot_version, AppConstants.FS_selected);
+                                } else {
+                                    BtnStartStateChange(true);
+                                }
+
+
+                            } else if (AppConstants.FS_selected.equalsIgnoreCase("1")) {
+
+                                //Store Hose ID and Firmware version in sharedpreferance
+                                SharedPreferences sharedPref = DisplayMeterActivity.this.getSharedPreferences(Constants.PREF_FS_UPGRADE, Context.MODE_PRIVATE);
+                                SharedPreferences.Editor editor = sharedPref.edit();
+                                editor.putString("hoseid_fs2", AppConstants.UP_HoseId_fs2);
+                                editor.putString("fsversion_fs2", iot_version);
+                                editor.commit();
+
+                                //IF upgrade firmware true check below
+                                if (AppConstants.UP_Upgrade) {
+                                    CheckForUpdateFirmware(AppConstants.UP_HoseId_fs2, iot_version, AppConstants.FS_selected);
+                                } else {
+                                    BtnStartStateChange(true);
+                                }
+
+                            } else if (AppConstants.FS_selected.equalsIgnoreCase("2")) {
+
+                                //Store Hose ID and Firmware version in sharedpreferance
+                                SharedPreferences sharedPref = DisplayMeterActivity.this.getSharedPreferences(Constants.PREF_FS_UPGRADE, Context.MODE_PRIVATE);
+                                SharedPreferences.Editor editor = sharedPref.edit();
+                                editor.putString("hoseid_fs3", AppConstants.UP_HoseId_fs3);
+                                editor.putString("fsversion_fs3", iot_version);
+                                editor.commit();
+
+                                //IF upgrade firmware true check below
+                                if (AppConstants.UP_Upgrade) {
+                                    CheckForUpdateFirmware(AppConstants.UP_HoseId_fs3, iot_version, AppConstants.FS_selected);
+                                } else {
+                                    BtnStartStateChange(true);
+                                }
+                            } else if (AppConstants.FS_selected.equalsIgnoreCase("3")) {
+
+                                //Store Hose ID and Firmware version in sharedpreferance
+                                SharedPreferences sharedPref = DisplayMeterActivity.this.getSharedPreferences(Constants.PREF_FS_UPGRADE, Context.MODE_PRIVATE);
+                                SharedPreferences.Editor editor = sharedPref.edit();
+                                editor.putString("hoseid_fs4", AppConstants.UP_HoseId_fs4);
+                                editor.putString("fsversion_fs4", iot_version);
+                                editor.commit();
+
+                                //IF upgrade firmware true check below
+                                if (AppConstants.UP_Upgrade) {
+                                    CheckForUpdateFirmware(AppConstants.UP_HoseId_fs4, iot_version, AppConstants.FS_selected);
+                                } else {
+                                    BtnStartStateChange(true);
+                                }
+
+                            }
+
+
+                        }
+
+
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
+                } else {
+
+                    count_relayCmd = count_relayCmd + 1;
+
+                    if (count_relayCmd > 1) {
+
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + " <<ForDev>> Link is unavailable relay");
+                        AppConstants.colorToastBigFont(DisplayMeterActivity.this, " Link is unavailable", Color.RED);
+                        AppConstants.ClearEdittextFielsOnBack(DisplayMeterActivity.this); //Clear EditText on move to welcome activity.
+                        BackgroundServiceKeepDataTransferAlive.IstoggleRequired_DA = true;
+                        Intent intent = new Intent(DisplayMeterActivity.this, WelcomeActivity.class);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        startActivity(intent);
+
+                    } else {
+
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + " <<ForDev>> Link is unavailable relay command Retry attempt: " + count_InfoCmd);
+                        AppConstants.colorToastBigFont(DisplayMeterActivity.this, "Link is unavailable Retry attempt" + count_relayCmd, Color.RED);
+                        new Handler().postDelayed(new Runnable() {
+
+                            @Override
+                            public void run() {
+                                CompleteTasksbeforeStartbuttonClick(); //retry
+                            }
+                        }, 2000);
+
+                    }
+
+                }
+
+                //Info command else commented
+            } else {
+
+                count_InfoCmd = count_InfoCmd + 1;
+
+                if (count_InfoCmd > 1) {
+
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + " <<ForDev>> Link is unavailable info command");
+                    AppConstants.colorToastBigFont(DisplayMeterActivity.this, " Link is unavailable", Color.RED);
+                    AppConstants.ClearEdittextFielsOnBack(DisplayMeterActivity.this); //Clear EditText on move to welcome activity.
+                    Intent intent = new Intent(DisplayMeterActivity.this, WelcomeActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    startActivity(intent);
+
+                } else {
+
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + " <<ForDev>> Link is unavailable info command Retry attempt: " + count_InfoCmd);
+                    AppConstants.colorToastBigFont(DisplayMeterActivity.this, "Link is unavailable Retry attempt" + count_InfoCmd, Color.RED);
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            CompleteTasksbeforeStartbuttonClick(); //retry
+                        }
+                    }, 2000);
+
+                }
+
+            }
+
+
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
+
+
+    }
+
     public void CheckForUpdateFirmware(final String hoseid, String iot_version, final String FS_selected) {
 
         SharedPreferences sharedPrefODO = DisplayMeterActivity.this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
@@ -1133,10 +1117,9 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                 }
 
             } catch (Exception e) {
-
+                e.printStackTrace();
             }
         }
-
 
         //Second call will get Status for firwareupdate
         StatusForUpgradeVersionEntity objEntityClass1 = new StatusForUpgradeVersionEntity();
@@ -1161,6 +1144,15 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
         String FS_selected;
         String jsonData;
         String authString;
+
+        ProgressDialog pd;
+
+        @Override
+        protected void onPreExecute() {
+            pd = new ProgressDialog(DisplayMeterActivity.this);
+            pd.setMessage("Please wait...");
+            pd.setCancelable(false);
+        }
 
 
         @Override
@@ -1191,6 +1183,8 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
         @Override
         protected void onPostExecute(String resp) {
 
+            pd.dismiss();
+            BtnStartStateChange(true);
             System.out.println("resp..." + resp);
 
             try {
@@ -1234,8 +1228,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                     //--------------------------------------------
 
 
-
-                }else{
+                } else {
 
                     System.out.println("Something went wrong");
                 }
@@ -1246,8 +1239,6 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
             }
         }
     }
-
-
 
     public class UpgradeCurrentVersionWithUgradableVersion extends AsyncTask<Void, Void, Void> {
 
@@ -1285,14 +1276,14 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
     }
 
 
-
     public void GetLastTransaction() {
         try {
             String LastTXNid = new CommandsGET().execute(URL_GET_TXNID).get();
 
             String respp = new CommandsGET().execute(URL_RECORD10_PULSAR).get();
 
-            if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+" <<ForDev>> LAST TRANS RawData " + " LastTXNid" + LastTXNid + "Resp " + respp);
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + " <<ForDev>> LAST TRANS RawData " + " LastTXNid" + LastTXNid + "Resp " + respp);
 
             if (LastTXNid.equals("-1")) {
                 System.out.println(LastTXNid);
@@ -1303,9 +1294,9 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                     JSONObject joPulsarStat = jsonObject.getJSONObject("quantity_10_record");
                     int Initialcount = Integer.parseInt(joPulsarStat.getString("1:"));
                     String counts = "";
-                    if (Initialcount > 0){
+                    if (Initialcount > 0) {
                         counts = String.valueOf(Initialcount);
-                    }else{
+                    } else {
                         counts = String.valueOf(Initialcount);
                     }
 
@@ -1330,7 +1321,8 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                         String jsonData = gson.toJson(authEntityClass);
 
                         System.out.println("TrazComp......" + jsonData);
-                        if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+" <<ForDev>> LAST TRANS jsonData " + jsonData);
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + " <<ForDev>> LAST TRANS jsonData " + jsonData);
 
                         String userEmail = CommonUtils.getCustomerDetails(DisplayMeterActivity.this).PersonEmail;
 
@@ -1357,13 +1349,15 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                         if (isInsert && Lastqty > 0) {
                             controller.insertTransactions(imap);
 
-                            if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+" <<ForDev>> LAST TRANS SAVED in sqlite");
+                            if (AppConstants.GenerateLogs)
+                                AppConstants.WriteinFile(TAG + " <<ForDev>> LAST TRANS SAVED in sqlite");
                         }
 
 
                     } catch (Exception ex) {
 
-                        if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+" <<ForDev>> LAST TRANS Exception " + ex.getMessage());
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + " <<ForDev>> LAST TRANS Exception " + ex.getMessage());
                     }
 
 
@@ -1371,7 +1365,8 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
             }
 
         } catch (Exception e) {
-            if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+" <<ForDev>> LastTXNid Ex:" + e.getMessage() + " ");
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + " <<ForDev>> LastTXNid Ex:" + e.getMessage() + " ");
         }
 
 
@@ -1967,7 +1962,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                         .build();
 
                 request.urlString();
-                System.out.println("urlStr"+request.urlString());
+                System.out.println("urlStr" + request.urlString());
                 Response response = client.newCall(request).execute();
                 resp = response.body().string();
 
@@ -2629,7 +2624,6 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
     }
 
 
-
     /* public class SetBTConnectionPrinter extends AsyncTask<String, Void, String> {
 
 
@@ -2719,13 +2713,15 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
                     } catch (Exception e) {
                         e.printStackTrace();
-                        if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+" <<ForDev>> GetConnectedDevicesIP 1 --Exception " + e);
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + " <<ForDev>> GetConnectedDevicesIP 1 --Exception " + e);
                     } finally {
                         try {
                             br.close();
                         } catch (IOException e) {
                             e.printStackTrace();
-                            if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+" <<ForDev>> GetConnectedDevicesIP 2 --Exception " + e);
+                            if (AppConstants.GenerateLogs)
+                                AppConstants.WriteinFile(TAG + " <<ForDev>> GetConnectedDevicesIP 2 --Exception " + e);
                         }
                     }
                 }
@@ -2752,8 +2748,22 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
     }
 
+    @SuppressLint("ResourceAsColor")
+    public void BtnStartStateChange(boolean btnState) {
 
 
+        if (btnState) {
+            btnStart.setClickable(true);
+            btnStart.setBackgroundColor(Color.parseColor("#56AF47"));
+            btnStart.setTextColor(Color.parseColor("#FFFFFF"));
+        } else {
+
+            btnStart.setClickable(false);
+            btnStart.setBackgroundColor(Color.parseColor("#f5f1f0"));
+            btnStart.setTextColor(Color.parseColor("#000000"));
+
+        }
+
+    }
 
 }
-
