@@ -71,6 +71,7 @@ import com.TrakEngineering.FluidSecureHub.enity.AuthEntityClass;
 import com.TrakEngineering.FluidSecureHub.enity.RenameHose;
 import com.TrakEngineering.FluidSecureHub.enity.StatusForUpgradeVersionEntity;
 import com.TrakEngineering.FluidSecureHub.enity.UpdateMacAddressClass;
+import com.TrakEngineering.FluidSecureHub.enity.UpgradeVersionEntity;
 import com.TrakEngineering.FluidSecureHub.enity.UserInfoEntity;
 import com.TrakEngineering.FluidSecureHub.server.DownloadFileHttp;
 import com.TrakEngineering.FluidSecureHub.server.MyServer;
@@ -129,13 +130,14 @@ import java.util.Timer;
 import java.util.concurrent.TimeUnit;
 
 import static android.os.Build.VERSION.SDK_INT;
+import static com.TrakEngineering.FluidSecureHub.R.id.pin;
 import static com.TrakEngineering.FluidSecureHub.R.id.textView;
 import static com.TrakEngineering.FluidSecureHub.server.MyServer.ctx;
 import static com.TrakEngineering.FluidSecureHub.server.ServerHandler.TEXT;
 import static com.google.android.gms.internal.zzid.runOnUiThread;
 
 
-public class WelcomeActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, View.OnClickListener, View.OnTouchListener{
+public class WelcomeActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, View.OnClickListener, View.OnTouchListener {
 
 
     private String TAG = "WelcomeActivity ";
@@ -172,7 +174,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     static WifiApManager wifiApManager;
     boolean isTCancelled = false;
     int RetryOneAtemptConnectToSelectedSSSID = 0;
-    String ReaderFrequency = "", IsOdoMeterRequire = "", IsDepartmentRequire = "", IsPersonnelPINRequireForHub = "", IsPersonnelPINRequire = "", IsOtherRequire = "", IsGateHub = "",IsVehicleNumberRequire = "";
+    String ReaderFrequency = "", IsOdoMeterRequire = "", IsDepartmentRequire = "", IsPersonnelPINRequireForHub = "", IsPersonnelPINRequire = "", IsOtherRequire = "", IsGateHub = "", IsVehicleNumberRequire = "";
     int WifiChannelToUse = 11;
     BroadcastReceiver mReceiver;
     //Upgrade firmware status for each hose
@@ -184,7 +186,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     //FS For Stopbutton
     String PhoneNumber;
     String consoleString = "", outputQuantity = "0";
-    boolean stopTimer = true;
+    boolean stopTimer = true, FirstRun;
     double minFuelLimit = 0, numPulseRatio = 0;
     double fillqty = 0;
     ProgressDialog loading = null;
@@ -208,7 +210,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     String FOLDER_PATH = Environment.getExternalStorageDirectory().getAbsolutePath() + "/FSBin/";
     private WifiManager.LocalOnlyHotspotReservation mReservation;
 
-//============Bluetooth reader Gatt==============
+    //============Bluetooth reader Gatt==============
 
 
     public static final String EXTRAS_DEVICE_NAME = "DEVICE_NAME";
@@ -277,6 +279,18 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
     private static final int OVERLAY_PERMISSION_CODE = 5463;
 
+
+    //==========temp=================
+    String URL_GET_TXNID = HTTP_URL + "client?command=lasttxtnid";
+    String URL_SET_TXNID = HTTP_URL + "config?command=txtnid";
+    String URL_GET_PULSAR = HTTP_URL + "client?command=pulsar ";
+    String URL_RECORD10_PULSAR = HTTP_URL + "client?command=record10";
+    String URL_RELAY = HTTP_URL + "config?command=relay";
+    String PulserTimingAd = HTTP_URL + "config?command=pulsar";
+    String URL_SET_PULSAR = HTTP_URL + "config?command=pulsar";
+    String iot_version = "";
+    ServerHandler serverHandler = new ServerHandler();
+
     //============ Bluetooth reader Gatt end==============
 
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
@@ -284,7 +298,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     protected void onResume() {
         super.onResume();
 
-        //TODO MyServer FSVM
+        /*//TODO MyServer FSVM
         ctx = WelcomeActivity.this;
         try {
             server = new MyServer();
@@ -292,11 +306,11 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
         } catch (Exception e) {
             e.printStackTrace();
-        }
+        }*/
 
-        //Scan for Near-by BLE devices
-        ListOfBleDevices.clear();
-        scanLeDevice(true);
+//         Scan for Near-by BLE devices
+//         ListOfBleDevices.clear();
+//         scanLeDevice(true);
 
         // only when screen turns on
         if (!ScreenReceiver.screenOff) {
@@ -334,13 +348,20 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
         AppConstants.DetailsListOfConnectedDevices = new ArrayList<>();
         new GetConnectedDevicesIP().execute();
-        new GetSSIDUsingLocationOnResume().execute();
+
+        if (IsGateHub.equalsIgnoreCase("True")) {
+
+            if (serverSSIDList.size() == 0) {
+                new GetSSIDUsingLocationOnResume().execute();
+            } else {
+                OnWelcomeActivity = true;
+                CheckForGateSoftware(); //Check ForGateSoftware
+            }
+        } else {
+            new GetSSIDUsingLocationOnResume().execute();
+        }
+
         UpdateFSUI_seconds();
-
-
-        //Check ForGateSoftware
-        OnWelcomeActivity = true;
-        CheckForGateSoftware();
 
         //Write TimeStamp to txt file
         WriteTimestampToFile();
@@ -387,7 +408,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
         unregisterReceiver(mReceiver);
 
-        scanLeDevice(false);
+        //scanLeDevice(false);
 
     }
 
@@ -431,6 +452,9 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
         InItGUI();
 
+        SharedPreferences sharedPrefODO = WelcomeActivity.this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
+        IsGateHub = sharedPrefODO.getString(AppConstants.IsGateHub, "");
+
         tv_request = (TextView) findViewById(R.id.tv_request);
         tv_response = (TextView) findViewById(R.id.tv_response);
         tv_response = (TextView) findViewById(R.id.tv_response);
@@ -439,10 +463,18 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         btn_clear_data = (Button) findViewById(R.id.btn_clear_data);
         tv_file_address.setText("File Download url: http://192.168.43.1:8550/www/FSVM/FileName.bin");
 
-
+        IsFARequired();//Enable disable FA on Checkbox on ui
         setUrlFromSharedPref(this);//Set url App Txt URL
         UpdateServerMessages();
         DownloadFile();
+
+                    /*//TODO  BackgroundServiceFSNP
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            BackgroundServiceFSNP();//FSNP
+                        }
+                    }, 1000);*/
 
         btn_clear_data.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -679,13 +711,6 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     }
                 });
 
-        //TODO  BackgroundServiceFSNP
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                BackgroundServiceFSNP();//FSNP
-            }
-        }, 1000);
 
     }
 
@@ -696,7 +721,6 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         PendingIntent pintent = PendingIntent.getService(getApplicationContext(), 0, name, 0);
         AlarmManager alarm = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         alarm.setRepeating(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), 60000, pintent);
-
     }
 
     public void EnableHotspotBackgService() {
@@ -881,7 +905,6 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
     }
 
-
     public void CheckForGateSoftware() {
 
         Thread t = new Thread() {
@@ -890,15 +913,13 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             public void run() {
                 try {
                     while (!isInterrupted()) {
-                        Thread.sleep(3000);
+                        Thread.sleep(10000);
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
                                 if (OnWelcomeActivity) {
 
                                     //AutoSelect if single hose
-                                    SharedPreferences sharedPrefODO = WelcomeActivity.this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
-                                    IsGateHub = sharedPrefODO.getString(AppConstants.IsGateHub, "");
                                     if (IsGateHub.equalsIgnoreCase("True")) {
 
                                         try {
@@ -908,8 +929,32 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                                 OnWelcomeActivity = false;
                                                 tvSSIDName.setText(serverSSIDList.get(0).get("WifiSSId"));
                                                 OnHoseSelected_OnClick(Integer.toString(0));
-                                                goButtonAction(null);
 
+                                                //================Temp Code============================
+                                                Log.e("GateSoftwareDelayIssue", "   IsGatehub true");
+                                                //System.out.println("Gate hub true skip display meter ancivity and start transiction ");
+                                                String macaddress = AppConstants.SELECTED_MACADDRESS;
+                                                String HTTP_URL = "";
+
+                                                for (int i = 0; i < AppConstants.DetailsListOfConnectedDevices.size(); i++) {
+                                                    String MA_ConnectedDevices = AppConstants.DetailsListOfConnectedDevices.get(i).get("macAddress");
+                                                    if (macaddress.equalsIgnoreCase(MA_ConnectedDevices)) {
+                                                        String IpAddress = AppConstants.DetailsListOfConnectedDevices.get(i).get("ipAddress");
+                                                        HTTP_URL = "http://" + IpAddress + ":80/";
+
+                                                    }
+
+                                                }
+                                                Log.e("GateSoftwareDelayIssue", "   GateHubStartTransaction HTTP_URl");
+                                                GateHubStartTransaction(HTTP_URL);
+                                                //================Temp Code============================
+
+                                                //Reconnect BT reader if disconnected
+                                                ConnectCount = 0;
+                                                ReConnectBTReader();
+
+                                                // goButtonAction(null);
+                                                new GetSSIDUsingLocationOnResume().execute();//temp to solve crash issue
 
                                             }
 
@@ -919,6 +964,24 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                                 AppConstants.WriteinFile(TAG + " <<ForDev>> AutoSelect if single hose --Exception " + e);
                                         }
 
+                                    } else {
+
+                                        try {
+                                            if (serverSSIDList != null && serverSSIDList.size() == 1 && Constants.FS_1STATUS.equalsIgnoreCase("FREE")) {
+
+                                                tvSSIDName.setText(serverSSIDList.get(0).get("WifiSSId"));
+                                                OnHoseSelected_OnClick(Integer.toString(0));
+
+                                            } else if (serverSSIDList != null && AppConstants.LastSelectedHose != null && Constants.FS_1STATUS.equalsIgnoreCase("FREE") && Constants.FS_2STATUS.equalsIgnoreCase("FREE") && Constants.FS_3STATUS.equalsIgnoreCase("FREE") && Constants.FS_4STATUS.equalsIgnoreCase("FREE")) {
+
+                                                Thread.sleep(1000);
+                                                tvSSIDName.setText(serverSSIDList.get(Integer.parseInt(AppConstants.LastSelectedHose)).get("WifiSSId"));
+                                                OnHoseSelected_OnClick(AppConstants.LastSelectedHose);
+                                            }
+
+                                        } catch (Exception e) {
+                                            e.printStackTrace();
+                                        }
                                     }
                                 }
 
@@ -977,7 +1040,6 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
     private void InItGUI() {
 
-
         textDateTime = (TextView) findViewById(R.id.textDateTime);
         tv_fs1_Qty = (TextView) findViewById(R.id.tv_fs1_Qty);
         tv_fs2_Qty = (TextView) findViewById(R.id.tv_fs2_Qty);
@@ -1035,10 +1097,6 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
     public void selectHoseAction(View v) {
 
-        //Scan for Near-by BLE devices
-        ListOfBleDevices.clear();
-        scanLeDevice(true);
-
         //Reconnect BT reader if disconnected
         ConnectCount = 0;
         ReConnectBTReader();
@@ -1049,6 +1107,11 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
     public void goButtonAction(View view) {
 
+        if (!IsGateHub.equalsIgnoreCase("True")) {
+            //Scan for Near-by BLE devices
+            ListOfBleDevices.clear();
+            scanLeDevice(true);
+        }
 
         try {
 
@@ -1245,10 +1308,10 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
         //   if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " Selected hose: " + AppConstants.CURRENT_SELECTED_SSID);
 
-        if (IsVehicleNumberRequire.equalsIgnoreCase("True")){
+        if (IsVehicleNumberRequire.equalsIgnoreCase("True")) {
             Intent intent = new Intent(WelcomeActivity.this, DeviceControlActivity_vehicle.class);
             startActivity(intent);
-        }else{
+        } else {
 
             Intent intent = new Intent(WelcomeActivity.this, DeviceControlActivity_Pin.class);
             startActivity(intent);
@@ -1448,7 +1511,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 //----------------------------------------------------------------------------------
 
             } catch (Exception ex) {
-
+                ex.printStackTrace();
                 CommonUtils.LogMessage(TAG, "AuthTestAsynTask ", ex);
                 if (AppConstants.GenerateLogs)
                     AppConstants.WriteinFile(TAG + " <<ForDev>> GetAndroidSSID --Exception " + ex);
@@ -2970,7 +3033,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     }
 
 
-    private boolean ChangeHotspotBroadcastChannel(Context context, int i){
+    private boolean ChangeHotspotBroadcastChannel(Context context, int i) {
 
         try {
 
@@ -2980,7 +3043,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
 
             Method getWifiApConfigurationMethod = wifiManager.getClass().getMethod("getWifiApConfiguration");
-            wifiConfig=(WifiConfiguration)getWifiApConfigurationMethod.invoke(wifiManager);
+            wifiConfig = (WifiConfiguration) getWifiApConfigurationMethod.invoke(wifiManager);
 
             //Log.i("Writing HotspotData", "\nSSID:" + netConfig.SSID + "\nPassword:" + netConfig.preSharedKey + "\n");
 
@@ -2993,7 +3056,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             Field wcFreq = WifiConfiguration.class.getField("apChannel");
             int val = wcFreq.getInt(wifiConfig);
             Log.i("Config was", "val=" + val);
-            wcFreq.setInt(wifiConfig,i); // channel 11
+            wcFreq.setInt(wifiConfig, i); // channel 11
 
             Method setWifiApConfigurationMethod = wifiManager.getClass().getMethod("setWifiApConfiguration", WifiConfiguration.class);
             setWifiApConfigurationMethod.invoke(wifiManager, wifiConfig);
@@ -3014,7 +3077,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
             SharedPreferences sharedPrefODO = WelcomeActivity.this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
             IsOtherRequire = sharedPrefODO.getString(AppConstants.IsOtherRequire, "");
-            WifiChannelToUse = sharedPrefODO.getInt(AppConstants.WifiChannelToUse,11);
+            WifiChannelToUse = sharedPrefODO.getInt(AppConstants.WifiChannelToUse, 11);
 
             WifiManager wifiManager = (WifiManager) context.getSystemService(context.WIFI_SERVICE);
             Method getConfigMethod = wifiManager.getClass().getMethod("getWifiApConfiguration");
@@ -3032,8 +3095,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 Field wcFreq = WifiConfiguration.class.getField("apChannel");
                 int val = wcFreq.getInt(wifiConfig);
                 Log.i("Config was", "val=" + val);
-                if (WifiChannelToUse != val){
-                    wcFreq.setInt(wifiConfig,WifiChannelToUse); // channel 11
+                if (WifiChannelToUse != val) {
+                    wcFreq.setInt(wifiConfig, WifiChannelToUse); // channel 11
                     //Toggle Wifi..
                     wifiApManager.setWifiApEnabled(null, false);  //Disable Hotspot
                     new Handler().postDelayed(new Runnable() {
@@ -3058,8 +3121,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 Field wcFreq = WifiConfiguration.class.getField("apChannel");
                 int val = wcFreq.getInt(wifiConfig);
                 Log.i("Config was", "val=" + val);
-                if (WifiChannelToUse != val){
-                    wcFreq.setInt(wifiConfig,WifiChannelToUse); // channel 11
+                if (WifiChannelToUse != val) {
+                    wcFreq.setInt(wifiConfig, WifiChannelToUse); // channel 11
                 }
 
                 //Toggle Wifi..
@@ -5756,7 +5819,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     public static void WakeUpScreen() {
 
         //Enable Screen
-        PowerManager.WakeLock screenLock = ((PowerManager) ctx.getSystemService(POWER_SERVICE)).newWakeLock(
+        @SuppressLint("InvalidWakeLockTag") PowerManager.WakeLock screenLock = ((PowerManager) ctx.getSystemService(POWER_SERVICE)).newWakeLock(
                 PowerManager.SCREEN_BRIGHT_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP, "TAG");
         screenLock.acquire();
 
@@ -5798,12 +5861,264 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         }
     }
 
-    public void CheckIfLogIsRequired(){
+    public void CheckIfLogIsRequired() {
 
         SharedPreferences sharedPref = this.getSharedPreferences(Constants.PREF_Log_Data, Context.MODE_PRIVATE);
-        AppConstants.GenerateLogs = Boolean.parseBoolean(sharedPref.getString("LogRequiredFlag","True"));
-        System.out.println("AppConstants.GenerateLogs"+AppConstants.GenerateLogs);
+        AppConstants.GenerateLogs = Boolean.parseBoolean(sharedPref.getString("LogRequiredFlag", "True"));
+        System.out.println("AppConstants.GenerateLogs" + AppConstants.GenerateLogs);
 
     }
+
+    public void IsFARequired() {
+
+        SharedPreferences sharedPref = this.getSharedPreferences(Constants.PREF_FA_Data, Context.MODE_PRIVATE);
+        AppConstants.EnableFA = sharedPref.getBoolean("FAData", false);
+        if (AppConstants.EnableFA) {
+            AppConstants.EnableFA = true;
+        } else {
+            AppConstants.EnableFA = false;
+        }
+
+    }
+
+    public void GateHubStartTransaction(String HTTP_URL) {
+
+        URL_GET_TXNID = HTTP_URL + "client?command=lasttxtnid";
+        URL_SET_TXNID = HTTP_URL + "config?command=txtnid";
+        URL_GET_PULSAR = HTTP_URL + "client?command=pulsar ";
+        URL_RECORD10_PULSAR = HTTP_URL + "client?command=record10";
+        URL_INFO = HTTP_URL + "client?command=info";
+        URL_RELAY = HTTP_URL + "config?command=relay";
+        PulserTimingAd = HTTP_URL + "config?command=pulsar";
+        URL_SET_PULSAR = HTTP_URL + "config?command=pulsar";
+        iot_version = "";
+
+
+        try {
+
+            //Info command commented
+            String FSStatus = new CommandsGET().execute(URL_INFO).get();
+            Log.e("GateSoftwareDelayIssue", "   Info command ");
+            if (FSStatus.startsWith("{") && FSStatus.contains("Version")) {
+
+                try {
+
+                    JSONObject jsonObj = new JSONObject(FSStatus);
+                    String userData = jsonObj.getString("Version");
+                    JSONObject jsonObject = new JSONObject(userData);
+
+                    String sdk_version = jsonObject.getString("sdk_version");
+                    String mac_address = jsonObject.getString("mac_address");
+                    iot_version = jsonObject.getString("iot_version");
+
+                    //Store Hose ID and Firmware version in sharedpreferance
+                    SharedPreferences sharedPref = WelcomeActivity.this.getSharedPreferences(Constants.PREF_FS_UPGRADE, Context.MODE_PRIVATE);
+                    SharedPreferences.Editor editor = sharedPref.edit();
+                    editor.putString("hoseid_fs1", AppConstants.UP_HoseId_fs1);
+                    editor.putString("fsversion_fs1", iot_version);
+                    editor.commit();
+
+
+                    //IF upgrade firmware true check below
+                    if (AppConstants.UP_Upgrade) {
+                        CheckForUpdateFirmware(AppConstants.UP_HoseId_fs1, iot_version, AppConstants.FS_selected);
+                    }
+
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+            } else {
+
+                //Info command else commented
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " <<ForDev>> Link is unavailable info command");
+                AppConstants.colorToastBigFont(WelcomeActivity.this, " Link is unavailable", Color.RED);
+
+            }
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
+    }
+
+    public void CheckForUpdateFirmware(final String hoseid, String iot_version, final String FS_selected) {
+
+        SharedPreferences sharedPrefODO = this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
+        String HubId = sharedPrefODO.getString(AppConstants.HubId, "");// HubId equals to personId
+
+        //First call which will Update Fs firmware to Server--
+        final UpgradeVersionEntity objEntityClass = new UpgradeVersionEntity();
+        objEntityClass.IMEIUDID = AppConstants.getIMEI(this);
+        objEntityClass.Email = CommonUtils.getCustomerDetails(this).PersonEmail;
+        objEntityClass.HoseId = hoseid;
+        objEntityClass.Version = iot_version;
+
+        if (hoseid != null && !hoseid.trim().isEmpty()) {
+
+            UpgradeCurrentVersionWithUgradableVersion objUP = new UpgradeCurrentVersionWithUgradableVersion(objEntityClass);
+            objUP.execute();
+            System.out.println(objUP.response);
+
+            try {
+                JSONObject jsonObject = new JSONObject(objUP.response);
+                String ResponceMessage = jsonObject.getString("ResponceMessage");
+                String ResponceText = jsonObject.getString("ResponceText");
+                Log.e("GateSoftwareDelayIssue", "   CheckForUpdateFirmware ResponceMessage" + ResponceMessage);
+                if (ResponceMessage.equalsIgnoreCase("success")) {
+                }
+
+            } catch (Exception e) {
+
+            }
+        }
+
+        //Second call will get Status for firwareupdate
+        StatusForUpgradeVersionEntity objEntityClass1 = new StatusForUpgradeVersionEntity();
+        objEntityClass1.IMEIUDID = AppConstants.getIMEI(this);
+        objEntityClass1.Email = CommonUtils.getCustomerDetails(this).PersonEmail;
+        objEntityClass1.HoseId = hoseid;
+        objEntityClass1.PersonId = HubId;
+
+        Gson gson = new Gson();
+        String jsonData = gson.toJson(objEntityClass1);
+
+        String userEmail = CommonUtils.getCustomerDetails(this).PersonEmail;
+        String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(this) + ":" + userEmail + ":" + "IsUpgradeCurrentVersionWithUgradableVersion");
+
+
+        new GetUpgrateFirmwareStatus().execute(FS_selected, jsonData, authString);
+
+    }
+
+    public class GetUpgrateFirmwareStatus extends AsyncTask<String, Void, String> {
+
+        String FS_selected;
+        String jsonData;
+        String authString;
+
+
+        @Override
+        protected String doInBackground(String... params) {
+
+            Log.e("GateSoftwareDelayIssue", "   GetUpgrateFirmwareStatus doInBackground");
+            String response = "";
+            try {
+
+                FS_selected = params[0];
+                jsonData = params[1];
+                authString = params[2];
+
+                System.out.println("jsonData--" + jsonData);
+                System.out.println("authString--" + authString);
+
+
+                response = serverHandler.PostTextData(WelcomeActivity.this, AppConstants.webURL, jsonData, authString);
+
+                System.out.println("Id..." + jsonData);
+
+            } catch (Exception e) {
+                System.out.println(e);
+            }
+
+            return response;
+        }
+
+        @Override
+        protected void onPostExecute(String resp) {
+
+            System.out.println("resp..." + resp);
+            Log.e("GateSoftwareDelayIssue", "   GetUpgrateFirmwareStatus onPostExecute");
+            try {
+                JSONObject jsonObj = new JSONObject(resp);
+
+                String ResponceMessage = jsonObj.getString(AppConstants.RES_MESSAGE);
+                String ResponceText = jsonObj.getString(AppConstants.RES_TEXT);
+
+                if (ResponceMessage.equalsIgnoreCase("success")) {
+
+                    //--------------------------------------------
+                    if (FS_selected.equalsIgnoreCase("0")) {
+
+                        if (ResponceText.trim().equalsIgnoreCase("Y"))
+                            AppConstants.UP_Upgrade_fs1 = true;
+                        else
+                            AppConstants.UP_Upgrade_fs1 = false;
+
+                    } else if (FS_selected.equalsIgnoreCase("1")) {
+
+                        if (ResponceText.trim().equalsIgnoreCase("Y"))
+                            AppConstants.UP_Upgrade_fs2 = true;
+                        else
+                            AppConstants.UP_Upgrade_fs2 = false;
+
+                    } else if (FS_selected.equalsIgnoreCase("2")) {
+
+                        if (ResponceText.trim().equalsIgnoreCase("Y"))
+                            AppConstants.UP_Upgrade_fs3 = true;
+                        else
+                            AppConstants.UP_Upgrade_fs3 = false;
+
+                    } else {
+
+                        if (ResponceText.trim().equalsIgnoreCase("Y"))
+                            AppConstants.UP_Upgrade_fs4 = true;
+                        else
+                            AppConstants.UP_Upgrade_fs4 = false;
+
+                    }
+                    //--------------------------------------------
+
+                } else {
+
+                    System.out.println("Something went wrong");
+                }
+
+
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+            }
+        }
+    }
+
+    public class UpgradeCurrentVersionWithUgradableVersion extends AsyncTask<Void, Void, Void> {
+
+
+        UpgradeVersionEntity objupgrade;
+        public String response = null;
+
+        public UpgradeCurrentVersionWithUgradableVersion(UpgradeVersionEntity objupgrade) {
+
+            this.objupgrade = objupgrade;
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+
+            try {
+                ServerHandler serverHandler = new ServerHandler();
+
+                Gson gson = new Gson();
+                String jsonData = gson.toJson(objupgrade);
+
+
+                //----------------------------------------------------------------------------------
+                String authString = "Basic " + AppConstants.convertStingToBase64(objupgrade.IMEIUDID + ":" + objupgrade.Email + ":" + "UpgradeCurrentVersionWithUgradableVersion");
+                response = serverHandler.PostTextData(WelcomeActivity.this, AppConstants.webURL, jsonData, authString);
+                //----------------------------------------------------------------------------------
+
+            } catch (Exception ex) {
+
+                CommonUtils.LogMessage("BS", "UpgradeCurrentVersionWithUgradableVersion ", ex);
+            }
+            return null;
+        }
+
+    }
+
 
 }
