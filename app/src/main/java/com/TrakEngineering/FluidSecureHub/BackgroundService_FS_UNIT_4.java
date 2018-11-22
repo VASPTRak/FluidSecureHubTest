@@ -314,7 +314,8 @@ public class BackgroundService_FS_UNIT_4 extends BackgroundService {
 
 
         //GetLatLng();
-        new CommandsPOST().execute(URL_SET_PULSAR, jsonPulsarOff);
+        //Commented cmd for gatehub -->jsonPulsarOff,jsonPulsar,URL_RELAY
+        /*new CommandsPOST().execute(URL_SET_PULSAR, jsonPulsarOff);
         //Relay On cmd
         new CommandsPOST().execute(URL_SET_PULSAR, jsonPulsar);//pulsar on swipe
 
@@ -329,7 +330,7 @@ public class BackgroundService_FS_UNIT_4 extends BackgroundService {
                 //new BackgroundService_FS_UNIT_4.CommandsPOST().execute(URL_SET_PULSAR, jsonPulsarOff);
 
             }
-        }, 1000);
+        }, 1000);*/
 
         //Pulsar On
         new Handler().postDelayed(new Runnable() {
@@ -339,14 +340,14 @@ public class BackgroundService_FS_UNIT_4 extends BackgroundService {
                 //Call Relay On Function
                 RelayOnThreeAttempts();
             }
-        }, 2500);
+        }, 1500);
 
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
                 startQuantityInterval();
             }
-        }, 3000);
+        }, 2000);
 
         // return super.onStartCommand(intent, flags, startId);
         return Service.START_NOT_STICKY;
@@ -566,6 +567,8 @@ public class BackgroundService_FS_UNIT_4 extends BackgroundService {
                                 clearEditTextFields();
 //                          BackgroundService_AP.this.stopSelf();
                             } else {
+
+                                Thread.sleep(2000);
                                 System.out.println("FS Link not connected ~~AttemptCount:" + AttemptCount);
                                 AttemptCount = AttemptCount + 1;
                             }

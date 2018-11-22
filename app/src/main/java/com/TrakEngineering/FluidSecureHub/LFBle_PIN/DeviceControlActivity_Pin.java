@@ -99,7 +99,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
     EditText etPersonnelPin;
     TextView tv_enter_pin_no, tv_ok;
     Button btnSave, btnCancel, btn_ReadFobAgain;
-    String IsPersonHasFob = "", IsOdoMeterRequire = "", IsDepartmentRequire = "", IsPersonnelPINRequire = "", IsOtherRequire = "",IsVehicleNumberRequire = "",IsGateHub;
+    String IsPersonHasFob = "", IsOdoMeterRequire = "", IsDepartmentRequire = "", IsPersonnelPINRequire = "", IsOtherRequire = "",IsVehicleNumberRequire = "",IsStayOpenGate= "",IsGateHub;
     String TimeOutinMinute;
 
     int FobReadingCount = 0;
@@ -178,7 +178,6 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
         tv_fob_number.setText("");
     }
 
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -197,7 +196,11 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
         IsPersonnelPINRequire = sharedPrefODO.getString(AppConstants.IsPersonnelPINRequire, "");
         IsOtherRequire = sharedPrefODO.getString(AppConstants.IsOtherRequire, "");
         IsVehicleNumberRequire = sharedPrefODO.getString(AppConstants.IsVehicleNumberRequire, "");
-        IsGateHub = sharedPrefODO.getString(AppConstants.IsGateHub, "");
+
+
+        SharedPreferences sharedPrefGatehub = DeviceControlActivity_Pin.this.getSharedPreferences(Constants.PREF_COLUMN_GATE_HUB, Context.MODE_PRIVATE);
+        IsGateHub = sharedPrefGatehub.getString(AppConstants.IsGateHub, "");
+        IsStayOpenGate = sharedPrefGatehub.getString(AppConstants.IsStayOpenGate, "");
 
         SharedPreferences sharedPref = DeviceControlActivity_Pin.this.getSharedPreferences(Constants.PREF_COLUMN_SITE, Context.MODE_PRIVATE);
         String dataSite = sharedPref.getString(Constants.PREF_COLUMN_SITE, "");
@@ -483,7 +486,6 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-
     private void displayData(String data) {
         if (data != null || !data.isEmpty()) {
 
@@ -599,7 +601,6 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
         return isKeyboardShown;
     }
 
-
     public void cancelAction(View v) {
 
         hideKeybord();
@@ -614,7 +615,6 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
         //AppConstants.ClearEdittextFielsOnBack(AcceptPinActivity.this); //Clear EditText on move to welcome activity.
         finish();
     }
-
 
     public void DisplayScreenInit() {
 
@@ -759,15 +759,20 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                     tv_enter_pin_no.setText("Personnel Number:" + PersonPIN);
                     System.out.println("PersonFOBNumber.." + PersonFOBNumber + "PersonPin" + PersonPIN);
                     etPersonnelPin.setText(PersonPIN);
+                    InCaseOfGateHub();
 
-                    new Handler().postDelayed(new Runnable() {
-                        @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-                        @Override
-                        public void run() {
-                            CallSaveButtonFunctionality();//Press Enter fun
-                        }
-                    }, 1000);
+                    /*if (IsGateHub.equalsIgnoreCase("True")) {
+                        InCaseOfGateHub();//skip CallSaveButtonFunctionality server call if gate hub true
 
+                    }else{
+                        new Handler().postDelayed(new Runnable() {
+                            @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
+                            @Override
+                            public void run() {
+                                CallSaveButtonFunctionality();//Press Enter fun
+                            }
+                        }, 1000);
+                    }*/
 
                 } else {
 
@@ -951,13 +956,12 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                         String IsOtherRequire = sharedPrefODO.getString(AppConstants.IsOtherRequire, "");
 
 
-                        if (IsDepartmentRequire.equalsIgnoreCase("True")) {
-
+                        if (IsDepartmentRequire.equalsIgnoreCase("True") && !IsGateHub.equalsIgnoreCase("True")) {
 
                             Intent intent = new Intent(DeviceControlActivity_Pin.this, AcceptDeptActivity.class);
                             startActivity(intent);
 
-                        } else if (IsOtherRequire.equalsIgnoreCase("True")) {
+                        } else if (IsOtherRequire.equalsIgnoreCase("True") && !IsGateHub.equalsIgnoreCase("True")) {
 
                             Intent intent = new Intent(DeviceControlActivity_Pin.this, AcceptOtherActivity.class);
                             startActivity(intent);
@@ -1034,7 +1038,6 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
             CommonUtils.showMessageDilaog(DeviceControlActivity_Pin.this, "Error Message", "Please enter Personnel Pin, and try again.");
         }
 
-
     }
 
     public class CheckVehicleRequireOdometerEntryAndRequireHourEntry extends AsyncTask<Void, Void, Void> {
@@ -1072,7 +1075,6 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
 
     }
 
-
     public void TimeoutPinScreen() {
 
         SharedPreferences sharedPrefODO = DeviceControlActivity_Pin.this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
@@ -1094,7 +1096,6 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                 if (Istimeout_Sec) {
 
                     try {
-
 
                         runOnUiThread(new Runnable() {
                             @Override
@@ -1194,6 +1195,67 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
         }
 
         return ssiteId;
+    }
+
+    public void InCaseOfGateHub(){
+
+        if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG +" InCaseOfGateHub PIN Accepted:" + etPersonnelPin.getText().toString().trim());
+
+        String vehicleNumber = "";
+
+        if (!etPersonnelPin.getText().toString().trim().isEmpty()) {
+
+            if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS1")) {
+                Constants.AccPersonnelPIN_FS1 = etPersonnelPin.getText().toString().trim();
+
+                vehicleNumber = Constants.AccVehicleNumber_FS1;
+
+            } else if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS2")) {
+                Constants.AccPersonnelPIN = etPersonnelPin.getText().toString().trim();
+
+                vehicleNumber = Constants.AccVehicleNumber;
+
+            } else if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS3")) {
+                Constants.AccPersonnelPIN_FS3 = etPersonnelPin.getText().toString().trim();
+
+                vehicleNumber = Constants.AccVehicleNumber_FS3;
+            } else {
+                Constants.AccPersonnelPIN_FS4 = etPersonnelPin.getText().toString().trim();
+                vehicleNumber = Constants.AccVehicleNumber_FS4;
+            }
+        }
+
+            Istimeout_Sec = false;
+
+
+
+        btnSave.setClickable(false);
+
+        SharedPreferences sharedPrefODO = DeviceControlActivity_Pin.this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
+        String IsPersonnelPINRequire = sharedPrefODO.getString(AppConstants.IsPersonnelPINRequire, "");
+        String IsHoursRequire = sharedPrefODO.getString(AppConstants.IsHoursRequire, "");
+        String IsDepartmentRequire = sharedPrefODO.getString(AppConstants.IsDepartmentRequire, "");
+        String IsOtherRequire = sharedPrefODO.getString(AppConstants.IsOtherRequire, "");
+
+
+        if (IsDepartmentRequire.equalsIgnoreCase("True") && !IsGateHub.equalsIgnoreCase("True")) {
+
+            Intent intent = new Intent(DeviceControlActivity_Pin.this, AcceptDeptActivity.class);
+            startActivity(intent);
+
+        } else if (IsOtherRequire.equalsIgnoreCase("True") && !IsGateHub.equalsIgnoreCase("True")) {
+
+            Intent intent = new Intent(DeviceControlActivity_Pin.this, AcceptOtherActivity.class);
+            startActivity(intent);
+
+        } else {
+
+            AcceptServiceCall asc = new AcceptServiceCall();
+            asc.activity = DeviceControlActivity_Pin.this;
+            asc.checkAllFields();
+        }
+
+
     }
 
 }

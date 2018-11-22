@@ -34,7 +34,6 @@ import java.util.regex.Pattern;
 
 import static com.TrakEngineering.FluidSecureHub.AppConstants.FluidSecureSiteName;
 import static com.TrakEngineering.FluidSecureHub.AppConstants.ISVehicleHasFob;
-import static com.TrakEngineering.FluidSecureHub.AppConstants.IsGateHub;
 import static com.TrakEngineering.FluidSecureHub.AppConstants.IsPersonHasFob;
 import static com.TrakEngineering.FluidSecureHub.AppConstants.IsVehicleNumberRequire;
 import static com.TrakEngineering.FluidSecureHub.AppConstants.WifiChannelToUse;
@@ -256,7 +255,7 @@ public class RegistrationActivity extends AppCompatActivity {
                 String ResponceMessage = jsonObj.getString(AppConstants.RES_MESSAGE);
 
                 if (ResponceMessage.equalsIgnoreCase("success")) {
-                    CommonUtils.SaveUserInPref(RegistrationActivity.this, userName, userMobile, userEmail, "","","","","", "", "","","", FluidSecureSiteName,ISVehicleHasFob, IsPersonHasFob,IsGateHub,IsVehicleNumberRequire, Integer.parseInt(WifiChannelToUse));
+                    CommonUtils.SaveUserInPref(RegistrationActivity.this, userName, userMobile, userEmail, "","","","","", "", "","","", FluidSecureSiteName,ISVehicleHasFob, IsPersonHasFob,IsVehicleNumberRequire, Integer.parseInt(WifiChannelToUse));
 
                     AlertDialogBox(RegistrationActivity.this, "Thank you for registering. \n\nYour request has been sent for the approval. You will be able to proceed with the application after your request has been approved by the administrator.");
                 } else if (ResponceMessage.equalsIgnoreCase("fail")) {

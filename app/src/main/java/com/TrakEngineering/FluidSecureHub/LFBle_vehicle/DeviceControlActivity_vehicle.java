@@ -116,7 +116,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
     private static final String TAG = "DeviceControl_vehicle";
     public static String SITE_ID = "0";
     private EditText editVehicleNumber;
-    String FSTagMacAddress = "", IsVehicleHasFob = "", IsOdoMeterRequire = "", IsDepartmentRequire = "", IsPersonnelPINRequire = "", IsPersonnelPINRequireForHub = "", IsOtherRequire = "",IsVehicleNumberRequire = "",IsGateHub = "";
+    String FSTagMacAddress = "", IsVehicleHasFob = "", IsOdoMeterRequire = "", IsDepartmentRequire = "", IsPersonnelPINRequire = "", IsPersonnelPINRequireForHub = "", IsOtherRequire = "", IsVehicleNumberRequire = "", IsStayOpenGate = "",IsGateHub = "", IsHoursRequire = "";
     Button btnCancel, btnSave, btn_ReadFobAgain, btnFStag;
     GoogleApiClient mGoogleApiClient;
     public static double CurrentLat = 0, CurrentLng = 0;
@@ -251,7 +251,11 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
         TimeOutinMinute = sharedPrefODO.getString(AppConstants.TimeOut, "1");
         IsVehicleNumberRequire = sharedPrefODO.getString(AppConstants.IsVehicleNumberRequire, "");
         AppConstants.HUB_ID = sharedPrefODO.getString(AppConstants.HubId, "");
-        IsGateHub = sharedPrefODO.getString(AppConstants.IsGateHub, "");
+
+        SharedPreferences sharedPrefGatehub = DeviceControlActivity_vehicle.this.getSharedPreferences(Constants.PREF_COLUMN_GATE_HUB, Context.MODE_PRIVATE);
+        IsGateHub = sharedPrefGatehub.getString(AppConstants.IsGateHub, "");
+        IsStayOpenGate = sharedPrefGatehub.getString(AppConstants.IsStayOpenGate, "");
+
 
 
         SharedPreferences sharedPref = DeviceControlActivity_vehicle.this.getSharedPreferences(Constants.PREF_COLUMN_SITE, Context.MODE_PRIVATE);
@@ -377,7 +381,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
         DisplayScreenInit();
         if (IsGateHub.equalsIgnoreCase("True")) {
             Istimeout_Sec = false;
-        }else{
+        } else {
             Istimeout_Sec = true;
         }
 
@@ -519,7 +523,8 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
 
             String Str_data = data.toString().trim();
             System.out.println("FOK_KEY Vehi " + Str_data);
-            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> displayData Response LF: " + Str_data);
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + " <<ForDev>> displayData Response LF: " + Str_data);
             String Str_check = Str_data.replace(" ", "");
 
             if (!Str_check.equalsIgnoreCase("000000")) {
@@ -532,7 +537,8 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
                     tv_fobkey.setText(Sep2.replace(" ", ""));
                 } catch (Exception ex) {
                     System.out.println(ex);
-                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> displayData Split Fob_Key  --Exception " + ex);
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + " <<ForDev>> displayData Split Fob_Key  --Exception " + ex);
                 }
 
                 if (!LF_FobKey.equalsIgnoreCase("")) {
@@ -540,7 +546,8 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
                     AppConstants.APDU_FOB_KEY = LF_FobKey;
                     System.out.println("Vehicle fob value" + AppConstants.APDU_FOB_KEY);
                     AppConstants.VehicleLocal_FOB_KEY = LF_FobKey;
-                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> AppConstants.VehicleLocal_FOB_KEY~" + AppConstants.VehicleLocal_FOB_KEY);
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + " <<ForDev>> AppConstants.VehicleLocal_FOB_KEY~" + AppConstants.VehicleLocal_FOB_KEY);
                     //On LF Fob read success
                     editVehicleNumber.setText("");
                     Istimeout_Sec = false;
@@ -554,7 +561,8 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
 
             if (Count < 3) {
                 // Toast.makeText(getApplicationContext(), "Attempt to read Characteristic: " + Count, Toast.LENGTH_LONG).show();
-                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> DeviceControlActivity_Vehicle displayData Attempt to read Characteristic: " + Count);
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " <<ForDev>> DeviceControlActivity_Vehicle displayData Attempt to read Characteristic: " + Count);
                 Count++;
                 if (mBluetoothLeServiceVehicle != null) {
                     // mBluetoothLeServiceVehicle.readCharacteristic(characteristic);
@@ -755,10 +763,12 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
 
                 if (AppConstants.APDU_FOB_KEY.equalsIgnoreCase("")) {
                     System.out.println(TAG + " Vehcile number entered manually: " + vehicleNumber + "  Fob: " + AppConstants.APDU_FOB_KEY);
-                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " Vehcile number entered manually: " + vehicleNumber + "  Fob: " + AppConstants.APDU_FOB_KEY);
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + " Vehcile number entered manually: " + vehicleNumber + "  Fob: " + AppConstants.APDU_FOB_KEY);
                 } else {
                     System.out.println(TAG + " Vehcile number: Read FOB:" + AppConstants.APDU_FOB_KEY + "  Read No:" + vehicleNumber);
-                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " Vehcile number: Read FOB:" + AppConstants.APDU_FOB_KEY + "  Read No:" + vehicleNumber);
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + " Vehcile number: Read FOB:" + AppConstants.APDU_FOB_KEY + "  Read No:" + vehicleNumber);
                 }
 
 
@@ -775,7 +785,8 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
 
                     if (ResponceMessage.equalsIgnoreCase("success")) {
 
-                        if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " Vehicle Accepted:" + vehicleNumber);
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + " Vehicle Accepted:" + vehicleNumber);
 
                         btnSave.setClickable(false);
                         IsNewFobVar = true;
@@ -850,12 +861,14 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
                         String ValidationFailFor = jsonObject.getString("ValidationFailFor");
                         String IsNewFob = jsonObject.getString("IsNewFob");
 
-                        if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " Vehicle rejected:" + vehicleNumber + " Error:" + ResponceText);
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + " Vehicle rejected:" + vehicleNumber + " Error:" + ResponceText);
 
                         if (ValidationFailFor.equalsIgnoreCase("Pin")) {
 
                             AppConstants.colorToastBigFont(this, ResponceText, Color.RED);
-                            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> colorToastBigFont Vehicle Activity ValidationFor Pin" + ResponceText);
+                            if (AppConstants.GenerateLogs)
+                                AppConstants.WriteinFile(TAG + " <<ForDev>> colorToastBigFont Vehicle Activity ValidationFor Pin" + ResponceText);
 
                             IsNewFobVar = true;
                             /*AppConstants.colorToastBigFont(this, "Some thing went wrong Please try again..\n"+ResponceText, Color.RED);
@@ -972,9 +985,10 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
             objEntityClass.FOBNumber = AppConstants.APDU_FOB_KEY;
             objEntityClass.IsVehicleNumberRequire = IsVehicleNumberRequire;
 
-            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG+"Vehicle Number");
+            if (AppConstants.GenerateLogs) AppConstants.WriteinFile(TAG + "Vehicle Number");
             System.out.println(TAG + " Vehcile number: Read FOB:" + AppConstants.APDU_FOB_KEY + "  Read No:" + vehicleNumber);
-            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " Vehcile number: Read FOB:" + AppConstants.APDU_FOB_KEY + "  Read No:" + vehicleNumber);
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + " Vehcile number: Read FOB:" + AppConstants.APDU_FOB_KEY + "  Read No:" + vehicleNumber);
             DeviceControlActivity_vehicle.CheckVehicleRequireOdometerEntryAndRequireHourEntry vehTestAsynTask = new DeviceControlActivity_vehicle.CheckVehicleRequireOdometerEntryAndRequireHourEntry(objEntityClass);
             vehTestAsynTask.execute();
             vehTestAsynTask.get();
@@ -992,7 +1006,8 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
 
                 if (ResponceMessage.equalsIgnoreCase("success")) {
 
-                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " Vehcile Fob Read Success");
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + " Vehcile Fob Read Success");
                     IsOdoMeterRequire = jsonObject.getString("IsOdoMeterRequire");
                     String IsHoursRequire = jsonObject.getString("IsHoursRequire");
                     String VehicleNumber = jsonObject.getString("VehicleNumber");
@@ -1024,7 +1039,8 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
                     String ResponceText = jsonObject.getString("ResponceText");
                     String ValidationFailFor = jsonObject.getString("ValidationFailFor");
 
-                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " Vehcile Fob Read Fail: " + ResponceText);
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + " Vehcile Fob Read Fail: " + ResponceText);
 
                     if (ValidationFailFor.equalsIgnoreCase("Pin")) {
 
@@ -1043,7 +1059,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
 
                         if (IsGateHub.equalsIgnoreCase("True")) {
                             Istimeout_Sec = false;
-                        }else{
+                        } else {
                             Istimeout_Sec = true;
                         }
                         TimeoutVehicleScreen();
@@ -1498,7 +1514,8 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
             } catch (Exception e) {
                 pd.dismiss();
                 System.out.println("Ex" + e.getMessage());
-                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> GetVehicleByFSTagMacAddress doInBackground --Exception " + e);
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " <<ForDev>> GetVehicleByFSTagMacAddress doInBackground --Exception " + e);
             }
 
 
@@ -1529,12 +1546,12 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
                         editVehicleNumber.setText(VehicleNumber);
                         //AppConstants.colorToastBigFont(DeviceControlActivity_vehicle.this, "VehicleNumber: "+VehicleNumber, Color.GREEN);
 
-                        FstagCustomMessageDilaog(DeviceControlActivity_vehicle.this,"Message","Vehicle Number Found: "+VehicleNumber);
+                        FstagCustomMessageDilaog(DeviceControlActivity_vehicle.this, "Message", "Vehicle Number Found: " + VehicleNumber);
 
 
-                    }else{
+                    } else {
 
-                        CommonUtils.showCustomMessageDilaog(DeviceControlActivity_vehicle.this,"Message",ResponceText);
+                        CommonUtils.showCustomMessageDilaog(DeviceControlActivity_vehicle.this, "Message", ResponceText);
                         //AppConstants.colorToastBigFont(DeviceControlActivity_vehicle.this, ResponceText, Color.RED);
                     }
 
@@ -1590,6 +1607,56 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
 
             }
         });
+
+    }
+
+    public void InCaseOfGatehub() {
+
+        btnSave.setClickable(false);
+        IsNewFobVar = true;
+
+        SharedPreferences sharedPrefODO = DeviceControlActivity_vehicle.this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
+
+        IsDepartmentRequire = sharedPrefODO.getString(AppConstants.IsDepartmentRequire, "");
+        IsPersonnelPINRequire = sharedPrefODO.getString(AppConstants.IsPersonnelPINRequire, "");
+        IsPersonnelPINRequireForHub = sharedPrefODO.getString(AppConstants.IsPersonnelPINRequireForHub, "");
+        IsOtherRequire = sharedPrefODO.getString(AppConstants.IsOtherRequire, "");
+        IsHoursRequire = sharedPrefODO.getString(AppConstants.IsHoursRequire, "");
+
+
+        if (IsOdoMeterRequire.equalsIgnoreCase("True") && !IsGateHub.equalsIgnoreCase("True")) {
+
+            Intent intent = new Intent(DeviceControlActivity_vehicle.this, AcceptOdoActivity.class);//AcceptPinActivity
+            startActivity(intent);
+
+        } else if (IsHoursRequire.equalsIgnoreCase("True") && !IsGateHub.equalsIgnoreCase("True")) {
+
+            Intent intent = new Intent(DeviceControlActivity_vehicle.this, AcceptHoursAcitvity.class);
+            startActivity(intent);
+
+        } else if (IsPersonnelPINRequireForHub.equalsIgnoreCase("True")) {
+
+            Intent intent = new Intent(DeviceControlActivity_vehicle.this, DeviceControlActivity_Pin.class);//AcceptPinActivity
+            startActivity(intent);
+
+        } else if (IsDepartmentRequire.equalsIgnoreCase("True") && !IsGateHub.equalsIgnoreCase("True")) {
+
+
+            Intent intent = new Intent(DeviceControlActivity_vehicle.this, AcceptDeptActivity.class);
+            startActivity(intent);
+
+        } else if (IsOtherRequire.equalsIgnoreCase("True") && !IsGateHub.equalsIgnoreCase("True")) {
+
+            Intent intent = new Intent(DeviceControlActivity_vehicle.this, AcceptOtherActivity.class);
+            startActivity(intent);
+
+        } else {
+
+            AcceptServiceCall asc = new AcceptServiceCall();
+            asc.activity = DeviceControlActivity_vehicle.this;
+            asc.checkAllFields();
+        }
+
 
     }
 

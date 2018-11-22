@@ -37,7 +37,7 @@ public class AcceptServiceCall {
 
     private ConnectionDetector cd;
     public Activity activity;
-    String IsOdoMeterRequire = "", IsDepartmentRequire = "", IsPersonnelPINRequire = "", IsOtherRequire = "", IsVehicleNumberRequire = "", IsGateHub = "";
+    String IsOdoMeterRequire = "", IsDepartmentRequire = "", IsPersonnelPINRequire = "", IsOtherRequire = "", IsVehicleNumberRequire = "", IsStayOpenGate = "", IsGateHub = "";
     private static final String TAG = "AcceptServiceCall";
     long stopAutoFuelSecondstemp = 0;
 
@@ -68,6 +68,45 @@ public class AcceptServiceCall {
         IsOtherRequire = sharedPrefODO.getString(AppConstants.IsOtherRequire, "");
         IsVehicleNumberRequire = sharedPrefODO.getString(AppConstants.IsVehicleNumberRequire, "");
         IsGateHub = sharedPrefODO.getString(AppConstants.IsGateHub, "flase");
+
+        SharedPreferences sharedPrefGatehub = activity.getSharedPreferences(Constants.PREF_COLUMN_GATE_HUB, Context.MODE_PRIVATE);
+        IsGateHub = sharedPrefGatehub.getString(AppConstants.IsGateHub, "flase");
+        IsStayOpenGate = sharedPrefGatehub.getString(AppConstants.IsStayOpenGate, "");
+
+        if (IsGateHub.equalsIgnoreCase("True") && IsStayOpenGate.equalsIgnoreCase("True") && (Constants.GateHubPinNo.equalsIgnoreCase("") || Constants.GateHubvehicleNo.equalsIgnoreCase(""))){
+
+            try {
+                if (Constants.AccPersonnelPIN_FS1 == null ){
+                    Constants.GateHubPinNo = "";
+                }else if (Constants.AccPersonnelPIN_FS1.equals("")){
+                   //Do nothing
+                }else{
+                    Constants.GateHubPinNo = Constants.AccPersonnelPIN_FS1;
+                }
+
+                if (Constants.AccVehicleNumber_FS1 == null ){
+                    Constants.GateHubvehicleNo = "";
+                }else if (Constants.AccVehicleNumber_FS1.equals("")){
+                    //Do nothing
+                }
+                else{
+                    Constants.GateHubvehicleNo = Constants.AccVehicleNumber_FS1;
+                }
+
+            }catch (NullPointerException e){
+                e.printStackTrace();
+            }
+
+        }else if (IsGateHub.equalsIgnoreCase("True") && IsStayOpenGate.equalsIgnoreCase("True") && (!Constants.GateHubPinNo.equalsIgnoreCase("") || !Constants.GateHubvehicleNo.equalsIgnoreCase(""))){
+
+            Constants.AccPersonnelPIN_FS1 = Constants.GateHubPinNo ;
+            Constants.AccVehicleNumber_FS1 = Constants.GateHubvehicleNo;
+
+        }else if (!IsGateHub.equalsIgnoreCase("True") && !IsStayOpenGate.equalsIgnoreCase("True")){
+
+            Constants.GateHubPinNo = "";
+            Constants.GateHubvehicleNo = "";
+        }
 
         String pinNumber = "";
         String vehicleNumber = "";

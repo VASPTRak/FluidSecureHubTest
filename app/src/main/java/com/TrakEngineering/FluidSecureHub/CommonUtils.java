@@ -464,6 +464,15 @@ public class CommonUtils {
 
     }
 
+    public static void SaveDataInPrefForGatehub (Activity activity, String IsGateHub, String IsStayOpenGate) {
+
+        SharedPreferences sharedPref = activity.getSharedPreferences(Constants.PREF_COLUMN_GATE_HUB, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putString(AppConstants.IsGateHub, IsGateHub);
+        editor.putString(AppConstants.IsStayOpenGate, IsStayOpenGate);
+        editor.commit();
+    }
+
     public static void SaveDataInPref(Activity activity, String data, String valueType) {
 
         SharedPreferences sharedPref = activity.getSharedPreferences(Constants.PREF_COLUMN_SITE, Context.MODE_PRIVATE);
@@ -473,7 +482,7 @@ public class CommonUtils {
     }
 
     public static void SaveUserInPref(Activity activity, String userName, String userMobile, String userEmail, String IsOdoMeterRequire,
-                                      String IsDepartmentRequire, String IsPersonnelPINRequire, String IsOtherRequire, String IsHoursRequire, String OtherLabel, String TimeOut, String HubId, String IsPersonnelPINRequireForHub, String fluidSecureSiteName, String IsVehicleHasFob, String isPersonHasFob,String IsGateHub,String IsVehicleNumberRequire,int WifiChannelToUse) {
+                                      String IsDepartmentRequire, String IsPersonnelPINRequire, String IsOtherRequire, String IsHoursRequire, String OtherLabel, String TimeOut, String HubId, String IsPersonnelPINRequireForHub, String fluidSecureSiteName, String IsVehicleHasFob, String isPersonHasFob,String IsVehicleNumberRequire,int WifiChannelToUse) {
 
         SharedPreferences sharedPref = activity.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPref.edit();
@@ -493,7 +502,6 @@ public class CommonUtils {
         editor.putString(ISVehicleHasFob,  IsVehicleHasFob);
         editor.putString(IsPersonHasFob,  isPersonHasFob);
         editor.putString(FluidSecureSiteName,  fluidSecureSiteName);
-        editor.putString(AppConstants.IsGateHub,  IsGateHub);
         editor.putString(AppConstants.IsVehicleNumberRequire,  IsVehicleNumberRequire);
         editor.putInt(AppConstants.WifiChannelToUse,  WifiChannelToUse);
 

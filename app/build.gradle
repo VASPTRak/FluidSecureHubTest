@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 27
-    buildToolsVersion '27.0.3'
+    buildToolsVersion '28.0.3'
 
     dexOptions {
         preDexLibraries = false
@@ -14,7 +14,7 @@ android {
         minSdkVersion 18
         targetSdkVersion 27
         versionCode 47
-        versionName "0.36.14"
+        versionName "0.36.24"
         multiDexEnabled true
     }
     buildTypes {

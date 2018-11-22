@@ -486,6 +486,7 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
                     String LFBluetoothCardReaderMacAddress = jsonObject.getString("LFBluetoothCardReaderMacAddress");
                     String IsLogging = jsonObject.getString("IsLogging");
                     String IsGateHub = jsonObject.getString("IsGateHub");
+                    String IsStayOpenGate = jsonObject.getString("StayOpenGate");
                     String IsVehicleNumberRequire = jsonObject.getString("IsVehicleNumberRequire");
                     int WifiChannelToUse = jsonObject.getInt("WifiChannelToUse");
                     boolean fa_data = Boolean.parseBoolean(jsonObject.getString("EnbDisHubForFA"));
@@ -494,11 +495,12 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
                     CommonUtils.SaveLogFlagInPref(SplashActivity.this,IsLogging,"LogRequiredFlag");//Save logging to preferances
                     storeBT_FOBDetails(BluetoothCardReader, BluetoothCardReaderMacAddress,LFBluetoothCardReader,LFBluetoothCardReaderMacAddress);
 
+                    CommonUtils.SaveDataInPrefForGatehub (SplashActivity.this, IsGateHub, IsStayOpenGate);
 
                     System.out.println("BluetoothCardReader--" + response);
 
                     if (IsApproved.equalsIgnoreCase("True")) {
-                        CommonUtils.SaveUserInPref(SplashActivity.this, userName, userMobile, userEmail, "", IsDepartmentRequire, IsPersonnelPINRequire, IsOtherRequire, "", OtherLabel, TimeOut, HubId, IsPersonnelPINRequireForHub, FluidSecureSiteName,IsVehicleHasFob,IsPersonHasFob,IsGateHub,IsVehicleNumberRequire,WifiChannelToUse);
+                        CommonUtils.SaveUserInPref(SplashActivity.this, userName, userMobile, userEmail, "", IsDepartmentRequire, IsPersonnelPINRequire, IsOtherRequire, "", OtherLabel, TimeOut, HubId, IsPersonnelPINRequireForHub, FluidSecureSiteName,IsVehicleHasFob,IsPersonHasFob,IsVehicleNumberRequire,WifiChannelToUse);
 
                         if (IsLoginRequire.trim().equalsIgnoreCase("True")) {
                             AppConstants.Login_Email = userEmail;

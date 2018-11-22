@@ -174,7 +174,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     static WifiApManager wifiApManager;
     boolean isTCancelled = false;
     int RetryOneAtemptConnectToSelectedSSSID = 0;
-    String ReaderFrequency = "", IsOdoMeterRequire = "", IsDepartmentRequire = "", IsPersonnelPINRequireForHub = "", IsPersonnelPINRequire = "", IsOtherRequire = "", IsGateHub = "", IsVehicleNumberRequire = "";
+    String ReaderFrequency = "", IsOdoMeterRequire = "", IsDepartmentRequire = "", IsPersonnelPINRequireForHub = "", IsPersonnelPINRequire = "", IsOtherRequire = "", IsGateHub = "",IsStayOpenGate = "", IsVehicleNumberRequire = "";
     int WifiChannelToUse = 11;
     BroadcastReceiver mReceiver;
     //Upgrade firmware status for each hose
@@ -311,6 +311,10 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 //         Scan for Near-by BLE devices
 //         ListOfBleDevices.clear();
 //         scanLeDevice(true);
+
+        //Reconnect BT reader if disconnected
+        ConnectCount = 0;
+        ReConnectBTReader();
 
         // only when screen turns on
         if (!ScreenReceiver.screenOff) {
@@ -452,8 +456,9 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
         InItGUI();
 
-        SharedPreferences sharedPrefODO = WelcomeActivity.this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
-        IsGateHub = sharedPrefODO.getString(AppConstants.IsGateHub, "");
+        SharedPreferences sharedPrefGatehub = WelcomeActivity.this.getSharedPreferences(Constants.PREF_COLUMN_GATE_HUB, Context.MODE_PRIVATE);
+        IsGateHub = sharedPrefGatehub.getString(AppConstants.IsGateHub, "");
+        IsStayOpenGate = sharedPrefGatehub.getString(AppConstants.IsStayOpenGate, "");
 
         tv_request = (TextView) findViewById(R.id.tv_request);
         tv_response = (TextView) findViewById(R.id.tv_response);
@@ -468,7 +473,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         UpdateServerMessages();
         DownloadFile();
 
-                    /*//TODO  BackgroundServiceFSNP
+                   /* //TODO  BackgroundServiceFSNP
                     new Handler().postDelayed(new Runnable() {
                         @Override
                         public void run() {
@@ -949,10 +954,6 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                                 GateHubStartTransaction(HTTP_URL);
                                                 //================Temp Code============================
 
-                                                //Reconnect BT reader if disconnected
-                                                ConnectCount = 0;
-                                                ReConnectBTReader();
-
                                                 // goButtonAction(null);
                                                 new GetSSIDUsingLocationOnResume().execute();//temp to solve crash issue
 
@@ -1285,7 +1286,6 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
     private void startWelcomeActivity() {
 
-        btnGo.setClickable(false);
 
         SharedPreferences sharedPrefODO = WelcomeActivity.this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
 
@@ -1308,11 +1308,25 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
         //   if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " Selected hose: " + AppConstants.CURRENT_SELECTED_SSID);
 
-        if (IsVehicleNumberRequire.equalsIgnoreCase("True")) {
+        if (IsGateHub.equalsIgnoreCase("True") && IsStayOpenGate.equalsIgnoreCase("True") && (!Constants.GateHubPinNo.equalsIgnoreCase("") || !Constants.GateHubvehicleNo.equalsIgnoreCase(""))){
+
+            //Toast.makeText(getApplicationContext()," IsStayOpenGate True",Toast.LENGTH_LONG).show();
+            AcceptServiceCall asc = new AcceptServiceCall();
+            asc.activity = WelcomeActivity.this;
+            asc.checkAllFields();
+
+        }else if (IsVehicleNumberRequire.equalsIgnoreCase("True")) {
+
+            btnGo.setClickable(false);
+            Constants.GateHubPinNo = "";
+            Constants.GateHubvehicleNo = "";
             Intent intent = new Intent(WelcomeActivity.this, DeviceControlActivity_vehicle.class);
             startActivity(intent);
         } else {
 
+            btnGo.setClickable(false);
+            Constants.GateHubPinNo = "";
+            Constants.GateHubvehicleNo = "";
             Intent intent = new Intent(WelcomeActivity.this, DeviceControlActivity_Pin.class);
             startActivity(intent);
         }
@@ -1729,9 +1743,14 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                     JSONObject jsonObjectSite = new JSONObject(result);
                     String ResponseMessageSite = jsonObjectSite.getString(AppConstants.RES_MESSAGE);
+                    String userData = jsonObjectSite.getString(AppConstants.RES_DATA_USER);
+                    JSONObject jsonObject = new JSONObject(userData);
 
                     if (ResponseMessageSite.equalsIgnoreCase("success")) {
 
+                         IsGateHub = jsonObject.getString("IsGateHub");
+                         IsStayOpenGate = jsonObject.getString("StayOpenGate");
+                        CommonUtils.SaveDataInPrefForGatehub (WelcomeActivity.this, IsGateHub, IsStayOpenGate);
                         JSONArray Requests = jsonObjectSite.getJSONArray(AppConstants.RES_DATA_SSID);
 
                         if (Requests.length() > 0) {
@@ -1912,8 +1931,14 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                     JSONObject jsonObjectSite = new JSONObject(result);
                     String ResponseMessageSite = jsonObjectSite.getString(AppConstants.RES_MESSAGE);
+                    String userData = jsonObjectSite.getString(AppConstants.RES_DATA_USER);
+                    JSONObject jsonObject = new JSONObject(userData);
 
                     if (ResponseMessageSite.equalsIgnoreCase("success")) {
+
+                        IsGateHub = jsonObject.getString("IsGateHub");
+                        IsStayOpenGate = jsonObject.getString("StayOpenGate");
+                        CommonUtils.SaveDataInPrefForGatehub (WelcomeActivity.this, IsGateHub, IsStayOpenGate);
 
                         BackgroundServiceKeepDataTransferAlive.SSIDList.clear();//clear SSIDList
 
@@ -1923,7 +1948,6 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                             for (int i = 0; i < Requests.length(); i++) {
                                 JSONObject c = Requests.getJSONObject(i);
-
 
                                 String SiteId = c.getString("SiteId");
                                 String SiteNumber = c.getString("SiteNumber");
@@ -1992,14 +2016,13 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         try {
 
                             String ReconfigureLink = serverSSIDList.get(0).get("ReconfigureLink");
-                            SharedPreferences sharedPrefODO = WelcomeActivity.this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
-                            IsGateHub = sharedPrefODO.getString(AppConstants.IsGateHub, "");
-                            if (serverSSIDList != null && serverSSIDList.size() == 1 && IsGateHub.equalsIgnoreCase("True") && Constants.FS_1STATUS.equalsIgnoreCase("FREE")) {
+                           if (serverSSIDList != null && serverSSIDList.size() == 1 && IsGateHub.equalsIgnoreCase("True") && Constants.FS_1STATUS.equalsIgnoreCase("FREE")) {
 
-                                Thread.sleep(1000);
-                                tvSSIDName.setText(serverSSIDList.get(0).get("WifiSSId"));
-                                OnHoseSelected_OnClick(Integer.toString(0));
-                                goButtonAction(null);
+                               Thread.sleep(1000);
+                               tvSSIDName.setText(serverSSIDList.get(0).get("WifiSSId"));
+                               OnHoseSelected_OnClick(Integer.toString(0));
+                               goButtonAction(null);
+
 
                                 //&& ReconfigureLink.equalsIgnoreCase("true")
                             } else if (serverSSIDList != null && serverSSIDList.size() == 1 && Constants.FS_1STATUS.equalsIgnoreCase("FREE")) {
@@ -5623,36 +5646,6 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
     }
 
-    public void RetryHfreaderConnection() {
-
-        Thread t = new Thread() {
-
-            @Override
-            public void run() {
-                try {
-                    while (!isInterrupted()) {
-                        Thread.sleep(300000);
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-
-                                ConnectCount = 0;
-                                //Reconnect BT reader if disconnected
-                                ReConnectBTReader();
-                                Log.i(TAG, "Retry Connecting HF reader");
-                                //AppConstants.WriteTimeStamp(TAG + " Retry Connecting HF reader");
-                            }
-                        });
-                    }
-                } catch (InterruptedException e) {
-                }
-            }
-        };
-
-        t.start();
-
-
-    }
 
     public int getDate(String CurrentTime) {
 
