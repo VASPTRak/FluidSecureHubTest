@@ -236,7 +236,7 @@ public class BackgroundService_FS_UNIT_4 extends BackgroundService {
                 imap.put("authString", authString);
 
                 sqliteID = controller.insertTransactions(imap);
-
+                CommonUtils.AddRemovecurrentTransactionList(true,TransactionId);//Add transaction Id to list
                 //////////////////////////////////////////////////////////////
 
 
@@ -670,6 +670,16 @@ public class BackgroundService_FS_UNIT_4 extends BackgroundService {
             @Override
             public void onFailure(Request request, IOException e) {
                 Log.e(TAG, "error in getting response using async okhttp call");
+                //Temp code..
+                CommonUtils.AddRemovecurrentTransactionList(false,TransactionId);//Remove transaction Id from list
+                System.out.println("FS Link not connected" + listOfConnectedIP_FS_UNIT_4);
+                if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+" <<ForDev>> ~~~~error FS Link not connected~~~~~~~");
+                stopTimer = false;
+                new CommandsPOST().execute(URL_RELAY, jsonRelayOff);
+                Constants.FS_4STATUS = "FREE";
+                clearEditTextFields();
+
+
             }
 
             @SuppressLint("LongLogTag")
@@ -1218,6 +1228,7 @@ public class BackgroundService_FS_UNIT_4 extends BackgroundService {
 
     public void TransactionCompleteFunction() {
 
+        CommonUtils.AddRemovecurrentTransactionList(false,TransactionId);//Remove transaction Id from list
 
         if (IsTLDCall.equalsIgnoreCase("True")) {
             TankMonitorReading(); //Get Tank Monitor Reading and save it to server
@@ -1436,7 +1447,7 @@ public class BackgroundService_FS_UNIT_4 extends BackgroundService {
             //Get TankMonitoring details from FluidSecure Link
             String response1 = new CommandsGET().execute(URL_TDL_info).get();
             // String response1 = "{  \"tld\":{ \"level\":\"180, 212, 11, 34, 110, 175, 1, 47, 231, 15, 78, 65\"  }  }";
-            if (AppConstants.GenerateLogs)AppConstants.WriteinFile("\n" + TAG + " TankMonitorReading ~~~URL_TDL_info_Resp~~\n" + response1);
+            //if (AppConstants.GenerateLogs)AppConstants.WriteinFile("\n" + TAG + " TankMonitorReading ~~~URL_TDL_info_Resp~~\n" + response1);
 
             if (response1.equalsIgnoreCase("")){
                 System.out.println("TLD response empty");
@@ -1455,6 +1466,7 @@ public class BackgroundService_FS_UNIT_4 extends BackgroundService {
                     Tem_data = tld.getString("Tem_data");
                     String Checksum = tld.getString("Checksum");
 
+                    AppConstants.WriteinFile(TAG + " <<ForDev>> TLD Reading:"+" Mac Address:"+mac_address+" Sensor ID:"+Sensor_ID+" Response code:"+Response_code+" LSB:"+LSB+" MSB:"+MSB+" Temperature data:"+Tem_data+" Checksum:"+Checksum);
 
                     //Get mac address of probe
                     //String mac_str = GetMacAddressOfProbe(level);

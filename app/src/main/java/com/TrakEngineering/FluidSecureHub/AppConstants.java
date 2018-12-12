@@ -119,6 +119,7 @@ public class AppConstants {
 
 
     public static String Title = "";
+    public static String SiteName = "";
     public static String HubName;
     public static String HubGeneratedpassword;
     public static String Login_Email;
@@ -179,8 +180,9 @@ public class AppConstants {
 
     public static ArrayList<HashMap<String, String>> DetailsServerSSIDList;
     public static ArrayList<HashMap<String, String>> DetailsListOfConnectedDevices;
-
     public static ArrayList<HashMap<String, String>> test;
+
+    public static ArrayList<String> ListOfRunningTransactiins = new ArrayList<>();
 
     public static double roundNumber(double value, int places) {
         if (places < 0) throw new IllegalArgumentException();

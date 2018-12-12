@@ -106,8 +106,6 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
     int FobRetryCount = 0;
 
     Timer t, ScreenOutTime;
-    //-------------------------
-
 
     // Code to manage Service lifecycle.
     private final ServiceConnection mServiceConnection = new ServiceConnection() {
@@ -506,7 +504,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                     if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+" <<ForDev>> displayData Split Fob_Key  --Exception " + ex);
                 }
 
-                if (!LF_FobKey.equalsIgnoreCase("")) {
+                if (!LF_FobKey.equalsIgnoreCase("" ) && LF_FobKey.length() > 5) {//
                     //tv_enter_pin_no.setText("Fob Read Successfully");
                     tv_fob_number.setText("");//"Fob No: " + LF_FobKey
                     AppConstants.PinLocal_FOB_KEY = LF_FobKey;
@@ -715,7 +713,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
         tv_fob_Reader.setVisibility(View.GONE);
         tv_or.setVisibility(View.GONE);
         tv_enter_pin_no.setVisibility(View.VISIBLE);
-        tv_ok.setText("fob/card Read Successfully");
+        tv_ok.setText("Fob / Card read successfully");
         tv_dont_have_fob.setVisibility(View.GONE);
         etPersonnelPin.setVisibility(View.GONE);
         Linear_layout_Save_back_buttons.setVisibility(View.GONE);

@@ -71,8 +71,8 @@ public class DBController extends SQLiteOpenHelper {
         Log.d(LOGCAT, "delete");
         SQLiteDatabase database = this.getWritableDatabase();
         String deleteQuery = "DELETE FROM  Tbl_FSTransStatus where transId='" + TransID + "'";
-        Log.d("query", deleteQuery);
         database.execSQL(deleteQuery);
+        //Log.d("query", deleteQuery);  //temp cmt
     }
 
     public long insertTransStatus(HashMap<String, String> queryValues) {

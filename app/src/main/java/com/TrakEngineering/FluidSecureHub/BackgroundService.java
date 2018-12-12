@@ -17,6 +17,7 @@ import com.squareup.okhttp.Request;
 import com.squareup.okhttp.RequestBody;
 import com.squareup.okhttp.Response;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
@@ -31,6 +32,7 @@ public class BackgroundService extends Service {
 
     ServerHandler serverHandler = new ServerHandler();
     DBController controller = new DBController(BackgroundService.this);
+    public static String TAG = "BackgroundService";
 
     @Nullable
     @Override
@@ -61,6 +63,7 @@ public class BackgroundService extends Service {
 
         }
 
+
         ArrayList<HashMap<String, String>> uData = controller.getAllTransaction();
 
         if (uData != null && uData.size() > 0) {
@@ -71,7 +74,23 @@ public class BackgroundService extends Service {
                 String jsonData = uData.get(i).get("jsonData");
                 String authString = uData.get(i).get("authString");
 
-                new UploadTask().execute(Id, jsonData, authString);
+                try {
+                    JSONObject jsonObject = new JSONObject(jsonData);
+                    String txn = String.valueOf(jsonObject.get("TransactionId"));
+                    if (AppConstants.ListOfRunningTransactiins.contains(txn)){
+                        //transaction running
+                        Log.i(TAG,"Transaction is in progress"+txn);
+
+                    }else{
+                        //transaction completed
+                        new UploadTask().execute(Id, jsonData, authString);
+                    }
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> Transaction is in progress UploadTask--Exception " + e);
+                }
+
 
             }
 

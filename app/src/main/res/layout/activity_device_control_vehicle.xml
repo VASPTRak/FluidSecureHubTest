@@ -78,7 +78,7 @@
                     android:textColor="@color/black"
                     android:textAppearance="?android:attr/textAppearanceLarge"
                     android:textAllCaps="false"
-                    android:text="Present your Vehicle FOB  below"
+                    android:text="Present your vehicle Fob / Card Below"
                     android:textSize="@dimen/go_button_text" />
 
                 <TextView
@@ -118,8 +118,8 @@
                     android:id="@+id/tv_enter_vehicle_no"
                     android:gravity="center"
                     android:textStyle="bold"
-                    android:paddingLeft="100dp"
-                    android:paddingRight="100dp"
+                    android:paddingLeft="80dp"
+                    android:paddingRight="80dp"
                     android:layout_marginTop="25dp"
                     android:layout_marginBottom="20dp"
                     android:text="Please wait.."
@@ -162,7 +162,7 @@
                     android:imeOptions="actionDone"
                     android:inputType="number|text"
                     android:gravity="center"
-                    android:maxLength="10"
+                    android:maxLength="20"
                     android:padding="5sp"
                     android:singleLine="true"
                     android:textAppearance="?android:attr/textAppearanceLarge"

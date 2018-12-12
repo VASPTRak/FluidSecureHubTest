@@ -860,7 +860,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
         String HubId = sharedPrefODO.getString(AppConstants.HubId, "");
 
         BtnStartStateChange(false);
-        btnCancel.setClickable(false);
+        //btnCancel.setClickable(false);
         Istimeout_Sec = false;
         String macaddress = AppConstants.SELECTED_MACADDRESS;
 

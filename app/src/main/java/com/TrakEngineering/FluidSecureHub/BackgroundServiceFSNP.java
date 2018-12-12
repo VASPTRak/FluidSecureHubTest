@@ -928,7 +928,7 @@ public class BackgroundServiceFSNP extends BackgroundService {
             paramObject.put("FSTagMacAddress", FSTagMacAddress);
 
 
-            Call<ServerResponse> call = service.post(authString, paramObject.toString());
+            Call<ServerResponse> call = service.postttt(authString, paramObject.toString());
 
             call.enqueue(new Callback<ServerResponse>() {
                 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)

@@ -1,7 +1,6 @@
 package com.TrakEngineering.FluidSecureHub;
 
 import android.annotation.SuppressLint;
-import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.AlertDialog;
@@ -10,12 +9,10 @@ import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.app.admin.DevicePolicyManager;
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
-import android.bluetooth.le.BluetoothLeScanner;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -23,11 +20,12 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.IntentSender;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationManager;
-import android.net.Uri;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
@@ -37,11 +35,16 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.PowerManager;
-import android.os.SystemClock;
 import android.provider.Settings;
 import android.support.annotation.RequiresApi;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.telephony.CellInfoGsm;
+import android.telephony.CellSignalStrengthGsm;
+import android.telephony.PhoneStateListener;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -52,18 +55,18 @@ import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.Spinner;
-import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.TrakEngineering.FluidSecureHub.BackgroundServiceNew.MyService_FSNP;
+import com.TrakEngineering.FluidSecureHub.EddystoneScanner.EddystoneScannerService;
+import com.TrakEngineering.FluidSecureHub.EddystoneScanner.SampleBeacon;
 import com.TrakEngineering.FluidSecureHub.LFBle_PIN.DeviceControlActivity_Pin;
 import com.TrakEngineering.FluidSecureHub.LFBle_vehicle.DeviceControlActivity_vehicle;
 import com.TrakEngineering.FluidSecureHub.WifiHotspot.WifiApManager;
@@ -73,7 +76,11 @@ import com.TrakEngineering.FluidSecureHub.enity.StatusForUpgradeVersionEntity;
 import com.TrakEngineering.FluidSecureHub.enity.UpdateMacAddressClass;
 import com.TrakEngineering.FluidSecureHub.enity.UpgradeVersionEntity;
 import com.TrakEngineering.FluidSecureHub.enity.UserInfoEntity;
-import com.TrakEngineering.FluidSecureHub.server.DownloadFileHttp;
+import com.TrakEngineering.FluidSecureHub.retrofit.BusProvider;
+import com.TrakEngineering.FluidSecureHub.retrofit.ErrorEvent;
+import com.TrakEngineering.FluidSecureHub.retrofit.Interface;
+import com.TrakEngineering.FluidSecureHub.retrofit.ServerEvent;
+import com.TrakEngineering.FluidSecureHub.retrofit.ServerResponse;
 import com.TrakEngineering.FluidSecureHub.server.MyServer;
 import com.TrakEngineering.FluidSecureHub.server.ServerHandler;
 import com.acs.bluetooth.Acr1255uj1Reader;
@@ -111,6 +118,7 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
@@ -125,20 +133,16 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
 import java.util.Timer;
 import java.util.concurrent.TimeUnit;
 
 import static android.os.Build.VERSION.SDK_INT;
-import static com.TrakEngineering.FluidSecureHub.R.id.pin;
 import static com.TrakEngineering.FluidSecureHub.R.id.textView;
 import static com.TrakEngineering.FluidSecureHub.server.MyServer.ctx;
 import static com.TrakEngineering.FluidSecureHub.server.ServerHandler.TEXT;
-import static com.google.android.gms.internal.zzid.runOnUiThread;
 
 
-public class WelcomeActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, View.OnClickListener, View.OnTouchListener {
-
+public class WelcomeActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, View.OnClickListener, View.OnTouchListener, ServiceConnection, EddystoneScannerService.OnBeaconEventListener {
 
     private String TAG = "WelcomeActivity ";
     private float density;
@@ -151,7 +155,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     private TextView textDateTime, tv_fs1_Qty, tv_fs2_Qty, tv_fs3_Qty, tv_fs4_Qty, tv_FS1_hoseName, tv_FS2_hoseName, tv_FS3_hoseName,
             tv_FS4_hoseName, tv_fs1_stop, tv_fs2_stop, tv_fs3_stop, tv_fs4_stop, tv_fs1QTN, tv_fs2QTN, tv_fs3QTN, tv_fs4QTN, tv_fs1_pulseTxt, tv_fs2_pulseTxt, tv_fs3_pulseTxt, tv_fs4_pulseTxt, tv_fs1_Pulse, tv_fs2_Pulse, tv_fs3_Pulse, tv_fs4_Pulse;
     private ImageView imgFuelLogo;
-    private TextView tvTitle;
+    private TextView tvTitle, tv_SiteName;
     private Spinner SpinBroadcastChannel;
     private Button btnGo, btnRetryWifi, btn_clear_data;
     private ConnectionDetector cd;
@@ -174,7 +178,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     static WifiApManager wifiApManager;
     boolean isTCancelled = false;
     int RetryOneAtemptConnectToSelectedSSSID = 0;
-    String ReaderFrequency = "", IsOdoMeterRequire = "", IsDepartmentRequire = "", IsPersonnelPINRequireForHub = "", IsPersonnelPINRequire = "", IsOtherRequire = "", IsGateHub = "",IsStayOpenGate = "", IsVehicleNumberRequire = "";
+    String ReaderFrequency = "", IsOdoMeterRequire = "", IsDepartmentRequire = "", IsPersonnelPINRequireForHub = "", IsPersonnelPINRequire = "", IsOtherRequire = "", IsGateHub = "", IsStayOpenGate = "", IsVehicleNumberRequire = "";
     int WifiChannelToUse = 11;
     BroadcastReceiver mReceiver;
     //Upgrade firmware status for each hose
@@ -182,6 +186,14 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     public static boolean IsUpgradeInprogress_FS2 = false;
     public static boolean IsUpgradeInprogress_FS3 = false;
     public static boolean IsUpgradeInprogress_FS4 = false;
+
+    private static final int EXPIRE_TIMEOUT = 5000;
+    private static final int EXPIRE_TASK_PERIOD = 1000;
+
+    //EddystoneScannerService
+    private EddystoneScannerService mService;
+    private ArrayAdapter<SampleBeacon> mAdapter;
+    private ArrayList<SampleBeacon> mAdapterItems;
 
     //FS For Stopbutton
     String PhoneNumber;
@@ -298,6 +310,14 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     protected void onResume() {
         super.onResume();
 
+        //EddystoneScannerService
+        if (checkBluetoothStatus()) {
+            Intent intent = new Intent(this, EddystoneScannerService.class);
+            bindService(intent, this, BIND_AUTO_CREATE);
+
+            mHandler.post(mPruneTask);
+        }
+
         /*//TODO MyServer FSVM
         ctx = WelcomeActivity.this;
         try {
@@ -312,20 +332,13 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 //         ListOfBleDevices.clear();
 //         scanLeDevice(true);
 
+        IsFARequired();//Enable disable FA on Checkbox on ui
+
         //Reconnect BT reader if disconnected
         ConnectCount = 0;
         ReConnectBTReader();
 
-        // only when screen turns on
-        if (!ScreenReceiver.screenOff) {
-            // this is when onResume() is called due to a screen state change
-            Log.i(TAG, "SCREEN TURNED ON");
-        } else {
-            Log.i(TAG, "this is when onResume() is called when the screen state has not changed ");
-        }
-
-
-        tvSSIDName.setText("Select");
+        tvSSIDName.setText("Select hose to use");
         SelectedItemPos = -1;
 
         final IntentFilter intentFilter = new IntentFilter();
@@ -353,10 +366,13 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         AppConstants.DetailsListOfConnectedDevices = new ArrayList<>();
         new GetConnectedDevicesIP().execute();
 
+
         if (IsGateHub.equalsIgnoreCase("True")) {
 
             if (serverSSIDList.size() == 0) {
+
                 new GetSSIDUsingLocationOnResume().execute();
+
             } else {
                 OnWelcomeActivity = true;
                 CheckForGateSoftware(); //Check ForGateSoftware
@@ -366,18 +382,21 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         }
 
         UpdateFSUI_seconds();
-
-        //Write TimeStamp to txt file
-        WriteTimestampToFile();
-
-        //Delete log files older than 1 month
-        DeleteOldLogFiles();
-
-        //Check For FirmwreUpgrade & KeepDataTransferAlive
-        KeepDataTransferAlive();
+        WriteTimestampToFile();//Write TimeStamp to txt file
+        DeleteOldLogFiles();//Delete log files older than 1 month
+        KeepDataTransferAlive();//Check For FirmwreUpgrade & KeepDataTransferAlive
 
         //Reconnect BT reader if disconnected
         //RetryHfreaderConnection();
+
+
+        // only when screen turns on
+        if (!ScreenReceiver.screenOff) {
+            // this is when onResume() is called due to a screen state change
+            Log.i(TAG, "SCREEN TURNED ON");
+        } else {
+            Log.i(TAG, "this is when onResume() is called when the screen state has not changed ");
+        }
 
     }
 
@@ -400,6 +419,12 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     @Override
     protected void onDestroy() {
         super.onDestroy();
+
+        //EddystoneScannerService
+        mHandler.removeCallbacks(mPruneTask);
+
+        mService.setBeaconEventListener(null);
+        unbindService(this);
 
         OnWelcomeActivity = false;
         /* Stop to monitor bond state change */
@@ -468,18 +493,18 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         btn_clear_data = (Button) findViewById(R.id.btn_clear_data);
         tv_file_address.setText("File Download url: http://192.168.43.1:8550/www/FSVM/FileName.bin");
 
-        IsFARequired();//Enable disable FA on Checkbox on ui
         setUrlFromSharedPref(this);//Set url App Txt URL
         UpdateServerMessages();
         DownloadFile();
 
-                   /* //TODO  BackgroundServiceFSNP
-                    new Handler().postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            BackgroundServiceFSNP();//FSNP
-                        }
-                    }, 1000);*/
+        /* //TODO  BackgroundServiceFSNP
+         new Handler().postDelayed(new Runnable() {
+             @Override
+             public void run() {
+                 BackgroundServiceFSNP();//FSNP
+             }
+         }, 1000);*/
+
 
         btn_clear_data.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -542,10 +567,13 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         // set User Information
         UserInfoEntity userInfoEntity = CommonUtils.getCustomerDetails(WelcomeActivity.this);
 
-        AppConstants.Title = "Hub name: " + userInfoEntity.PersonName + "\nSite name: " + userInfoEntity.FluidSecureSiteName;//+ "\nMobile : " + userInfoEntity.PhoneNumber + "\nEmail : " + userInfoEntity.PersonEmail
+        AppConstants.Title = "Hub name: " + userInfoEntity.PersonName;//+ "\nMobile : " + userInfoEntity.PhoneNumber + "\nEmail : " + userInfoEntity.PersonEmail
+        AppConstants.SiteName = "Site name: " + userInfoEntity.FluidSecureSiteName;//+ "\nMobile : " + userInfoEntity.PhoneNumber + "\nEmail : " + userInfoEntity.PersonEmail
         AppConstants.HubName = userInfoEntity.PersonName;
         tvTitle = (TextView) findViewById(textView);
+        tv_SiteName = (TextView) findViewById(R.id.tv_SiteName);
         tvTitle.setText(AppConstants.Title);
+        tv_SiteName.setText(AppConstants.SiteName);
         AppConstants.WriteinFile(TAG + " Hub name: " + userInfoEntity.PersonName);
         AppConstants.WriteinFile(TAG + " Site name: " + userInfoEntity.FluidSecureSiteName);
 
@@ -747,7 +775,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         Intent name = new Intent(WelcomeActivity.this, BackgroundServiceKeepDataTransferAlive.class);
         PendingIntent pintent = PendingIntent.getService(getApplicationContext(), 0, name, 0);
         AlarmManager alarm = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        alarm.setRepeating(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), 90000, pintent); //90000
+        alarm.setRepeating(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), 180000, pintent); //90000
 
     }
 
@@ -948,7 +976,6 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                                         HTTP_URL = "http://" + IpAddress + ":80/";
 
                                                     }
-
                                                 }
                                                 Log.e("GateSoftwareDelayIssue", "   GateHubStartTransaction HTTP_URl");
                                                 GateHubStartTransaction(HTTP_URL);
@@ -1108,11 +1135,12 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
     public void goButtonAction(View view) {
 
-        if (!IsGateHub.equalsIgnoreCase("True")) {
+        //Code for use FSTag as fob
+        /*if (!IsGateHub.equalsIgnoreCase("True")) {
             //Scan for Near-by BLE devices
             ListOfBleDevices.clear();
             scanLeDevice(true);
-        }
+        }*/
 
         try {
 
@@ -1172,7 +1200,6 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                         if (authEntityClass != null) {
 
-
                             cd = new ConnectionDetector(WelcomeActivity.this);
                             if (cd.isConnectingToInternet()) {
 
@@ -1192,7 +1219,6 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                     }
 
                                 }
-
 
                             } else {
                                 CommonUtils.showNoInternetDialog(WelcomeActivity.this);
@@ -1503,6 +1529,33 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         return false;
     }
 
+    /* Handle connection events to the discovery service */
+    @Override
+    public void onServiceConnected(ComponentName name, IBinder service) {
+        Log.d(TAG, "Connected to scanner service");
+        mService = ((EddystoneScannerService.LocalBinder) service).getService();
+        mService.setBeaconEventListener(this);
+    }
+
+    @Override
+    public void onServiceDisconnected(ComponentName name) {
+        Log.d(TAG, "Disconnected from scanner service");
+        mService = null;
+    }
+
+    /* Handle callback events from the discovery service */
+    @Override
+    public void onBeaconIdentifier(String deviceAddress, int rssi, String instanceId) {
+
+        final long now = System.currentTimeMillis();
+
+    }
+
+    @Override
+    public void onBeaconTelemetry(String deviceAddress, float battery, float temperature) {
+
+    }
+
     public class GetAndroidSSID extends AsyncTask<Void, Void, Void> {
 
         String Email = null;
@@ -1748,9 +1801,12 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                     if (ResponseMessageSite.equalsIgnoreCase("success")) {
 
-                         IsGateHub = jsonObject.getString("IsGateHub");
-                         IsStayOpenGate = jsonObject.getString("StayOpenGate");
+                        IsGateHub = jsonObject.getString("IsGateHub");
+                        IsStayOpenGate = jsonObject.getString("StayOpenGate");
+                        boolean fa_data = Boolean.parseBoolean(jsonObject.getString("EnbDisHubForFA"));
                         CommonUtils.SaveDataInPrefForGatehub (WelcomeActivity.this, IsGateHub, IsStayOpenGate);
+                        CommonUtils.FA_FlagSavePref(WelcomeActivity.this,fa_data,"FAData");
+
                         JSONArray Requests = jsonObjectSite.getJSONArray(AppConstants.RES_DATA_SSID);
 
                         if (Requests.length() > 0) {
@@ -1846,230 +1902,6 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         }
     }
 
-    public class GetSSIDUsingLocationOnResume extends AsyncTask<Void, Void, String> {
-
-
-        ProgressDialog pd;
-
-        @Override
-        protected void onPreExecute() {
-            pd = new ProgressDialog(WelcomeActivity.this);
-            pd.setMessage("Please wait...");
-            pd.setCancelable(true);
-            pd.setCancelable(false);
-            pd.show();
-
-        }
-
-        protected String doInBackground(Void... arg0) {
-            String resp = "";
-
-            try {
-
-                UserInfoEntity userInfoEntity = CommonUtils.getCustomerDetails(WelcomeActivity.this);
-
-                ServerHandler serverHandler = new ServerHandler();
-                //----------------------------------------------------------------------------------
-                String parm1 = AppConstants.getIMEI(WelcomeActivity.this) + ":" + userInfoEntity.PersonEmail + ":" + "Other";
-                String parm2 = "Authenticate:I:" + Constants.Latitude + "," + Constants.Longitude;
-
-
-                System.out.println("parm1----" + parm1);
-                System.out.println("parm2----" + parm2);
-
-                String authString = "Basic " + AppConstants.convertStingToBase64(parm1);
-
-                //resp = serverHandler.PostTextData(WelcomeActivity.this, AppConstants.webURL, parm2, authString);
-                //----------------------------------------------------------------------------------
-                OkHttpClient client = new OkHttpClient();
-                client.setConnectTimeout(10, TimeUnit.SECONDS);
-                client.setReadTimeout(10, TimeUnit.SECONDS);
-                client.setWriteTimeout(10, TimeUnit.SECONDS);
-
-                RequestBody body = RequestBody.create(ServerHandler.TEXT, parm2);
-                Request request = new Request.Builder()
-                        .url(AppConstants.webURL)
-                        .post(body)
-                        .addHeader("Authorization", authString)
-                        .build();
-
-                Response response = client.newCall(request).execute();
-                resp = response.body().string();
-
-
-                //------------------------------
-
-            } catch (Exception e) {
-                pd.dismiss();
-                System.out.println("Ex" + e.getMessage());
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + " <<ForDev>> GetSSIDUsingLocation onPostExecute --Exception " + e);
-            }
-
-
-            return resp;
-        }
-
-
-        @Override
-        protected void onPostExecute(String result) {
-
-            pd.dismiss();
-            tvLatLng.setText("Current Location :" + Constants.Latitude + "," + Constants.Longitude);
-
-            System.out.println("GetSSIDUsingLocation...." + result);
-
-            try {
-
-                serverSSIDList.clear();
-                // BackgroundServiceKeepDataTransferAlive.SSIDList.clear();//clear SSIDList
-                //AppConstants.DetailsServerSSIDList.clear();
-
-                String errMsg = "";
-
-                if (result != null && !result.isEmpty()) {
-
-                    JSONObject jsonObjectSite = new JSONObject(result);
-                    String ResponseMessageSite = jsonObjectSite.getString(AppConstants.RES_MESSAGE);
-                    String userData = jsonObjectSite.getString(AppConstants.RES_DATA_USER);
-                    JSONObject jsonObject = new JSONObject(userData);
-
-                    if (ResponseMessageSite.equalsIgnoreCase("success")) {
-
-                        IsGateHub = jsonObject.getString("IsGateHub");
-                        IsStayOpenGate = jsonObject.getString("StayOpenGate");
-                        CommonUtils.SaveDataInPrefForGatehub (WelcomeActivity.this, IsGateHub, IsStayOpenGate);
-
-                        BackgroundServiceKeepDataTransferAlive.SSIDList.clear();//clear SSIDList
-
-                        JSONArray Requests = jsonObjectSite.getJSONArray(AppConstants.RES_DATA_SSID);
-
-                        if (Requests.length() > 0) {
-
-                            for (int i = 0; i < Requests.length(); i++) {
-                                JSONObject c = Requests.getJSONObject(i);
-
-                                String SiteId = c.getString("SiteId");
-                                String SiteNumber = c.getString("SiteNumber");
-                                String SiteName = c.getString("SiteName");
-                                String SiteAddress = c.getString("SiteAddress");
-                                String Latitude = c.getString("Latitude");
-                                String Longitude = c.getString("Longitude");
-                                String HoseId = c.getString("HoseId");
-                                String HoseNumber = c.getString("HoseNumber");
-                                String WifiSSId = c.getString("WifiSSId");
-                                String UserName = c.getString("UserName");
-                                String Password = c.getString("Password");
-                                String ResponceMessage = c.getString("ResponceMessage");
-                                String ResponceText = c.getString("ResponceText");
-                                String ReplaceableHoseName = c.getString("ReplaceableHoseName");
-                                String IsHoseNameReplaced = c.getString("IsHoseNameReplaced");
-                                String MacAddress = c.getString("MacAddress");
-                                String IsBusy = c.getString("IsBusy");
-                                String IsUpgrade = c.getString("IsUpgrade");
-                                String PulserTimingAdjust = c.getString("PulserTimingAdjust");
-                                String BluetoothCardReaderHF = c.getString("BluetoothCardReaderHF");
-                                String IsDefective = c.getString("IsDefective");
-                                String FilePath = c.getString("FilePath");
-                                String ReconfigureLink = c.getString("ReconfigureLink");
-                                String FSNPMacAddress = c.getString("FSNPMacAddress");
-                                String IsTLDCall = c.getString("IsTLDCall");
-                                AppConstants.UP_FilePath = FilePath;
-
-                                AppConstants.BT_READER_NAME = BluetoothCardReaderHF;
-
-
-                                //Current Fs wifi password
-                                Constants.CurrFsPass = Password;
-
-                                HashMap<String, String> map = new HashMap<>();
-                                map.put("SiteId", SiteId);
-                                map.put("HoseId", HoseId);
-                                map.put("WifiSSId", WifiSSId);
-                                map.put("ReplaceableHoseName", ReplaceableHoseName);
-                                map.put("IsHoseNameReplaced", IsHoseNameReplaced);
-                                map.put("item", WifiSSId);
-                                map.put("MacAddress", MacAddress);
-                                map.put("IsBusy", IsBusy);
-                                map.put("IsUpgrade", IsUpgrade);
-                                map.put("PulserTimingAdjust", PulserTimingAdjust);
-                                map.put("ReconfigureLink", ReconfigureLink);
-                                map.put("FSNPMacAddress", FSNPMacAddress);
-                                map.put("IsTLDCall", IsTLDCall);
-
-                                if (ResponceMessage.equalsIgnoreCase("success")) {
-
-                                    if (isNotNULL(SiteId) && isNotNULL(HoseId) && isNotNULL(WifiSSId)) {
-                                        serverSSIDList.add(map);
-                                        AppConstants.DetailsServerSSIDList = serverSSIDList;
-                                        BackgroundServiceKeepDataTransferAlive.SSIDList = serverSSIDList;
-
-                                    }
-                                } else {
-                                    errMsg = ResponceText;
-                                    AppConstants.AlertDialogFinish(WelcomeActivity.this, ResponceText);
-                                }
-                            }
-
-
-                        }
-                        try {
-
-                            String ReconfigureLink = serverSSIDList.get(0).get("ReconfigureLink");
-                           if (serverSSIDList != null && serverSSIDList.size() == 1 && IsGateHub.equalsIgnoreCase("True") && Constants.FS_1STATUS.equalsIgnoreCase("FREE")) {
-
-                               Thread.sleep(1000);
-                               tvSSIDName.setText(serverSSIDList.get(0).get("WifiSSId"));
-                               OnHoseSelected_OnClick(Integer.toString(0));
-                               goButtonAction(null);
-
-
-                                //&& ReconfigureLink.equalsIgnoreCase("true")
-                            } else if (serverSSIDList != null && serverSSIDList.size() == 1 && Constants.FS_1STATUS.equalsIgnoreCase("FREE")) {
-
-                                tvSSIDName.setText(serverSSIDList.get(0).get("WifiSSId"));
-                                OnHoseSelected_OnClick(Integer.toString(0));
-
-                            } else if (serverSSIDList != null && AppConstants.LastSelectedHose != null && Constants.FS_1STATUS.equalsIgnoreCase("FREE") && Constants.FS_2STATUS.equalsIgnoreCase("FREE") && Constants.FS_3STATUS.equalsIgnoreCase("FREE") && Constants.FS_4STATUS.equalsIgnoreCase("FREE")) {
-
-                                Thread.sleep(1000);
-                                tvSSIDName.setText(serverSSIDList.get(Integer.parseInt(AppConstants.LastSelectedHose)).get("WifiSSId"));
-                                OnHoseSelected_OnClick(AppConstants.LastSelectedHose);
-                                //Toast.makeText(getApplicationContext(),"Last Selected hose"+AppConstants.LastSelectedHose,Toast.LENGTH_LONG).show();
-
-                            }
-
-                        } catch (Exception e) {
-                            System.out.println(e);
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(TAG + " <<ForDev>> GetSSIDUsingLocationOnResume if only one hose autoselect   --Exception " + e);
-                        }
-
-
-                    } else if (ResponseMessageSite.equalsIgnoreCase("fail")) {
-                        String ResponseTextSite = jsonObjectSite.getString(AppConstants.RES_TEXT);
-
-
-                        AppConstants.AlertDialogBox(WelcomeActivity.this, ResponseTextSite);
-
-
-                    }
-                } else {
-                    AppConstants.alertBigFinishActivity(WelcomeActivity.this, "Unable to connect server. Please try again later!");
-                }
-
-
-            } catch (Exception e) {
-
-                CommonUtils.LogMessage(TAG, " GetSSIDUsingLocation :" + result, e);
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + " <<ForDev>> GetSSIDUsingLocationOnResume --Exception " + e);
-
-            }
-
-        }
-    }
-
     public boolean isNotNULL(String value) {
 
         boolean flag = true;
@@ -2148,6 +1980,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 String PulserTimingAd = serverSSIDList.get(SelectedItemPos).get("PulserTimingAdjust");
                 IsDefective = serverSSIDList.get(SelectedItemPos).get("IsDefective");
                 AppConstants.PulserTimingAdjust = PulserTimingAd;
+
+                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> Selected hose: " +AppConstants.CURRENT_SELECTED_SSID);
 
                 //Firmware upgrade
                 System.out.println("IsUpgradeIsUpgrade: " + IsUpgrade);
@@ -2268,7 +2102,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
 
                         if (IpAddress.equals("")) {
-                            tvSSIDName.setText("Can't select this Hose not connected");
+                            tvSSIDName.setText("Hose not connected");
                             btnGo.setVisibility(View.GONE);
 
                         } else {
@@ -4328,6 +4162,9 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         String IsHoseNameReplaced = serverSSIDList.get(SelectedItemPos).get("IsHoseNameReplaced");
         String ReplaceableHoseName = serverSSIDList.get(SelectedItemPos).get("ReplaceableHoseName");
 
+        if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> Selected hose: " +AppConstants.CURRENT_SELECTED_SSID);
+
+
         //Rename SSID while mac address updation
         if (IsHoseNameReplaced.equalsIgnoreCase("Y")) {
             AppConstants.NeedToRenameFS_ON_UPDATE_MAC = false;
@@ -4389,7 +4226,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             }
 
             if (IpAddress.equals("")) {
-                tvSSIDName.setText("Can't select this Hose not connected");
+                tvSSIDName.setText("Hose not connected");
                 btnGo.setVisibility(View.GONE);
 
             } else {
@@ -4772,15 +4609,17 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                             public void run() {
 
                                 String fobnum = getResponseString(apdu, errorCode).replace(" ", "").trim();
-                                AppConstants.APDU_FOB_KEY = fobnum;
-                                AppConstants.VehicleLocal_FOB_KEY = fobnum;
-                                AppConstants.PinLocal_FOB_KEY = fobnum;
+                                int foblen = fobnum.length();
+                                if (foblen < 5){
+                                    System.out.println("Result APDU Error" + fobnum);
+                                }else{
 
-
-                                mTxtResponseApdu.setText(fobnum);
-
-                                System.out.println("Result APDU " + fobnum);
-
+                                    AppConstants.APDU_FOB_KEY = fobnum;
+                                    AppConstants.VehicleLocal_FOB_KEY = fobnum;
+                                    AppConstants.PinLocal_FOB_KEY = fobnum;
+                                    mTxtResponseApdu.setText(fobnum);
+                                    System.out.println("Result APDU " + fobnum);
+                                }
                             }
                         });
                     }
@@ -5868,8 +5707,18 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         AppConstants.EnableFA = sharedPref.getBoolean("FAData", false);
         if (AppConstants.EnableFA) {
             AppConstants.EnableFA = true;
+
+            //Start new Background service
+            Intent intent = new Intent(WelcomeActivity.this, MyService_FSNP.class);
+            startService(intent);
+
+
         } else {
             AppConstants.EnableFA = false;
+
+            //Stop new Background service
+            Intent intent = new Intent(WelcomeActivity.this,MyService_FSNP.class);
+            stopService(intent);
         }
 
     }
@@ -5935,7 +5784,6 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         } catch (Exception e) {
             e.printStackTrace();
         }
-
 
     }
 
@@ -6111,6 +5959,283 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             return null;
         }
 
+    }
+
+    /* This task checks for beacons we haven't seen in awhile */
+    // private Handler mHandler = new Handler();
+    private Runnable mPruneTask = new Runnable() {
+        @Override
+        public void run() {
+            final ArrayList<SampleBeacon> expiredBeacons = new ArrayList<>();
+            final long now = System.currentTimeMillis();
+          /*  for (SampleBeacon beacon : mAdapterItems) {
+                long delta = now - beacon.lastDetectedTimestamp;
+                if (delta >= EXPIRE_TIMEOUT) {
+                    expiredBeacons.add(beacon);
+                }
+            }*/
+
+            if (!expiredBeacons.isEmpty()) {
+                Log.d(TAG, "Found " + expiredBeacons.size() + " expired");
+                /*mAdapterItems.removeAll(expiredBeacons);
+                mAdapter.notifyDataSetChanged();*/
+            }
+
+            mHandler.postDelayed(this, EXPIRE_TASK_PERIOD);
+        }
+    };
+
+    /* Verify Bluetooth Support */
+    private boolean checkBluetoothStatus() {
+        BluetoothManager manager =
+                (BluetoothManager) getSystemService(BLUETOOTH_SERVICE);
+        BluetoothAdapter adapter = manager.getAdapter();
+        /*
+         * We need to enforce that Bluetooth is first enabled, and take the
+         * user to settings to enable it if they have not done so.
+         */
+        if (adapter == null || !adapter.isEnabled()) {
+            //Bluetooth is disabled
+            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivity(enableBtIntent);
+            finish();
+            return false;
+        }
+
+        /*
+         * Check for Bluetooth LE Support.  In production, our manifest entry will keep this
+         * from installing on these devices, but this will allow test devices or other
+         * sideloads to report whether or not the feature exists.
+         */
+        if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
+            Toast.makeText(this, "No LE Support.", Toast.LENGTH_SHORT).show();
+            finish();
+            return false;
+        }
+
+        return true;
+    }
+
+    public class GetSSIDUsingLocationOnResume extends AsyncTask<Void, Void, String> {
+
+
+        ProgressDialog pd;
+
+        @Override
+        protected void onPreExecute() {
+            pd = new ProgressDialog(WelcomeActivity.this);
+            pd.setMessage("Please wait...");
+            pd.setCancelable(true);
+            pd.setCancelable(false);
+            pd.show();
+
+        }
+
+        protected String doInBackground(Void... arg0) {
+            String resp = "";
+
+            try {
+
+                UserInfoEntity userInfoEntity = CommonUtils.getCustomerDetails(WelcomeActivity.this);
+
+                ServerHandler serverHandler = new ServerHandler();
+                //----------------------------------------------------------------------------------
+                String parm1 = AppConstants.getIMEI(WelcomeActivity.this) + ":" + userInfoEntity.PersonEmail + ":" + "Other";
+                String parm2 = "Authenticate:I:" + Constants.Latitude + "," + Constants.Longitude;
+
+
+                System.out.println("parm1----" + parm1);
+                System.out.println("parm2----" + parm2);
+
+                String authString = "Basic " + AppConstants.convertStingToBase64(parm1);
+
+                //resp = serverHandler.PostTextData(WelcomeActivity.this, AppConstants.webURL, parm2, authString);
+                //----------------------------------------------------------------------------------
+
+                OkHttpClient client = new OkHttpClient();
+                client.setConnectTimeout(10, TimeUnit.SECONDS);
+                client.setReadTimeout(10, TimeUnit.SECONDS);
+                client.setWriteTimeout(10, TimeUnit.SECONDS);
+
+                RequestBody body = RequestBody.create(ServerHandler.TEXT, parm2);
+                Request request = new Request.Builder()
+                        .url(AppConstants.webURL)
+                        .post(body)
+                        .addHeader("Authorization", authString)
+                        .build();
+
+                Response response = client.newCall(request).execute();
+                resp = response.body().string();
+
+                //------------------------------
+
+            } catch (Exception e) {
+                pd.dismiss();
+                System.out.println("Ex" + e.getMessage());
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " <<ForDev>> GetSSIDUsingLocation onPostExecute --Exception " + e);
+            }
+
+            return resp;
+        }
+
+
+        @Override
+        protected void onPostExecute(String result) {
+
+            pd.dismiss();
+            tvLatLng.setText("Current Location :" + Constants.Latitude + "," + Constants.Longitude);
+
+            System.out.println("GetSSIDUsingLocation...." + result);
+
+            try {
+
+                serverSSIDList.clear();
+                // BackgroundServiceKeepDataTransferAlive.SSIDList.clear();//clear SSIDList
+                //AppConstants.DetailsServerSSIDList.clear();
+
+                String errMsg = "";
+
+                if (result != null && !result.isEmpty()) {
+
+                    JSONObject jsonObjectSite = new JSONObject(result);
+                    String ResponseMessageSite = jsonObjectSite.getString(AppConstants.RES_MESSAGE);
+                    String userData = jsonObjectSite.getString(AppConstants.RES_DATA_USER);
+                    JSONObject jsonObject = new JSONObject(userData);
+
+                    if (ResponseMessageSite.equalsIgnoreCase("success")) {
+
+                        IsGateHub = jsonObject.getString("IsGateHub");
+                        IsStayOpenGate = jsonObject.getString("StayOpenGate");
+                        boolean fa_data = Boolean.parseBoolean(jsonObject.getString("EnbDisHubForFA"));
+                        CommonUtils.SaveDataInPrefForGatehub (WelcomeActivity.this, IsGateHub, IsStayOpenGate);
+                        CommonUtils.FA_FlagSavePref(WelcomeActivity.this,fa_data,"FAData");
+
+                        BackgroundServiceKeepDataTransferAlive.SSIDList.clear();//clear SSIDList
+
+                        JSONArray Requests = jsonObjectSite.getJSONArray(AppConstants.RES_DATA_SSID);
+
+                        if (Requests.length() > 0) {
+
+                            for (int i = 0; i < Requests.length(); i++) {
+                                JSONObject c = Requests.getJSONObject(i);
+
+                                String SiteId = c.getString("SiteId");
+                                String SiteNumber = c.getString("SiteNumber");
+                                String SiteName = c.getString("SiteName");
+                                String SiteAddress = c.getString("SiteAddress");
+                                String Latitude = c.getString("Latitude");
+                                String Longitude = c.getString("Longitude");
+                                String HoseId = c.getString("HoseId");
+                                String HoseNumber = c.getString("HoseNumber");
+                                String WifiSSId = c.getString("WifiSSId");
+                                String UserName = c.getString("UserName");
+                                String Password = c.getString("Password");
+                                String ResponceMessage = c.getString("ResponceMessage");
+                                String ResponceText = c.getString("ResponceText");
+                                String ReplaceableHoseName = c.getString("ReplaceableHoseName");
+                                String IsHoseNameReplaced = c.getString("IsHoseNameReplaced");
+                                String MacAddress = c.getString("MacAddress");
+                                String IsBusy = c.getString("IsBusy");
+                                String IsUpgrade = c.getString("IsUpgrade");
+                                String PulserTimingAdjust = c.getString("PulserTimingAdjust");
+                                String BluetoothCardReaderHF = c.getString("BluetoothCardReaderHF");
+                                String IsDefective = c.getString("IsDefective");
+                                String FilePath = c.getString("FilePath");
+                                String ReconfigureLink = c.getString("ReconfigureLink");
+                                String FSNPMacAddress = c.getString("FSNPMacAddress");
+                                String IsTLDCall = c.getString("IsTLDCall");
+                                AppConstants.UP_FilePath = FilePath;
+
+                                AppConstants.BT_READER_NAME = BluetoothCardReaderHF;
+
+
+                                //Current Fs wifi password
+                                Constants.CurrFsPass = Password;
+
+                                HashMap<String, String> map = new HashMap<>();
+                                map.put("SiteId", SiteId);
+                                map.put("HoseId", HoseId);
+                                map.put("WifiSSId", WifiSSId);
+                                map.put("ReplaceableHoseName", ReplaceableHoseName);
+                                map.put("IsHoseNameReplaced", IsHoseNameReplaced);
+                                map.put("item", WifiSSId);
+                                map.put("MacAddress", MacAddress);
+                                map.put("IsBusy", IsBusy);
+                                map.put("IsUpgrade", IsUpgrade);
+                                map.put("PulserTimingAdjust", PulserTimingAdjust);
+                                map.put("ReconfigureLink", ReconfigureLink);
+                                map.put("FSNPMacAddress", FSNPMacAddress);
+                                map.put("IsTLDCall", IsTLDCall);
+
+                                if (ResponceMessage.equalsIgnoreCase("success")) {
+
+                                    if (isNotNULL(SiteId) && isNotNULL(HoseId) && isNotNULL(WifiSSId)) {
+                                        serverSSIDList.add(map);
+                                        AppConstants.DetailsServerSSIDList = serverSSIDList;
+                                        BackgroundServiceKeepDataTransferAlive.SSIDList = serverSSIDList;
+
+                                    }
+                                } else {
+                                    errMsg = ResponceText;
+                                    AppConstants.AlertDialogFinish(WelcomeActivity.this, ResponceText);
+                                }
+                            }
+
+
+                        }
+                        try {
+
+                            String ReconfigureLink = serverSSIDList.get(0).get("ReconfigureLink");
+                            if (serverSSIDList != null && serverSSIDList.size() == 1 && IsGateHub.equalsIgnoreCase("True") && Constants.FS_1STATUS.equalsIgnoreCase("FREE")) {
+
+                                Thread.sleep(1000);
+                                tvSSIDName.setText(serverSSIDList.get(0).get("WifiSSId"));
+                                OnHoseSelected_OnClick(Integer.toString(0));
+                                goButtonAction(null);
+
+
+                                //&& ReconfigureLink.equalsIgnoreCase("true")
+                            } else if (serverSSIDList != null && serverSSIDList.size() == 1 && Constants.FS_1STATUS.equalsIgnoreCase("FREE")) {
+
+                                tvSSIDName.setText(serverSSIDList.get(0).get("WifiSSId"));
+                                OnHoseSelected_OnClick(Integer.toString(0));
+
+                            } else if (serverSSIDList != null && AppConstants.LastSelectedHose != null && Constants.FS_1STATUS.equalsIgnoreCase("FREE") && Constants.FS_2STATUS.equalsIgnoreCase("FREE") && Constants.FS_3STATUS.equalsIgnoreCase("FREE") && Constants.FS_4STATUS.equalsIgnoreCase("FREE")) {
+
+                                Thread.sleep(1000);
+                                tvSSIDName.setText(serverSSIDList.get(Integer.parseInt(AppConstants.LastSelectedHose)).get("WifiSSId"));
+                                OnHoseSelected_OnClick(AppConstants.LastSelectedHose);
+                                //Toast.makeText(getApplicationContext(),"Last Selected hose"+AppConstants.LastSelectedHose,Toast.LENGTH_LONG).show();
+
+                            }
+
+                        } catch (Exception e) {
+                            System.out.println(e);
+                            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> GetSSIDUsingLocationOnResume if only one hose autoselect   --Exception " + e);
+                        }
+
+
+                    } else if (ResponseMessageSite.equalsIgnoreCase("fail")) {
+                        String ResponseTextSite = jsonObjectSite.getString(AppConstants.RES_TEXT);
+
+                        AppConstants.AlertDialogBox(WelcomeActivity.this, ResponseTextSite);
+
+                    }
+                } else {
+                    AppConstants.alertBigFinishActivity(WelcomeActivity.this, "Unable to connect server. Please try again later!");
+                }
+
+
+            } catch (Exception e) {
+
+                CommonUtils.LogMessage(TAG, " GetSSIDUsingLocation :" + result, e);
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " <<ForDev>> GetSSIDUsingLocationOnResume --Exception " + e);
+
+            }
+
+        }
     }
 
 

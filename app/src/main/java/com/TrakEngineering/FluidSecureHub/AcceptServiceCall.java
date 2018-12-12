@@ -640,7 +640,7 @@ public class AcceptServiceCall {
 
                     //Relay command else commented
                     if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + " <<ForDev>> Link is unavailable relay");
+                    AppConstants.WriteinFile(TAG + " <<ForDev>> Link is unavailable relay");
                     AppConstants.colorToastBigFont(activity, " Link is unavailable", Color.RED);
                     AppConstants.ClearEdittextFielsOnBack(activity); //Clear EditText on move to welcome activity.
                     BackgroundServiceKeepDataTransferAlive.IstoggleRequired_DA = true;

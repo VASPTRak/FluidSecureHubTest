@@ -155,7 +155,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
                 if (!HFDeviceAddress.contains(":")) {
                     tv_enter_vehicle_no.setText("");
                 } else {
-                    tv_enter_vehicle_no.setText("Present Fob key to reader");
+                    tv_enter_vehicle_no.setText("Present fob/card key to reader");
                     int widthi = ActionBar.LayoutParams.WRAP_CONTENT;
                     int heighti = 0;
                     LinearLayout.LayoutParams parmsi = new LinearLayout.LayoutParams(widthi, heighti);
@@ -541,7 +541,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
                         AppConstants.WriteinFile(TAG + " <<ForDev>> displayData Split Fob_Key  --Exception " + ex);
                 }
 
-                if (!LF_FobKey.equalsIgnoreCase("")) {
+                if (!LF_FobKey.equalsIgnoreCase("") && LF_FobKey.length() > 5) {
                     tv_fob_number.setText("fob/card No: " + LF_FobKey);
                     AppConstants.APDU_FOB_KEY = LF_FobKey;
                     System.out.println("Vehicle fob value" + AppConstants.APDU_FOB_KEY);
@@ -1309,7 +1309,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
 
     public void DisplayScreenFobReadSuccess() {
 
-        tv_enter_vehicle_no.setText("fob/card Read Successfully");
+        tv_enter_vehicle_no.setText("Fob / Card read successfully");
         tv_enter_vehicle_no.setVisibility(View.VISIBLE);
         int widthi = ActionBar.LayoutParams.WRAP_CONTENT;
         int heighti = ActionBar.LayoutParams.WRAP_CONTENT;

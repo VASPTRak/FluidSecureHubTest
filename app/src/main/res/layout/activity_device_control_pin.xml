@@ -16,8 +16,6 @@
             android:layout_height="match_parent"
             android:orientation="vertical">
 
-
-
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -77,7 +75,7 @@
                     android:layout_height="wrap_content"
                     android:textColor="@color/black"
                     android:textAllCaps="false"
-                    android:text="Present your personnel FOB  below"
+                    android:text="Present your personnel Fob / Card Below"
                     android:textAppearance="?android:attr/textAppearanceLarge"
                     android:textSize="@dimen/go_button_text" />
                 <!--android:text="Please Hold Personnel FOB to Reader"-->
@@ -120,11 +118,11 @@
                     android:id="@+id/tv_ok"
                     android:gravity="center"
                     android:textStyle="bold"
-                    android:paddingLeft="100dp"
-                    android:paddingRight="100dp"
+                    android:paddingLeft="80dp"
+                    android:paddingRight="80dp"
                     android:layout_marginTop="10dp"
                     android:layout_marginBottom="20dp"
-                    android:text="Fob Read Successfully"
+                    android:text="Fob / Card read successfully"
                     android:textColor="@color/Red"
                     android:textAppearance="?android:attr/textAppearanceLarge"
                     android:textSize="35dp" />
@@ -211,8 +209,6 @@
                     android:textSize="@dimen/go_button_text" />
 
             </LinearLayout>
-
-
 
         </LinearLayout>
 

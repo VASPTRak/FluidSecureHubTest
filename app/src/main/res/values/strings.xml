@@ -12,7 +12,7 @@
     <string name="stop_fueling">Stop Fueling</string>
     <string name="fuel_history">Fuel History</string>
     <string name="regi">Registration</string>
-
+    <string name="support_line"><u>For 24/7 Support or Assistance:</u></string>
     <string name="no_internet">Make sure that you are connected to the Internet</string>
     <string name="title_activity_maps">Map</string>
     <string name="title_activity_fob_reader">FobReader</string>

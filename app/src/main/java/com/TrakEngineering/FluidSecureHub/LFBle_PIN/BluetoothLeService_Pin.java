@@ -384,8 +384,7 @@ public class BluetoothLeService_Pin extends Service {
         if(mBluetoothGatt.writeCharacteristic(mWriteCharacteristic)){
            // Toast.makeText(getApplicationContext(),"Write Characteristics successfully!", Toast.LENGTH_LONG).show();
             if (AppConstants.GenerateLogs)AppConstants.WriteinFile("BluetoothLeService_Pin ~~~~~~~~~" + "Write Characteristics successfully!");
-        }
-        else {
+        } else {
            // Toast.makeText(getApplicationContext(),"Failed to write Characteristics", Toast.LENGTH_LONG).show();
             if (AppConstants.GenerateLogs)AppConstants.WriteinFile("BluetoothLeService_Pin ~~~~~~~~~" + "Failed to write Characteristics");
         }

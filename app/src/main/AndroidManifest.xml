@@ -12,7 +12,8 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.VIBRATE" />
-    <uses-permission android:name="android.permission.WRITE_SETTINGS"
+    <uses-permission
+        android:name="android.permission.WRITE_SETTINGS"
         tools:ignore="ProtectedPermissions" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
@@ -20,8 +21,7 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
-    <uses-permission android:name="android.permission.WAKE_LOCK"/>
-
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.GET_TASKS" />
 
@@ -93,8 +93,8 @@
             </intent-filter>
         </activity>
         <activity android:name=".MainActivity" />
-
-        <activity android:name=".AcceptManualOdoActivityFA"
+        <activity
+            android:name=".AcceptManualOdoActivityFA"
             android:configChanges="keyboard|keyboardHidden|screenLayout|screenSize|orientation" />
 
         <meta-data
@@ -138,19 +138,20 @@
         <service
             android:name=".BackgroundServiceHotspotCheck"
             android:enabled="true" />
-
         <service
             android:name=".BackgroundServiceFSNP"
             android:enabled="true" />
         <service
             android:name=".BackgroundServiceWriteTimestampToFile"
             android:enabled="true" />
-        <service android:name=".BackgroundServiceUpgradeFirmware"
+        <service
+            android:name=".BackgroundServiceUpgradeFirmware"
             android:enabled="true" />
-        <service android:name=".BackgroundServiceBluetoothPrinter"
-            android:enabled="true"/>
-
-        <service android:name=".BackgroundServiceKeepDataTransferAlive"
+        <service
+            android:name=".BackgroundServiceBluetoothPrinter"
+            android:enabled="true" />
+        <service
+            android:name=".BackgroundServiceKeepDataTransferAlive"
             android:enabled="true" />
 
         <receiver
@@ -164,7 +165,6 @@
                 <action android:name="android.app.action.DEVICE_ADMIN_ENABLED" />
             </intent-filter>
         </receiver>
-
         <receiver android:name=".MobileDataReceiver">
             <intent-filter>
                 <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
@@ -174,7 +174,6 @@
             <intent-filter android:priority="100">
                 <action android:name="android.net.wifi.STATE_CHANGE" />
             </intent-filter>
-
         </receiver>
         <receiver android:name=".OnBootReceiver">
             <intent-filter>
@@ -182,12 +181,17 @@
             </intent-filter>
         </receiver>
 
-        <activity android:name=".LFBle_PIN.DeviceControlActivity_Pin"/>
-        <service android:name=".LFBle_PIN.BluetoothLeService_Pin" android:enabled="true"/>
+        <activity android:name=".LFBle_PIN.DeviceControlActivity_Pin" />
 
+        <service
+            android:name=".LFBle_PIN.BluetoothLeService_Pin"
+            android:enabled="true" />
 
-        <activity android:name=".LFBle_vehicle.DeviceControlActivity_vehicle"/>
-        <service android:name=".LFBle_vehicle.BluetoothLeService_vehicle" android:enabled="true"/>
+        <activity android:name=".LFBle_vehicle.DeviceControlActivity_vehicle" />
+
+        <service
+            android:name=".LFBle_vehicle.BluetoothLeService_vehicle"
+            android:enabled="true" />
 
         <activity android:name=".AcceptFieldActivity" />
         <activity
@@ -212,6 +216,14 @@
             android:fitsSystemWindows="true"
             android:windowSoftInputMode="adjustResize" />
         <activity android:name=".SelectFSActivity" />
+
+        <service
+            android:name=".BackgroundServiceNew.MyService_FSNP"
+            android:enabled="true"
+            android:exported="true"></service>
+
+        <service android:name=".EddystoneScanner.EddystoneScannerService"
+            android:exported="false" />
 
     </application>
 

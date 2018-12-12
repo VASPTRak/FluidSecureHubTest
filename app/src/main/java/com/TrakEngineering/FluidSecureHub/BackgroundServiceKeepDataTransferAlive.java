@@ -81,11 +81,11 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
 
         try {
             super.onStart(intent, startId);
-            Log.i(TAG, "~~~~~~~~~~Begining~~~~~~~~~~");
+            Log.i(TAG, "~~~~~~~~~~Begining BackgroundServiceKeepDataTransferAlive  start~~~~~~~~~~");
             if (AppConstants.GenerateLogs)
                 AppConstants.WriteinFile(TAG + "~~~~~~~~~~Begining~~~~~~~~~~");
 
-            ListConnectedHotspotIP_KDTA();
+            /*ListConnectedHotspotIP_KDTA();
 
 
             new Handler().postDelayed(new Runnable() {
@@ -93,7 +93,12 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
                 public void run() {
                     StartUpgradeProcess();
                 }
-            }, 4000);
+            }, 4000);*/
+
+
+            StartUpgradeProcess();
+
+            Log.i(TAG, "~~~~~~~~~~Begining BackgroundServiceKeepDataTransferAlive  stop~~~~~~~~~~");
 
 
         } catch (NullPointerException e) {
@@ -115,7 +120,7 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
 
             if (SSIDList != null && SSIDList.size() > 0) {
 
-                Log.i(TAG, "Hotspot connected devices: " + String.valueOf(DetailslistOfConnectedIP_KDTA.size()));
+                Log.i(TAG, "Hotspot connected devices: " + String.valueOf(AppConstants.DetailsListOfConnectedDevices.size()));
                 for (int i = 0; i < SSIDList.size(); i++) {
 
                     boolean IsHoseBusy = IsHoseBusyCheckLocally();
@@ -135,8 +140,8 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
 
                     }
 
-                    for (int k = 0; k < DetailslistOfConnectedIP_KDTA.size(); k++) {
-                        String Mac_Addr = DetailslistOfConnectedIP_KDTA.get(k).get("macAddress");
+                    for (int k = 0; k < AppConstants.DetailsListOfConnectedDevices.size(); k++) {
+                        String Mac_Addr = AppConstants.DetailsListOfConnectedDevices.get(k).get("macAddress");
 
                         //Check for connected link,If connceted execute info command
                         //also include upgrate link firmware code
@@ -144,7 +149,7 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
 
                             try {
 
-                                SERVER_IP = DetailslistOfConnectedIP_KDTA.get(k).get("ipAddress");
+                                SERVER_IP = AppConstants.DetailsListOfConnectedDevices.get(k).get("ipAddress");
                                 new TCPClientTask().execute(SERVER_IP);
                                 // new UDPClientTask().execute(SERVER_IP);
 

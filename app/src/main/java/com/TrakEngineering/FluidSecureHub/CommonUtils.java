@@ -22,6 +22,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.TrakEngineering.FluidSecureHub.BackgroundServiceNew.MyService_FSNP;
 import com.TrakEngineering.FluidSecureHub.enity.AuthEntityClass;
 import com.TrakEngineering.FluidSecureHub.enity.UserInfoEntity;
 import com.google.gson.Gson;
@@ -721,6 +722,21 @@ public class CommonUtils {
         return userInfoEntity;
     }
 
+    public static UserInfoEntity getCustomerDetails_backgroundService(MyService_FSNP activity) {
+
+        UserInfoEntity userInfoEntity = new UserInfoEntity();
+
+        SharedPreferences sharedPref = activity.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
+
+        userInfoEntity.PersonName = sharedPref.getString(AppConstants.USER_NAME, "");
+        userInfoEntity.PhoneNumber = sharedPref.getString(AppConstants.USER_MOBILE, "");
+        userInfoEntity.PersonEmail = sharedPref.getString(AppConstants.USER_EMAIL, "");
+        userInfoEntity.FluidSecureSiteName = sharedPref.getString(AppConstants.FluidSecureSiteName, "");
+
+
+        return userInfoEntity;
+    }
+
     public static UserInfoEntity getCustomerDetails_backgroundService(BackgroundServiceFSNP activity) {
 
         UserInfoEntity userInfoEntity = new UserInfoEntity();
@@ -1062,6 +1078,20 @@ public class CommonUtils {
         return byteArray;
     }
 
+    public static void AddRemovecurrentTransactionList(boolean AddDel, String TxnId) {
+
+
+        if (AddDel) {
+            if (!AppConstants.ListOfRunningTransactiins.contains(TxnId)) {
+                AppConstants.ListOfRunningTransactiins.add(TxnId);
+            }
+        } else {
+            if (AppConstants.ListOfRunningTransactiins != null && AppConstants.ListOfRunningTransactiins.contains(TxnId)) {
+                AppConstants.ListOfRunningTransactiins.remove(TxnId);
+
+            }
+        }
+    }
 
 
 }
