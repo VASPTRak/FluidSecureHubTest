@@ -29,6 +29,8 @@ public class MyServer extends NanoHTTPD {
     ServerHandler serverHandler = new ServerHandler();
     String UpdateESP32_update = "NO";
     String UpdatePIC_update = "NO";
+    boolean isScreenOn = true;
+
     public MyServer() throws IOException {
         super(PORT);
         start();
@@ -43,6 +45,7 @@ public class MyServer extends NanoHTTPD {
         String FSTag = "",FirmwareVersion = "",fsvmData = "",RequestBody = "",ContentLength = "",host = "",ODOK = "", VIN = "";
 
         try {
+
 
             WelcomeActivity.WakeUpScreen(); //WakeUp Screen
 
@@ -69,7 +72,7 @@ public class MyServer extends NanoHTTPD {
             //AppConstants.Header_data = "POST: " + Post + "\nHost: " + host + "\nFSTag: " + FSTag + "\nFirmware version: " + FirmwareVersion + "\nContentLength: " + ContentLength+"\nVIN: "+VIN+"\nODOK: "+ODOK;
 
             AppConstants.Header_data = "POST: " + Post + "\nHost: " + host +"\nVIN: "+VIN+"\nODOK: "+ODOK + "\nFSTag: " + FSTag + "\nFirmware version: " + FirmwareVersion + "\nContentLength: " + ContentLength;
-            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> HttpServer Header_data " + AppConstants.Header_data);
+            //if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  HttpServer Header_data " + AppConstants.Header_data);
 
             Integer contentLength = Integer.parseInt(session.getHeaders().get("content-length"));
             byte[] buffer = new byte[contentLength];
@@ -77,11 +80,11 @@ public class MyServer extends NanoHTTPD {
             Log.i(TAG," RequestBody: " + new String(buffer));
             fsvmData = new String(buffer);
             AppConstants.Server_Request = "FsvmData:" + fsvmData + "\nData in param:  " + A;
-            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> HttpServer Server_Reques " + AppConstants.Server_Request);
+            //if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  HttpServer Server_Reques " + AppConstants.Server_Request);
 
         } catch (IOException e) {
             e.printStackTrace();
-            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> Response serve 1 --Exception " + e);
+            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  Response serve 1 --Exception " + e);
         }
 
         //---------------
@@ -126,6 +129,7 @@ public class MyServer extends NanoHTTPD {
                     String PIC = jsonObject.getString("PIC");
                     String ESP32 = jsonObject.getString("ESP32");
 
+
                     if (IsFSVMUpgradable.equalsIgnoreCase("Y") && FilePath != null){
 
                         String[] parts = FilePath.split("/");
@@ -152,12 +156,12 @@ public class MyServer extends NanoHTTPD {
 
             } catch (Exception e) {
                 e.printStackTrace();
-                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> FsvmDataAsyncCall --Exception " + e);
+                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  FsvmDataAsyncCall --Exception " + e);
             }
 
         } catch (Exception e) {
             e.printStackTrace();
-            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> Response serve 2 --Exception " + e);
+            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  Response serve 2 --Exception " + e);
         }
 
         //---------------------------------------------------------
@@ -178,7 +182,7 @@ public class MyServer extends NanoHTTPD {
 
         //{FSVM: upgrade?ESP32=v1.1&PIC=v1.2&}
         AppConstants.Server_Response = "jsonData_fsvm:" + jsonData_fsvm;
-        if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> HttpServer Server_Response " + AppConstants.Server_Response);
+        //if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  HttpServer Server_Response " + AppConstants.Server_Response);
         String msg = jsonData_fsvm;
         return newFixedLengthResponse(msg, f);
 
@@ -211,7 +215,7 @@ public class MyServer extends NanoHTTPD {
 
             } catch (Exception e) {
                 Log.i(TAG, " SaveFsvmDataToServer doInBackground " + e);
-                if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+" <<ForDev>> SaveFsvmDataToServer doInBackground " + e);
+                if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+"  SaveFsvmDataToServer doInBackground " + e);
             }
 
             return response;
@@ -223,8 +227,9 @@ public class MyServer extends NanoHTTPD {
 
             System.out.println("resp..." + resp);
 
-
         }
     }
 
+
 }
+

@@ -72,7 +72,7 @@ import static com.google.android.gms.internal.zzid.runOnUiThread;
 public class BackgroundService_AP_PIPE extends BackgroundService {
 
 
-    private static final String TAG = "BackgroundService_AP_PIPE :";
+    private static final String TAG = "BS_AP_PI";
     String EMPTY_Val = "";
     private ConnectionDetector cd;
     private int AttemptCount = 0;
@@ -319,7 +319,7 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
 
         {
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " <<ForDev>> onStartCommand Execption " + e);
+                AppConstants.WriteinFile(TAG + "  onStartCommand Execption " + e);
             Log.d("Ex", e.getMessage());
             this.stopSelf();
         }
@@ -379,8 +379,7 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
             String relay_status1 = jsonObject.getString("relay_response");
 
             if (relay_status1.equalsIgnoreCase("{\"status\":1}")) {
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + " <<ForDev>> Relay On in first attempt");
+                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  Relay On attempt 1");
 
             } else {
                 Thread.sleep(1000);
@@ -390,18 +389,18 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
                 String relay_status2 = jsonObjectSite.getString("relay_response");
                 if (relay_status2.equalsIgnoreCase("{\"status\":1}")) {
                     if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + " <<ForDev>> Relay On in Second attempt");
+                        AppConstants.WriteinFile(TAG + "  Relay On attempt 2");
                 } else {
                     Thread.sleep(1000);
                     new CommandsPOST().execute(URL_RELAY, jsonRelayOn).get();//Relay ON Third attempt
                     if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + " <<ForDev>> Third attempt to start relay");
+                        AppConstants.WriteinFile(TAG + "  Relay On attempt 3");
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " <<ForDev>> RelayOnThreeAttempts. --Exception " + e);
+                AppConstants.WriteinFile(TAG + "  RelayOnThreeAttempts. --Exception " + e);
         }
     }
 
@@ -489,7 +488,7 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
             } catch (Exception e) {
                 Log.d("Ex", e.getMessage());
                 if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + " <<ForDev>> CommandsPOST doInBackground Execption " + e);
+                    AppConstants.WriteinFile(TAG + "  CommandsPOST doInBackground Execption " + e);
                 stopSelf();
             }
 
@@ -508,7 +507,7 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
             } catch (Exception e) {
 
                 if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + " <<ForDev>> CommandsPOST doInBackground Execption " + e);
+                    AppConstants.WriteinFile(TAG + "  CommandsPOST doInBackground Execption " + e);
                 System.out.println(e);
                 stopSelf();
             }
@@ -538,7 +537,7 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
             } catch (Exception e) {
                 Log.d("Ex", e.getMessage());
                 if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + " <<ForDev>> CommandsGET doInBackground Execption " + e);
+                    AppConstants.WriteinFile(TAG + "  CommandsGET doInBackground Execption " + e);
                 stopSelf();
             }
 
@@ -556,7 +555,7 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
             } catch (Exception e) {
 
                 if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + " <<ForDev>> CommandsGET onPostExecute Execption " + e);
+                    AppConstants.WriteinFile(TAG + "  CommandsGET onPostExecute Execption " + e);
                 System.out.println(e);
                 stopSelf();
             }
@@ -595,7 +594,7 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
                                 //FS Link DisConnected
                                 System.out.println("FS Link not connected" + listOfConnectedIP_AP_PIPE);
                                 if (AppConstants.GenerateLogs)
-                                    AppConstants.WriteinFile(TAG + " <<ForDev>> FS Link not connected");
+                                    AppConstants.WriteinFile(TAG + "  Link not connected");
                                 stopTimer = false;
                                 new BackgroundService_AP_PIPE.CommandsPOST().execute(URL_RELAY, jsonRelayOff);
                                 Constants.FS_1STATUS = "FREE";
@@ -614,7 +613,7 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
                 } catch (Exception e) {
                     System.out.println(e);
                     if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + " <<ForDev>> startQuantityInterval Execption " + e);
+                        AppConstants.WriteinFile(TAG + "  startQuantityInterval Execption " + e);
                 }
 
             }
@@ -655,7 +654,7 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
             } catch (Exception e) {
                 Log.d("Ex", e.getMessage());
                 if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + " <<ForDev>> GETPulsarQuantity doInBackground Execption~ " + e);
+                    AppConstants.WriteinFile(TAG + "  GETPulsarQuantity doInBackground Execption~ " + e);
             }
 
 
@@ -692,7 +691,7 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
 
             } catch (Exception e) {
                 if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + " <<ForDev>> GETPulsarQuantity onPostExecute Execption " + e);
+                    AppConstants.WriteinFile(TAG + "  GETPulsarQuantity onPostExecute Execption " + e);
                 System.out.println(e);
             }
 
@@ -713,7 +712,7 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
                 //Temp code..
                 CommonUtils.AddRemovecurrentTransactionList(false,TransactionId);//Remove transaction Id from list
                 System.out.println("FS Link not connected" + listOfConnectedIP_AP_PIPE);
-                if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+" <<ForDev>> ~~~~error FS Link not connected~~~~~~~");
+                if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+"  err FS Link not connected");
                 stopTimer = false;
                 new CommandsPOST().execute(URL_RELAY, jsonRelayOff);
                 Constants.FS_1STATUS = "FREE";
@@ -758,7 +757,7 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
 
                     } catch (Exception e) {
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + " <<ForDev>> ETPulsarQuantity onPostExecute Execption " + e);
+                            AppConstants.WriteinFile(TAG + "  ETPulsarQuantity onPostExecute Execption " + e);
                         System.out.println(e);
                     }
 
@@ -798,6 +797,7 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
 
                         IsFuelingStop = "1";
                         System.out.println("APFS_PIPE Auto Stop! Pulsar disconnected");
+                        if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  Link:" + LinkName + " Auto Stop! Pulsar disconnected");
                         // AppConstants.colorToastBigFont(this, AppConstants.FS1_CONNECTED_SSID+" Auto Stop!\n\nPulsar disconnected", Color.BLUE);
                         stopButtonFunctionality();
                     }
@@ -811,8 +811,7 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
 
                     convertCountToQuantity(counts);
                 } else {
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + " <<ForDev>> Count recorded from the link: " + counts);
+                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  Count recorded from the link: " + counts);
                 }
 
 
@@ -851,6 +850,7 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
 
                         IsFuelingStop = "1";
                         System.out.println("APFS_PIPE Auto Stop! Count down timer completed");
+                        if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  Link:" + LinkName + " Auto Stop! Count down timer completed");
                         AppConstants.colorToastBigFont(this, AppConstants.FS1_CONNECTED_SSID + " Auto Stop!\n\nCount down timer completed.", Color.BLUE);
                         stopButtonFunctionality();
                     }
@@ -886,19 +886,20 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
 
                             IsFuelingStop = "1";
                             System.out.println("APFS_PIPE Auto Stop!You reached MAX fuel limit.");
+                            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  Link:" + LinkName + " Auto Stop!You reached MAX fuel limit.");
                             //AppConstants.colorToastBigFont(this, "Auto Stop!\n\nYou reached MAX fuel limit.", Color.BLUE);
                             stopButtonFunctionality();
                         }
                     }
                 } catch (Exception e) {
                     if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + " <<ForDev>> quantity reach max limit1 Execption " + e);
+                        AppConstants.WriteinFile(TAG + "  quantity reach max limit1 Execption " + e);
                 }
             }
         } catch (Exception e) {
             System.out.println(e);
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " <<ForDev>> quantity reach max limit2 Execption " + e);
+                AppConstants.WriteinFile(TAG + "  quantity reach max limit2 Execption " + e);
         }
     }
 
@@ -953,7 +954,7 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
                                         convertCountToQuantity(counts);
                                     } else {
                                         if (AppConstants.GenerateLogs)
-                                            AppConstants.WriteinFile(TAG + " <<ForDev>> Count recorded from the link: " + counts);
+                                            AppConstants.WriteinFile(TAG + "  Count recorded from the link: " + counts);
                                     }
 
                             /*
@@ -984,7 +985,7 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
                         } catch (Exception e) {
                             System.out.println(e);
                             if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(TAG + " <<ForDev>> stopButtonFunctionality Execption " + e);
+                                AppConstants.WriteinFile(TAG + "  stopButtonFunctionality Execption " + e);
                         }
                     }
                 }, 1000);
@@ -1092,7 +1093,7 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
             } catch (Exception e) {
                 Log.d("Ex", e.getMessage());
                 if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + " <<ForDev>> GETFINALPulsar doInBackground Execption " + e);
+                    AppConstants.WriteinFile(TAG + "  GETFINALPulsar doInBackground Execption " + e);
 
             }
 
@@ -1115,7 +1116,7 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
 
             } catch (Exception e) {
                 if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + " <<ForDev>> GETFINALPulsar onPostExecute Execption " + e);
+                    AppConstants.WriteinFile(TAG + "  GETFINALPulsar onPostExecute Execption " + e);
                 System.out.println(e);
             }
 
@@ -1145,6 +1146,7 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
                             //qty is same for some time
                             IsFuelingStop = "1";
                             System.out.println("APFS_PIPE Auto Stop!Quantity is same for last");
+                            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  Link:" + LinkName + " Auto Stop!Quantity is same for last");
                             //AppConstants.colorToastBigFont(this, "Auto Stop!\n\nQuantity is same for last " + stopAutoFuelSeconds + " seconds.", Color.BLUE);
                             stopButtonFunctionality();
                             stopTimer = false;
@@ -1167,7 +1169,7 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
             }
         } catch (Exception e) {
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " <<ForDev>> secondsTimeLogic Execption " + e);
+                AppConstants.WriteinFile(TAG + "  secondsTimeLogic Execption " + e);
         }
     }
 
@@ -1228,8 +1230,7 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
         Gson gson = new Gson();
         String jsonData = gson.toJson(authEntityClass);
 
-        if (AppConstants.GenerateLogs)
-            AppConstants.WriteinFile(TAG + " <<ForDev>> LinkName:" + LinkName + " received pulse response:pulses:" + Integer.parseInt(counts) + " Quantity:" + fillqty + " TransactionID:" + TransactionId);
+        if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  Link:" + LinkName + " received Pulses:" + Integer.parseInt(counts) + " Qty:" + fillqty + " TxnID:" + TransactionId);
 
         String userEmail = CommonUtils.getCustomerDetails_backgroundService_PIPE(BackgroundService_AP_PIPE.this).PersonEmail;
         String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(BackgroundService_AP_PIPE.this) + ":" + userEmail + ":" + "TransactionComplete");
@@ -1458,7 +1459,7 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
             Gson gson = new Gson();
             String jsonData = gson.toJson(authEntityClass);
 
-            //   if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+" <<ForDev>> InTransactionComplete jsonData " + jsonData);
+            //   if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+"  InTransactionComplete jsonData " + jsonData);
             System.out.println("AP_FS_PIPE TrazComp......" + jsonData);
 
             String userEmail = CommonUtils.getCustomerDetails_backgroundService_PIPE(this).PersonEmail;
@@ -1539,7 +1540,9 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
 
         }
 
-        startService(new Intent(this, BackgroundService.class));
+        if (!CommonUtils.isMyServiceRunning(BackgroundService.class,this)){
+            startService(new Intent(this, BackgroundService.class));
+        }
     }
 
     public void TankMonitorReading() {
@@ -1582,7 +1585,7 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
                     Tem_data = tld.getString("Tem_data");
                     String Checksum = tld.getString("Checksum");
 
-                    AppConstants.WriteinFile(TAG + " <<ForDev>> TLD Reading:"+" Mac Address:"+mac_address+" Sensor ID:"+Sensor_ID+" Response code:"+Response_code+" LSB:"+LSB+" MSB:"+MSB+" Temperature data:"+Tem_data+" Checksum:"+Checksum);
+                    AppConstants.WriteinFile(TAG + "  TLD:"+" mac:"+mac_address+" SensorID:"+Sensor_ID+" Resp_code:"+Response_code+" LSB:"+LSB+" MSB:"+MSB+" Temp:"+Tem_data+" Chksum:"+Checksum);
 
                     //Get mac address of probe
                     //String mac_str = GetMacAddressOfProbe(level);
@@ -1597,7 +1600,7 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
                 } catch (JSONException e) {
                     e.printStackTrace();
                     if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + " <<ForDev>> TankMonitorReading ~~~JSONException~~" + e);
+                        AppConstants.WriteinFile(TAG + "  TankMonitorReading ~~~JSONException~~" + e);
                 }
 
                 //-----------------------------------------------------------
@@ -1619,15 +1622,14 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
 
                 String serverRes = TestAsynTask.response;
 
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + " <<ForDev>> TankMonitorReading ~~~serverRes~~" + serverRes);
+                //if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  TankMonitorReading ~~~serverRes~~" + serverRes);
 
             }
 
         } catch (Exception e) {
             e.printStackTrace();
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " <<ForDev>> TankMonitorReading ~~~Execption~~" + e);
+                AppConstants.WriteinFile(TAG + "  TankMonitorReading ~~~Execption~~" + e);
         }
 
 
@@ -1770,7 +1772,7 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
                     @Override
                     public void run() {
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + " <<ForDev>> SAVE TRANS locally");
+                            AppConstants.WriteinFile(TAG + "  SAVE TRANS locally");
                         TransactionCompleteFunction();
 
                     }
@@ -2101,14 +2103,14 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
                 } catch (Exception e) {
                     e.printStackTrace();
                     if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + " <<ForDev>> ListConnectedHotspotIP_AP_PIPE 1 --Exception " + e);
+                        AppConstants.WriteinFile(TAG + "  ListConnectedHotspotIP_AP_PIPE 1 --Exception " + e);
                 } finally {
                     try {
                         br.close();
                     } catch (IOException e) {
                         e.printStackTrace();
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + " <<ForDev>> ListConnectedHotspotIP_AP_PIPE 2 --Exception " + e);
+                            AppConstants.WriteinFile(TAG + "  ListConnectedHotspotIP_AP_PIPE 2 --Exception " + e);
                     }
                 }
             }

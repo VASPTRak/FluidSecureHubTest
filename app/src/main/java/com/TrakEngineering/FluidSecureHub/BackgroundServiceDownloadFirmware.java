@@ -24,7 +24,7 @@ import static com.TrakEngineering.FluidSecureHub.server.ServerHandler.TEXT;
 
 public class BackgroundServiceDownloadFirmware extends BackgroundService {
 
-    private static String TAG = "FSVMDownloadFirmware";
+    private static String TAG = "BS_DFirmware";
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -54,7 +54,7 @@ public class BackgroundServiceDownloadFirmware extends BackgroundService {
             @Override
             public void onFailure(com.squareup.okhttp.Request request, IOException e) {
                 Log.e(TAG, "error in getting response using async okhttp call");
-                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> error in getting response using async okhttp call");
+                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  error in getting response using async okhttp call");
             }
 
             @SuppressLint("LongLogTag")
@@ -62,7 +62,7 @@ public class BackgroundServiceDownloadFirmware extends BackgroundService {
             public void onResponse(com.squareup.okhttp.Response response) throws IOException {
 
                 ResponseBody responseBody = response.body();
-                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> FsvmDataAsyncCall "+response);
+                //if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  FsvmDataAsyncCall "+response);
                 if (!response.isSuccessful()) {
                     throw new IOException("Error response " + response);
                 }else {
@@ -134,6 +134,6 @@ public class BackgroundServiceDownloadFirmware extends BackgroundService {
 
     }
 
-    
+
 
 }

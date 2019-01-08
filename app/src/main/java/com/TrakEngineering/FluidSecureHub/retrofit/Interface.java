@@ -16,7 +16,7 @@ public interface Interface {
     //@Headers("Content-Type: text/html; charset=utf-8")
     @Headers("Content-Type: application/json")
     @POST("HandlerTrak.ashx")
-    Call<ServerResponse> postttt(@Header("Authorization") String authString,
+    Call<ServerResponse> post(@Header("Authorization") String authString,
                               @Body String jsonData
                               //@Query("body") String jsonData
 
@@ -25,9 +25,9 @@ public interface Interface {
 
     @Headers("Content-Type: application/json")
     @POST("HandlerTrak.ashx")
-    Call<ServerResponse> post(@Header("Authorization") String authString,
-                                @Body String jsonData
-                                //@Query("body") String jsonData
+    Call<ServerResponse> postttt(@Header("Authorization") String authString,
+                                 @Body String jsonData
+                                 //@Query("body") String jsonData
 
 
 

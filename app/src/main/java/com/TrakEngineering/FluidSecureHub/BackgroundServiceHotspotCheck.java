@@ -22,7 +22,7 @@ import static com.TrakEngineering.FluidSecureHub.WelcomeActivity.wifiApManager;
 
 public class BackgroundServiceHotspotCheck extends BackgroundService {
 
-    private String TAG = "BackgroundServiceHotspotCheck";
+    private String TAG = "BS_HotspotCheck";
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -51,7 +51,7 @@ public class BackgroundServiceHotspotCheck extends BackgroundService {
 
                     wifiApManager.setWifiApEnabled(null, true);  //Hotspot enabled
                     Log.i(TAG, "Connecting to hotspot, please wait....");
-                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+" <<ForDev>> Hotspot ON--1");
+                    //if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+"  Hotspot ON--1");
 
                 } else if (screenOff) {
 
@@ -59,7 +59,8 @@ public class BackgroundServiceHotspotCheck extends BackgroundService {
 
                         wifiApManager.setWifiApEnabled(null, true);  //Hotspot enabled
                         Log.i(TAG, "Connecting to hotspot, please wait....");
-                        if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+" <<ForDev>> Hotspot ON--2");
+
+                        //if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+"  Hotspot ON--2");
 
                     } /*else if (!isScreenOn(this) && CommonUtils.isHotspotEnabled(BackgroundServiceHotspotCheck.this)) {
 

@@ -79,7 +79,7 @@ public class AcceptServiceCall {
                 if (Constants.AccPersonnelPIN_FS1 == null ){
                     Constants.GateHubPinNo = "";
                 }else if (Constants.AccPersonnelPIN_FS1.equals("")){
-                   //Do nothing
+                    //Do nothing
                 }else{
                     Constants.GateHubPinNo = Constants.AccPersonnelPIN_FS1;
                 }
@@ -141,6 +141,7 @@ public class AcceptServiceCall {
             accOdoMeter = Constants.AccOdoMeter_FS3;
             accHours = Constants.AccHours_FS3;
             CONNECTED_SSID = AppConstants.FS3_CONNECTED_SSID;
+            Log.i("ps_Vechile no","Step 4:"+vehicleNumber);
         } else {
             pinNumber = Constants.AccPersonnelPIN_FS4;
             vehicleNumber = Constants.AccVehicleNumber_FS4;
@@ -565,8 +566,8 @@ public class AcceptServiceCall {
                 }
             }, 500);
 
-                // GetLastTransaction();
-                // String Result_PulserTimingAdjust = new  CommandsPOST().execute(PulserTimingAd, "{\"pulsar_status\":{\"sampling_time_ms\":" + AppConstants.PulserTimingAdjust + "}}").get();
+            // GetLastTransaction();
+            // String Result_PulserTimingAdjust = new  CommandsPOST().execute(PulserTimingAd, "{\"pulsar_status\":{\"sampling_time_ms\":" + AppConstants.PulserTimingAdjust + "}}").get();
 
                 /*String Relay_result = new CommandsGET().execute(URL_RELAY).get();
                 Log.e("GateSoftwareDelayIssue","   Relay_result ");
@@ -581,7 +582,7 @@ public class AcceptServiceCall {
                         String status = jsonObject.getString("status");
 
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + " <<ForDev>> Relay_result " + " Status: " + status);
+                            AppConstants.WriteinFile(TAG + "  Relay_result " + " Status: " + status);
 
                         //IF relay status zero go back to dashboard
                         if (status.equalsIgnoreCase("1")) {
@@ -640,7 +641,7 @@ public class AcceptServiceCall {
 
                     //Relay command else commented
                     if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + " <<ForDev>> Link is unavailable relay");
+                    AppConstants.WriteinFile(TAG + "  Link is unavailable relay");
                     AppConstants.colorToastBigFont(activity, " Link is unavailable", Color.RED);
                     AppConstants.ClearEdittextFielsOnBack(activity); //Clear EditText on move to welcome activity.
                     BackgroundServiceKeepDataTransferAlive.IstoggleRequired_DA = true;
@@ -668,7 +669,7 @@ public class AcceptServiceCall {
 
             Log.e("GateSoftwareDelayIssue","   LastTXNid respp");
 
-            if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+" <<ForDev>> LAST TRANS RawData " + " LastTXNid" + LastTXNid + "Resp " + respp);
+            if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+"  LAST TRANS RawData " + " LastTXNid" + LastTXNid + "Resp " + respp);
 
             if (LastTXNid.equals("-1")) {
                 System.out.println(LastTXNid);
@@ -706,7 +707,7 @@ public class AcceptServiceCall {
                         String jsonData = gson.toJson(authEntityClass);
 
                         System.out.println("TrazComp......" + jsonData);
-                        if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+" <<ForDev>> LAST TRANS jsonData " + jsonData);
+                        if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+"  LAST TRANS jsonData " + jsonData);
 
                         String userEmail = CommonUtils.getCustomerDetails(activity).PersonEmail;
 
@@ -733,14 +734,14 @@ public class AcceptServiceCall {
                         if (isInsert && Lastqty > 0) {
                             controller.insertTransactions(imap);
 
-                            if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+" <<ForDev>> LAST TRANS SAVED in sqlite");
+                            if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+"  LAST TRANS SAVED in sqlite");
                             Log.e("GateSoftwareDelayIssue","   LastTXNid saved");
                         }
 
 
                     } catch (Exception ex) {
 
-                        if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+" <<ForDev>> LAST TRANS Exception " + ex.getMessage());
+                        if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+"  LAST TRANS Exception " + ex.getMessage());
                     }
 
 
@@ -748,7 +749,7 @@ public class AcceptServiceCall {
             }
 
         } catch (Exception e) {
-            if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+" <<ForDev>> LastTXNid Ex:" + e.getMessage() + " ");
+            if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+"  LastTXNid Ex:" + e.getMessage() + " ");
         }
 
 

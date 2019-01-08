@@ -49,7 +49,7 @@ public class BackgroundFOBReader extends Service{
 
         System.out.println("BackgroundFOBReader**************");
 
-    /* Initialize BluetoothReaderGattCallback. */
+        /* Initialize BluetoothReaderGattCallback. */
         mGattCallback = new BluetoothReaderGattCallback();
 
         /* Register BluetoothReaderGattCallback's listeners */
@@ -62,64 +62,64 @@ public class BackgroundFOBReader extends Service{
                             final int newState) {
 
 
-                                if (state != BluetoothGatt.GATT_SUCCESS) {
-                                    /*
-                                     * Show the message on fail to
-                                     * connect/disconnect.
-                                     */
-                                    if (newState == BluetoothReader.STATE_CONNECTED) {
-                                        // mTxtConnectionState.setText(R.string.connect_fail);
+                        if (state != BluetoothGatt.GATT_SUCCESS) {
+                            /*
+                             * Show the message on fail to
+                             * connect/disconnect.
+                             */
+                            if (newState == BluetoothReader.STATE_CONNECTED) {
+                                // mTxtConnectionState.setText(R.string.connect_fail);
 
 
 
-                                        AppConstants.colorToastBigFont(getApplicationContext(),"Bluetooth is Connected", Color.RED);
+                                AppConstants.colorToastBigFont(getApplicationContext(),"Bluetooth is Connected", Color.RED);
 
-                                    } else if (newState == BluetoothReader.STATE_DISCONNECTED) {
-                                        // mTxtConnectionState.setText(R.string.disconnect_fail);
+                            } else if (newState == BluetoothReader.STATE_DISCONNECTED) {
+                                // mTxtConnectionState.setText(R.string.disconnect_fail);
 
-                                        AppConstants.colorToastBigFont(getApplicationContext(),"Bluetooth is disconnected\nReconnecting...",Color.RED);
-                                        System.out.println("Bluetooth is disconnectedBluetooth is disconnected");
+                                AppConstants.colorToastBigFont(getApplicationContext(),"Bluetooth is disconnected\nReconnecting...",Color.RED);
+                                System.out.println("Bluetooth is disconnectedBluetooth is disconnected");
 
-                                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2)
-                                              disconnectReader();
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2)
+                                    disconnectReader();
 
-                                        //connectReader();
-
-
+                                //connectReader();
 
 
+
+
+                            }
+
+
+                        }
+
+
+                        if (newState == BluetoothProfile.STATE_CONNECTED) {
+                            /* Detect the connected reader. */
+                            if (mBluetoothReaderManager != null) {
+                                mBluetoothReaderManager.detectReader(
+                                        gatt, mGattCallback);
+
+                                new Handler().postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+
+                                        Authentation(); //Authentation
                                     }
+                                }, 5000);
 
-
-                                }
-
-
-                                if (newState == BluetoothProfile.STATE_CONNECTED) {
-                                    /* Detect the connected reader. */
-                                    if (mBluetoothReaderManager != null) {
-                                        mBluetoothReaderManager.detectReader(
-                                                gatt, mGattCallback);
-
-                                        new Handler().postDelayed(new Runnable() {
-                                            @Override
-                                            public void run() {
-
-                                                Authentation(); //Authentation
-                                            }
-                                        }, 5000);
-
-                                    }
-                                } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-                                    mBluetoothReader = null;
-                                    /*
-                                     * Release resources occupied by Bluetooth
-                                     * GATT client.
-                                     */
-                                    if (mBluetoothGatt != null) {
-                                        // mBluetoothGatt.close();
-                                        mBluetoothGatt = null;
-                                    }
-                                }
+                            }
+                        } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+                            mBluetoothReader = null;
+                            /*
+                             * Release resources occupied by Bluetooth
+                             * GATT client.
+                             */
+                            if (mBluetoothGatt != null) {
+                                // mBluetoothGatt.close();
+                                mBluetoothGatt = null;
+                            }
+                        }
 
 
 
@@ -181,7 +181,7 @@ public class BackgroundFOBReader extends Service{
 
         try {
 
-        /* Retrieve master key from edit box. */
+            /* Retrieve master key from edit box. */
             byte masterKey[] = CommonUtils.toByteArray(CommonUtils.toHexString(DEFAULT_1255_MASTER_KEY.getBytes("UTF-8")));
 
 
@@ -225,7 +225,7 @@ public class BackgroundFOBReader extends Service{
 
     public void TransmitApdu() {
 
-            /* Check for detected reader. */
+        /* Check for detected reader. */
         if (mBluetoothReader == null) {
             System.out.println("card_reader_not_ready");
             //Toast.makeText(getApplicationContext(), "card_reader_not_ready", Toast.LENGTH_SHORT).show();
@@ -237,7 +237,7 @@ public class BackgroundFOBReader extends Service{
 
         if (apduCommand != null && apduCommand.length > 0) {
 
-           /* Transmit APDU command. */
+            /* Transmit APDU command. */
             if (!mBluetoothReader.transmitApdu(apduCommand)) {
                 System.out.println("card_reader_not_ready");
                 //Toast.makeText(getApplicationContext(), "card_reader_not_ready", Toast.LENGTH_SHORT).show();
@@ -251,20 +251,20 @@ public class BackgroundFOBReader extends Service{
 
     public void transmitEscapeCommend(){
 
-            /* Check for detected reader. */
+        /* Check for detected reader. */
         if (mBluetoothReader == null) {
             System.out.println("card_reader_not_ready");
             return;
         }
 
-                /* Retrieve escape command from edit box. */
+        /* Retrieve escape command from edit box. */
         byte escapeCommand[] =  CommonUtils.toByteArray(DEFAULT_1255_ESCAPE_COMMAND);
 
         if (escapeCommand != null && escapeCommand.length > 0) {
-                    /* Clear response field for result of escape command. */
+            /* Clear response field for result of escape command. */
             System.out.println("No Data");
 
-                    /* Transmit escape command. */
+            /* Transmit escape command. */
             if (!mBluetoothReader.transmitEscapeCommand(escapeCommand)) {
                 System.out.println("card_reader_not_ready");
             }
@@ -285,15 +285,15 @@ public class BackgroundFOBReader extends Service{
                             BluetoothReader bluetoothReader, final int errorCode) {
 
 
-                                if (errorCode == BluetoothReader.ERROR_SUCCESS) {
+                        if (errorCode == BluetoothReader.ERROR_SUCCESS) {
 
-                                    System.out.println("Authentication success " + errorCode);
+                            System.out.println("Authentication success " + errorCode);
 
-                                    Startpolling();//Start polling
+                            Startpolling();//Start polling
 
-                                } else {
-                                    System.out.println("Authentication Failed!! " + errorCode);
-                                }
+                        } else {
+                            System.out.println("Authentication Failed!! " + errorCode);
+                        }
 
                     }
 

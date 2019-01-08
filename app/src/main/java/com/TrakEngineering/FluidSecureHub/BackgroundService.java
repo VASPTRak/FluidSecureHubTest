@@ -45,7 +45,10 @@ public class BackgroundService extends Service {
 
         System.out.println("BackgroundService is on....");
 
-
+        //If all hoses are free cleare
+        if (Constants.FS_1STATUS.equalsIgnoreCase("FREE") && Constants.FS_2STATUS.equalsIgnoreCase("FREE") && Constants.FS_3STATUS.equalsIgnoreCase("FREE") && Constants.FS_4STATUS.equalsIgnoreCase("FREE")) {
+            AppConstants.ListOfRunningTransactiins.clear();
+        }
 
         ArrayList<HashMap<String, String>> StatusData = controller.getAllUpdateTranStatus();
 
@@ -71,26 +74,45 @@ public class BackgroundService extends Service {
             for (int i = 0; i < uData.size(); i++) {
 
                 String Id = uData.get(i).get("Id");
-                String jsonData = uData.get(i).get("jsonData");
+                String jsonData =  uData.get(i).get("jsonData");
                 String authString = uData.get(i).get("authString");
 
                 try {
-                    JSONObject jsonObject = new JSONObject(jsonData);
-                    String txn = String.valueOf(jsonObject.get("TransactionId"));
-                    if (AppConstants.ListOfRunningTransactiins.contains(txn)){
-                        //transaction running
-                        Log.i(TAG,"Transaction is in progress"+txn);
+
+                    //Log.i(TAG, "Transaction UploadTask Id:" + Id + " jsonData:" + jsonData + " authString:" + authString);
+                    //if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  Transaction UploadTask Id:" + Id + " jsonData:" + jsonData + " authString:" + authString);
+
+                    if (!jsonData.equals("")) {
+
+                        JSONObject jsonObject = new JSONObject(jsonData);
+                        String txn = String.valueOf(jsonObject.get("TransactionId"));
+                        if (AppConstants.ListOfRunningTransactiins.contains(txn)) {
+                            //transaction running
+                            Log.i(TAG, "Transaction is in progress" + txn);
+
+                        } else {
+                            //transaction completed
+                            new UploadTask().execute(Id, jsonData, authString);
+                        }
 
                     }else{
-                        //transaction completed
-                        new UploadTask().execute(Id, jsonData, authString);
+
+                        controller.deleteTransactions(Id);
+                        System.out.println("deleteTransactions..." + Id);
+                        Log.i(TAG," Empty json Id:" + Id + " jsonData:" + jsonData + " authString:" + authString);
+                        AppConstants.WriteinFile(TAG + "  Empty json Id:" + Id + " jsonData:" + jsonData + " authString:" + authString);
+
                     }
 
                 } catch (JSONException e) {
                     e.printStackTrace();
-                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> Transaction is in progress UploadTask--Exception " + e);
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + "  Transaction is in progress UploadTask--JSONException " + e);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + "  Transaction is in progress UploadTask--Exception " + ex);
                 }
-
 
             }
 
@@ -108,6 +130,9 @@ public class BackgroundService extends Service {
 
             new SetHoseNameReplacedFlag().execute(jsonData, authString);
         }
+
+        System.out.println("BackgroundService is off....");
+        stopSelf();
 
         return super.onStartCommand(intent, flags, startId);
     }
@@ -221,10 +246,10 @@ public class BackgroundService extends Service {
                     if (ResponceMessage.equalsIgnoreCase("success")) {
 
                         String Notify = jsonData;
-                        if (Notify.contains("IsFuelingStop\":\"1")){
+                        if (Notify.contains("IsFuelingStop\":\"1")) {
                             //Notify only when IsFuelingStop = 1
                             AppConstants.notificationAlert(BackgroundService.this);
-                        }else {
+                        } else {
                             //Skip notification
                         }
 

@@ -69,6 +69,7 @@ import org.json.JSONObject;
 
 import java.io.BufferedInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
@@ -76,6 +77,8 @@ import java.net.URLConnection;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
+
+import static com.TrakEngineering.FluidSecureHub.server.ServerHandler.TEXT;
 
 /**
  * For a given BLE device, this Activity provides the user interface to connect, display data,
@@ -367,7 +370,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
         AppConstants.APDU_FOB_KEY = "";
 
 
-       /* if (Constants.CurrentSelectedHose.equals("FS1")) {
+        /*if (Constants.CurrentSelectedHose.equals("FS1")) {
             editVehicleNumber.setText(Constants.AccVehicleNumber_FS1);
         } else if (Constants.CurrentSelectedHose.equals("FS2")) {
             editVehicleNumber.setText(Constants.AccVehicleNumber);
@@ -522,9 +525,8 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
 
 
             String Str_data = data.toString().trim();
-            System.out.println("FOK_KEY Vehi " + Str_data);
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " <<ForDev>> displayData Response LF: " + Str_data);
+            Log.i(TAG,"displayData Response LF:" + Str_data);
+            //if (AppConstants.GenerateLogs) AppConstants.WriteinFile(TAG + "  displayData Response LF: " + Str_data);
             String Str_check = Str_data.replace(" ", "");
 
             if (!Str_check.equalsIgnoreCase("000000")) {
@@ -537,17 +539,16 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
                     tv_fobkey.setText(Sep2.replace(" ", ""));
                 } catch (Exception ex) {
                     System.out.println(ex);
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + " <<ForDev>> displayData Split Fob_Key  --Exception " + ex);
+                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  displayData Split Fob_Key  --Exception " + ex);
                 }
 
                 if (!LF_FobKey.equalsIgnoreCase("") && LF_FobKey.length() > 5) {
                     tv_fob_number.setText("fob/card No: " + LF_FobKey);
                     AppConstants.APDU_FOB_KEY = LF_FobKey;
                     System.out.println("Vehicle fob value" + AppConstants.APDU_FOB_KEY);
+                    Log.i(TAG,"Vehi fob:" + AppConstants.APDU_FOB_KEY);
                     AppConstants.VehicleLocal_FOB_KEY = LF_FobKey;
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + " <<ForDev>> AppConstants.VehicleLocal_FOB_KEY~" + AppConstants.VehicleLocal_FOB_KEY);
+                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  Local_FOB_KEY" + AppConstants.VehicleLocal_FOB_KEY);
                     //On LF Fob read success
                     editVehicleNumber.setText("");
                     Istimeout_Sec = false;
@@ -561,8 +562,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
 
             if (Count < 3) {
                 // Toast.makeText(getApplicationContext(), "Attempt to read Characteristic: " + Count, Toast.LENGTH_LONG).show();
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + " <<ForDev>> DeviceControlActivity_Vehicle displayData Attempt to read Characteristic: " + Count);
+                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  Attempt to read Char: " + Count);
                 Count++;
                 if (mBluetoothLeServiceVehicle != null) {
                     // mBluetoothLeServiceVehicle.readCharacteristic(characteristic);
@@ -594,14 +594,15 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
     public void FobreadSuccess() {
 
         AppConstants.VehicleLocal_FOB_KEY = "";
-        GetVehicleNuOnFobKeyDetection();
+        new GetVehicleNuOnFobKeyDetection().execute();
 
-        new Handler().postDelayed(new Runnable() {
+        //Temp comment
+        /*new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
                 CallSaveButtonFunctionality();//Press Enter fun
             }
-        }, 1000);
+        }, 1000);*/
 
 
     }
@@ -707,72 +708,124 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
         CallSaveButtonFunctionality();
     }
 
-    public void CallSaveButtonFunctionality() {
 
-        AppConstants.VehicleLocal_FOB_KEY = "";
-
-        try {
-
-            String V_Number = editVehicleNumber.getText().toString().trim();
+    public class ServerCallFirst extends AsyncTask<Void, Void, String> {
 
 
-            if (!V_Number.isEmpty() || !AppConstants.APDU_FOB_KEY.isEmpty()) {
+        ProgressDialog pd;
+        String resp = "";
+        @Override
+        protected void onPreExecute() {
+            pd = new ProgressDialog(DeviceControlActivity_vehicle.this);
+            pd.setMessage("Please wait...");
+            pd.setCancelable(true);
+            pd.show();
+
+        }
+
+        protected String doInBackground(Void... arg0) {
+
+            AppConstants.VehicleLocal_FOB_KEY = "";
+
+            try {
+
+                String V_Number = editVehicleNumber.getText().toString().trim();
 
 
-                String vehicleNumber = "";
-                String pinNumber = "";
-
-                if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS1")) {
-                    //pinNumber = Constants.AccPersonnelPIN_FS1;
-                    vehicleNumber = editVehicleNumber.getText().toString().trim();
-                    Constants.AccVehicleNumber_FS1 = vehicleNumber;
+                if (!V_Number.isEmpty() || !AppConstants.APDU_FOB_KEY.isEmpty()) {
 
 
-                } else if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS2")) {
-                    //pinNumber = Constants.AccPersonnelPIN;
-                    vehicleNumber = editVehicleNumber.getText().toString().trim();
-                    Constants.AccVehicleNumber = vehicleNumber;
+                    String vehicleNumber = "";
+                    String pinNumber = "";
 
-                } else if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS3")) {
-                    //pinNumber = Constants.AccPersonnelPIN_FS3;
-                    vehicleNumber = editVehicleNumber.getText().toString().trim();
-                    Constants.AccVehicleNumber_FS3 = vehicleNumber;
+                    if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS1")) {
+                        //pinNumber = Constants.AccPersonnelPIN_FS1;
+                        vehicleNumber = editVehicleNumber.getText().toString().trim();
+                        Constants.AccVehicleNumber_FS1 = vehicleNumber;
 
-                } else {
-                    //pinNumber = Constants.AccPersonnelPIN_FS4;
-                    vehicleNumber = editVehicleNumber.getText().toString().trim();
-                    Constants.AccVehicleNumber_FS4 = vehicleNumber;
+
+                    } else if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS2")) {
+                        //pinNumber = Constants.AccPersonnelPIN;
+                        vehicleNumber = editVehicleNumber.getText().toString().trim();
+                        Constants.AccVehicleNumber = vehicleNumber;
+
+                    } else if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS3")) {
+                        //pinNumber = Constants.AccPersonnelPIN_FS3;
+                        vehicleNumber = editVehicleNumber.getText().toString().trim();
+                        Constants.AccVehicleNumber_FS3 = vehicleNumber;
+                        Log.i("ps_Vechile no","Step 2:"+vehicleNumber);
+
+                    } else {
+                        //pinNumber = Constants.AccPersonnelPIN_FS4;
+                        vehicleNumber = editVehicleNumber.getText().toString().trim();
+                        Constants.AccVehicleNumber_FS4 = vehicleNumber;
+
+                    }
+
+
+                    VehicleRequireEntity objEntityClass = new VehicleRequireEntity();
+                    objEntityClass.IMEIUDID = AppConstants.getIMEI(DeviceControlActivity_vehicle.this);
+                    objEntityClass.VehicleNumber = vehicleNumber;
+                    objEntityClass.WifiSSId = AppConstants.LAST_CONNECTED_SSID;
+                    objEntityClass.SiteId = Integer.parseInt(AppConstants.SITE_ID);
+                    objEntityClass.PersonnelPIN = pinNumber;
+                    objEntityClass.RequestFromAPP = "AP";
+                    objEntityClass.FromNewFOBChange = "Y";
+                    objEntityClass.FOBNumber = AppConstants.APDU_FOB_KEY;
+                    objEntityClass.IsVehicleNumberRequire = IsVehicleNumberRequire;
+
+                    if (AppConstants.APDU_FOB_KEY.equalsIgnoreCase("")) {
+
+                        Log.i(TAG," Vehcile EN Manually: " + vehicleNumber + "  Fob: " + AppConstants.APDU_FOB_KEY);
+                        if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " Vehcile EN Manually: " + vehicleNumber + "  Fob: " + AppConstants.APDU_FOB_KEY);
+                    } else {
+                        System.out.println(TAG + " Vehcile FOB No:" + AppConstants.APDU_FOB_KEY + "  VNo:" + vehicleNumber);
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + " Vehcile FOB No:" + AppConstants.APDU_FOB_KEY + " VNo:" + vehicleNumber);
+                    }
+
+
+                    Gson gson = new Gson();
+                    String jsonData = gson.toJson(objEntityClass);
+                    String userEmail = CommonUtils.getCustomerDetails(DeviceControlActivity_vehicle.this).PersonEmail;
+
+                    System.out.println("jsonDatajsonDatajsonData" + jsonData);
+                    //----------------------------------------------------------------------------------
+                    String authString = "Basic " + AppConstants.convertStingToBase64(objEntityClass.IMEIUDID + ":" + userEmail + ":" + "CheckVehicleRequireOdometerEntryAndRequireHourEntry");
+
+                    OkHttpClient client = new OkHttpClient();
+                    client.setConnectTimeout(10, TimeUnit.SECONDS);
+                    client.setReadTimeout(10, TimeUnit.SECONDS);
+                    client.setWriteTimeout(10, TimeUnit.SECONDS);
+
+
+                    RequestBody body = RequestBody.create(TEXT, jsonData);
+                    Request request = new Request.Builder()
+                            .url(AppConstants.webURL)
+                            .post(body)
+                            .addHeader("Authorization", authString)
+                            .build();
+
+
+                    Response response = null;
+                    response = client.newCall(request).execute();
+                    resp = response.body().string();
 
                 }
 
-
-                VehicleRequireEntity objEntityClass = new VehicleRequireEntity();
-                objEntityClass.IMEIUDID = AppConstants.getIMEI(DeviceControlActivity_vehicle.this);
-                objEntityClass.VehicleNumber = vehicleNumber;
-                objEntityClass.WifiSSId = AppConstants.LAST_CONNECTED_SSID;
-                objEntityClass.SiteId = Integer.parseInt(AppConstants.SITE_ID);
-                objEntityClass.PersonnelPIN = pinNumber;
-                objEntityClass.RequestFromAPP = "AP";
-                objEntityClass.FromNewFOBChange = "Y";
-                objEntityClass.FOBNumber = AppConstants.APDU_FOB_KEY;
-                objEntityClass.IsVehicleNumberRequire = IsVehicleNumberRequire;
-
-                DeviceControlActivity_vehicle.CheckVehicleRequireOdometerEntryAndRequireHourEntry vehTestAsynTask = new DeviceControlActivity_vehicle.CheckVehicleRequireOdometerEntryAndRequireHourEntry(objEntityClass);
-                vehTestAsynTask.execute();
-                vehTestAsynTask.get();
-
-                if (AppConstants.APDU_FOB_KEY.equalsIgnoreCase("")) {
-                    System.out.println(TAG + " Vehcile number entered manually: " + vehicleNumber + "  Fob: " + AppConstants.APDU_FOB_KEY);
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + " Vehcile number entered manually: " + vehicleNumber + "  Fob: " + AppConstants.APDU_FOB_KEY);
-                } else {
-                    System.out.println(TAG + " Vehcile number: Read FOB:" + AppConstants.APDU_FOB_KEY + "  Read No:" + vehicleNumber);
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + " Vehcile number: Read FOB:" + AppConstants.APDU_FOB_KEY + "  Read No:" + vehicleNumber);
-                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return resp;
+        }
 
 
-                String serverRes = vehTestAsynTask.response;
+        @Override
+        protected void onPostExecute(String serverRes) {
+
+            pd.dismiss();
+            String VehicleNumber = "";
+            try {
 
                 if (serverRes != null) {
 
@@ -784,9 +837,6 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
 
 
                     if (ResponceMessage.equalsIgnoreCase("success")) {
-
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + " Vehicle Accepted:" + vehicleNumber);
 
                         btnSave.setClickable(false);
                         IsNewFobVar = true;
@@ -800,7 +850,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
 
                         IsOdoMeterRequire = jsonObject.getString("IsOdoMeterRequire");
                         String IsHoursRequire = jsonObject.getString("IsHoursRequire");
-                        String VehicleNumber = jsonObject.getString("VehicleNumber");
+                        VehicleNumber = jsonObject.getString("VehicleNumber");
                         String PreviousOdo = jsonObject.getString("PreviousOdo");
                         String OdoLimit = jsonObject.getString("OdoLimit");
                         String OdometerReasonabilityConditions = jsonObject.getString("OdometerReasonabilityConditions");
@@ -861,14 +911,14 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
                         String ValidationFailFor = jsonObject.getString("ValidationFailFor");
                         String IsNewFob = jsonObject.getString("IsNewFob");
 
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + " Vehicle rejected:" + vehicleNumber + " Error:" + ResponceText);
+
+                        if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " Vehicle rejected:" + VehicleNumber + " Error:" + ResponceText);
 
                         if (ValidationFailFor.equalsIgnoreCase("Pin")) {
 
-                            AppConstants.colorToastBigFont(this, ResponceText, Color.RED);
+                            AppConstants.colorToastBigFont(DeviceControlActivity_vehicle.this, ResponceText, Color.RED);
                             if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(TAG + " <<ForDev>> colorToastBigFont Vehicle Activity ValidationFor Pin" + ResponceText);
+                                AppConstants.WriteinFile(TAG + "  colorToastBigFont Vehicle Activity ValidationFor Pin" + ResponceText);
 
                             IsNewFobVar = true;
                             /*AppConstants.colorToastBigFont(this, "Some thing went wrong Please try again..\n"+ResponceText, Color.RED);
@@ -924,15 +974,34 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
                     CommonUtils.showNoInternetDialog(DeviceControlActivity_vehicle.this);
                 }
 
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+
+        }
+    }
+
+
+    public void CallSaveButtonFunctionality() {
+
+        AppConstants.VehicleLocal_FOB_KEY = "";
+
+        try {
+
+            String V_Number = editVehicleNumber.getText().toString().trim();
+
+            if (!V_Number.isEmpty() || !AppConstants.APDU_FOB_KEY.isEmpty()) {
+
+                new ServerCallFirst().execute();
 
             } else {
                 //Empty Fob key & enable edit text and Enter button
                 // AppConstants.APDU_FOB_KEY = "";
                 AppConstants.VehicleLocal_FOB_KEY = "";
                 if (IsVehicleHasFob.equalsIgnoreCase("true")) {
-                    // editVehicleNumber.setEnabled(false);
+                    //editVehicleNumber.setEnabled(false);
                 } else {
-                    // editVehicleNumber.setEnabled(true);
+                    //editVehicleNumber.setEnabled(true);
                 }
 
                 btnSave.setEnabled(true);
@@ -945,167 +1014,224 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
         }
     }
 
-    public void GetVehicleNuOnFobKeyDetection() {
-
-        try {
-
-            String vehicleNumber = "";
-            String pinNumber = "";
-
-            if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS1")) {
-                //pinNumber = Constants.AccPersonnelPIN_FS1;
-                // vehicleNumber = editVehicleNumber.getText().toString().trim();
-                Constants.AccVehicleNumber_FS1 = vehicleNumber;
+    public class GetVehicleNuOnFobKeyDetection extends AsyncTask<Void, Void, String> {
 
 
-            } else if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS2")) {
-                //pinNumber = Constants.AccPersonnelPIN;
-                //  vehicleNumber = editVehicleNumber.getText().toString().trim();
-                Constants.AccVehicleNumber = vehicleNumber;
+        ProgressDialog pd;
+        String resp = "";
+        @Override
+        protected void onPreExecute() {
+            pd = new ProgressDialog(DeviceControlActivity_vehicle.this);
+            pd.setMessage("Please wait...");
+            pd.setCancelable(true);
+            pd.show();
 
-            } else if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS3")) {
-                //pinNumber = Constants.AccPersonnelPIN_FS3;
-                //  vehicleNumber = editVehicleNumber.getText().toString().trim();
-                Constants.AccVehicleNumber_FS3 = vehicleNumber;
+        }
 
-            } else {
-                //pinNumber = Constants.AccPersonnelPIN_FS4;
-                //  vehicleNumber = editVehicleNumber.getText().toString().trim();
-                Constants.AccVehicleNumber_FS4 = vehicleNumber;
+        protected String doInBackground(Void... arg0) {
 
-            }
+            try {
+                String vehicleNumber = "";
+                String pinNumber = "";
 
-            VehicleRequireEntity objEntityClass = new VehicleRequireEntity();
-            objEntityClass.IMEIUDID = AppConstants.getIMEI(DeviceControlActivity_vehicle.this);
-            objEntityClass.VehicleNumber = vehicleNumber;
-            objEntityClass.WifiSSId = AppConstants.LAST_CONNECTED_SSID;
-            objEntityClass.SiteId = Integer.parseInt(AppConstants.SITE_ID);
-            objEntityClass.PersonnelPIN = pinNumber;
-            objEntityClass.RequestFromAPP = "AP";
-            objEntityClass.FOBNumber = AppConstants.APDU_FOB_KEY;
-            objEntityClass.IsVehicleNumberRequire = IsVehicleNumberRequire;
-
-            if (AppConstants.GenerateLogs) AppConstants.WriteinFile(TAG + "Vehicle Number");
-            System.out.println(TAG + " Vehcile number: Read FOB:" + AppConstants.APDU_FOB_KEY + "  Read No:" + vehicleNumber);
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " Vehcile number: Read FOB:" + AppConstants.APDU_FOB_KEY + "  Read No:" + vehicleNumber);
-            DeviceControlActivity_vehicle.CheckVehicleRequireOdometerEntryAndRequireHourEntry vehTestAsynTask = new DeviceControlActivity_vehicle.CheckVehicleRequireOdometerEntryAndRequireHourEntry(objEntityClass);
-            vehTestAsynTask.execute();
-            vehTestAsynTask.get();
-
-            String serverRes = vehTestAsynTask.response;
-
-            if (serverRes != null) {
+                if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS1")) {
+                    //pinNumber = Constants.AccPersonnelPIN_FS1;
+                    // vehicleNumber = editVehicleNumber.getText().toString().trim();
+                    Constants.AccVehicleNumber_FS1 = vehicleNumber;
 
 
-                JSONObject jsonObject = new JSONObject(serverRes);
+                } else if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS2")) {
+                    //pinNumber = Constants.AccPersonnelPIN;
+                    //  vehicleNumber = editVehicleNumber.getText().toString().trim();
+                    Constants.AccVehicleNumber = vehicleNumber;
 
-                String ResponceMessage = jsonObject.getString("ResponceMessage");
-                System.out.println("ResponceMessage...." + ResponceMessage);
-
-
-                if (ResponceMessage.equalsIgnoreCase("success")) {
-
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + " Vehcile Fob Read Success");
-                    IsOdoMeterRequire = jsonObject.getString("IsOdoMeterRequire");
-                    String IsHoursRequire = jsonObject.getString("IsHoursRequire");
-                    String VehicleNumber = jsonObject.getString("VehicleNumber");
-                    String PreviousOdo = jsonObject.getString("PreviousOdo");
-                    String OdoLimit = jsonObject.getString("OdoLimit");
-                    String OdometerReasonabilityConditions = jsonObject.getString("OdometerReasonabilityConditions");
-                    String CheckOdometerReasonable = jsonObject.getString("CheckOdometerReasonable");
-
-                    SharedPreferences sharedPref = DeviceControlActivity_vehicle.this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
-                    SharedPreferences.Editor editor = sharedPref.edit();
-                    editor.putString(AppConstants.IsOdoMeterRequire, IsOdoMeterRequire);
-                    editor.putString(AppConstants.IsHoursRequire, IsHoursRequire);
-                    editor.putString("PreviousOdo", PreviousOdo);
-                    editor.putString("OdoLimit", OdoLimit);
-                    editor.putString("OdometerReasonabilityConditions", OdometerReasonabilityConditions);
-                    editor.putString("CheckOdometerReasonable", CheckOdometerReasonable);
-                    editor.commit();
-
-                    editVehicleNumber.setText(VehicleNumber);
-                    tv_vehicle_no_below.setText("Vehicle Number: " + VehicleNumber);
-                    tv_fob_number.setText("Fob No: " + AppConstants.APDU_FOB_KEY);
-
-
-                    DisplayScreenFobReadSuccess();
-
-
+                } else if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS3")) {
+                    //pinNumber = Constants.AccPersonnelPIN_FS3;
+                    //  vehicleNumber = editVehicleNumber.getText().toString().trim();
+                    Constants.AccVehicleNumber_FS3 = vehicleNumber;
+                    Log.i("ps_Vechile no","Step 0:"+vehicleNumber);
                 } else {
+                    //pinNumber = Constants.AccPersonnelPIN_FS4;
+                    //  vehicleNumber = editVehicleNumber.getText().toString().trim();
+                    Constants.AccVehicleNumber_FS4 = vehicleNumber;
 
-                    String ResponceText = jsonObject.getString("ResponceText");
-                    String ValidationFailFor = jsonObject.getString("ValidationFailFor");
+                }
 
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + " Vehcile Fob Read Fail: " + ResponceText);
+                VehicleRequireEntity objEntityClass = new VehicleRequireEntity();
+                objEntityClass.IMEIUDID = AppConstants.getIMEI(DeviceControlActivity_vehicle.this);
+                objEntityClass.VehicleNumber = vehicleNumber;
+                objEntityClass.WifiSSId = AppConstants.LAST_CONNECTED_SSID;
+                objEntityClass.SiteId = Integer.parseInt(AppConstants.SITE_ID);
+                objEntityClass.PersonnelPIN = pinNumber;
+                objEntityClass.RequestFromAPP = "AP";
+                objEntityClass.FOBNumber = AppConstants.APDU_FOB_KEY;
+                objEntityClass.IsVehicleNumberRequire = IsVehicleNumberRequire;
 
-                    if (ValidationFailFor.equalsIgnoreCase("Pin")) {
+                Log.i(TAG," Vehcile FOB No:" + AppConstants.APDU_FOB_KEY + " VNo:" + vehicleNumber);
+                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " Vehcile FOB No:" + AppConstants.APDU_FOB_KEY + "  VNo:" + vehicleNumber);
+
+                Gson gson = new Gson();
+                String jsonData = gson.toJson(objEntityClass);
+                String userEmail = CommonUtils.getCustomerDetails(DeviceControlActivity_vehicle.this).PersonEmail;
+
+                System.out.println("jsonDatajsonDatajsonData" + jsonData);
+                //----------------------------------------------------------------------------------
+                String authString = "Basic " + AppConstants.convertStingToBase64(objEntityClass.IMEIUDID + ":" + userEmail + ":" + "CheckVehicleRequireOdometerEntryAndRequireHourEntry");
+
+                OkHttpClient client = new OkHttpClient();
+                client.setConnectTimeout(10, TimeUnit.SECONDS);
+                client.setReadTimeout(10, TimeUnit.SECONDS);
+                client.setWriteTimeout(10, TimeUnit.SECONDS);
+
+
+                RequestBody body = RequestBody.create(TEXT, jsonData);
+                Request request = new Request.Builder()
+                        .url(AppConstants.webURL)
+                        .post(body)
+                        .addHeader("Authorization", authString)
+                        .build();
+
+
+                Response response = null;
+                response = client.newCall(request).execute();
+                resp = response.body().string();
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return resp;
+        }
+
+
+        @Override
+        protected void onPostExecute(String serverRes) {
+
+            pd.dismiss();
+            try {
+
+                if (serverRes != null) {
+
+
+                    JSONObject jsonObject = new JSONObject(serverRes);
+
+                    String ResponceMessage = jsonObject.getString("ResponceMessage");
+                    System.out.println("ResponceMessage...." + ResponceMessage);
+
+
+                    if (ResponceMessage.equalsIgnoreCase("success")) {
+
+                        IsOdoMeterRequire = jsonObject.getString("IsOdoMeterRequire");
+                        String IsHoursRequire = jsonObject.getString("IsHoursRequire");
+                        String VehicleNumber = jsonObject.getString("VehicleNumber");
+                        String PreviousOdo = jsonObject.getString("PreviousOdo");
+                        String OdoLimit = jsonObject.getString("OdoLimit");
+                        String OdometerReasonabilityConditions = jsonObject.getString("OdometerReasonabilityConditions");
+                        String CheckOdometerReasonable = jsonObject.getString("CheckOdometerReasonable");
+
+                        SharedPreferences sharedPref = DeviceControlActivity_vehicle.this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
+                        SharedPreferences.Editor editor = sharedPref.edit();
+                        editor.putString(AppConstants.IsOdoMeterRequire, IsOdoMeterRequire);
+                        editor.putString(AppConstants.IsHoursRequire, IsHoursRequire);
+                        editor.putString("PreviousOdo", PreviousOdo);
+                        editor.putString("OdoLimit", OdoLimit);
+                        editor.putString("OdometerReasonabilityConditions", OdometerReasonabilityConditions);
+                        editor.putString("CheckOdometerReasonable", CheckOdometerReasonable);
+                        editor.commit();
+
+                        editVehicleNumber.setText(VehicleNumber);
+                        tv_vehicle_no_below.setText("Vehicle Number: " + VehicleNumber);
+                        tv_fob_number.setText("Fob No: " + AppConstants.APDU_FOB_KEY);
+                        Log.i("ps_Vechile no","Step 1:"+VehicleNumber);
+
+                        DisplayScreenFobReadSuccess();
+
+                        new Handler().postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                CallSaveButtonFunctionality();//Press Enter fun
+                            }
+                        }, 1000);
+
+
+                    } else {
+
+                        String ResponceText = jsonObject.getString("ResponceText");
+                        String ValidationFailFor = jsonObject.getString("ValidationFailFor");
+
+                        if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " Vehcile Fob Read Fail: " + ResponceText);
+
+                        if (ValidationFailFor.equalsIgnoreCase("Pin")) {
 
                         /*AppConstants.colorToastBigFont(this, ResponceText, Color.RED);
                         Intent i = new Intent(this, DeviceControlActivity_Pin.class);
                         startActivity(i);*/
 
-                    } else if (ValidationFailFor.equalsIgnoreCase("invalidfob")) {
+                        } else if (ValidationFailFor.equalsIgnoreCase("invalidfob")) {
 
-                        //AppConstants.colorToastBigFont(this, ResponceText, Color.RED);
-                        //CommonUtils.showCustomMessageDilaog(DeviceControlActivity_vehicle.this, "Message", ResponceText);
+                            //AppConstants.colorToastBigFont(this, ResponceText, Color.RED);
+                            //CommonUtils.showCustomMessageDilaog(DeviceControlActivity_vehicle.this, "Message", ResponceText);
 //                        Intent i = new Intent(this, WelcomeActivity.class);
 //                        startActivity(i);
 
-                    } else {
-
-                        if (IsGateHub.equalsIgnoreCase("True")) {
-                            Istimeout_Sec = false;
                         } else {
-                            Istimeout_Sec = true;
+
+                            if (IsGateHub.equalsIgnoreCase("True")) {
+                                Istimeout_Sec = false;
+                            } else {
+                                Istimeout_Sec = true;
+                            }
+                            TimeoutVehicleScreen();
+                            tv_enter_vehicle_no.setText("Invalid FOB or Unassigned FOB");
+                            int widthi = ActionBar.LayoutParams.WRAP_CONTENT;
+                            int heighti = ActionBar.LayoutParams.WRAP_CONTENT;
+                            LinearLayout.LayoutParams parmsi = new LinearLayout.LayoutParams(widthi, heighti);
+                            tv_enter_vehicle_no.setLayoutParams(parmsi);
+
+                            tv_fob_number.setVisibility(View.GONE);
+                            tv_fob_Reader.setVisibility(View.GONE);
+                            tv_or.setVisibility(View.GONE);
+                            tv_vehicle_no_below.setVisibility(View.GONE);
+                            tv_dont_have_fob.setVisibility(View.VISIBLE);
+                            btnSave.setVisibility(View.VISIBLE);
+                            String content = "Enter your <br><b>VEHICLE ID</b> in<br> the green box below";
+
+                            int width = ActionBar.LayoutParams.MATCH_PARENT;
+                            int height = ActionBar.LayoutParams.WRAP_CONTENT;
+                            LinearLayout.LayoutParams parms = new LinearLayout.LayoutParams(width, height);
+                            parms.gravity = Gravity.CENTER;
+                            editVehicleNumber.setLayoutParams(parms);
+
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                                tv_dont_have_fob.setText(Html.fromHtml(content, Html.FROM_HTML_MODE_LEGACY));
+                                System.out.println(Html.fromHtml(content, Html.FROM_HTML_MODE_LEGACY));
+                            } else {
+                                tv_dont_have_fob.setText(Html.fromHtml(content));
+                                System.out.println(Html.fromHtml(content));
+                            }
+
+                            editVehicleNumber.setText("");
+                            editVehicleNumber.setVisibility(View.VISIBLE);
+                            Linear_layout_Save_back_buttons.setVisibility(View.VISIBLE);
+                            // CommonUtils.showMessageDilaog(AcceptVehicleActivity.this, "Message", ResponceText);
                         }
-                        TimeoutVehicleScreen();
-                        tv_enter_vehicle_no.setText("Invalid FOB or Unassigned FOB");
-                        int widthi = ActionBar.LayoutParams.WRAP_CONTENT;
-                        int heighti = ActionBar.LayoutParams.WRAP_CONTENT;
-                        LinearLayout.LayoutParams parmsi = new LinearLayout.LayoutParams(widthi, heighti);
-                        tv_enter_vehicle_no.setLayoutParams(parmsi);
 
-                        tv_fob_number.setVisibility(View.GONE);
-                        tv_fob_Reader.setVisibility(View.GONE);
-                        tv_or.setVisibility(View.GONE);
-                        tv_vehicle_no_below.setVisibility(View.GONE);
-                        tv_dont_have_fob.setVisibility(View.VISIBLE);
-                        btnSave.setVisibility(View.VISIBLE);
-                        String content = "Enter your <br><b>VEHICLE ID</b> in<br> the green box below";
+                        new Handler().postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                CallSaveButtonFunctionality();//Press Enter fun
+                            }
+                        }, 1000);
 
-                        int width = ActionBar.LayoutParams.MATCH_PARENT;
-                        int height = ActionBar.LayoutParams.WRAP_CONTENT;
-                        LinearLayout.LayoutParams parms = new LinearLayout.LayoutParams(width, height);
-                        parms.gravity = Gravity.CENTER;
-                        editVehicleNumber.setLayoutParams(parms);
-
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                            tv_dont_have_fob.setText(Html.fromHtml(content, Html.FROM_HTML_MODE_LEGACY));
-                            System.out.println(Html.fromHtml(content, Html.FROM_HTML_MODE_LEGACY));
-                        } else {
-                            tv_dont_have_fob.setText(Html.fromHtml(content));
-                            System.out.println(Html.fromHtml(content));
-                        }
-
-                        editVehicleNumber.setText("");
-                        editVehicleNumber.setVisibility(View.VISIBLE);
-                        Linear_layout_Save_back_buttons.setVisibility(View.VISIBLE);
-                        // CommonUtils.showMessageDilaog(AcceptVehicleActivity.this, "Message", ResponceText);
                     }
 
+                } else {
+                    // CommonUtils.showNoInternetDialog(AcceptVehicleActivity.this);
                 }
 
-            } else {
-                // CommonUtils.showNoInternetDialog(AcceptVehicleActivity.this);
+            }catch (Exception e){
+                e.printStackTrace();
             }
 
-
-        } catch (Exception ex) {
-            Log.e(TAG, ex.getMessage());
         }
     }
 
@@ -1147,11 +1273,23 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
     public class CheckVehicleRequireOdometerEntryAndRequireHourEntry extends AsyncTask<Void, Void, Void> {
 
         VehicleRequireEntity vrentity = null;
+        ProgressDialog pd;
 
         public String response = null;
 
         public CheckVehicleRequireOdometerEntryAndRequireHourEntry(VehicleRequireEntity vrentity) {
             this.vrentity = vrentity;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+
+            pd = new ProgressDialog(DeviceControlActivity_vehicle.this);
+            pd.setMessage("Please wait...");
+            pd.setCancelable(true);
+            pd.setCancelable(false);
+            pd.show();
         }
 
         @Override
@@ -1177,8 +1315,13 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
             return null;
         }
 
-    }
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
 
+            pd.dismiss();
+        }
+    }
 
     @Override
     public void onBackPressed() {
@@ -1271,7 +1414,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
             Linear_layout_Save_back_buttons.setVisibility(View.VISIBLE);
 
             int width = ActionBar.LayoutParams.MATCH_PARENT;//0; ////temp
-            int height = ActionBar.LayoutParams.WRAP_CONTENT;
+            int height = 0;
             LinearLayout.LayoutParams parms = new LinearLayout.LayoutParams(width, height);
             editVehicleNumber.setLayoutParams(parms);
             editVehicleNumber.setText("");
@@ -1499,7 +1642,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
                 client.setReadTimeout(10, TimeUnit.SECONDS);
                 client.setWriteTimeout(10, TimeUnit.SECONDS);
 
-                RequestBody body = RequestBody.create(ServerHandler.TEXT, jsonData);
+                RequestBody body = RequestBody.create(TEXT, jsonData);
                 Request request = new Request.Builder()
                         .url(AppConstants.webURL)
                         .post(body)
@@ -1515,7 +1658,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
                 pd.dismiss();
                 System.out.println("Ex" + e.getMessage());
                 if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + " <<ForDev>> GetVehicleByFSTagMacAddress doInBackground --Exception " + e);
+                    AppConstants.WriteinFile(TAG + "  GetVehicleByFSTagMacAddress doInBackground --Exception " + e);
             }
 
 

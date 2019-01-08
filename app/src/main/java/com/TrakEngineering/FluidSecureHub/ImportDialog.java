@@ -26,3 +26,4 @@ public class ImportDialog {
 		alert.show();
 	}
 }
+

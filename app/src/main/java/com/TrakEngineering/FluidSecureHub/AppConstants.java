@@ -35,6 +35,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -557,10 +558,13 @@ public class AppConstants {
                 gpxfile.createNewFile();
             }
 
+            Calendar cal = Calendar.getInstance();
+            SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd hh:mm:ss");
+            String UseDate = dateFormat.format(cal.getTime());
 
             FileWriter fileWritter = new FileWriter(gpxfile, true);
             BufferedWriter bufferWritter = new BufferedWriter(fileWritter);
-            bufferWritter.write("\n"+Calendar.getInstance().getTime() + "--" + str + " ");
+            bufferWritter.write("\n"+UseDate + "--" + str + " ");
             bufferWritter.close();
 
         } catch (IOException e) {

@@ -25,6 +25,7 @@ public class Login extends AppCompatActivity {
     EditText etUserId, etPass;
     Button btnLogin;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -82,7 +83,6 @@ public class Login extends AppCompatActivity {
 
 
             try {
-
 
                 MediaType TEXT = MediaType.parse("application/x-www-form-urlencoded");
 

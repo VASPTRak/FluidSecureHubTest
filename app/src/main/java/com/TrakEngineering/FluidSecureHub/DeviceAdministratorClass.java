@@ -40,3 +40,4 @@ public class DeviceAdministratorClass extends DeviceAdminReceiver {
         showToast(context, "Welcome Device Owner");
     }
 }
+

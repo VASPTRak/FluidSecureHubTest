@@ -985,7 +985,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="left"
-                    android:text="Or Call:  850-878-4584"
+                    android:text="Or Call:  850-878-4585"
                     android:textColor="#000"
                     android:textSize="18sp" />
             </LinearLayout>

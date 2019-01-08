@@ -27,3 +27,4 @@ public class AuthEntityClass {
     public String Status;
 
 }
+

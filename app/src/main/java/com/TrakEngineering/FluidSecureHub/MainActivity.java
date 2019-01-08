@@ -286,7 +286,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
         }
         /* if wifi is OFF set it ON
          * set button text "ON"
-		 * and scan available wifi provider*/
+         * and scan available wifi provider*/
         else if (wifiManager.isWifiEnabled() == false) {
             wifiManager.setWifiEnabled(true);
             setWifi.setText("ON");
@@ -318,7 +318,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
         public void onReceive(Context c, Intent intent) {
             wifiList = wifiManager.getScanResults();
 
-			/* sorting of wifi provider based on level */
+            /* sorting of wifi provider based on level */
             Collections.sort(wifiList, new Comparator<ScanResult>() {
                 @Override
                 public int compare(ScanResult lhs, ScanResult rhs) {
@@ -335,7 +335,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
                 WifiInfo info = wifiManager.getConnectionInfo();
                 String connetedSSID = String.valueOf(info.getSSID());
 
-				/* to get SSID and BSSID of wifi provider*/
+                /* to get SSID and BSSID of wifi provider*/
                 providerName = (wifiList.get(i).SSID).toString();
 
                 if (connetedSSID.contains(providerName)) {

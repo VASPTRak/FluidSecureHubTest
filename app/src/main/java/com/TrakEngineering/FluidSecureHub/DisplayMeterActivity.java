@@ -87,8 +87,9 @@ import static java.lang.String.format;
 
 public class DisplayMeterActivity extends AppCompatActivity implements View.OnClickListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
+
     //WifiManager wifiManager;
-    private static final String TAG = "DisplayMeterActivity :";
+    private static final String TAG = "DisplayMAct";
     private String vehicleNumber, odometerTenths = "0", dNumber = "", pNumber = "", oText = "", hNumber = "";
     private TextView textDateTime, tvCounts, tvGallons;
     private TextView textOdometer, txtVehicleNumber, tvConsole;
@@ -100,10 +101,9 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
     LinearLayout linearFuelAnother;
     Integer Pulses = 0;
     String iot_version = "";
-    ProgressDialog loading;
     public int count_InfoCmd = 0;
     public int count_relayCmd = 0;
-
+    private ProgressDialog progressDialog;
     private static final int SERVER_PORT = 2901;
     private static final String SERVER_IP = "192.168.4.1";
     ArrayList<HashMap<String, String>> ListOfConnectedDevices = new ArrayList<>();
@@ -218,10 +218,10 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
     protected void onResume() {
         super.onResume();
 
-        new GetConnectedDevicesIP().execute();
         //Hide keyboard
         this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 
+        new GetConnectedDevicesIP().execute();
 
         try {
             Thread.sleep(1000);
@@ -232,8 +232,8 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
         CompleteTasksbeforeStartbuttonClick();
 
 
-    }
 
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -272,11 +272,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
             }
         }, screenTimeOut);
 
-        if (AppConstants.GenerateLogs)
-            AppConstants.WriteinFile(TAG + " <<ForDev>> In DisplayMeterActivity ");
-
         getListOfConnectedDevice();
-
 
         tv_hoseConnected.setText("Connected to " + AppConstants.CURRENT_SELECTED_SSID);
         if (Constants.CurrentSelectedHose.equals("FS1")) {
@@ -764,57 +760,8 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
             case R.id.btnStart:
 
-                btnStart.setClickable(false);
-                btnStart.setBackgroundColor(Color.parseColor("#F88800"));
-
-
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-
-                if (AppConstants.FS_selected.equalsIgnoreCase("0")) {
-
-                    Intent serviceIntent = new Intent(DisplayMeterActivity.this, BackgroundService_AP_PIPE.class);
-                    serviceIntent.putExtra("HTTP_URL", HTTP_URL);
-                    startService(serviceIntent);
-
-                    Intent i = new Intent(DisplayMeterActivity.this, WelcomeActivity.class);
-                    i.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                    startActivity(i);
-
-
-                } else if (AppConstants.FS_selected.equalsIgnoreCase("1")) {
-
-                    Intent serviceIntent = new Intent(DisplayMeterActivity.this, BackgroundService_AP.class);
-                    serviceIntent.putExtra("HTTP_URL", HTTP_URL);
-                    startService(serviceIntent);
-
-                    Intent i = new Intent(DisplayMeterActivity.this, WelcomeActivity.class);
-                    i.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                    startActivity(i);
-
-                } else if (AppConstants.FS_selected.equalsIgnoreCase("2")) {
-
-                    Intent serviceIntent = new Intent(DisplayMeterActivity.this, BackgroundService_FS_UNIT_3.class);
-                    serviceIntent.putExtra("HTTP_URL", HTTP_URL);
-                    startService(serviceIntent);
-
-                    Intent i = new Intent(DisplayMeterActivity.this, WelcomeActivity.class);
-                    i.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                    startActivity(i);
-
-                } else if (AppConstants.FS_selected.equalsIgnoreCase("3")) {
-
-                    Intent serviceIntent = new Intent(DisplayMeterActivity.this, BackgroundService_FS_UNIT_4.class);//change background service to fsunite3
-                    serviceIntent.putExtra("HTTP_URL", HTTP_URL);
-                    startService(serviceIntent);
-
-                    Intent i = new Intent(DisplayMeterActivity.this, WelcomeActivity.class);
-                    i.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                    startActivity(i);
-                }
+                Istimeout_Sec = false;
+                new StartbuttonFunctionality().execute();
 
                 break;
 
@@ -861,7 +808,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
         BtnStartStateChange(false);
         //btnCancel.setClickable(false);
-        Istimeout_Sec = false;
+
         String macaddress = AppConstants.SELECTED_MACADDRESS;
 
 
@@ -924,7 +871,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                         String status = jsonObject.getString("status");
 
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + " <<ForDev>> Relay_result " + " Status: " + status);
+                            AppConstants.WriteinFile(TAG + "  Relay_Status: "+ status);
 
                         //IF relay status zero go back to dashboard
                         if (status.equalsIgnoreCase("1")) {
@@ -1024,7 +971,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                     if (count_relayCmd > 1) {
 
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + " <<ForDev>> Link is unavailable relay");
+                            AppConstants.WriteinFile(TAG + "  Link Unavailable relay");
                         AppConstants.colorToastBigFont(DisplayMeterActivity.this, " Link is unavailable", Color.RED);
                         AppConstants.ClearEdittextFielsOnBack(DisplayMeterActivity.this); //Clear EditText on move to welcome activity.
                         BackgroundServiceKeepDataTransferAlive.IstoggleRequired_DA = true;
@@ -1035,7 +982,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                     } else {
 
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + " <<ForDev>> Link is unavailable relay command Retry attempt: " + count_InfoCmd);
+                            AppConstants.WriteinFile(TAG + "  Link Unavailable relay Retry attempt: " + count_InfoCmd);
                         AppConstants.colorToastBigFont(DisplayMeterActivity.this, "Link is unavailable Retry attempt" + count_relayCmd, Color.RED);
                         new Handler().postDelayed(new Runnable() {
 
@@ -1057,7 +1004,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                 if (count_InfoCmd > 1) {
 
                     if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + " <<ForDev>> Link is unavailable info command");
+                        AppConstants.WriteinFile(TAG + "  Link is unavailable infoCmd");
                     AppConstants.colorToastBigFont(DisplayMeterActivity.this, " Link is unavailable", Color.RED);
                     AppConstants.ClearEdittextFielsOnBack(DisplayMeterActivity.this); //Clear EditText on move to welcome activity.
                     Intent intent = new Intent(DisplayMeterActivity.this, WelcomeActivity.class);
@@ -1067,8 +1014,8 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                 } else {
 
                     if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + " <<ForDev>> Link is unavailable info command Retry attempt: " + count_InfoCmd);
-                    AppConstants.colorToastBigFont(DisplayMeterActivity.this, "Link is unavailable Retry attempt" + count_InfoCmd, Color.RED);
+                        AppConstants.WriteinFile(TAG + "  Link Unavailable infoCmd Retry attempt: " + count_InfoCmd);
+                    AppConstants.colorToastBigFont(DisplayMeterActivity.this, "Link Unavailable Retry attempt" + count_InfoCmd, Color.RED);
                     new Handler().postDelayed(new Runnable() {
                         @Override
                         public void run() {
@@ -1283,7 +1230,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
             String respp = new CommandsGET().execute(URL_RECORD10_PULSAR).get();
 
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " <<ForDev>> LAST TRANS RawData " + " LastTXNid" + LastTXNid + "Resp " + respp);
+                AppConstants.WriteinFile(TAG + "  LAST TRANS RawData " + " LastTXNid" + LastTXNid + "Resp " + respp);
 
             if (LastTXNid.equals("-1")) {
                 System.out.println(LastTXNid);
@@ -1321,8 +1268,9 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                         String jsonData = gson.toJson(authEntityClass);
 
                         System.out.println("TrazComp......" + jsonData);
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + " <<ForDev>> LAST TRANS jsonData " + jsonData);
+                        String AppInfo = " Version:" + CommonUtils.getVersionCode(DisplayMeterActivity.this) + " " + AppConstants.getDeviceName() + " Android " + android.os.Build.VERSION.RELEASE;
+                        if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " LastTXNid:"+LastTXNid+" Qty:"+Lastqty+" Pulses"+Pulses+" AppInfo" + AppInfo);
+                        //if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  LAST TRANS jsonData " + jsonData);
 
                         String userEmail = CommonUtils.getCustomerDetails(DisplayMeterActivity.this).PersonEmail;
 
@@ -1350,14 +1298,14 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                             controller.insertTransactions(imap);
 
                             if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(TAG + " <<ForDev>> LAST TRANS SAVED in sqlite");
+                                AppConstants.WriteinFile(TAG + "  LAST TRANS SAVED in sqlite");
                         }
 
 
                     } catch (Exception ex) {
 
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + " <<ForDev>> LAST TRANS Exception " + ex.getMessage());
+                            AppConstants.WriteinFile(TAG + "  LAST TRANS Exception " + ex.getMessage());
                     }
 
 
@@ -1366,7 +1314,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
         } catch (Exception e) {
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " <<ForDev>> LastTXNid Ex:" + e.getMessage() + " ");
+                AppConstants.WriteinFile(TAG + "  LastTXNid Ex:" + e.getMessage() + " ");
         }
 
 
@@ -2714,14 +2662,14 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                     } catch (Exception e) {
                         e.printStackTrace();
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + " <<ForDev>> GetConnectedDevicesIP 1 --Exception " + e);
+                            AppConstants.WriteinFile(TAG + "  GetConnectedDevicesIP 1 --Exception " + e);
                     } finally {
                         try {
                             br.close();
                         } catch (IOException e) {
                             e.printStackTrace();
                             if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(TAG + " <<ForDev>> GetConnectedDevicesIP 2 --Exception " + e);
+                                AppConstants.WriteinFile(TAG + "  GetConnectedDevicesIP 2 --Exception " + e);
                         }
                     }
                 }
@@ -2764,6 +2712,101 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
         }
 
+    }
+
+    public class StartbuttonFunctionality extends AsyncTask<Void, Void, String> {
+
+
+        ProgressDialog pd;
+        String resp = "";
+        @Override
+        protected void onPreExecute() {
+            pd = new ProgressDialog(DisplayMeterActivity.this);
+            pd.setMessage("Please wait...");
+            pd.setCancelable(true);
+            pd.show();
+
+        }
+
+        protected String doInBackground(Void... arg0) {
+
+            try {
+                btnStart.setClickable(false);
+                btnStart.setBackgroundColor(Color.parseColor("#F88800"));
+
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return resp;
+        }
+
+
+        @Override
+        protected void onPostExecute(String serverRes) {
+
+            pd.dismiss();
+            try {
+
+
+
+                if (AppConstants.FS_selected.equalsIgnoreCase("0")) {
+
+
+                    Intent serviceIntent = new Intent(DisplayMeterActivity.this, BackgroundService_AP_PIPE.class);
+                    serviceIntent.putExtra("HTTP_URL", HTTP_URL);
+                    startService(serviceIntent);
+
+                    Intent i = new Intent(DisplayMeterActivity.this, WelcomeActivity.class);
+                    i.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                    startActivity(i);
+
+
+                } else if (AppConstants.FS_selected.equalsIgnoreCase("1")) {
+
+
+                    Intent serviceIntent = new Intent(DisplayMeterActivity.this, BackgroundService_AP.class);
+                    serviceIntent.putExtra("HTTP_URL", HTTP_URL);
+                    startService(serviceIntent);
+
+                    Intent i = new Intent(DisplayMeterActivity.this, WelcomeActivity.class);
+                    i.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                    startActivity(i);
+
+                } else if (AppConstants.FS_selected.equalsIgnoreCase("2")) {
+
+
+                    Intent serviceIntent = new Intent(DisplayMeterActivity.this, BackgroundService_FS_UNIT_3.class);
+                    serviceIntent.putExtra("HTTP_URL", HTTP_URL);
+                    startService(serviceIntent);
+
+                    Intent i = new Intent(DisplayMeterActivity.this, WelcomeActivity.class);
+                    i.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                    startActivity(i);
+
+                } else if (AppConstants.FS_selected.equalsIgnoreCase("3")) {
+
+
+                    Intent serviceIntent = new Intent(DisplayMeterActivity.this, BackgroundService_FS_UNIT_4.class);//change background service to fsunite3
+                    serviceIntent.putExtra("HTTP_URL", HTTP_URL);
+                    startService(serviceIntent);
+
+                    Intent i = new Intent(DisplayMeterActivity.this, WelcomeActivity.class);
+                    i.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                    startActivity(i);
+                }
+
+
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+
+        }
     }
 
 }

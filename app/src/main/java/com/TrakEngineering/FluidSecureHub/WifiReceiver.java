@@ -32,10 +32,10 @@ public class WifiReceiver extends BroadcastReceiver {
             if (ssid.equalsIgnoreCase("\"" + AppConstants.LAST_CONNECTED_SSID + "\"")) {
 
                 DisplayMeterActivity.BRisWiFiConnected = true;
-              //  DisplayMeterActivity.btnStart.setEnabled(true);
-              //  DisplayMeterActivity.tvStatus.setText("");
+                //  DisplayMeterActivity.btnStart.setEnabled(true);
+                //  DisplayMeterActivity.tvStatus.setText("");
 
-                
+
 
             }
             System.out.println("WiFi connected to " + ssid);

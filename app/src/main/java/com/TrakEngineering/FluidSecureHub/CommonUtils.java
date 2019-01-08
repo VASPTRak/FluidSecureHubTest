@@ -1,6 +1,7 @@
 package com.TrakEngineering.FluidSecureHub;
 
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
@@ -23,6 +24,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import com.TrakEngineering.FluidSecureHub.BackgroundServiceNew.MyService_FSNP;
+import com.TrakEngineering.FluidSecureHub.EddystoneScanner.EddystoneScannerService;
 import com.TrakEngineering.FluidSecureHub.enity.AuthEntityClass;
 import com.TrakEngineering.FluidSecureHub.enity.UserInfoEntity;
 import com.google.gson.Gson;
@@ -722,6 +724,21 @@ public class CommonUtils {
         return userInfoEntity;
     }
 
+    public static UserInfoEntity getCustomerDetails_backgroundServiceEddystoneScannerService(EddystoneScannerService activity) {
+
+        UserInfoEntity userInfoEntity = new UserInfoEntity();
+
+        SharedPreferences sharedPref = activity.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
+
+        userInfoEntity.PersonName = sharedPref.getString(AppConstants.USER_NAME, "");
+        userInfoEntity.PhoneNumber = sharedPref.getString(AppConstants.USER_MOBILE, "");
+        userInfoEntity.PersonEmail = sharedPref.getString(AppConstants.USER_EMAIL, "");
+        userInfoEntity.FluidSecureSiteName = sharedPref.getString(AppConstants.FluidSecureSiteName, "");
+
+
+        return userInfoEntity;
+    }
+
     public static UserInfoEntity getCustomerDetails_backgroundService(MyService_FSNP activity) {
 
         UserInfoEntity userInfoEntity = new UserInfoEntity();
@@ -1091,6 +1108,19 @@ public class CommonUtils {
 
             }
         }
+    }
+
+
+    public static boolean isMyServiceRunning(Class<?> serviceClass, Context context) {
+        ActivityManager manager = (ActivityManager)context. getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (serviceClass.getName().equals(service.service.getClassName())) {
+                Log.i("Service already","running");
+                return true;
+            }
+        }
+        Log.i("Service not","running");
+        return false;
     }
 
 

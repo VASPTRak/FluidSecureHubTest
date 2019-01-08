@@ -64,7 +64,7 @@ import java.util.concurrent.TimeUnit;
 
 public class SplashActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
-    private static final String TAG = "SplashActivity";
+    private static final String TAG = "SplashAct ";
     private static final int REQUEST_LOCATION = 2;
     private ConnectionDetector cd;
     private double latitude;
@@ -378,7 +378,7 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
 
                     try {
 
-                      // new CallAppTxt().execute();
+                        // new CallAppTxt().execute();
 
                         setUrlFromSharedPref(SplashActivity.this);
 
@@ -613,7 +613,7 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
                 actionOnResult(response);
             else
                 AppConstants.alertBigFinishActivity(SplashActivity.this,"Please check your Internet data");
-                //recreate();
+            //recreate();
         }
     }
 
@@ -871,7 +871,7 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
                 }
 
             } catch (Exception e) {
-               if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " <<ForDev>> App.txt-" + e.getMessage());
+                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  App.txt-" + e.getMessage());
             }
 
 
