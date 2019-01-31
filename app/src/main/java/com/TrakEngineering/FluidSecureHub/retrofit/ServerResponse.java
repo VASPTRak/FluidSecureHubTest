@@ -1,8 +1,12 @@
 package com.TrakEngineering.FluidSecureHub.retrofit;
 
+import com.TrakEngineering.FluidSecureHub.WelcomeActivity;
 import com.google.gson.annotations.SerializedName;
+import com.squareup.okhttp.ResponseBody;
 
 import java.io.Serializable;
+
+import retrofit2.Call;
 
 public class ServerResponse implements Serializable {
 
@@ -18,8 +22,12 @@ public class ServerResponse implements Serializable {
     private String ResponceMessage;
     @SerializedName("ResponceText")
     private String ResponceText;
+
     @SerializedName("VehicleId")
     private String VehicleId;
+
+    @SerializedName("EnablePrinter")
+    private String EnablePrinter;
 
 
     //--------------------------
@@ -113,7 +121,7 @@ public class ServerResponse implements Serializable {
                           String MinLimit, String SiteId, String PulseRatio, String PersonId, String FuelTypeId, String PhoneNumber, String ServerDate,
                           String PumpOnTime, String PumpOffTime, String PulserStopTime, String TransactionId, String FirmwareVersion, String FilePath,
                           String FOBNumber, String Company, String Location, String PersonName, String PrinterName, String PrinterMacAddress, String VehicleSum,
-                          String DeptSum, String VehPercentage, String DeptPercentage, String SurchargeType, String ProductPrice, String parameter, String VehicleNumber, String RequireManualOdo,String PreviousOdo,String OdoLimit,String OdometerReasonabilityConditions,String CheckOdometerReasonable,String IsFSNPUpgradable,String IsTLDCall) {
+                          String DeptSum, String VehPercentage, String DeptPercentage, String SurchargeType, String ProductPrice, String parameter, String VehicleNumber, String RequireManualOdo,String PreviousOdo,String OdoLimit,String OdometerReasonabilityConditions,String CheckOdometerReasonable,String IsFSNPUpgradable,String IsTLDCall,String EnablePrinter) {
 
         this.username = username;
         this.password = password;
@@ -156,6 +164,7 @@ public class ServerResponse implements Serializable {
         this.CheckOdometerReasonable = CheckOdometerReasonable;
         this.IsFSNPUpgradable = IsFSNPUpgradable;
         this.IsTLDCall = IsTLDCall;
+        this.EnablePrinter = EnablePrinter;
 
 
     }
@@ -490,5 +499,12 @@ public class ServerResponse implements Serializable {
         IsTLDCall = isTLDCall;
     }
 
+    public String getEnablePrinter() {
+        return EnablePrinter;
+    }
+
+    public void setEnablePrinter(String enablePrinter) {
+        EnablePrinter = enablePrinter;
+    }
 
 }

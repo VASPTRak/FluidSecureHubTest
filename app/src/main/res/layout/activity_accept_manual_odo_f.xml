@@ -6,7 +6,7 @@
     android:background="@color/white"
     android:orientation="vertical"
     android:padding="@dimen/main_outer_padding"
-    tools:context="com.TrakEngineering.FluidSecureHub.AcceptManualOdoActivityFA">
+    tools:context="com.TrakEngineering.FluidSecureHubTest.AcceptManualOdoActivityFA">
 
     <ScrollView
         android:layout_width="match_parent"

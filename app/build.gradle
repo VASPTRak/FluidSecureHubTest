@@ -13,8 +13,8 @@ android {
         applicationId "com.TrakEngineering.FluidSecureHub"
         minSdkVersion 21
         targetSdkVersion 27
-        versionCode 47
-        versionName "0.37.0"
+        versionCode 48
+        versionName "0.37.3"
         multiDexEnabled true
     }
     buildTypes {
@@ -31,7 +31,7 @@ android {
 }
 
 dependencies {
-    compile fileTree(include: ['*.jar'], dir: 'libs')
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
 
     implementation 'com.google.code.gson:gson:2.2.4'
     implementation 'com.squareup.okhttp:okhttp:2.0.0'
@@ -44,7 +44,7 @@ dependencies {
     implementation 'net.yslibrary.keyboardvisibilityevent:keyboardvisibilityevent:2.1.0'
     implementation 'com.android.support:design:25.3.1'
     implementation 'com.android.support:multidex:1.0.1'
-    testCompile 'junit:junit:4.12'
+    testImplementation 'junit:junit:4.12'
 
     implementation 'com.squareup.retrofit2:retrofit:2.3.0'
     implementation 'com.squareup.retrofit2:converter-gson:2.1.0'

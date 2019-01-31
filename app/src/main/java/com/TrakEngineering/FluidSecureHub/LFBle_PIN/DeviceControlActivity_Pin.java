@@ -35,16 +35,22 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.TrakEngineering.FluidSecureHub.AcceptDeptActivity;
 import com.TrakEngineering.FluidSecureHub.AcceptOtherActivity;
 import com.TrakEngineering.FluidSecureHub.AcceptServiceCall;
+import com.TrakEngineering.FluidSecureHub.AcceptVehicleActivity;
 import com.TrakEngineering.FluidSecureHub.AppConstants;
+import com.TrakEngineering.FluidSecureHub.BackgroundServiceKeepDataTransferAlive;
 import com.TrakEngineering.FluidSecureHub.CommonUtils;
+import com.TrakEngineering.FluidSecureHub.ConnectionDetector;
 import com.TrakEngineering.FluidSecureHub.Constants;
+import com.TrakEngineering.FluidSecureHub.LFBle_vehicle.DeviceControlActivity_vehicle;
 import com.TrakEngineering.FluidSecureHub.R;
 import com.TrakEngineering.FluidSecureHub.WelcomeActivity;
 import com.TrakEngineering.FluidSecureHub.enity.CheckPinFobEntity;
+import com.TrakEngineering.FluidSecureHub.enity.UserInfoEntity;
 import com.TrakEngineering.FluidSecureHub.enity.VehicleRequireEntity;
 import com.TrakEngineering.FluidSecureHub.server.ServerHandler;
 import com.google.gson.Gson;
@@ -57,6 +63,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
@@ -115,6 +122,8 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
     int FobRetryCount = 0;
 
     Timer t, ScreenOutTime;
+
+    ConnectionDetector cd = new ConnectionDetector(DeviceControlActivity_Pin.this);
 
     // Code to manage Service lifecycle.
     private final ServiceConnection mServiceConnection = new ServiceConnection() {
@@ -295,11 +304,23 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                 String FKey = AppConstants.APDU_FOB_KEY;
 
                 if (FKey.equalsIgnoreCase("")) {
-                    new CallSaveButtonFunctionality().execute();//Press Enter fun
+                    if (cd.isConnectingToInternet())
+                        new CallSaveButtonFunctionality().execute();//Press Enter fun
+                    else
+                        AppConstants.colorToastBigFont(getApplicationContext(), "Please check Internet connection", Color.RED);
+
                 } else if (pin.equalsIgnoreCase("") && !FKey.equalsIgnoreCase("")) {
-                    new GetPinNuOnFobKeyDetection().execute();
+                    if (cd.isConnectingToInternet())
+                        new GetPinNuOnFobKeyDetection().execute();
+                    else
+                        AppConstants.colorToastBigFont(getApplicationContext(), "Please check Internet connection", Color.RED);
+
                 } else if (!pin.equalsIgnoreCase("") && !FKey.equalsIgnoreCase("")) {
-                    new GetPinNuOnFobKeyDetection().execute();
+
+                    if (cd.isConnectingToInternet())
+                        new GetPinNuOnFobKeyDetection().execute();
+                    else
+                        AppConstants.colorToastBigFont(getApplicationContext(), "Please check Internet connection", Color.RED);
                 }
             }
         });
@@ -567,7 +588,11 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                 etPersonnelPin.setText("");
                 System.out.println("pin2 FOK_KEY" + AppConstants.APDU_FOB_KEY);
                 ScreenOutTime.cancel();//Stop screenout
-                new GetPinNuOnFobKeyDetection().execute();
+                if (cd.isConnectingToInternet())
+                    new GetPinNuOnFobKeyDetection().execute();
+                else
+                    AppConstants.colorToastBigFont(getApplicationContext(), "Please check Internet connection", Color.RED);
+
                 tv_fob_number.setText("fob/card No: " + AppConstants.APDU_FOB_KEY);
             }
         });
@@ -727,7 +752,12 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
         tv_ok.setText("Fob / Card read successfully");
         tv_dont_have_fob.setVisibility(View.GONE);
         etPersonnelPin.setVisibility(View.GONE);
-        Linear_layout_Save_back_buttons.setVisibility(View.GONE);
+
+        Linear_layout_Save_back_buttons.setVisibility(View.VISIBLE);
+
+
+        btnCancel.setVisibility(View.VISIBLE);
+        btnSave.setVisibility(View.GONE);
 
     }
 
@@ -944,14 +974,16 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
     public class GetPinNuOnFobKeyDetection extends AsyncTask<Void, Void, String> {
 
 
-        ProgressDialog pd;
+        //ProgressDialog pd;
 
         @Override
         protected void onPreExecute() {
-            pd = new ProgressDialog(DeviceControlActivity_Pin.this);
+            /*pd = new ProgressDialog(DeviceControlActivity_Pin.this);
             pd.setMessage("Please wait...");
             pd.setCancelable(true);
-            pd.show();
+            pd.show();*/
+
+            Toast.makeText(getApplicationContext(),"Please wait...",Toast.LENGTH_SHORT).show();
 
         }
 
@@ -1011,7 +1043,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
         @Override
         protected void onPostExecute(String serverRes) {
 
-            pd.dismiss();
+
             try{
 
                 if (serverRes != null) {

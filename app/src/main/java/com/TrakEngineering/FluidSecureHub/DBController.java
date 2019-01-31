@@ -71,7 +71,7 @@ public class DBController extends SQLiteOpenHelper {
         Log.d(LOGCAT, "delete");
         SQLiteDatabase database = this.getWritableDatabase();
         String deleteQuery = "DELETE FROM  Tbl_FSTransStatus where transId='" + TransID + "'";
-        Log.d("query", deleteQuery);
+        //Log.d("query", deleteQuery);
         database.execSQL(deleteQuery);
     }
 
@@ -134,7 +134,7 @@ public class DBController extends SQLiteOpenHelper {
         Log.d(LOGCAT, "delete");
         SQLiteDatabase database = this.getWritableDatabase();
         String deleteQuery1 = "DELETE FROM  Tb2_FSTrak where Id='" + id + "'";
-        Log.d("query1", deleteQuery1);
+        //Log.d("query1", deleteQuery1);
         database.execSQL(deleteQuery1);
     }
 

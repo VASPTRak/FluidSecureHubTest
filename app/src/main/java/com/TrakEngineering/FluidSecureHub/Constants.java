@@ -63,7 +63,7 @@ public class Constants {
     public static final String PREF_VehiFuel = "SaveVehiFuelInPref";
     public static final String PREF_FS_UPGRADE = "SaveFSUpgrade";
 
-    public static String CurrentSelectedHose;
+    public static String CurrentSelectedHose = "";
 
     public static String GateHubPinNo = "";
     public static String GateHubvehicleNo = "";

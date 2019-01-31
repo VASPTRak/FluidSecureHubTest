@@ -1,10 +1,10 @@
 package com.TrakEngineering.FluidSecureHub;
 
-import android.app.ProgressDialog;
+import android.graphics.Color;
 import android.content.Context;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;

@@ -30,7 +30,6 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.TrakEngineering.FluidSecureHub.LFBle_PIN.DeviceControlActivity_Pin;
 import com.TrakEngineering.FluidSecureHub.enity.AuthEntityClass;
 import com.TrakEngineering.FluidSecureHub.enity.VehicleRequireEntity;
 import com.TrakEngineering.FluidSecureHub.server.ServerHandler;
@@ -55,13 +54,13 @@ public class AcceptVehicleActivity extends AppCompatActivity {
     private static final String TAG = "AcceptVehicleActivity";
     public static String SITE_ID = "0";
     private EditText editVehicleNumber;
-    String IsVehicleHasFob = "",IsOdoMeterRequire = "", IsDepartmentRequire = "", IsPersonnelPINRequire = "",IsPersonnelPINRequireForHub ="", IsOtherRequire = "";
+    String IsVehicleHasFob = "", IsOdoMeterRequire = "", IsDepartmentRequire = "", IsPersonnelPINRequire = "", IsPersonnelPINRequireForHub = "", IsOtherRequire = "";
     Button btnCancel, btnSave;
     GoogleApiClient mGoogleApiClient;
     public static double CurrentLat = 0, CurrentLng = 0;
     RelativeLayout footer_keybord;
     LinearLayout Linear_layout_Save_back_buttons;
-    TextView tv_fob_Reader,tv_or,tv_return, tv_swipekeybord, tv_fob_number, tv_vehicle_no_below, tv_dont_have_fob, tv_enter_vehicle_no;
+    TextView tv_fob_Reader, tv_or, tv_return, tv_swipekeybord, tv_fob_number, tv_vehicle_no_below, tv_dont_have_fob, tv_enter_vehicle_no;
     LinearLayout Linear_layout_vehicleNumber;
     EditText editFobNumber;
     String TimeOutinMinute;
@@ -71,6 +70,7 @@ public class AcceptVehicleActivity extends AppCompatActivity {
     long screenTimeOut;
     Timer t, ScreenOutTimeVehicle;
     String FOLDER_PATH = Environment.getExternalStorageDirectory().getAbsolutePath() + "/FSBin/";
+
 
 
     @Override
@@ -184,13 +184,7 @@ public class AcceptVehicleActivity extends AppCompatActivity {
         //enable hotspot.
         Constants.hotspotstayOn = true;
 
-        //Check Selected FS and  change accordingly
-        //Constants.AccVehicleNumber = "";
-        //Constants.AccOdoMeter = 0;
-        //Constants.AccHours = 0;
-        //Constants.AccDepartmentNumber = "";
-        //Constants.AccPersonnelPIN = "";
-        //Constants.AccOther = "";
+
 
         if (AppConstants.UP_Upgrade) {
 
@@ -207,6 +201,8 @@ public class AcceptVehicleActivity extends AppCompatActivity {
 
             if (AppConstants.UP_FilePath != null)
                 new DownloadFileFromURL().execute(AppConstants.UP_FilePath, "user1.2048.new.5.bin");
+
+
 
         }
 
@@ -303,7 +299,7 @@ public class AcceptVehicleActivity extends AppCompatActivity {
         tv_enter_vehicle_no = (TextView) findViewById(R.id.tv_enter_vehicle_no);
         tv_dont_have_fob = (TextView) findViewById(R.id.tv_dont_have_fob);
 
-        String content = "Enter your <br><b>VEHICLE ID</b> in<br> the green box below" ;
+        String content = "Enter your <br><b>VEHICLE ID</b> in<br> the green box below";
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             tv_dont_have_fob.setText(Html.fromHtml(content, Html.FROM_HTML_MODE_LEGACY));
@@ -457,13 +453,12 @@ public class AcceptVehicleActivity extends AppCompatActivity {
                         editor.commit();
 
 
-
                         if (IsOdoMeterRequire.equalsIgnoreCase("True")) {
 
                             Intent intent = new Intent(AcceptVehicleActivity.this, AcceptOdoActivity.class);//AcceptPinActivity
                             startActivity(intent);
 
-                        }else  if (IsHoursRequire.equalsIgnoreCase("True")) {
+                        } else if (IsHoursRequire.equalsIgnoreCase("True")) {
 
                             Intent intent = new Intent(AcceptVehicleActivity.this, AcceptHoursAcitvity.class);
                             startActivity(intent);
@@ -519,12 +514,14 @@ public class AcceptVehicleActivity extends AppCompatActivity {
                 }
 
 
-
             } else {
                 //Empty Fob key & enable edit text and Enter button
                 AppConstants.APDU_FOB_KEY = "";
-                if (IsVehicleHasFob.equalsIgnoreCase("true")){editVehicleNumber.setEnabled(false);}
-                else{editVehicleNumber.setEnabled(true);}
+                if (IsVehicleHasFob.equalsIgnoreCase("true")) {
+                    editVehicleNumber.setEnabled(false);
+                } else {
+                    editVehicleNumber.setEnabled(true);
+                }
 
                 btnSave.setEnabled(true);
                 CommonUtils.showMessageDilaog(AcceptVehicleActivity.this, "Error Message", "Please enter vehicle number or use fob key.");
@@ -644,7 +641,7 @@ public class AcceptVehicleActivity extends AppCompatActivity {
 
                         int width = 350;
                         int height = 60;
-                        LinearLayout.LayoutParams parms = new LinearLayout.LayoutParams(width,height);
+                        LinearLayout.LayoutParams parms = new LinearLayout.LayoutParams(width, height);
                         parms.gravity = Gravity.CENTER;
                         editVehicleNumber.setLayoutParams(parms);
 
@@ -842,7 +839,7 @@ public class AcceptVehicleActivity extends AppCompatActivity {
         SharedPreferences sharedPrefODO = AcceptVehicleActivity.this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
         IsVehicleHasFob = sharedPrefODO.getString(AppConstants.ISVehicleHasFob, "false");
 
-        if (IsVehicleHasFob.equalsIgnoreCase("true")){
+        if (IsVehicleHasFob.equalsIgnoreCase("true")) {
 
             tv_fob_Reader.setVisibility(View.VISIBLE);
             btnSave.setVisibility(View.GONE);
@@ -860,11 +857,11 @@ public class AcceptVehicleActivity extends AppCompatActivity {
 
             int width = 0;
             int height = ActionBar.LayoutParams.WRAP_CONTENT;
-            LinearLayout.LayoutParams parms = new LinearLayout.LayoutParams(width,height);
+            LinearLayout.LayoutParams parms = new LinearLayout.LayoutParams(width, height);
             editVehicleNumber.setLayoutParams(parms);
 
 
-        }else{
+        } else {
 
             //showKeybord();
             AppConstants.APDU_FOB_KEY = "";
@@ -980,5 +977,7 @@ public class AcceptVehicleActivity extends AppCompatActivity {
         }
 
     }
+
+
 
 }

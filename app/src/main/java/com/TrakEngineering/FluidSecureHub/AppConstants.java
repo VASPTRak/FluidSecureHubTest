@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.app.Notification;
 import android.app.NotificationManager;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -14,6 +15,7 @@ import android.net.ConnectivityManager;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Environment;
 import android.support.v4.app.NotificationCompat;
@@ -21,6 +23,7 @@ import android.support.v7.app.AlertDialog;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.Base64;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,13 +33,17 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.net.InetAddress;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -68,11 +75,12 @@ public class AppConstants {
     public static final String TimeOut = "TimeOut";
     public static final String HubId = "HubId";
     public static final String IsVehicleNumberRequire = "IsVehicleNumberRequire";
-    public static final String WifiChannelToUse = "WifiChannelToUse";
+    public static final String WifiChannelToUse = "0";
 
     public static final String IsGateHub= "IsGateHub";
     public static final String IsStayOpenGate = "IsStayOpenGate";
 
+    public static ArrayList<HashMap<String, String>> temp_serverSSIDList;
 
     public static String webIP; // = "http://103.8.126.241:89/";//test
     public static String webURL = webIP + "HandlerTrak.ashx";

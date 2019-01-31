@@ -15,6 +15,8 @@ import android.widget.ProgressBar;
 
 import com.TrakEngineering.FluidSecureHub.LFBle_PIN.DeviceControlActivity_Pin;
 
+import static com.TrakEngineering.FluidSecureHub.WelcomeActivity.wifiApManager;
+
 
 public class AcceptHoursAcitvity extends AppCompatActivity {
 

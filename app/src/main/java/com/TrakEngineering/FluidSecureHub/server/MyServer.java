@@ -1,23 +1,35 @@
 package com.TrakEngineering.FluidSecureHub.server;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
+import android.hardware.display.DisplayManager;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Environment;
+import android.os.PowerManager;
 import android.util.Log;
+import android.view.Display;
 
 import com.TrakEngineering.FluidSecureHub.AppConstants;
 import com.TrakEngineering.FluidSecureHub.BackgroundServiceDownloadFirmware;
+import com.TrakEngineering.FluidSecureHub.BackgroundServiceKeepDataTransferAlive;
 import com.TrakEngineering.FluidSecureHub.CommonUtils;
 import com.TrakEngineering.FluidSecureHub.Constants;
+import com.TrakEngineering.FluidSecureHub.ScreenReceiver;
 import com.TrakEngineering.FluidSecureHub.WelcomeActivity;
 import com.TrakEngineering.FluidSecureHub.enity.FsvmInfo;
 import com.google.gson.Gson;
+import com.squareup.okhttp.Callback;
+import com.squareup.okhttp.RequestBody;
+import com.squareup.okhttp.ResponseBody;
 
 import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
+
+import static com.TrakEngineering.FluidSecureHub.server.ServerHandler.TEXT;
 
 /**
  * Created by andrei on 7/30/15.
@@ -68,6 +80,8 @@ public class MyServer extends NanoHTTPD {
                 ODOK = ODOK.substring(0, Math.min(ODOK.length(), 6));
             }
 
+            FSTag = FSTag.replaceAll(":","").toLowerCase().trim();
+
             //String protocallVersion =  ;
             //AppConstants.Header_data = "POST: " + Post + "\nHost: " + host + "\nFSTag: " + FSTag + "\nFirmware version: " + FirmwareVersion + "\nContentLength: " + ContentLength+"\nVIN: "+VIN+"\nODOK: "+ODOK;
 
@@ -117,6 +131,8 @@ public class MyServer extends NanoHTTPD {
             try {
 
                 String response = new  SaveFsvmDataToServer().execute(jsonData, authString).get();
+
+                Log.i(TAG,"SaveFsvmDataToServer_Response" + response);
                 if (!response.equals(null) || !response.equals("")){
 
                     JSONObject jsonObject = new JSONObject(response);
@@ -232,4 +248,3 @@ public class MyServer extends NanoHTTPD {
 
 
 }
-

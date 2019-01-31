@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
-import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -20,7 +19,6 @@ import com.squareup.okhttp.Response;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -74,7 +72,7 @@ public class BackgroundService extends Service {
             for (int i = 0; i < uData.size(); i++) {
 
                 String Id = uData.get(i).get("Id");
-                String jsonData =  uData.get(i).get("jsonData");
+                String jsonData = uData.get(i).get("jsonData");
                 String authString = uData.get(i).get("authString");
 
                 try {
@@ -95,11 +93,11 @@ public class BackgroundService extends Service {
                             new UploadTask().execute(Id, jsonData, authString);
                         }
 
-                    }else{
+                    } else {
 
                         controller.deleteTransactions(Id);
                         System.out.println("deleteTransactions..." + Id);
-                        Log.i(TAG," Empty json Id:" + Id + " jsonData:" + jsonData + " authString:" + authString);
+                        Log.i(TAG, " Empty json Id:" + Id + " jsonData:" + jsonData + " authString:" + authString);
                         AppConstants.WriteinFile(TAG + "  Empty json Id:" + Id + " jsonData:" + jsonData + " authString:" + authString);
 
                     }
@@ -131,10 +129,27 @@ public class BackgroundService extends Service {
             new SetHoseNameReplacedFlag().execute(jsonData, authString);
         }
 
+
+        uploadLast10Transaction("storeCmtxtnid_10_record0"); //link0 last 10 trxn
+        uploadLast10Transaction("storeCmtxtnid_10_record1"); //link1 last 10 trxn
+        uploadLast10Transaction("storeCmtxtnid_10_record2"); //link2 last 10 trxn
+        uploadLast10Transaction("storeCmtxtnid_10_record3"); //link3 last 10 trxn
+
+
         System.out.println("BackgroundService is off....");
         stopSelf();
 
         return super.onStartCommand(intent, flags, startId);
+    }
+
+    private void uploadLast10Transaction(String shrPrefName) {
+        SharedPreferences sharedPref = BackgroundService.this.getSharedPreferences(shrPrefName, Context.MODE_PRIVATE);
+        String jsonData0 = "";
+        if (sharedPref != null)
+            jsonData0 = sharedPref.getString("json", "");
+
+        if (jsonData0.trim().length() > 3)
+            new SaveMultipleTransactions().execute(jsonData0, shrPrefName);
     }
 
 
@@ -338,6 +353,67 @@ public class BackgroundService extends Service {
             } catch (Exception e) {
                 System.out.println(e.getMessage());
             }
+        }
+    }
+
+    public class SaveMultipleTransactions extends AsyncTask<String, Void, String> {
+
+        String shrPrefName = "";
+
+        @Override
+        protected void onPreExecute() {
+
+
+        }
+
+        @Override
+        protected String doInBackground(String... param) {
+            String response = null;
+            try {
+
+                String jsonData = param[0];
+                shrPrefName = param[1];
+
+                ServerHandler serverHandler = new ServerHandler();
+
+                SharedPreferences sharedPref = BackgroundService.this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
+
+                String userEmail = sharedPref.getString(AppConstants.USER_EMAIL, "");
+
+
+                //----------------------------------------------------------------------------------
+                String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(BackgroundService.this) + ":" + userEmail + ":" + "SaveMultipleTransactions");
+                if (jsonData.trim().length() > 2)
+                    response = serverHandler.PostTextData(BackgroundService.this, AppConstants.webURL, jsonData, authString);
+                //----------------------------------------------------------------------------------
+
+            } catch (Exception ex) {
+                //AppConstants.WriteinFile(getApplicationContext(), this.getClass().getSimpleName() + "~~~" + ex.getMessage());
+                //AppConstants.WriteInDeveloperLog(getApplicationContext(), "14BackgroundService~~~" + ex.getMessage());
+            }
+            return response;
+        }
+
+        @Override
+        protected void onPostExecute(String resp) {
+
+            System.out.println("SaveMultipleTransactions---" + resp);
+
+
+            try {
+                if (resp.contains("success")) {
+                    //delete
+                    SharedPreferences preferences = getSharedPreferences(shrPrefName, Context.MODE_PRIVATE);
+                    SharedPreferences.Editor editor = preferences.edit();
+                    editor.clear();
+                    editor.apply();
+                }
+            } catch (Exception e) {
+                // AppConstants.WriteinFile(getApplicationContext(), this.getClass().getSimpleName() + "~~~" + e.getMessage());
+                // AppConstants.WriteInDeveloperLog(getApplicationContext(), "15BackgroundService~~~" + e.getMessage());
+            }
+
+
         }
     }
 

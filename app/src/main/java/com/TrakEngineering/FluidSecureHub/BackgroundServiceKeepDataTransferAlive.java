@@ -5,6 +5,7 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.Environment;
 import android.os.Handler;
@@ -13,17 +14,13 @@ import android.widget.Toast;
 
 import com.TrakEngineering.FluidSecureHub.enity.StatusForUpgradeVersionEntity;
 import com.TrakEngineering.FluidSecureHub.enity.UpgradeVersionEntity;
-import com.TrakEngineering.FluidSecureHub.server.ServerHandler;
 import com.google.gson.Gson;
-import com.squareup.okhttp.Callback;
 import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.RequestBody;
 import com.squareup.okhttp.Response;
-import com.squareup.okhttp.ResponseBody;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -50,11 +47,9 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import static com.TrakEngineering.FluidSecureHub.WelcomeActivity.wifiApManager;
-import static com.TrakEngineering.FluidSecureHub.server.ServerHandler.TEXT;
 
 public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
 
@@ -137,9 +132,11 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
                             try {
                                 if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  Mac:"+Mac_Addr);
                                 SERVER_IP = AppConstants.DetailsListOfConnectedDevices.get(k).get("ipAddress");
-                                new TCPClientTask().execute(SERVER_IP);
-                                // new UDPClientTask().execute(SERVER_IP);
+                                if (!SERVER_IP.equalsIgnoreCase("")){
+                                    new TCPClientTask().execute(SERVER_IP);
+                                    // new UDPClientTask().execute(SERVER_IP);
 
+                                }
 
                                 //TODO below code for Upgrade firmware
                                 /*Log.i(TAG, "HTTP_URL_TEST: " + HTTP_URL_TEST);

@@ -16,4 +16,3 @@ public class UserInfoEntity {
     transient public String PersonEmail;
 
 }
-

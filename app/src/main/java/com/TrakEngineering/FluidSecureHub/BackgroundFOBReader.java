@@ -409,9 +409,10 @@ public class BackgroundFOBReader extends Service{
             return "Undefined error.";
         } else if (errorCode == BluetoothReader.ERROR_INVALID_DATA) {
             return "Received data error.";
-        } else if (errorCode == BluetoothReader.ERROR_COMMAND_FAILED) {
+        } /*else if (errorCode == BluetoothReader.ERROR_COMMAND_FAILED)
+        {
             return "The command failed.";
-        }
+        }*/
         return "Unknown error.";
     }
 

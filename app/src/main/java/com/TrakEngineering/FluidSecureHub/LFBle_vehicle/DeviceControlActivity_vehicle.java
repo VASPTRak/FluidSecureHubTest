@@ -46,14 +46,18 @@ import com.TrakEngineering.FluidSecureHub.AcceptHoursAcitvity;
 import com.TrakEngineering.FluidSecureHub.AcceptOdoActivity;
 import com.TrakEngineering.FluidSecureHub.AcceptOtherActivity;
 import com.TrakEngineering.FluidSecureHub.AcceptServiceCall;
+import com.TrakEngineering.FluidSecureHub.AcceptVehicleActivity;
 import com.TrakEngineering.FluidSecureHub.AppConstants;
+import com.TrakEngineering.FluidSecureHub.BackgroundServiceKeepDataTransferAlive;
 import com.TrakEngineering.FluidSecureHub.CommonUtils;
+import com.TrakEngineering.FluidSecureHub.ConnectionDetector;
 import com.TrakEngineering.FluidSecureHub.Constants;
 import com.TrakEngineering.FluidSecureHub.LFBle_PIN.DeviceControlActivity_Pin;
 import com.TrakEngineering.FluidSecureHub.R;
 import com.TrakEngineering.FluidSecureHub.WelcomeActivity;
 import com.TrakEngineering.FluidSecureHub.enity.AuthEntityClass;
 import com.TrakEngineering.FluidSecureHub.enity.UpgradeVersionEntity;
+import com.TrakEngineering.FluidSecureHub.enity.UserInfoEntity;
 import com.TrakEngineering.FluidSecureHub.enity.VehicleRequireEntity;
 import com.TrakEngineering.FluidSecureHub.server.ServerHandler;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -68,17 +72,25 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedInputStream;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 
 import static com.TrakEngineering.FluidSecureHub.server.ServerHandler.TEXT;
+import static java.util.Map.Entry.comparingByValue;
 
 /**
  * For a given BLE device, this Activity provides the user interface to connect, display data,
@@ -100,7 +112,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
     private String mDeviceAddress;
     private String HFDeviceName;
     private String HFDeviceAddress;
-    private BluetoothLeService_vehicle mBluetoothLeServiceVehicle;
+    private BluetoothLeService_vehicle  mBluetoothLeServiceVehicle;
     private boolean mConnected = false;
     private BluetoothGattCharacteristic mNotifyCharacteristic;
     InputMethodManager imm;
@@ -137,7 +149,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
     String FOLDER_PATH = Environment.getExternalStorageDirectory().getAbsolutePath() + "/FSBin/";
 
     //-------------------------
-
+    ConnectionDetector cd = new ConnectionDetector(DeviceControlActivity_vehicle.this);
 
     // Code to manage Service lifecycle.
     private final ServiceConnection mServiceConnection = new ServiceConnection() {
@@ -270,6 +282,8 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
         //enable hotspot.
         Constants.hotspotstayOn = true;
 
+
+
         //Check Selected FS and  change accordingly
         //Constants.AccVehicleNumber = "";
         //Constants.AccOdoMeter = 0;
@@ -333,7 +347,10 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
 
                 if (!FSTagMacAddress.isEmpty()) {
 
-                    new GetVehicleByFSTagMacAddress().execute();
+                    if (cd.isConnectingToInternet())
+                        new GetVehicleByFSTagMacAddress().execute();
+                    else
+                        AppConstants.colorToastBigFont(getApplicationContext(), "Please check Internet connection", Color.RED);
 
                 } else {
                     Toast.makeText(mBluetoothLeServiceVehicle, "FStagMac Address Not found", Toast.LENGTH_SHORT).show();
@@ -363,7 +380,19 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
 
-        FSTagMacAddress = GetClosestBleDevice();
+        if (AppConstants.EnableFA) {
+
+            FSTagMacAddress = GetClosestBleDevice();
+             btnFStag.setVisibility(View.VISIBLE);
+             btnFStag.setEnabled(true);
+
+        }else {
+
+            btnFStag.setVisibility(View.GONE);
+            btnFStag.setEnabled(false);
+        }
+
+
 
         Count = 1;
         AppConstants.VehicleLocal_FOB_KEY = "";
@@ -594,7 +623,11 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
     public void FobreadSuccess() {
 
         AppConstants.VehicleLocal_FOB_KEY = "";
-        new GetVehicleNuOnFobKeyDetection().execute();
+
+        if (cd.isConnectingToInternet())
+            new GetVehicleNuOnFobKeyDetection().execute();
+        else
+            AppConstants.colorToastBigFont(getApplicationContext(), "Please check Internet connection", Color.RED);
 
         //Temp comment
         /*new Handler().postDelayed(new Runnable() {
@@ -823,7 +856,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
         @Override
         protected void onPostExecute(String serverRes) {
 
-            pd.dismiss();
+
             String VehicleNumber = "";
             try {
 
@@ -974,6 +1007,8 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
                     CommonUtils.showNoInternetDialog(DeviceControlActivity_vehicle.this);
                 }
 
+                pd.dismiss();
+
             }catch (Exception e){
                 e.printStackTrace();
             }
@@ -992,7 +1027,10 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
 
             if (!V_Number.isEmpty() || !AppConstants.APDU_FOB_KEY.isEmpty()) {
 
-                new ServerCallFirst().execute();
+                if (cd.isConnectingToInternet())
+                    new ServerCallFirst().execute();
+                else
+                    AppConstants.colorToastBigFont(getApplicationContext(), "Please check Internet connection", Color.RED);
 
             } else {
                 //Empty Fob key & enable edit text and Enter button
@@ -1017,14 +1055,15 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
     public class GetVehicleNuOnFobKeyDetection extends AsyncTask<Void, Void, String> {
 
 
-        ProgressDialog pd;
+        //ProgressDialog pd;
         String resp = "";
         @Override
         protected void onPreExecute() {
-            pd = new ProgressDialog(DeviceControlActivity_vehicle.this);
+            /*pd = new ProgressDialog(DeviceControlActivity_vehicle.this);
             pd.setMessage("Please wait...");
             pd.setCancelable(true);
-            pd.show();
+            pd.show();*/
+            Toast.makeText(getApplicationContext(),"Please wait..",Toast.LENGTH_SHORT).show();
 
         }
 
@@ -1106,7 +1145,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
         @Override
         protected void onPostExecute(String serverRes) {
 
-            pd.dismiss();
+            //pd.dismiss();
             try {
 
                 if (serverRes != null) {
@@ -1642,7 +1681,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
                 client.setReadTimeout(10, TimeUnit.SECONDS);
                 client.setWriteTimeout(10, TimeUnit.SECONDS);
 
-                RequestBody body = RequestBody.create(TEXT, jsonData);
+                RequestBody body = RequestBody.create(ServerHandler.TEXT, jsonData);
                 Request request = new Request.Builder()
                         .url(AppConstants.webURL)
                         .post(body)
@@ -1802,5 +1841,6 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
 
 
     }
+
 
 }

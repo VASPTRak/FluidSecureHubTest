@@ -13,13 +13,11 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Build;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.ParcelUuid;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
 import android.widget.Toast;
-
 
 import com.TrakEngineering.FluidSecureHub.retrofit.BusProvider;
 import com.TrakEngineering.FluidSecureHub.retrofit.ErrorEvent;
@@ -39,13 +37,14 @@ import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.UUID;
 
 import okhttp3.logging.HttpLoggingInterceptor;
@@ -446,7 +445,7 @@ public class BackgroundServiceFSNP extends BackgroundService {
     public String ProcessFSNPDtails(String serverRes, String RespTxt, String BLE_MacAddress, String VehicleId, String MinLimit, String SiteId, String PulseRatio, String PersonId, String FuelTypeId, String PhoneNumber, String ServerDate,
                                     String PumpOnTime, String PumpOffTime, String PulserStopTime, String TransactionId, String FirmwareVersion, String FilePath,
                                     String FOBNumber, String Company, String Location, String PersonName, String PrinterName, String PrinterMacAddress, String VehicleSum,
-                                    String DeptSum, String VehPercentage, String DeptPercentage, String SurchargeType, String ProductPrice, String parameter, String FSNPMacAddress, String RequireManualOdo, String VehicleNumber, String IsTLDCall) {
+                                    String DeptSum, String VehPercentage, String DeptPercentage, String SurchargeType, String ProductPrice, String parameter, String FSNPMacAddress, String RequireManualOdo, String VehicleNumber, String IsTLDCall,String EnablePrinter) {
 
 
         //get ip address of current selected hose to form url
@@ -486,7 +485,7 @@ public class BackgroundServiceFSNP extends BackgroundService {
         SaveDataToSharedPreferances(serverRes, RespTxt, SelectedHose, VehicleId, MinLimit, SiteId, PulseRatio, PersonId, FuelTypeId, PhoneNumber, ServerDate,
                 PumpOnTime, PumpOffTime, PulserStopTime, TransactionId, FirmwareVersion, FilePath,
                 FOBNumber, Company, Location, PersonName, PrinterName, PrinterMacAddress, VehicleSum,
-                DeptSum, VehPercentage, DeptPercentage, SurchargeType, ProductPrice, parameter, IsTLDCall);
+                DeptSum, VehPercentage, DeptPercentage, SurchargeType, ProductPrice, parameter, IsTLDCall,EnablePrinter);
 
         if (SelectedHose.equalsIgnoreCase("0") && !HTTP_URL.equals("") && Constants.FS_1STATUS.equalsIgnoreCase("FREE")) {
 
@@ -627,7 +626,7 @@ public class BackgroundServiceFSNP extends BackgroundService {
     public String SaveDataToSharedPreferances(String serverRes, String RespTxt, String SelectedHose, String VehicleId_sp, String MinLimit_sp, String SiteId_sp, String PulseRatio_sp, String PersonId_sp, String FuelTypeId_sp, String PhoneNumber_sp, String ServerDate_sp,
                                               String PumpOnTime_sp, String PumpOffTime_sp, String PulserStopTime_sp, String TransactionId_sp, String FirmwareVersion_sp, String FilePath_sp,
                                               String FOBNumber_sp, String Company_sp, String Location_sp, String PersonName_sp, String PrinterName_sp, String PrinterMacAddress_sp, String VehicleSum_sp,
-                                              String DeptSum_sp, String VehPercentage_sp, String DeptPercentage_sp, String SurchargeType_sp, String ProductPrice_sp, String parameter_sp, String IsTLDCall) {
+                                              String DeptSum_sp, String VehPercentage_sp, String DeptPercentage_sp, String SurchargeType_sp, String ProductPrice_sp, String parameter_sp, String IsTLDCall,String EnablePrinter) {
 
 
         //Parse server response and store it to Shared preferances to use in background services
@@ -683,9 +682,10 @@ public class BackgroundServiceFSNP extends BackgroundService {
                         String SurchargeType_FS1 = SurchargeType_sp;
                         String ProductPrice_FS1 = ProductPrice_sp;
                         String IsTLDCall_FS1 = IsTLDCall;
+                        String EnablePrinter_FS1 = EnablePrinter;
 
 
-                        CommonUtils.SaveVehiFuelInPref_FS1(BackgroundServiceFSNP.this, TransactionId_FS1, VehicleId_FS1, PhoneNumber_FS1, PersonId_FS1, PulseRatio_FS1, MinLimit_FS1, FuelTypeId_FS1, ServerDate_FS1, IntervalToStopFuel_FS1, PrintDate_FS1, Company_FS1, Location_FS1, PersonName_FS1, PrinterMacAddress_FS1, PrinterName_FS1, vehicleNumber, accOther, VehicleSum_FS1, DeptSum_FS1, VehPercentage_FS1, DeptPercentage_FS1, SurchargeType_FS1, ProductPrice_FS1, IsTLDCall_FS1);
+                        CommonUtils.SaveVehiFuelInPref_FS1(BackgroundServiceFSNP.this, TransactionId_FS1, VehicleId_FS1, PhoneNumber_FS1, PersonId_FS1, PulseRatio_FS1, MinLimit_FS1, FuelTypeId_FS1, ServerDate_FS1, IntervalToStopFuel_FS1, PrintDate_FS1, Company_FS1, Location_FS1, PersonName_FS1, PrinterMacAddress_FS1, PrinterName_FS1, vehicleNumber, accOther, VehicleSum_FS1, DeptSum_FS1, VehPercentage_FS1, DeptPercentage_FS1, SurchargeType_FS1, ProductPrice_FS1, IsTLDCall_FS1,EnablePrinter_FS1);
 
 
                     } else if (SelectedHose.equalsIgnoreCase("1")) {
@@ -719,9 +719,10 @@ public class BackgroundServiceFSNP extends BackgroundService {
                         String SurchargeType = SurchargeType_sp;
                         String ProductPrice = ProductPrice_sp;
                         String IsTLDCall1 = IsTLDCall;
+                        String EnablePrinter1 = EnablePrinter;
 
 
-                        CommonUtils.SaveVehiFuelInPref(BackgroundServiceFSNP.this, TransactionId, VehicleId, PhoneNumber, PersonId, PulseRatio, MinLimit, FuelTypeId, ServerDate, IntervalToStopFuel, PrintDate, Company, Location, PersonName, PrinterMacAddress, PrinterName, vehicleNumber, accOther, VehicleSum, DeptSum, VehPercentage, DeptPercentage, SurchargeType, ProductPrice, IsTLDCall1);
+                        CommonUtils.SaveVehiFuelInPref(BackgroundServiceFSNP.this, TransactionId, VehicleId, PhoneNumber, PersonId, PulseRatio, MinLimit, FuelTypeId, ServerDate, IntervalToStopFuel, PrintDate, Company, Location, PersonName, PrinterMacAddress, PrinterName, vehicleNumber, accOther, VehicleSum, DeptSum, VehPercentage, DeptPercentage, SurchargeType, ProductPrice, IsTLDCall1,EnablePrinter1);
 
 
                     } else if (SelectedHose.equalsIgnoreCase("2")) {
@@ -754,9 +755,10 @@ public class BackgroundServiceFSNP extends BackgroundService {
                         String SurchargeType_FS3 = SurchargeType_sp;
                         String ProductPrice_FS3 = ProductPrice_sp;
                         String IsTLDCall_FS3 = IsTLDCall;
+                        String EnablePrinter_FS3 = EnablePrinter;
 
 
-                        CommonUtils.SaveVehiFuelInPref_FS3(BackgroundServiceFSNP.this, TransactionId_FS3, VehicleId_FS3, PhoneNumber_FS3, PersonId_FS3, PulseRatio_FS3, MinLimit_FS3, FuelTypeId_FS3, ServerDate_FS3, IntervalToStopFuel_FS3, PrintDate_FS3, Company_FS3, Location_FS3, PersonName_FS3, PrinterMacAddress_FS3, PrinterName_FS3, vehicleNumber, accOther, VehicleSum_FS3, DeptSum_FS3, VehPercentage_FS3, DeptPercentage_FS3, SurchargeType_FS3, ProductPrice_FS3, IsTLDCall_FS3);
+                        CommonUtils.SaveVehiFuelInPref_FS3(BackgroundServiceFSNP.this, TransactionId_FS3, VehicleId_FS3, PhoneNumber_FS3, PersonId_FS3, PulseRatio_FS3, MinLimit_FS3, FuelTypeId_FS3, ServerDate_FS3, IntervalToStopFuel_FS3, PrintDate_FS3, Company_FS3, Location_FS3, PersonName_FS3, PrinterMacAddress_FS3, PrinterName_FS3, vehicleNumber, accOther, VehicleSum_FS3, DeptSum_FS3, VehPercentage_FS3, DeptPercentage_FS3, SurchargeType_FS3, ProductPrice_FS3, IsTLDCall_FS3,EnablePrinter_FS3);
 
                     } else if (SelectedHose.equalsIgnoreCase("3")) {
 
@@ -787,9 +789,10 @@ public class BackgroundServiceFSNP extends BackgroundService {
                         String SurchargeType_FS4 = SurchargeType_sp;
                         String ProductPrice_FS4 = ProductPrice_sp;
                         String IsTLDCall_FS4 = IsTLDCall;
+                        String EnablePrinter_FS4 = EnablePrinter;
 
 
-                        CommonUtils.SaveVehiFuelInPref_FS4(BackgroundServiceFSNP.this, TransactionId_FS4, VehicleId_FS4, PhoneNumber_FS4, PersonId_FS4, PulseRatio_FS4, MinLimit_FS4, FuelTypeId_FS4, ServerDate_FS4, IntervalToStopFuel_FS4, PrintDate_FS4, Company_FS4, Location_FS4, PersonName_FS4, PrinterMacAddress_FS4, PrinterName_FS4, vehicleNumber, accOther, VehicleSum_FS4, DeptSum_FS4, VehPercentage_FS4, DeptPercentage_FS4, SurchargeType_FS4, ProductPrice_FS4, IsTLDCall_FS4);
+                        CommonUtils.SaveVehiFuelInPref_FS4(BackgroundServiceFSNP.this, TransactionId_FS4, VehicleId_FS4, PhoneNumber_FS4, PersonId_FS4, PulseRatio_FS4, MinLimit_FS4, FuelTypeId_FS4, ServerDate_FS4, IntervalToStopFuel_FS4, PrintDate_FS4, Company_FS4, Location_FS4, PersonName_FS4, PrinterMacAddress_FS4, PrinterName_FS4, vehicleNumber, accOther, VehicleSum_FS4, DeptSum_FS4, VehPercentage_FS4, DeptPercentage_FS4, SurchargeType_FS4, ProductPrice_FS4, IsTLDCall_FS4,EnablePrinter_FS4);
 
 
                     } else {
@@ -959,6 +962,7 @@ public class BackgroundServiceFSNP extends BackgroundService {
                         String Location = response.body().getLocation();
                         String PersonName = response.body().getPersonName();
                         String PrinterName = response.body().getPrinterName();
+                        String EnablePrinter = response.body().getEnablePrinter();
                         String PrinterMacAddress = response.body().getPrinterMacAddress();
                         String VehicleSum = response.body().getVehicleSum();
                         String DeptSum = response.body().getDeptSum();
@@ -1013,7 +1017,7 @@ public class BackgroundServiceFSNP extends BackgroundService {
                         ProcessFSNPDtails(response.body().getResponceMessage(), response.body().getResponceText(), BLE_MacAddress, VehicleId, MinLimit, SiteId, PulseRatio, PersonId, FuelTypeId, PhoneNumber, ServerDate,
                                 PumpOnTime, PumpOffTime, PulserStopTime, TransactionId, FirmwareVersion, FilePath,
                                 FOBNumber, Company, Location, PersonName, PrinterName, PrinterMacAddress, VehicleSum,
-                                DeptSum, VehPercentage, DeptPercentage, SurchargeType, ProductPrice, parameter, FSNPMacAddress, RequireManualOdo, VehicleNumber, IsTLDCall);
+                                DeptSum, VehPercentage, DeptPercentage, SurchargeType, ProductPrice, parameter, FSNPMacAddress, RequireManualOdo, VehicleNumber, IsTLDCall,EnablePrinter);
                         //Toast.makeText(getApplicationContext(),"success",Toast.LENGTH_SHORT).show();
 
                     } else {

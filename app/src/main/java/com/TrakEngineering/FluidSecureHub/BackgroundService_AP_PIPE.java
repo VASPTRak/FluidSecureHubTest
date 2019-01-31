@@ -29,7 +29,6 @@ import com.TrakEngineering.FluidSecureHub.server.ServerHandler;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.gson.Gson;
-import com.squareup.okhttp.Call;
 import com.squareup.okhttp.Callback;
 import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.OkHttpClient;
@@ -119,7 +118,7 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
     SimpleDateFormat sdformat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
 
     private String vehicleNumber, odometerTenths = "0", dNumber = "", pNumber = "", oText = "", hNumber = "";
-    String LinkName, OtherName, IsOtherRequire, OtherLabel, VehicleNumber, PrintDate, CompanyName, Location, PersonName, PrinterMacAddress, PrinterName, TransactionId, VehicleId, PhoneNumber, PersonId, PulseRatio, MinLimit, FuelTypeId, ServerDate, IntervalToStopFuel, IsTLDCall;
+    String LinkName, OtherName, IsOtherRequire, OtherLabel, VehicleNumber, PrintDate, CompanyName, Location, PersonName, PrinterMacAddress, PrinterName, TransactionId, VehicleId, PhoneNumber, PersonId, PulseRatio, MinLimit, FuelTypeId, ServerDate, IntervalToStopFuel, IsTLDCall,EnablePrinter;
 
     public static String FOLDER_PATH = Environment.getExternalStorageDirectory().getAbsolutePath() + "/FSBin/";
     public static String PATH_BIN_FILE1 = "user1.2048.new.5.bin";
@@ -217,8 +216,13 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
                 ServerDate = sharedPref.getString("ServerDate_FS1", "");
                 IntervalToStopFuel = sharedPref.getString("IntervalToStopFuel_FS1", "0");
                 IsTLDCall = sharedPref.getString("IsTLDCall_FS1", "False");
+                EnablePrinter = sharedPref.getString("EnablePrinter_FS1", "False");
 
                 LinkName = AppConstants.CURRENT_SELECTED_SSID;
+
+                listOfConnectedIP_AP_PIPE.clear();
+                ListConnectedHotspotIP_AP_PIPEAsyncCall();
+
 
                 //settransactionID to FSUNIT
                 new Handler().postDelayed(new Runnable() {
@@ -573,12 +577,6 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
 
                     if (stopTimer) {
 
-
-                        listOfConnectedIP_AP_PIPE.clear();
-                        ListConnectedHotspotIP_AP_PIPEAsyncCall();
-
-                        Thread.sleep(1000);
-
                         if (IsFsConnected(HTTP_URL)) {
                             AttemptCount = 0;
                             //FS link is connected
@@ -602,6 +600,9 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
 //                              BackgroundService_AP.this.stopSelf();
 
                             } else {
+
+                                listOfConnectedIP_AP_PIPE.clear();
+                                ListConnectedHotspotIP_AP_PIPEAsyncCall();
 
                                 Thread.sleep(2000);
                                 System.out.println("FS Link not connected ~~AttemptCount:" + AttemptCount);
@@ -1394,10 +1395,12 @@ public class BackgroundService_AP_PIPE extends BackgroundService {
         }
 
         try {
-            //Start background Service to print recipt
-            Intent serviceIntent = new Intent(BackgroundService_AP_PIPE.this, BackgroundServiceBluetoothPrinter.class);
-            serviceIntent.putExtra("printReceipt", printReceipt);
-            startService(serviceIntent);
+            if (EnablePrinter.equalsIgnoreCase("True")) {
+                //Start background Service to print recipt
+                Intent serviceIntent = new Intent(BackgroundService_AP_PIPE.this, BackgroundServiceBluetoothPrinter.class);
+                serviceIntent.putExtra("printReceipt", printReceipt);
+                startService(serviceIntent);
+            }
 
         } catch (Exception e) {
             e.printStackTrace();

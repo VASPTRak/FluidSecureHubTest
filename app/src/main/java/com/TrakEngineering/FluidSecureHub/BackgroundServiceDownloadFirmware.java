@@ -5,6 +5,7 @@ import android.app.Service;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
 
 import com.squareup.okhttp.Callback;
@@ -12,6 +13,7 @@ import com.squareup.okhttp.RequestBody;
 import com.squareup.okhttp.ResponseBody;
 
 import java.io.BufferedInputStream;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,7 +22,6 @@ import java.net.URL;
 import java.net.URLConnection;
 
 import static com.TrakEngineering.FluidSecureHub.server.ServerHandler.TEXT;
-
 
 public class BackgroundServiceDownloadFirmware extends BackgroundService {
 

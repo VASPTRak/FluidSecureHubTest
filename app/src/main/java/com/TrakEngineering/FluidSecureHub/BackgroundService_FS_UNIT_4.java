@@ -111,7 +111,7 @@ public class BackgroundService_FS_UNIT_4 extends BackgroundService {
     SimpleDateFormat sdformat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
 
     private String vehicleNumber, odometerTenths = "0", dNumber = "", pNumber = "", oText = "", hNumber = "";
-    String LinkName, OtherName, IsOtherRequire, OtherLabel, VehicleNumber, PrintDate, CompanyName, Location, PersonName, PrinterMacAddress, PrinterName, TransactionId, VehicleId, PhoneNumber, PersonId, PulseRatio, MinLimit, FuelTypeId, ServerDate, IntervalToStopFuel,IsTLDCall;
+    String LinkName, OtherName, IsOtherRequire, OtherLabel, VehicleNumber, PrintDate, CompanyName, Location, PersonName, PrinterMacAddress, PrinterName, TransactionId, VehicleId, PhoneNumber, PersonId, PulseRatio, MinLimit, FuelTypeId, ServerDate, IntervalToStopFuel,IsTLDCall,EnablePrinter;
 
     public static String FOLDER_PATH = Environment.getExternalStorageDirectory().getAbsolutePath() + "/FSBin/";
     public static String PATH_BIN_FILE1 = "user1.2048.new.5.bin";
@@ -209,6 +209,12 @@ public class BackgroundService_FS_UNIT_4 extends BackgroundService {
                 ServerDate = sharedPref.getString("ServerDate_FS4", "");
                 IntervalToStopFuel = sharedPref.getString("IntervalToStopFuel_FS4", "0");
                 IsTLDCall = sharedPref.getString("IsTLDCall_FS4", "False");
+                EnablePrinter = sharedPref.getString("EnablePrinter_FS4", "False");
+
+                LinkName = AppConstants.CURRENT_SELECTED_SSID;
+
+                listOfConnectedIP_FS_UNIT_4.clear();
+                ListConnectedHotspotIP_FS_UNIT_4AsyncCall();
 
                 //settransactionID to FSUNIT
                 new Handler().postDelayed(new Runnable() {
@@ -539,10 +545,10 @@ public class BackgroundService_FS_UNIT_4 extends BackgroundService {
 
                     if (stopTimer) {
 
-                        listOfConnectedIP_FS_UNIT_4.clear();
+                        /*listOfConnectedIP_FS_UNIT_4.clear();
                         ListConnectedHotspotIP_FS_UNIT_4AsyncCall();
 
-                        Thread.sleep(1000);
+                        Thread.sleep(1000);*/
 
                         if (IsFsConnected(HTTP_URL)) {
 
@@ -567,6 +573,9 @@ public class BackgroundService_FS_UNIT_4 extends BackgroundService {
                                 clearEditTextFields();
 //                          BackgroundService_AP.this.stopSelf();
                             } else {
+
+                                listOfConnectedIP_FS_UNIT_4.clear();
+                                ListConnectedHotspotIP_FS_UNIT_4AsyncCall();
 
                                 Thread.sleep(2000);
                                 System.out.println("FS Link not connected ~~AttemptCount:" + AttemptCount);
@@ -1311,7 +1320,7 @@ public class BackgroundService_FS_UNIT_4 extends BackgroundService {
 
         // ------------------------------------Printer Stop Multiple transactions issue--------------------------------------------------------------------------------
 
-        LinkName = AppConstants.CURRENT_SELECTED_SSID;
+        LinkName = AppConstants.FS4_CONNECTED_SSID;//AppConstants.CURRENT_SELECTED_SSID;
 
         //Print Transaction Receipt
         DecimalFormat precision = new DecimalFormat("0.00");
@@ -1334,11 +1343,12 @@ public class BackgroundService_FS_UNIT_4 extends BackgroundService {
         }
 
         try {
-
-            //Start background Service to print recipt
-            Intent serviceIntent = new Intent(BackgroundService_FS_UNIT_4.this, BackgroundServiceBluetoothPrinter.class);
-            serviceIntent.putExtra("printReceipt", printReceipt);
-            startService(serviceIntent);
+            if (EnablePrinter.equalsIgnoreCase("True")) {
+                //Start background Service to print recipt
+                Intent serviceIntent = new Intent(BackgroundService_FS_UNIT_4.this, BackgroundServiceBluetoothPrinter.class);
+                serviceIntent.putExtra("printReceipt", printReceipt);
+                startService(serviceIntent);
+            }
 
         } catch (Exception e) {
             e.printStackTrace();

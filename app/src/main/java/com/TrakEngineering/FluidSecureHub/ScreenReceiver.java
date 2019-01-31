@@ -11,8 +11,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import static com.TrakEngineering.FluidSecureHub.BluetoothReaderReciver.ctx;
-
 public class ScreenReceiver extends BroadcastReceiver {
 
     public static boolean screenOff;

@@ -3,11 +3,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="@color/white"
     android:orientation="vertical"
     android:id="@+id/linearLayout_MainActivity"
-    tools:context="com.TrakEngineering.FluidSecureHub.WelcomeActivity">
+    tools:context="com.TrakEngineering.FluidSecureHubTest.WelcomeActivity">
 
     <ScrollView
         android:layout_width="match_parent"
@@ -244,18 +243,16 @@
             <!--FSVM Demo Code Starts  -->
             <TextView
                 android:layout_width="match_parent"
-                android:layout_height="0dp"
+                android:layout_height="match_parent"
+                android:visibility="gone"
                 android:gravity="center"
                 android:text="Wating for FA message"
-                android:background="@color/colorFluid"
-                android:textAppearance="?android:attr/textAppearanceLarge"
-                android:textColor="#fff"
-                android:textSize="20sp"
                 android:id="@+id/tv_FA_message"/>
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="0dp"
+                android:layout_height="match_parent"
+                android:visibility="gone"
                 android:orientation="vertical">
 
 
@@ -265,6 +262,7 @@
                     android:layout_gravity="center_horizontal"
                     android:layout_height="wrap_content"
                     android:text="Click to clear Data" />
+
 
                 <Button
                     android:layout_width="match_parent"
@@ -313,6 +311,7 @@
 
 
             </LinearLayout>
+
             <!--FSVM Demo Code ends  -->
 
             <LinearLayout
@@ -413,7 +412,7 @@
                     android:layout_marginTop="0dp"
                     android:gravity="center_horizontal"
                     android:padding="2sp"
-                    android:text="Select hose to use"
+                    android:text="Tap here to select hose"
                     android:textAppearance="?android:attr/textAppearanceLarge"
                     android:textSize="30dp"
                     android:textStyle="bold" />
@@ -549,6 +548,7 @@
                 android:orientation="vertical"
                 android:padding="20dp">
 
+                <!--Above two hose 1&2-->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -556,199 +556,271 @@
                     android:weightSum="2">
 
                     <LinearLayout
-                        android:id="@+id/linear_fs_1"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginRight="5dp"
-                        android:layout_weight="1"
-                        android:background="@color/Dashboard_background"
+                        android:layout_height="220dp"
                         android:orientation="vertical"
-                        android:padding="0dp">
+                        android:layout_weight="1">
 
-                        <TableLayout
+                        <!--Hose One Fake Message-->
+                        <LinearLayout
+                            android:id="@+id/Fs1_beginFuel"
                             android:layout_width="match_parent"
-                            android:layout_height="wrap_content">
-
-                            <TableRow>
-
-                                <TextView
-                                    android:id="@+id/tv_FS1_hoseName"
-                                    style="@style/TextViewStyleDashboard"
-                                    android:layout_width="match_parent"
-                                    android:text="Hose One"
-                                    android:textColor="@color/black" />
-
-                                <TextView
-                                    android:id="@+id/tv_NFS1"
-                                    style="@style/TextViewStyleDashboard"
-                                    android:layout_width="0dp"
-                                    android:layout_height="0dp"
-                                    android:text="Hose 1:"
-                                    android:textColor="@color/black" />
-
-
-                            </TableRow>
-
-
-                        </TableLayout>
-
-                        <TableLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content">
-
-                            <TableRow>
-
-                                <TextView
-                                    android:id="@+id/tv_fs1QTN"
-                                    style="@style/TextViewStyleQuantity"
-                                    android:text="Quantity:"
-                                    android:textColor="@color/black" />
-
-                                <TextView
-                                    android:id="@+id/tv_fs1_Qty"
-                                    style="@style/TextViewStyleQuantity"
-                                    android:layout_width="match_parent"
-                                    android:layout_weight="1"
-                                    android:gravity="right"
-                                    android:text=""
-                                    android:textColor="@color/black" />
-
-                            </TableRow>
-
-                            <TableRow>
-
-                                <TextView
-                                    android:id="@+id/tv_fs1_pulseTxt"
-                                    style="@style/TextViewStylePulse"
-                                    android:text="Pulse:"
-                                    android:textColor="@color/black" />
-
-                                <TextView
-                                    android:id="@+id/tv_fs1_Pulse"
-                                    style="@style/TextViewStylePulse"
-                                    android:layout_width="match_parent"
-                                    android:layout_weight="1"
-                                    android:gravity="right"
-                                    android:text=""
-                                    android:textColor="@color/black" />
-
-
-                            </TableRow>
+                            android:layout_height="match_parent"
+                            android:layout_marginRight="5dp"
+                            android:background="@color/Dashboard_background"
+                            android:orientation="vertical">
 
                             <TextView
-                                android:id="@+id/tv_fs1_stop"
                                 style="@style/TextViewStyleDashboard"
                                 android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:background="@drawable/selector_button"
+                                android:layout_height="match_parent"
+                                android:background="@color/Red"
+                                android:textColor="@color/white"
                                 android:gravity="center"
-                                android:padding="10dp"
-                                android:text="STOP"
-                                android:textColor="@color/black" />
+                                android:textSize="25dp"
+                                android:padding="5dp"
+                                android:text="YOU MAY BEGIN FUELING" />
 
 
-                        </TableLayout>
+                        </LinearLayout>
+
+                        <!--Hose One-->
+                        <LinearLayout
+                            android:id="@+id/linear_fs_1"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:layout_marginRight="5dp"
+                            android:background="@color/Dashboard_background"
+                            android:orientation="vertical"
+                            android:padding="0dp"
+                            android:layout_weight="1">
+
+                            <TableLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content">
+
+                                <TableRow>
+
+                                    <TextView
+                                        android:id="@+id/tv_FS1_hoseName"
+                                        style="@style/TextViewStyleDashboard"
+                                        android:layout_width="match_parent"
+                                        android:text="Hose One"
+                                        android:textColor="@color/black" />
+
+                                    <TextView
+                                        android:id="@+id/tv_NFS1"
+                                        style="@style/TextViewStyleDashboard"
+                                        android:layout_width="0dp"
+                                        android:layout_height="0dp"
+                                        android:text="Hose 1:"
+                                        android:textColor="@color/black" />
+
+
+                                </TableRow>
+
+
+                            </TableLayout>
+
+                            <TableLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content">
+
+                                <TableRow>
+
+                                    <TextView
+                                        android:id="@+id/tv_fs1QTN"
+                                        style="@style/TextViewStyleQuantity"
+                                        android:text="Quantity:"
+                                        android:textColor="@color/black" />
+
+                                    <TextView
+                                        android:id="@+id/tv_fs1_Qty"
+                                        style="@style/TextViewStyleQuantity"
+                                        android:layout_width="match_parent"
+                                        android:layout_weight="1"
+                                        android:gravity="right"
+                                        android:text=""
+                                        android:textColor="@color/black" />
+
+                                </TableRow>
+
+                                <TableRow>
+
+                                    <TextView
+                                        android:id="@+id/tv_fs1_pulseTxt"
+                                        style="@style/TextViewStylePulse"
+                                        android:text="Pulse:"
+                                        android:textColor="@color/black" />
+
+                                    <TextView
+                                        android:id="@+id/tv_fs1_Pulse"
+                                        style="@style/TextViewStylePulse"
+                                        android:layout_width="match_parent"
+                                        android:layout_weight="1"
+                                        android:gravity="right"
+                                        android:text=""
+                                        android:textColor="@color/black" />
+
+
+                                </TableRow>
+
+                                <TextView
+                                    android:id="@+id/tv_fs1_stop"
+                                    style="@style/TextViewStyleDashboard"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:background="@drawable/selector_button"
+                                    android:gravity="center"
+                                    android:padding="10dp"
+                                    android:text="STOP"
+                                    android:textColor="@color/black" />
+
+
+                            </TableLayout>
+
+
+                        </LinearLayout>
 
 
                     </LinearLayout>
 
+
                     <LinearLayout
-                        android:id="@+id/linear_fs_2"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="5dp"
-                        android:layout_weight="1"
-                        android:background="@color/Dashboard_background"
+                        android:layout_height="220dp"
                         android:orientation="vertical"
-                        android:padding="0dp">
+                        android:layout_weight="1">
 
-                        <TableLayout
+
+                        <!--Hose One Fake Message-->
+                        <LinearLayout
+                            android:id="@+id/Fs2_beginFuel"
                             android:layout_width="match_parent"
-                            android:layout_height="wrap_content">
-
-                            <TableRow>
-
-                                <TextView
-                                    android:id="@+id/tv_FS2_hoseName"
-                                    style="@style/TextViewStyleDashboard"
-                                    android:layout_width="match_parent"
-                                    android:text="Hose Two"
-                                    android:textColor="@color/black" />
-
-                                <TextView
-                                    android:id="@+id/tv_NFS2"
-                                    style="@style/TextViewStyleDashboard"
-                                    android:layout_width="0dp"
-                                    android:layout_height="0dp"
-                                    android:text="Hose 2:"
-                                    android:textColor="@color/black" />
-
-
-                            </TableRow>
-
-                        </TableLayout>
-
-                        <TableLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content">
-
-                            <TableRow>
-
-                                <TextView
-                                    android:id="@+id/tv_fs2QTN"
-                                    style="@style/TextViewStyleQuantity"
-                                    android:text="Quantity:"
-                                    android:textColor="@color/black" />
-
-                                <TextView
-                                    android:id="@+id/tv_fs2_Qty"
-                                    style="@style/TextViewStyleQuantity"
-                                    android:layout_width="match_parent"
-                                    android:layout_weight="1"
-                                    android:gravity="right"
-                                    android:text=""
-                                    android:textColor="@color/black" />
-
-                            </TableRow>
-
-                            <TableRow>
-
-                                <TextView
-                                    android:id="@+id/tv_fs2_pulseTxt"
-                                    style="@style/TextViewStylePulse"
-                                    android:text="Pulse:"
-                                    android:textColor="@color/black" />
-
-                                <TextView
-                                    android:id="@+id/tv_fs2_Pulse"
-                                    style="@style/TextViewStylePulse"
-                                    android:layout_width="match_parent"
-                                    android:layout_weight="1"
-                                    android:gravity="right"
-                                    android:text=""
-                                    android:textColor="@color/black" />
-
-                            </TableRow>
+                            android:layout_height="match_parent"
+                            android:layout_marginRight="5dp"
+                            android:background="@color/Dashboard_background"
+                            android:orientation="vertical">
 
                             <TextView
-                                android:id="@+id/tv_fs2_stop"
                                 style="@style/TextViewStyleDashboard"
                                 android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:background="@color/Dashboard_presstostop_btn"
+                                android:layout_height="match_parent"
+                                android:background="@color/Red"
+                                android:textColor="@color/white"
                                 android:gravity="center"
-                                android:padding="10dp"
-                                android:text="STOP"
-                                android:textColor="@color/black" />
+                                android:textSize="25dp"
+                                android:padding="5dp"
+                                android:text="YOU MAY BEGIN FUELING" />
 
 
-                        </TableLayout>
+                        </LinearLayout>
+
+                        <!--Hose Two-->
+                        <LinearLayout
+                            android:id="@+id/linear_fs_2"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="5dp"
+                            android:background="@color/Dashboard_background"
+                            android:orientation="vertical"
+                            android:padding="0dp"
+                            android:layout_weight="1">
+
+                            <TableLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content">
+
+                                <TableRow>
+
+                                    <TextView
+                                        android:id="@+id/tv_FS2_hoseName"
+                                        style="@style/TextViewStyleDashboard"
+                                        android:layout_width="match_parent"
+                                        android:text="Hose Two"
+                                        android:textColor="@color/black" />
+
+                                    <TextView
+                                        android:id="@+id/tv_NFS2"
+                                        style="@style/TextViewStyleDashboard"
+                                        android:layout_width="0dp"
+                                        android:layout_height="0dp"
+                                        android:text="Hose 2:"
+                                        android:textColor="@color/black" />
+
+
+                                </TableRow>
+
+                            </TableLayout>
+
+                            <TableLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content">
+
+                                <TableRow>
+
+                                    <TextView
+                                        android:id="@+id/tv_fs2QTN"
+                                        style="@style/TextViewStyleQuantity"
+                                        android:text="Quantity:"
+                                        android:textColor="@color/black" />
+
+                                    <TextView
+                                        android:id="@+id/tv_fs2_Qty"
+                                        style="@style/TextViewStyleQuantity"
+                                        android:layout_width="match_parent"
+                                        android:layout_weight="1"
+                                        android:gravity="right"
+                                        android:text=""
+                                        android:textColor="@color/black" />
+
+                                </TableRow>
+
+                                <TableRow>
+
+                                    <TextView
+                                        android:id="@+id/tv_fs2_pulseTxt"
+                                        style="@style/TextViewStylePulse"
+                                        android:text="Pulse:"
+                                        android:textColor="@color/black" />
+
+                                    <TextView
+                                        android:id="@+id/tv_fs2_Pulse"
+                                        style="@style/TextViewStylePulse"
+                                        android:layout_width="match_parent"
+                                        android:layout_weight="1"
+                                        android:gravity="right"
+                                        android:text=""
+                                        android:textColor="@color/black" />
+
+                                </TableRow>
+
+                                <TextView
+                                    android:id="@+id/tv_fs2_stop"
+                                    style="@style/TextViewStyleDashboard"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:background="@color/Dashboard_presstostop_btn"
+                                    android:gravity="center"
+                                    android:padding="10dp"
+                                    android:text="STOP"
+                                    android:textColor="@color/black" />
+
+
+                            </TableLayout>
+
+                        </LinearLayout>
+
 
                     </LinearLayout>
 
 
                 </LinearLayout>
 
+
+
+
+                <!--Below two hose 2&3-->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -757,188 +829,123 @@
                     android:weightSum="2">
 
                     <LinearLayout
-                        android:id="@+id/linear_fs_3"
-
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginRight="5dp"
-                        android:layout_weight="1"
-                        android:background="@color/Dashboard_background"
+                        android:layout_height="220dp"
                         android:orientation="vertical"
-                        android:padding="0dp">
+                        android:layout_weight="1">
 
-                        <TableLayout
+
+                        <!--Hose Three Fake Message-->
+                        <LinearLayout
+                            android:id="@+id/Fs3_beginFuel"
                             android:layout_width="match_parent"
-                            android:layout_height="wrap_content">
-
-                            <TableRow
-                                android:layout_width="match_parent"
-                                android:layout_height="match_parent">
-
-                                <TextView
-                                    android:id="@+id/tv_FS3_hoseName"
-                                    style="@style/TextViewStyleDashboard"
-                                    android:layout_width="match_parent"
-                                    android:text="Hose Three"
-                                    android:textColor="@color/black" />
-
-                                <TextView
-                                    android:id="@+id/tv_NFS3"
-                                    style="@style/TextViewStyleDashboard"
-                                    android:layout_width="0dp"
-                                    android:layout_height="0dp"
-                                    android:text="Hose 3:"
-                                    android:textColor="@color/black" />
-
-
-                            </TableRow>
-
-
-                        </TableLayout>
-
-                        <TableLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content">
-
-                            <TableRow>
-
-                                <TextView
-                                    android:id="@+id/tv_fs3QTN"
-                                    style="@style/TextViewStyleQuantity"
-                                    android:text="Quantity:"
-                                    android:textColor="@color/black" />
-
-
-                                <TextView
-                                    android:id="@+id/tv_fs3_Qty"
-                                    style="@style/TextViewStyleQuantity"
-                                    android:layout_width="match_parent"
-                                    android:layout_weight="1"
-                                    android:gravity="right"
-                                    android:text=""
-                                    android:textColor="@color/black" />
-
-                            </TableRow>
-
-                            <TableRow>
-
-                                <TextView
-                                    android:id="@+id/tv_fs3_pulseTxt"
-                                    style="@style/TextViewStylePulse"
-                                    android:text="Pulse:"
-                                    android:textColor="@color/black" />
-
-                                <TextView
-                                    android:id="@+id/tv_fs3_Pulse"
-                                    style="@style/TextViewStylePulse"
-                                    android:layout_width="match_parent"
-                                    android:layout_weight="1"
-                                    android:gravity="right"
-                                    android:text=""
-                                    android:textColor="@color/black" />
-
-
-                            </TableRow>
-
-
-                        </TableLayout>
-
-                        <TextView
-                            android:id="@+id/tv_fs3_stop"
-                            style="@style/TextViewStyleDashboard"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:background="@color/Dashboard_presstostop_btn"
-                            android:gravity="center"
-                            android:padding="10dp"
-                            android:text="STOP"
-                            android:textColor="@color/black" />
-
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:id="@+id/linear_fs_4"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="5dp"
-                        android:layout_weight="1"
-                        android:background="@color/Dashboard_background"
-                        android:orientation="vertical"
-                        android:padding="0dp">
-
-                        <TableLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content">
-
-
-                            <TableRow>
-
-                                <TextView
-                                    android:id="@+id/tv_FS4_hoseName"
-                                    style="@style/TextViewStyleDashboard"
-                                    android:layout_width="match_parent"
-                                    android:text="Hose Four"
-                                    android:textColor="@color/black" />
-
-                                <TextView
-                                    android:id="@+id/tv_NFS4"
-                                    style="@style/TextViewStyleDashboard"
-                                    android:layout_width="0dp"
-                                    android:layout_height="0dp"
-                                    android:text="Hose 4:"
-                                    android:textColor="@color/black" />
-
-
-                            </TableRow>
-
-                        </TableLayout>
-
-                        <TableLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content">
-
-
-                            <TableRow>
-
-                                <TextView
-                                    android:id="@+id/tv_fs4QTN"
-                                    style="@style/TextViewStyleQuantity"
-                                    android:text="Quantity:"
-                                    android:textColor="@color/black" />
-
-                                <TextView
-                                    android:id="@+id/tv_fs4_Qty"
-                                    style="@style/TextViewStyleQuantity"
-                                    android:layout_width="match_parent"
-                                    android:layout_weight="1"
-                                    android:gravity="right"
-                                    android:text=""
-                                    android:textColor="@color/black" />
-
-                            </TableRow>
-
-                            <TableRow>
-
-                                <TextView
-                                    android:id="@+id/tv_fs4_pulseTxt"
-                                    style="@style/TextViewStylePulse"
-                                    android:text="Pulse:"
-                                    android:textColor="@color/black" />
-
-                                <TextView
-                                    android:id="@+id/tv_fs4_Pulse"
-                                    style="@style/TextViewStylePulse"
-                                    android:layout_width="match_parent"
-                                    android:layout_weight="1"
-                                    android:gravity="right"
-                                    android:text=""
-                                    android:textColor="@color/black" />
-
-
-                            </TableRow>
+                            android:layout_height="match_parent"
+                            android:layout_marginRight="5dp"
+                            android:background="@color/Dashboard_background"
+                            android:orientation="vertical">
 
                             <TextView
-                                android:id="@+id/tv_fs4_stop"
+                                style="@style/TextViewStyleDashboard"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:background="@color/Red"
+                                android:textColor="@color/white"
+                                android:gravity="center"
+                                android:textSize="25dp"
+                                android:padding="5dp"
+                                android:text="YOU MAY BEGIN FUELING" />
+
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/linear_fs_3"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginRight="5dp"
+                            android:layout_weight="1"
+                            android:background="@color/Dashboard_background"
+                            android:orientation="vertical"
+                            android:padding="0dp">
+
+                            <TableLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content">
+
+                                <TableRow
+                                    android:layout_width="match_parent"
+                                    android:layout_height="match_parent">
+
+                                    <TextView
+                                        android:id="@+id/tv_FS3_hoseName"
+                                        style="@style/TextViewStyleDashboard"
+                                        android:layout_width="match_parent"
+                                        android:text="Hose Three"
+                                        android:textColor="@color/black" />
+
+                                    <TextView
+                                        android:id="@+id/tv_NFS3"
+                                        style="@style/TextViewStyleDashboard"
+                                        android:layout_width="0dp"
+                                        android:layout_height="0dp"
+                                        android:text="Hose 3:"
+                                        android:textColor="@color/black" />
+
+
+                                </TableRow>
+
+
+                            </TableLayout>
+
+                            <TableLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content">
+
+                                <TableRow>
+
+                                    <TextView
+                                        android:id="@+id/tv_fs3QTN"
+                                        style="@style/TextViewStyleQuantity"
+                                        android:text="Quantity:"
+                                        android:textColor="@color/black" />
+
+
+                                    <TextView
+                                        android:id="@+id/tv_fs3_Qty"
+                                        style="@style/TextViewStyleQuantity"
+                                        android:layout_width="match_parent"
+                                        android:layout_weight="1"
+                                        android:gravity="right"
+                                        android:text=""
+                                        android:textColor="@color/black" />
+
+                                </TableRow>
+
+                                <TableRow>
+
+                                    <TextView
+                                        android:id="@+id/tv_fs3_pulseTxt"
+                                        style="@style/TextViewStylePulse"
+                                        android:text="Pulse:"
+                                        android:textColor="@color/black" />
+
+                                    <TextView
+                                        android:id="@+id/tv_fs3_Pulse"
+                                        style="@style/TextViewStylePulse"
+                                        android:layout_width="match_parent"
+                                        android:layout_weight="1"
+                                        android:gravity="right"
+                                        android:text=""
+                                        android:textColor="@color/black" />
+
+
+                                </TableRow>
+
+
+                            </TableLayout>
+
+                            <TextView
+                                android:id="@+id/tv_fs3_stop"
                                 style="@style/TextViewStyleDashboard"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
@@ -948,9 +955,141 @@
                                 android:text="STOP"
                                 android:textColor="@color/black" />
 
-                        </TableLayout>
+                        </LinearLayout>
 
                     </LinearLayout>
+
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="220dp"
+                        android:orientation="vertical"
+                        android:layout_weight="1">
+
+
+                        <!--Hose Four Fake Message-->
+                        <LinearLayout
+                            android:id="@+id/Fs4_beginFuel"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:layout_marginRight="5dp"
+                            android:background="@color/Dashboard_background"
+                            android:orientation="vertical">
+
+                            <TextView
+                                style="@style/TextViewStyleDashboard"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:background="@color/Red"
+                                android:textColor="@color/white"
+                                android:gravity="center"
+                                android:textSize="25dp"
+                                android:padding="5dp"
+                                android:text="YOU MAY BEGIN FUELING" />
+
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/linear_fs_4"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="5dp"
+                            android:layout_weight="1"
+                            android:background="@color/Dashboard_background"
+                            android:orientation="vertical"
+                            android:padding="0dp">
+
+                            <TableLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content">
+
+
+                                <TableRow>
+
+                                    <TextView
+                                        android:id="@+id/tv_FS4_hoseName"
+                                        style="@style/TextViewStyleDashboard"
+                                        android:layout_width="match_parent"
+                                        android:text="Hose Four"
+                                        android:textColor="@color/black" />
+
+                                    <TextView
+                                        android:id="@+id/tv_NFS4"
+                                        style="@style/TextViewStyleDashboard"
+                                        android:layout_width="0dp"
+                                        android:layout_height="0dp"
+                                        android:text="Hose 4:"
+                                        android:textColor="@color/black" />
+
+
+                                </TableRow>
+
+                            </TableLayout>
+
+                            <TableLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content">
+
+
+                                <TableRow>
+
+                                    <TextView
+                                        android:id="@+id/tv_fs4QTN"
+                                        style="@style/TextViewStyleQuantity"
+                                        android:text="Quantity:"
+                                        android:textColor="@color/black" />
+
+                                    <TextView
+                                        android:id="@+id/tv_fs4_Qty"
+                                        style="@style/TextViewStyleQuantity"
+                                        android:layout_width="match_parent"
+                                        android:layout_weight="1"
+                                        android:gravity="right"
+                                        android:text=""
+                                        android:textColor="@color/black" />
+
+                                </TableRow>
+
+                                <TableRow>
+
+                                    <TextView
+                                        android:id="@+id/tv_fs4_pulseTxt"
+                                        style="@style/TextViewStylePulse"
+                                        android:text="Pulse:"
+                                        android:textColor="@color/black" />
+
+                                    <TextView
+                                        android:id="@+id/tv_fs4_Pulse"
+                                        style="@style/TextViewStylePulse"
+                                        android:layout_width="match_parent"
+                                        android:layout_weight="1"
+                                        android:gravity="right"
+                                        android:text=""
+                                        android:textColor="@color/black" />
+
+
+                                </TableRow>
+
+                                <TextView
+                                    android:id="@+id/tv_fs4_stop"
+                                    style="@style/TextViewStyleDashboard"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:background="@color/Dashboard_presstostop_btn"
+                                    android:gravity="center"
+                                    android:padding="10dp"
+                                    android:text="STOP"
+                                    android:textColor="@color/black" />
+
+                            </TableLayout>
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+
+
 
 
                 </LinearLayout>
