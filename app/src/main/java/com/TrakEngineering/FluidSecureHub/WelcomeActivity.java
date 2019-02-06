@@ -496,7 +496,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         btn_clear_data = (Button) findViewById(R.id.btn_clear_data);
         tv_file_address.setText("File Download url: http://192.168.43.1:8550/www/FSVM/FileName.bin");
 
-        setUrlFromSharedPref(this);//Set url App Txt URL
+        //setUrlFromSharedPref(this);//Set url App Txt URL
         //UpdateServerMessages();
         DownloadFile();
         //new GetConnectedDevicesIP().execute();

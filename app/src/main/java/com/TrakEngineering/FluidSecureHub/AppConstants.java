@@ -82,7 +82,7 @@ public class AppConstants {
 
     public static ArrayList<HashMap<String, String>> temp_serverSSIDList;
 
-    public static String webIP; // = "http://103.8.126.241:89/";//test
+    public static String webIP = "https://www.fluidsecure.net/"; // = "http://103.8.126.241:89/";//test
     public static String webURL = webIP + "HandlerTrak.ashx";
     public static String LoginURL = webIP + "LoginHandler.ashx";
     // public static String webIP = "http://fluidsecure.cloudapp.net/"; //live

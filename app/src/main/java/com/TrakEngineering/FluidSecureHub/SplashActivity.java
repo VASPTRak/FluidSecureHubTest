@@ -376,8 +376,7 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
                     try {
 
                         // new CallAppTxt().execute();
-
-                        setUrlFromSharedPref(SplashActivity.this);
+                        //setUrlFromSharedPref(SplashActivity.this);
 
                         new CheckApproved().execute();
 
