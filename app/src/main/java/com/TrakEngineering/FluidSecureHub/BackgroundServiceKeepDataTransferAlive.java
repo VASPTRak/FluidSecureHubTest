@@ -76,12 +76,12 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
 
         try {
             super.onStart(intent, startId);
-            Log.i(TAG, "~~~~~start~~~~~");
+            Log.e(TAG, "~~~~~start~~~~~");
             //if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "~~~~~start~~~~~");
             ListConnectedHotspotIP_KDTA();
             StartUpgradeProcess();
 
-            Log.i(TAG, "~~~~~stop~~~~~");
+            Log.e(TAG, "~~~~~stop~~~~~");
 
 
         } catch (NullPointerException e) {
@@ -99,7 +99,7 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
 
         try {
 
-
+            //Log.e(TAG, "~~~~~Second for strt~~~~~");
             if (SSIDList != null && SSIDList.size() > 0) {
 
                 //Log.i(TAG, "Hotspot connected devices: " + String.valueOf(AppConstants.DetailsListOfConnectedDevices.size()));
@@ -133,8 +133,13 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
                                 if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  Mac:"+Mac_Addr);
                                 SERVER_IP = AppConstants.DetailsListOfConnectedDevices.get(k).get("ipAddress");
                                 if (!SERVER_IP.equalsIgnoreCase("")){
-                                    new TCPClientTask().execute(SERVER_IP);
+                                    //new TCPClientTask().execute(SERVER_IP);
                                     // new UDPClientTask().execute(SERVER_IP);
+
+                                    //Http info cmd
+                                    HTTP_URL = "http://"+SERVER_IP+":80/";
+                                    URL_INFO = HTTP_URL + "client?command=info";
+                                    String FSStatus = new CommandsGET().execute(URL_INFO).get();//Info command
 
                                 }
 
@@ -207,6 +212,7 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
 
                 }
 
+                // Log.e(TAG, "~~~~~Second for end~~~~~");
             } else {
                 Log.i(TAG, "SSID List Empty");
                 if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  SSID List Empty");
@@ -242,6 +248,7 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
 
         listOfConnectedMacAddress_KDTA.clear();
         DetailslistOfConnectedIP_KDTA.clear();
+        // Log.e(TAG, "~~~~~First for strt~~~~~");
 
         try {
 
@@ -263,6 +270,8 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
                 }
 
             }
+
+            // Log.e(TAG, "~~~~~First for end~~~~~");
 
         }catch (Exception e){
             e.printStackTrace();
@@ -291,7 +300,7 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
 
         protected String doInBackground(String... param) {
 
-
+            // Log.e(TAG, "~~~~~Http for strt~~~~~");
             try {
 
                 OkHttpClient client = new OkHttpClient();
@@ -320,6 +329,7 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
 
             try {
 
+                // Log.e(TAG, "~~~~~Http for stop~~~~~RES:"+result);
                 System.out.println(result);
 
             } catch (Exception e) {
@@ -801,6 +811,7 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
         @Override
         protected String doInBackground(String... serverip) {
 
+            // Log.e(TAG, "~~~~~TCP for strt~~~~~");
             String SERVER_IP = serverip[0];
             String strcmd = "GET /client?command=info HTTP/1.1\r\nContent-Type: application/json; charset=utf-8\r\nContent-Length: \r\nHost: 192.168.4.1\r\nConnection: Keep-Alive\r\nAccept-Encoding: gzip\r\nUser-Agent: okhttp/3.6.0\r\n\r\n";
 
@@ -839,6 +850,7 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
         @Override
         protected void onPostExecute(String res) {
 
+            //Log.e(TAG, "~~~~~TCP for end~~~~~");
             //Log.i(TAG, "Socket response" + res);
             if (!res.contains("Version")){
                 //new UDPClientTask().execute(SERVER_IP);

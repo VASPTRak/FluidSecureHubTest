@@ -86,6 +86,7 @@ public class BackgroundServiceBluetoothPrinter extends BackgroundService {
                 System.out.println("printer. FindBT and OpenBT");
             } catch (IOException e) {
                 e.printStackTrace();
+                if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+" Disable Printer flag on cloud if no printer connected Ex");
             }
 
 

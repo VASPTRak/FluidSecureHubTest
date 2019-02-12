@@ -106,24 +106,40 @@ public class AcceptServiceCall {
                 IsGateHub = sharedPrefGatehub.getString(AppConstants.IsGateHub, "flase");
                 IsStayOpenGate = sharedPrefGatehub.getString(AppConstants.IsStayOpenGate, "");
 
-                if (IsGateHub.equalsIgnoreCase("True") && IsStayOpenGate.equalsIgnoreCase("True") && (Constants.GateHubPinNo.equalsIgnoreCase("") || Constants.GateHubvehicleNo.equalsIgnoreCase(""))){
+                if (IsGateHub.equalsIgnoreCase("True") && IsStayOpenGate.equalsIgnoreCase("True")){
 
+                    //&& (Constants.GateHubPinNo.equalsIgnoreCase("") || Constants.GateHubvehicleNo.equalsIgnoreCase(""))
                     try {
-                        if (Constants.AccPersonnelPIN_FS1 == null ){
-                            Constants.GateHubPinNo = "";
-                        }else if (Constants.AccPersonnelPIN_FS1.equals("")){
-                            //Do nothing
+                        if (IsPersonnelPINRequire.equalsIgnoreCase("True") && Constants.GateHubPinNo.equalsIgnoreCase("")){
+
+                            if (Constants.AccPersonnelPIN_FS1 == null ){
+                                Constants.GateHubPinNo = "";
+                            }else if (Constants.AccPersonnelPIN_FS1.equals("")){
+                                //Do nothing
+                            }else{
+                                Constants.GateHubPinNo = Constants.AccPersonnelPIN_FS1;
+                            }
+
                         }else{
-                            Constants.GateHubPinNo = Constants.AccPersonnelPIN_FS1;
+                            Constants.AccPersonnelPIN_FS1 = Constants.GateHubPinNo ;
                         }
 
-                        if (Constants.AccVehicleNumber_FS1 == null ){
-                            Constants.GateHubvehicleNo = "";
-                        }else if (Constants.AccVehicleNumber_FS1.equals("")){
-                            //Do nothing
-                        }
-                        else{
-                            Constants.GateHubvehicleNo = Constants.AccVehicleNumber_FS1;
+
+                        //----------------------
+
+                        if (IsVehicleNumberRequire.equalsIgnoreCase("True") && Constants.GateHubvehicleNo.equalsIgnoreCase("")){
+
+                            if (Constants.AccVehicleNumber_FS1 == null ){
+                                Constants.GateHubvehicleNo = "";
+                            }else if (Constants.AccVehicleNumber_FS1.equals("")){
+                                //Do nothing
+                            }
+                            else{
+                                Constants.GateHubvehicleNo = Constants.AccVehicleNumber_FS1;
+                            }
+
+                        }else{
+                            Constants.AccVehicleNumber_FS1 = Constants.GateHubvehicleNo;
                         }
 
                     }catch (NullPointerException e){
@@ -319,8 +335,8 @@ public class AcceptServiceCall {
 
                                 try {
                                     //Info command commented
-                                   URL_INFO = HTTP_URL + "client?command=info";
-                                   new CommandsGET_Info().execute(URL_INFO);
+                                    URL_INFO = HTTP_URL + "client?command=info";
+                                    new CommandsGET_Info().execute(URL_INFO);
 
                                 } catch (Exception e) {
                                     e.printStackTrace();

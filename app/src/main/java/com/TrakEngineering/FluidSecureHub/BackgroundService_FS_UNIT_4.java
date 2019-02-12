@@ -16,6 +16,8 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.os.IBinder;
+import android.support.annotation.Nullable;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -65,7 +67,7 @@ import static com.google.android.gms.internal.zzid.runOnUiThread;
  * Created by VASP on 10/11/2017.
  */
 
-public class BackgroundService_FS_UNIT_4 extends BackgroundService {
+public class BackgroundService_FS_UNIT_4 extends Service {
 
 
     private static final String TAG = "BS_FS4  ";
@@ -136,7 +138,14 @@ public class BackgroundService_FS_UNIT_4 extends BackgroundService {
     String printReceipt = "", IsFuelingStop = "0", IsLastTransaction = "0";
 
     ConnectivityManager connection_manager;
+    DBController controller = new DBController(BackgroundService_FS_UNIT_4.this);
 
+
+    @Nullable
+    @Override
+    public IBinder onBind(Intent intent) {
+        return null;
+    }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -353,11 +362,12 @@ public class BackgroundService_FS_UNIT_4 extends BackgroundService {
             public void run() {
                 startQuantityInterval();
             }
-        }, 2000);
+        }, 2500);
 
         // return super.onStartCommand(intent, flags, startId);
         return Service.START_NOT_STICKY;
     }
+
 
 
     private void RelayOnThreeAttempts(){

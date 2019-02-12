@@ -10,6 +10,8 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.os.IBinder;
+import android.support.annotation.Nullable;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -58,7 +60,7 @@ import static com.google.android.gms.internal.zzid.runOnUiThread;
  * Created by VASP on 7/24/2017.
  */
 
-public class BackgroundService_AP extends BackgroundService {
+public class BackgroundService_AP extends Service {
 
 
     private static final String TAG = "BS_AP   ";
@@ -129,6 +131,13 @@ public class BackgroundService_AP extends BackgroundService {
     Integer Pulses = 0;
     long sqliteID = 0;
     String printReceipt = "", IsFuelingStop = "0", IsLastTransaction = "0";
+    DBController controller = new DBController(BackgroundService_AP.this);
+
+    @Nullable
+    @Override
+    public IBinder onBind(Intent intent) {
+        return null;
+    }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -358,12 +367,14 @@ public class BackgroundService_AP extends BackgroundService {
             public void run() {
                 startQuantityInterval();
             }
-        }, 2000);
+        }, 2500);
 
         //return super.onStartCommand(intent, flags, startId);
         return Service.START_NOT_STICKY;
 
     }
+
+
 
     private void RelayOnThreeAttempts() {
 

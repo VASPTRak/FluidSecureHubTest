@@ -1037,10 +1037,8 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
         try {
             new CommandsGET_TxnId().execute(URL_GET_TXNID);
 
-
         } catch (Exception e) {
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "  LastTXNid Ex:" + e.getMessage() + " ");
+            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  LastTXNid Ex:" + e.getMessage() + " ");
         }
 
 
@@ -2418,7 +2416,6 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
         try {
 
-
             if (AppConstants.FS_selected.equalsIgnoreCase("0")) {
 
 
@@ -2468,6 +2465,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
         } catch (Exception e) {
             e.printStackTrace();
+            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " StartbuttonFunctionality " +e);
         }
 
     }
@@ -2475,7 +2473,6 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
     public void getCMDLast10Txn() {
         try {
             new CommandsGET_CmdTxt10().execute(URL_GET_TXN_LAST10);
-
 
         } catch (Exception e) {
 
@@ -2597,11 +2594,9 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
                     GetLastTransaction();
 
-                    getCMDLast10Txn();
-
+                    getCMDLast10Txn(); //temp comment
 
                     new CommandsGET_RelayResp().execute(URL_RELAY);
-
 
                     //Info command else commented
                 } else {
@@ -2637,7 +2632,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
 
             } catch (Exception e) {
-
+                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " CommandsGET_Info post " +e);
                 System.out.println(e);
             }
 
@@ -2680,6 +2675,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
             } catch (Exception e) {
                 Log.d("Ex", e.getMessage());
+                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " CommandsGET_TxnId doInBackground " +e);
             }
 
 
@@ -2700,7 +2696,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
 
             } catch (Exception e) {
-
+                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " CommandsGET_TxnId post " +e);
                 System.out.println(e);
             }
 
@@ -3003,12 +2999,12 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
                             }
 
-
                         }
 
 
                     } catch (JSONException e) {
                         e.printStackTrace();
+                        if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " CommandsGET_RelayResp OnPost " +e);
                     }
 
                 } else {
@@ -3093,7 +3089,6 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
 
             try {
-
 
                 System.out.println(result);
 

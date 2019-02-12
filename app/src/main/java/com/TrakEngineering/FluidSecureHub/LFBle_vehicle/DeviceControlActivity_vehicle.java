@@ -383,8 +383,8 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
         if (AppConstants.EnableFA) {
 
             FSTagMacAddress = GetClosestBleDevice();
-             btnFStag.setVisibility(View.VISIBLE);
-             btnFStag.setEnabled(true);
+            btnFStag.setVisibility(View.VISIBLE);
+            btnFStag.setEnabled(true);
 
         }else {
 
@@ -848,6 +848,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
 
             } catch (IOException e) {
                 e.printStackTrace();
+                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " ServerCallFirst InBG Ex:" + e);
             }
             return resp;
         }
@@ -855,7 +856,6 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(String serverRes) {
-
 
             String VehicleNumber = "";
             try {
@@ -1011,6 +1011,8 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
 
             }catch (Exception e){
                 e.printStackTrace();
+                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " ServerCallFirst OnPost Exception" + e);
+
             }
 
         }
@@ -1049,6 +1051,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
 
         } catch (Exception ex) {
             ex.printStackTrace();
+            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " CallSaveButtonFunctionality Ex:" +ex);
         }
     }
 
@@ -1137,6 +1140,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
 
             } catch (Exception e) {
                 e.printStackTrace();
+                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " GetVehicleNuOnFobKeyDetection DoInBG Ex:" + e.getMessage() + " ");
             }
             return resp;
         }
@@ -1269,6 +1273,8 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
 
             }catch (Exception e){
                 e.printStackTrace();
+                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " GetVehicleNuOnFobKeyDetection OnPost Ex:" + e.getMessage() + " ");
+                GetBackToWelcomeActivity();
             }
 
         }
@@ -1413,7 +1419,8 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
                         ScreenOutTimeVehicle.cancel();
                     } catch (Exception e) {
 
-                        System.out.println(e);
+                        e.printStackTrace();
+                        if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " TimeoutVehicleScreen Ex:" + e.getMessage() + " ");
                     }
 
                 }
@@ -1747,7 +1754,6 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
 
         }
 
-
     }
 
     public void FstagCustomMessageDilaog(final Activity context, String title, String message) {
@@ -1839,6 +1845,19 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
             asc.checkAllFields();
         }
 
+    }
+
+    public void GetBackToWelcomeActivity(){
+
+
+        AppConstants.colorToast(getApplicationContext(), "Something went wrong, Please try again", Color.RED);
+
+        Istimeout_Sec = false;
+        AppConstants.ClearEdittextFielsOnBack(DeviceControlActivity_vehicle.this);
+
+        Intent i = new Intent(DeviceControlActivity_vehicle.this, WelcomeActivity.class);
+        i.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        startActivity(i);
 
     }
 
