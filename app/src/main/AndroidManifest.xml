@@ -153,22 +153,22 @@
         <service
             android:name=".BackgroundServiceKeepDataTransferAlive"
             android:enabled="true" />
-
-
         <service
             android:name=".wifihotspot.HotSpotIntentService"
             android:enabled="true"
             android:exported="true" />
 
-        <receiver android:name=".wifihotspot.receiver.HotSpotIntentReceiver" android:enabled="true" android:exported="true">
+        <receiver
+            android:name=".wifihotspot.receiver.HotSpotIntentReceiver"
+            android:enabled="true"
+            android:exported="true">
             <intent-filter>
-                <action android:name="com.TrakEngineering.FluidSecureHub.wifihotspot.TURN_ON"/>
-                <action android:name="com.TrakEngineering.FluidSecureHub.wifihotspot.TURN_OFF"/>
+                <action android:name="com.TrakEngineering.FluidSecureHub.wifihotspot.TURN_ON" />
+                <action android:name="com.TrakEngineering.FluidSecureHub.wifihotspot.TURN_OFF" />
             </intent-filter>
         </receiver>
 
-        <activity
-            android:name=".wifihotspot.MagicActivity">
+        <activity android:name=".wifihotspot.MagicActivity">
             <intent-filter>
                 <category android:name="android.intent.category.BROWSABLE" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -245,11 +245,14 @@
         <service
             android:name=".BackgroundServiceNew.MyService_FSNP"
             android:enabled="true"
-            android:exported="true"></service>
-
-        <service android:name=".EddystoneScanner.EddystoneScannerService"
+            android:exported="true" />
+        <service
+            android:name=".EddystoneScanner.EddystoneScannerService"
             android:exported="false" />
-
+        <service
+            android:name=".BatteryBackgroundService"
+            android:enabled="true"
+            android:exported="true"></service>
     </application>
 
 </manifest>

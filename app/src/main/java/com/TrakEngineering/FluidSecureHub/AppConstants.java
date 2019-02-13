@@ -731,4 +731,11 @@ public class AppConstants {
         editor.clear();
         editor.commit();
     }
+
+    public static String currentDateFormat(String formatpattern)
+    {
+        SimpleDateFormat sdf=new SimpleDateFormat(formatpattern);
+        String dateString=sdf.format(new Date());
+        return dateString;
+    }
 }

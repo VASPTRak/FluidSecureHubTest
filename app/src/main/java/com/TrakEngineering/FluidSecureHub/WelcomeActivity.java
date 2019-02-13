@@ -757,6 +757,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     }
                 });
 
+        //SureMDM call if battery less then 30%
+        BatteryPercentageService();
     }
 
     public void BackgroundServiceFSNP() {
@@ -5873,7 +5875,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             AppConstants.EnableFA = true;
 
             //TODO CalledOnce clear
-           // FaReset();
+            //FaReset();
 
             //TODO EddystoneScannerService
             if (checkBluetoothStatus()) {
@@ -6932,6 +6934,21 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             System.out.println("BackgroundService STOP...");
         }
 
+    }
+
+
+    public void BatteryPercentageService() {
+
+        Calendar cal = Calendar.getInstance();
+        Intent name = new Intent(WelcomeActivity.this, BatteryBackgroundService.class);
+        PendingIntent pintent = PendingIntent.getService(getApplicationContext(), 0, name, 0);
+        AlarmManager alarm = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        alarm.setRepeating(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), 1800000, pintent);
+
+        //1000 s
+        //60000 m
+        //3600000 1h
+        //1800000  30min
     }
 
 

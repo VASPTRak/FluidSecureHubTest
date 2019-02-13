@@ -14,6 +14,7 @@ import android.os.Build;
 import android.os.Environment;
 import android.os.PowerManager;
 import android.provider.SyncStateContract;
+import android.support.annotation.RequiresApi;
 import android.text.Editable;
 import android.text.Html;
 import android.text.format.Time;
@@ -274,6 +275,7 @@ public class CommonUtils {
 
     //----------------------------------------------------------------------------
 
+    @RequiresApi(api = Build.VERSION_CODES.N)
     public static void showCustomMessageDilaog(final Activity context, String title, String message) {
 
         final Dialog dialogBus = new Dialog(context);
@@ -282,9 +284,12 @@ public class CommonUtils {
         dialogBus.setContentView(R.layout.custom_alertdialouge);
         dialogBus.show();
 
+        String newString1 = message.replaceAll("PERSONNEL", "<font color='red'> "+"<U> PERSONNEL </U>"+" </font>");
+        String newString = newString1.replaceAll("VEHICLE", "<font color='red'> "+"<U> VEHICLE </U>"+" </font>");
+
         TextView edt_message = (TextView) dialogBus.findViewById(R.id.edt_message);
         Button btnAllow = (Button) dialogBus.findViewById(R.id.btnAllow);
-        edt_message.setText(message);
+        edt_message.setText(Html.fromHtml(newString));
 
         btnAllow.setOnClickListener(new View.OnClickListener() {
 
