@@ -305,12 +305,14 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
 
                 if (FKey.equalsIgnoreCase("")) {
                     if (cd.isConnectingToInternet())
+                        if (!isFinishing())
                         new CallSaveButtonFunctionality().execute();//Press Enter fun
                     else
                         AppConstants.colorToastBigFont(getApplicationContext(), "Please check Internet connection", Color.RED);
 
                 } else if (pin.equalsIgnoreCase("") && !FKey.equalsIgnoreCase("")) {
                     if (cd.isConnectingToInternet())
+                        if (!isFinishing())
                         new GetPinNuOnFobKeyDetection().execute();
                     else
                         AppConstants.colorToastBigFont(getApplicationContext(), "Please check Internet connection", Color.RED);
@@ -318,6 +320,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                 } else if (!pin.equalsIgnoreCase("") && !FKey.equalsIgnoreCase("")) {
 
                     if (cd.isConnectingToInternet())
+                        if (!isFinishing())
                         new GetPinNuOnFobKeyDetection().execute();
                     else
                         AppConstants.colorToastBigFont(getApplicationContext(), "Please check Internet connection", Color.RED);
@@ -589,6 +592,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                 System.out.println("pin2 FOK_KEY" + AppConstants.APDU_FOB_KEY);
                 ScreenOutTime.cancel();//Stop screenout
                 if (cd.isConnectingToInternet())
+                    if (!isFinishing())
                     new GetPinNuOnFobKeyDetection().execute();
                 else
                     AppConstants.colorToastBigFont(getApplicationContext(), "Please check Internet connection", Color.RED);

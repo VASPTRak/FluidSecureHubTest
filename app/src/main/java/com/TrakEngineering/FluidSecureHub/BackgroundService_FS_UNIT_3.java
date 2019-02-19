@@ -351,17 +351,31 @@ public class BackgroundService_FS_UNIT_3 extends Service {
             public void run() {
 
                 //Call Relay On Function
-                RelayOnThreeAttempts();
+                String IsRelayOnCheck =  RelayOnThreeAttempts();
+                if (IsRelayOnCheck != null && !IsRelayOnCheck.equalsIgnoreCase("")) {
+
+                    try {
+
+                        JSONObject jsonObject = new JSONObject(IsRelayOnCheck);
+                        String relay_status1 = null;
+                        relay_status1 = jsonObject.getString("relay_response");
+                        if (relay_status1.equalsIgnoreCase("{\"status\":1}")) {
+                            startQuantityInterval();
+                        } else {
+                            ExitBackgroundService();
+                        }
+
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
+                }else{
+                    ExitBackgroundService();
+                }
 
             }
         }, 1500);
 
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                startQuantityInterval();
-            }
-        }, 2500);
 
         // return super.onStartCommand(intent, flags, startId);
         return Service.START_NOT_STICKY;
@@ -369,7 +383,7 @@ public class BackgroundService_FS_UNIT_3 extends Service {
 
 
 
-    private void RelayOnThreeAttempts(){
+    private String RelayOnThreeAttempts(){
 
         String IsRelayOn = "";
         try {
@@ -399,6 +413,7 @@ public class BackgroundService_FS_UNIT_3 extends Service {
             e.printStackTrace();
             if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  RelayOnThreeAttempts. --Exception " + e);
         }
+        return IsRelayOn;
     }
 
 
@@ -2023,4 +2038,14 @@ public class BackgroundService_FS_UNIT_3 extends Service {
 
     }
 
+    private void ExitBackgroundService(){
+
+        CommonUtils.AddRemovecurrentTransactionList(false,TransactionId);//Remove transaction Id from list
+        if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+" Relay status error");
+        stopTimer = false;
+        new CommandsPOST().execute(URL_RELAY, jsonRelayOff);
+        Constants.FS_3STATUS = "FREE";
+        clearEditTextFields();
+        stopSelf();
+    }
 }

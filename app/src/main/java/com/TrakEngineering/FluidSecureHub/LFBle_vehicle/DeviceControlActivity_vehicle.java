@@ -348,6 +348,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
                 if (!FSTagMacAddress.isEmpty()) {
 
                     if (cd.isConnectingToInternet())
+                        if (!isFinishing())
                         new GetVehicleByFSTagMacAddress().execute();
                     else
                         AppConstants.colorToastBigFont(getApplicationContext(), "Please check Internet connection", Color.RED);
@@ -625,6 +626,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
         AppConstants.VehicleLocal_FOB_KEY = "";
 
         if (cd.isConnectingToInternet())
+            if (!isFinishing())
             new GetVehicleNuOnFobKeyDetection().execute();
         else
             AppConstants.colorToastBigFont(getApplicationContext(), "Please check Internet connection", Color.RED);
@@ -1030,6 +1032,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
             if (!V_Number.isEmpty() || !AppConstants.APDU_FOB_KEY.isEmpty()) {
 
                 if (cd.isConnectingToInternet())
+                    if (!isFinishing())
                     new ServerCallFirst().execute();
                 else
                     AppConstants.colorToastBigFont(getApplicationContext(), "Please check Internet connection", Color.RED);

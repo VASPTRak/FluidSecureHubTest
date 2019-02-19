@@ -120,7 +120,7 @@ public class BackgroundService_AP_PIPE extends Service {
     SimpleDateFormat sdformat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
 
     private String vehicleNumber, odometerTenths = "0", dNumber = "", pNumber = "", oText = "", hNumber = "";
-    String LinkName, OtherName, IsOtherRequire, OtherLabel, VehicleNumber, PrintDate, CompanyName, Location, PersonName, PrinterMacAddress, PrinterName, TransactionId, VehicleId, PhoneNumber, PersonId, PulseRatio, MinLimit, FuelTypeId, ServerDate, IntervalToStopFuel, IsTLDCall,EnablePrinter;
+    String LinkName, OtherName, IsOtherRequire, OtherLabel, VehicleNumber, PrintDate, CompanyName, Location, PersonName, PrinterMacAddress, PrinterName, TransactionId, VehicleId, PhoneNumber, PersonId, PulseRatio, MinLimit, FuelTypeId, ServerDate, IntervalToStopFuel, IsTLDCall, EnablePrinter;
 
     public static String FOLDER_PATH = Environment.getExternalStorageDirectory().getAbsolutePath() + "/FSBin/";
     public static String PATH_BIN_FILE1 = "user1.2048.new.5.bin";
@@ -258,7 +258,7 @@ public class BackgroundService_AP_PIPE extends Service {
                 imap.put("authString", authString);
 
                 sqliteID = controller.insertTransactions(imap);
-                CommonUtils.AddRemovecurrentTransactionList(true,TransactionId);//Add transaction Id to list
+                CommonUtils.AddRemovecurrentTransactionList(true, TransactionId);//Add transaction Id to list
                 //////////////////////////////////////////////////////////////
 
                 //=====================UpgradeTransaction Status ==1================
@@ -364,26 +364,37 @@ public class BackgroundService_AP_PIPE extends Service {
             public void run() {
 
                 //Call Relay On Function
-                RelayOnThreeAttempts();
+                String IsRelayOnCheck =  RelayOnThreeAttempts();
+                if (IsRelayOnCheck != null && !IsRelayOnCheck.equalsIgnoreCase("")) {
+
+                    try {
+
+                        JSONObject jsonObject = new JSONObject(IsRelayOnCheck);
+                        String relay_status1 = null;
+                        relay_status1 = jsonObject.getString("relay_response");
+                        if (relay_status1.equalsIgnoreCase("{\"status\":1}")) {
+                            startQuantityInterval();
+                        } else {
+                            ExitBackgroundService();
+                        }
+
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
+                }else{
+                    ExitBackgroundService();
+                }
 
             }
         }, 1500);
-
-
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                startQuantityInterval();
-            }
-        }, 2500);
 
         // return super.onStartCommand(intent, flags, startId);
         return Service.START_NOT_STICKY;
     }
 
 
-
-    private void RelayOnThreeAttempts() {
+    private String RelayOnThreeAttempts() {
 
         String IsRelayOn = "";
         try {
@@ -393,7 +404,8 @@ public class BackgroundService_AP_PIPE extends Service {
             String relay_status1 = jsonObject.getString("relay_response");
 
             if (relay_status1.equalsIgnoreCase("{\"status\":1}")) {
-                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  Relay On attempt 1");
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + "  Relay On attempt 1");
 
             } else {
                 Thread.sleep(1000);
@@ -416,6 +428,7 @@ public class BackgroundService_AP_PIPE extends Service {
             if (AppConstants.GenerateLogs)
                 AppConstants.WriteinFile(TAG + "  RelayOnThreeAttempts. --Exception " + e);
         }
+        return IsRelayOn;
     }
 
 
@@ -719,9 +732,10 @@ public class BackgroundService_AP_PIPE extends Service {
             public void onFailure(Request request, IOException e) {
                 Log.e(TAG, "error in getting response using async okhttp call");
                 //Temp code..
-                CommonUtils.AddRemovecurrentTransactionList(false,TransactionId);//Remove transaction Id from list
+                CommonUtils.AddRemovecurrentTransactionList(false, TransactionId);//Remove transaction Id from list
                 System.out.println("FS Link not connected" + listOfConnectedIP_AP_PIPE);
-                if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+"  err FS Link not connected");
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + "  err FS Link not connected");
                 stopTimer = false;
                 new CommandsPOST().execute(URL_RELAY, jsonRelayOff);
                 Constants.FS_1STATUS = "FREE";
@@ -806,7 +820,8 @@ public class BackgroundService_AP_PIPE extends Service {
 
                         IsFuelingStop = "1";
                         System.out.println("APFS_PIPE Auto Stop! Pulsar disconnected");
-                        if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  Link:" + LinkName + " Auto Stop! Pulsar disconnected");
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + "  Link:" + LinkName + " Auto Stop! Pulsar disconnected");
                         // AppConstants.colorToastBigFont(this, AppConstants.FS1_CONNECTED_SSID+" Auto Stop!\n\nPulsar disconnected", Color.BLUE);
                         stopButtonFunctionality();
                     }
@@ -820,7 +835,8 @@ public class BackgroundService_AP_PIPE extends Service {
 
                     convertCountToQuantity(counts);
                 } else {
-                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  Count recorded from the link: " + counts);
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + "  Count recorded from the link: " + counts);
                 }
 
 
@@ -859,7 +875,8 @@ public class BackgroundService_AP_PIPE extends Service {
 
                         IsFuelingStop = "1";
                         System.out.println("APFS_PIPE Auto Stop! Count down timer completed");
-                        if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  Link:" + LinkName + " Auto Stop! Count down timer completed");
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + "  Link:" + LinkName + " Auto Stop! Count down timer completed");
                         AppConstants.colorToastBigFont(this, AppConstants.FS1_CONNECTED_SSID + " Auto Stop!\n\nCount down timer completed.", Color.BLUE);
                         stopButtonFunctionality();
                     }
@@ -895,7 +912,8 @@ public class BackgroundService_AP_PIPE extends Service {
 
                             IsFuelingStop = "1";
                             System.out.println("APFS_PIPE Auto Stop!You reached MAX fuel limit.");
-                            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  Link:" + LinkName + " Auto Stop!You reached MAX fuel limit.");
+                            if (AppConstants.GenerateLogs)
+                                AppConstants.WriteinFile(TAG + "  Link:" + LinkName + " Auto Stop!You reached MAX fuel limit.");
                             //AppConstants.colorToastBigFont(this, "Auto Stop!\n\nYou reached MAX fuel limit.", Color.BLUE);
                             stopButtonFunctionality();
                         }
@@ -1155,7 +1173,8 @@ public class BackgroundService_AP_PIPE extends Service {
                             //qty is same for some time
                             IsFuelingStop = "1";
                             System.out.println("APFS_PIPE Auto Stop!Quantity is same for last");
-                            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  Link:" + LinkName + " Auto Stop!Quantity is same for last");
+                            if (AppConstants.GenerateLogs)
+                                AppConstants.WriteinFile(TAG + "  Link:" + LinkName + " Auto Stop!Quantity is same for last");
                             //AppConstants.colorToastBigFont(this, "Auto Stop!\n\nQuantity is same for last " + stopAutoFuelSeconds + " seconds.", Color.BLUE);
                             stopButtonFunctionality();
                             stopTimer = false;
@@ -1239,7 +1258,8 @@ public class BackgroundService_AP_PIPE extends Service {
         Gson gson = new Gson();
         String jsonData = gson.toJson(authEntityClass);
 
-        if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  Link:" + LinkName + " received Pulses:" + Integer.parseInt(counts) + " Qty:" + fillqty + " TxnID:" + TransactionId);
+        if (AppConstants.GenerateLogs)
+            AppConstants.WriteinFile(TAG + "  Link:" + LinkName + " received Pulses:" + Integer.parseInt(counts) + " Qty:" + fillqty + " TxnID:" + TransactionId);
 
         String userEmail = CommonUtils.getCustomerDetails_backgroundService_PIPE(BackgroundService_AP_PIPE.this).PersonEmail;
         String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(BackgroundService_AP_PIPE.this) + ":" + userEmail + ":" + "TransactionComplete");
@@ -1306,7 +1326,7 @@ public class BackgroundService_AP_PIPE extends Service {
 
     public void TransactionCompleteFunction() {
 
-        CommonUtils.AddRemovecurrentTransactionList(false,TransactionId);//Remove transaction Id from list
+        CommonUtils.AddRemovecurrentTransactionList(false, TransactionId);//Remove transaction Id from list
 
         if (IsTLDCall.equalsIgnoreCase("True")) {
             TankMonitorReading(); //Get Tank Monitor Reading and save it to server
@@ -1551,7 +1571,7 @@ public class BackgroundService_AP_PIPE extends Service {
 
         }
 
-        if (!CommonUtils.isMyServiceRunning(BackgroundService.class,this)){
+        if (!CommonUtils.isMyServiceRunning(BackgroundService.class, this)) {
             startService(new Intent(this, BackgroundService.class));
         }
     }
@@ -1596,7 +1616,7 @@ public class BackgroundService_AP_PIPE extends Service {
                     Tem_data = tld.getString("Tem_data");
                     String Checksum = tld.getString("Checksum");
 
-                    AppConstants.WriteinFile(TAG + "  TLD:"+" mac:"+mac_address+" SensorID:"+Sensor_ID+" Resp_code:"+Response_code+" LSB:"+LSB+" MSB:"+MSB+" Temp:"+Tem_data+" Chksum:"+Checksum);
+                    AppConstants.WriteinFile(TAG + "  TLD:" + " mac:" + mac_address + " SensorID:" + Sensor_ID + " Resp_code:" + Response_code + " LSB:" + LSB + " MSB:" + MSB + " Temp:" + Tem_data + " Chksum:" + Checksum);
 
                     //Get mac address of probe
                     //String mac_str = GetMacAddressOfProbe(level);
@@ -2128,6 +2148,17 @@ public class BackgroundService_AP_PIPE extends Service {
         });
         thread.start();
 
+    }
+
+    private void ExitBackgroundService(){
+
+        CommonUtils.AddRemovecurrentTransactionList(false, TransactionId);//Remove transaction Id from list
+        if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " Relay status error");
+        stopTimer = false;
+        new CommandsPOST().execute(URL_RELAY, jsonRelayOff);
+        Constants.FS_1STATUS = "FREE";
+        clearEditTextFields();
+        stopSelf();
     }
 
 }

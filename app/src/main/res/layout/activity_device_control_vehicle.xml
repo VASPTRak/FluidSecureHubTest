@@ -85,7 +85,6 @@
                     android:id="@+id/tv_or"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_margin="10dp"
                     android:textColor="@color/Red"
                     android:textStyle="bold"
                     android:text="OR"
@@ -120,7 +119,6 @@
                     android:textStyle="bold"
                     android:paddingLeft="80dp"
                     android:paddingRight="80dp"
-                    android:layout_marginTop="25dp"
                     android:layout_marginBottom="20dp"
                     android:text="Please wait.."
                     android:textColor="@color/Red"
@@ -180,22 +178,19 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
                 android:id="@+id/Linear_layout_Save_back_buttons"
-                android:layout_marginTop="50dp"
+                android:layout_marginTop="20dp"
                 android:layout_marginRight="90dp"
                 android:layout_marginLeft="90dp"
                 android:layout_marginBottom="12dp"
-
-
                 android:orientation="horizontal">
 
 
                 <Button
                     android:id="@+id/btnCancel"
-                    android:layout_width="0dp"
-                    android:layout_height="60dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     android:layout_marginRight="25dp"
                     android:layout_gravity="center_horizontal"
-                    android:layout_margin="5sp"
                     android:onClick="cancelAction"
                     android:layout_weight="1"
                     android:background="@color/backbtn"
@@ -205,8 +200,8 @@
 
                 <Button
                     android:id="@+id/btnSave"
-                    android:layout_width="0dp"
-                    android:layout_height="60dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     android:layout_gravity="center_horizontal"
                     android:layout_marginLeft="25dp"
                     android:layout_weight="1"
