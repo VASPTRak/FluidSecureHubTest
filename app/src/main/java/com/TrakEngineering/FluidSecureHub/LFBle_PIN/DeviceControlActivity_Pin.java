@@ -115,7 +115,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
     EditText etPersonnelPin;
     TextView tv_enter_pin_no, tv_ok;
     Button btnSave, btnCancel, btn_ReadFobAgain;
-    String IsPersonHasFob = "", IsOdoMeterRequire = "", IsDepartmentRequire = "", IsPersonnelPINRequire = "", IsOtherRequire = "",IsVehicleNumberRequire = "",IsStayOpenGate= "",IsGateHub;
+    String IsPersonHasFob = "", IsOdoMeterRequire = "", IsDepartmentRequire = "", IsPersonnelPINRequire = "", IsOtherRequire = "", IsVehicleNumberRequire = "", IsStayOpenGate = "", IsGateHub;
     String TimeOutinMinute;
 
     int FobReadingCount = 0;
@@ -299,31 +299,40 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
             public void onClick(View v) {
 
 
-
                 String pin = etPersonnelPin.getText().toString().trim();
                 String FKey = AppConstants.APDU_FOB_KEY;
 
                 if (FKey.equalsIgnoreCase("")) {
-                    if (cd.isConnectingToInternet())
-                        if (!isFinishing())
-                        new CallSaveButtonFunctionality().execute();//Press Enter fun
-                    else
+                    if (cd.isConnectingToInternet()) {
+                        if (!isFinishing()) {
+                            new CallSaveButtonFunctionality().execute();
+                        }
+                    } else {
                         AppConstants.colorToastBigFont(getApplicationContext(), "Please check Internet connection", Color.RED);
+                    }
 
                 } else if (pin.equalsIgnoreCase("") && !FKey.equalsIgnoreCase("")) {
-                    if (cd.isConnectingToInternet())
-                        if (!isFinishing())
-                        new GetPinNuOnFobKeyDetection().execute();
-                    else
+                    if (cd.isConnectingToInternet()) {
+
+                        if (!isFinishing()) {
+                            new GetPinNuOnFobKeyDetection().execute();
+                        }
+
+                    } else {
                         AppConstants.colorToastBigFont(getApplicationContext(), "Please check Internet connection", Color.RED);
+                    }
+
 
                 } else if (!pin.equalsIgnoreCase("") && !FKey.equalsIgnoreCase("")) {
 
-                    if (cd.isConnectingToInternet())
-                        if (!isFinishing())
-                        new GetPinNuOnFobKeyDetection().execute();
-                    else
+                    if (cd.isConnectingToInternet()){
+                        if (!isFinishing()){
+                            new GetPinNuOnFobKeyDetection().execute();
+                        }
+                    }else{
                         AppConstants.colorToastBigFont(getApplicationContext(), "Please check Internet connection", Color.RED);
+                    }
+
                 }
             }
         });
@@ -381,7 +390,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
         AppConstants.PinLocal_FOB_KEY = "";
         if (IsGateHub.equalsIgnoreCase("True")) {
             Istimeout_Sec = false;
-        }else{
+        } else {
             Istimeout_Sec = true;
         }
 
@@ -525,7 +534,8 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
 
             String Str_data = data.toString().trim();
             System.out.println("FOK_KEY Vehi " + Str_data);
-            if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+"  Response LF: " + Str_data);
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + "  Response LF: " + Str_data);
             String Str_check = Str_data.replace(" ", "");
             if (!Str_check.equalsIgnoreCase("000000")) {
                 try {
@@ -536,10 +546,11 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                     tv_fobkey.setText(Sep2.replace(" ", ""));
                 } catch (Exception ex) {
                     System.out.println(ex);
-                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+"  displayData Split Fob_Key  --Exception " + ex);
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + "  displayData Split Fob_Key  --Exception " + ex);
                 }
 
-                if (!LF_FobKey.equalsIgnoreCase("" ) && LF_FobKey.length() > 5) {//
+                if (!LF_FobKey.equalsIgnoreCase("") && LF_FobKey.length() > 5) {//
                     //tv_enter_pin_no.setText("Fob Read Successfully");
                     tv_fob_number.setText("");//"Fob No: " + LF_FobKey
                     AppConstants.PinLocal_FOB_KEY = LF_FobKey;
@@ -554,7 +565,8 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
 
                 if (Count < 3) {
                     // Toast.makeText(getApplicationContext(),"Attempt to read Characteristic: "+Count, Toast.LENGTH_LONG).show();
-                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+"  Attempt to read Char: " + Count);
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + "  Attempt to read Char: " + Count);
                     Count++;
                     if (mBluetoothLeServicePin != null) {
                         // mBluetoothLeServiceVehicle.readCharacteristic(characteristic);
@@ -591,12 +603,13 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                 etPersonnelPin.setText("");
                 System.out.println("pin2 FOK_KEY" + AppConstants.APDU_FOB_KEY);
                 ScreenOutTime.cancel();//Stop screenout
-                if (cd.isConnectingToInternet())
-                    if (!isFinishing())
-                    new GetPinNuOnFobKeyDetection().execute();
-                else
+                if (cd.isConnectingToInternet()){
+                    if (!isFinishing()){
+                        new GetPinNuOnFobKeyDetection().execute();
+                    }
+                }else{
                     AppConstants.colorToastBigFont(getApplicationContext(), "Please check Internet connection", Color.RED);
-
+                }
                 tv_fob_number.setText("fob/card No: " + AppConstants.APDU_FOB_KEY);
             }
         });
@@ -802,7 +815,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                         Constants.AccPersonnelPIN_FS3 = etPersonnelPin.getText().toString().trim();
 
                         vehicleNumber = Constants.AccVehicleNumber_FS3;
-                        Log.i("ps_Vechile no","Step 3:"+vehicleNumber);
+                        Log.i("ps_Vechile no", "Step 3:" + vehicleNumber);
                     } else {
                         Constants.AccPersonnelPIN_FS4 = etPersonnelPin.getText().toString().trim();
                         vehicleNumber = Constants.AccVehicleNumber_FS4;
@@ -824,7 +837,8 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
 
                     if (AppConstants.APDU_FOB_KEY.equalsIgnoreCase("")) {
                         Log.i(TAG, "PIN EN Manually: " + etPersonnelPin.getText().toString().trim() + "  Fob:" + AppConstants.APDU_FOB_KEY);
-                        if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " PIN EN Manually: " + etPersonnelPin.getText().toString().trim() + "  Fob:" + AppConstants.APDU_FOB_KEY);
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + " PIN EN Manually: " + etPersonnelPin.getText().toString().trim() + "  Fob:" + AppConstants.APDU_FOB_KEY);
                     } else {
                         Log.i(TAG, "PIN FOB:" + AppConstants.APDU_FOB_KEY + "  PIN No: " + String.valueOf(etPersonnelPin.getText()));
                         if (AppConstants.GenerateLogs)
@@ -966,7 +980,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                         }
 
                     }
-                }catch (Exception e){
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
@@ -986,7 +1000,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
             pd.setCancelable(true);
             pd.show();*/
 
-            Toast.makeText(getApplicationContext(),"Please wait...",Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), "Please wait...", Toast.LENGTH_SHORT).show();
 
         }
 
@@ -1000,8 +1014,9 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
             objEntityClass.PersonFOBNumber = AppConstants.APDU_FOB_KEY;
             objEntityClass.FromNewFOBChange = "Y";
 
-            System.out.println(TAG+"Personnel PIN: Read FOB:"+AppConstants.APDU_FOB_KEY+"  PIN Number: "+String.valueOf(etPersonnelPin.getText()));
-            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG+"Personnel PIN: Read FOB:"+AppConstants.APDU_FOB_KEY+"  PIN Number: "+String.valueOf(etPersonnelPin.getText()));
+            System.out.println(TAG + "Personnel PIN: Read FOB:" + AppConstants.APDU_FOB_KEY + "  PIN Number: " + String.valueOf(etPersonnelPin.getText()));
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + "Personnel PIN: Read FOB:" + AppConstants.APDU_FOB_KEY + "  PIN Number: " + String.valueOf(etPersonnelPin.getText()));
 
 
             try {
@@ -1034,7 +1049,6 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                 resp = response.body().string();
 
 
-
             } catch (Exception ex) {
                 CommonUtils.LogMessage("TAG", "CheckValidPinOrFOBNUmber ", ex);
             }
@@ -1047,7 +1061,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
         protected void onPostExecute(String serverRes) {
 
 
-            try{
+            try {
 
                 if (serverRes != null) {
 
@@ -1083,7 +1097,8 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
 
                     } else {
 
-                        if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG +" Pin Fob Fail: "+ResponceMessage);
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + " Pin Fob Fail: " + ResponceMessage);
                         if (IsNewFob.equalsIgnoreCase("No")) {
                             AppConstants.APDU_FOB_KEY = "";
                             onResume();
@@ -1099,7 +1114,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
 
                             CommonUtils.showCustomMessageDilaog(DeviceControlActivity_Pin.this, "Message", ResponceMessage);
 
-                        }else{
+                        } else {
 
                             AcceptPinNumber();
 
@@ -1109,14 +1124,14 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
 
                             if (IsPersonHasFob.equalsIgnoreCase("true")) {
                                 CommonUtils.SimpleMessageDilaog(DeviceControlActivity_Pin.this, "Message", ResponceMessage);
-                            }else{
+                            } else {
                                 CommonUtils.showCustomMessageDilaog(DeviceControlActivity_Pin.this, "Message", ResponceMessage);
                             }
                         }
 
                         if (IsGateHub.equalsIgnoreCase("True")) {
                             Istimeout_Sec = false;
-                        }else{
+                        } else {
                             Istimeout_Sec = true;
                         }
                         TimeoutPinScreen();
@@ -1159,8 +1174,9 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
             objEntityClass.PersonFOBNumber = AppConstants.APDU_FOB_KEY;
             objEntityClass.FromNewFOBChange = "Y";
 
-            System.out.println(TAG+"Personnel PIN: Read FOB:"+AppConstants.APDU_FOB_KEY+"  PIN Number: "+String.valueOf(etPersonnelPin.getText()));
-            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG+"Personnel PIN: Read FOB:"+AppConstants.APDU_FOB_KEY+"  PIN Number: "+String.valueOf(etPersonnelPin.getText()));
+            System.out.println(TAG + "Personnel PIN: Read FOB:" + AppConstants.APDU_FOB_KEY + "  PIN Number: " + String.valueOf(etPersonnelPin.getText()));
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + "Personnel PIN: Read FOB:" + AppConstants.APDU_FOB_KEY + "  PIN Number: " + String.valueOf(etPersonnelPin.getText()));
 
             DeviceControlActivity_Pin.CheckValidPinOrFOBNUmber vehTestAsynTask1 = new DeviceControlActivity_Pin.CheckValidPinOrFOBNUmber(objEntityClass);
             vehTestAsynTask1.execute();
@@ -1202,7 +1218,8 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
 
                 } else {
 
-                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG +" Pin Fob Fail: "+ResponceMessage);
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + " Pin Fob Fail: " + ResponceMessage);
                     if (IsNewFob.equalsIgnoreCase("No")) {
                         AppConstants.APDU_FOB_KEY = "";
                         onResume();
@@ -1218,7 +1235,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
 
                         CommonUtils.showCustomMessageDilaog(DeviceControlActivity_Pin.this, "Message", ResponceMessage);
 
-                    }else{
+                    } else {
 
                         AcceptPinNumber();
 
@@ -1228,14 +1245,14 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
 
                         if (IsPersonHasFob.equalsIgnoreCase("true")) {
                             CommonUtils.SimpleMessageDilaog(DeviceControlActivity_Pin.this, "Message", ResponceMessage);
-                        }else{
+                        } else {
                             CommonUtils.showCustomMessageDilaog(DeviceControlActivity_Pin.this, "Message", ResponceMessage);
                         }
                     }
 
                     if (IsGateHub.equalsIgnoreCase("True")) {
                         Istimeout_Sec = false;
-                    }else{
+                    } else {
                         Istimeout_Sec = true;
                     }
                     TimeoutPinScreen();
@@ -1265,6 +1282,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
             Log.e("TAG", ex.getMessage());
         }
     }
+
     public class CheckValidPinOrFOBNUmber extends AsyncTask<Void, Void, String> {
 
         CheckPinFobEntity vrentity = null;
@@ -1315,6 +1333,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
             pd.dismiss();
         }
     }
+
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
     public void CallSaveButtonFunctionalityOld() {
 
@@ -1357,13 +1376,14 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                 objEntityClass.IsVehicleNumberRequire = IsVehicleNumberRequire;
                 AppConstants.FOB_KEY_VEHICLE = AppConstants.APDU_FOB_KEY;
 
-                if (AppConstants.APDU_FOB_KEY.equalsIgnoreCase(""))
-                {
-                    Log.i(TAG,"PIN EN Manually: "+etPersonnelPin.getText().toString().trim()+"  Fob:"+AppConstants.APDU_FOB_KEY);
-                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG+ " PIN EN Manually: "+etPersonnelPin.getText().toString().trim()+"  Fob:"+AppConstants.APDU_FOB_KEY);
-                }else{
-                    Log.i(TAG,"PIN FOB:"+AppConstants.APDU_FOB_KEY+"  PIN No: "+String.valueOf(etPersonnelPin.getText()));
-                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG+"PIN FOB:"+AppConstants.APDU_FOB_KEY+"  PIN No: "+String.valueOf(etPersonnelPin.getText()));
+                if (AppConstants.APDU_FOB_KEY.equalsIgnoreCase("")) {
+                    Log.i(TAG, "PIN EN Manually: " + etPersonnelPin.getText().toString().trim() + "  Fob:" + AppConstants.APDU_FOB_KEY);
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + " PIN EN Manually: " + etPersonnelPin.getText().toString().trim() + "  Fob:" + AppConstants.APDU_FOB_KEY);
+                } else {
+                    Log.i(TAG, "PIN FOB:" + AppConstants.APDU_FOB_KEY + "  PIN No: " + String.valueOf(etPersonnelPin.getText()));
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + "PIN FOB:" + AppConstants.APDU_FOB_KEY + "  PIN No: " + String.valueOf(etPersonnelPin.getText()));
                 }
 
                 DeviceControlActivity_Pin.CheckVehicleRequireOdometerEntryAndRequireHourEntry vehTestAsynTask = new DeviceControlActivity_Pin.CheckVehicleRequireOdometerEntryAndRequireHourEntry(objEntityClass);
@@ -1416,12 +1436,14 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
 
                         String ResponceText = jsonObject.getString("ResponceText");
                         String ValidationFailFor = jsonObject.getString("ValidationFailFor");
-                        if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG +" PIN rejected:" + etPersonnelPin.getText().toString().trim() +" Error:"+ResponceText);
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + " PIN rejected:" + etPersonnelPin.getText().toString().trim() + " Error:" + ResponceText);
 
                         if (ValidationFailFor.equalsIgnoreCase("Pin")) {
 
-                            AppConstants.colorToastBigFont(this,  ResponceText, Color.RED);
-                            if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+"  ValidateFor Pin" + ResponceText);
+                            AppConstants.colorToastBigFont(this, ResponceText, Color.RED);
+                            if (AppConstants.GenerateLogs)
+                                AppConstants.WriteinFile(TAG + "  ValidateFor Pin" + ResponceText);
                             //Clear Pin edit text
                             if (Constants.CurrentSelectedHose.equals("FS1")) {
                                 Constants.AccPersonnelPIN_FS1 = "";
@@ -1438,7 +1460,8 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                         } else if (ValidationFailFor.equalsIgnoreCase("Vehicle")) {
 
                             AppConstants.colorToastBigFont(this, ResponceText, Color.RED);
-                            if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+"  ValidateFor Vehicle" + ResponceText);
+                            if (AppConstants.GenerateLogs)
+                                AppConstants.WriteinFile(TAG + "  ValidateFor Vehicle" + ResponceText);
 
                             /*AppConstants.colorToastBigFont(this, "Some thing went wrong Please try again..\n"+ResponceText, Color.RED);
                              if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG+" Some thing went wrong Please try again..(~else if~)\n"+ResponceText);
@@ -1450,7 +1473,8 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                         } else {
 
                             AppConstants.colorToastBigFont(this, ResponceText, Color.RED);
-                            if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+"  ValidateFor Else" + ResponceText);
+                            if (AppConstants.GenerateLogs)
+                                AppConstants.WriteinFile(TAG + "  ValidateFor Else" + ResponceText);
 
                             /*AppConstants.colorToastBigFont(this, "Some thing went wrong Please try again..\n"+ResponceText, Color.RED);
                              if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG+" Some thing went wrong Please try again..(~else~)\n"+ResponceText);
@@ -1479,12 +1503,14 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
         }
 
     }
+
     public class CheckVehicleRequireOdometerEntryAndRequireHourEntry extends AsyncTask<Void, Void, Void> {
 
         VehicleRequireEntity vrentity = null;
 
         public String response = null;
         private ProgressDialog pd;
+
         public CheckVehicleRequireOdometerEntryAndRequireHourEntry(VehicleRequireEntity vrentity) {
             this.vrentity = vrentity;
         }
@@ -1594,7 +1620,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
         imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, InputMethodManager.HIDE_IMPLICIT_ONLY);
     }
 
-    public void AcceptPinNumber(){
+    public void AcceptPinNumber() {
 
         tv_fob_Reader.setVisibility(View.VISIBLE);
         btnCancel.setVisibility(View.VISIBLE);
@@ -1651,7 +1677,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
         return ssiteId;
     }
 
-    public void InCaseOfGateHub(){
+    public void InCaseOfGateHub() {
 
         //if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG +" InCaseOfGateHub PIN Accepted:" + etPersonnelPin.getText().toString().trim());
 
@@ -1680,7 +1706,6 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
         }
 
         Istimeout_Sec = false;
-
 
 
         btnSave.setClickable(false);

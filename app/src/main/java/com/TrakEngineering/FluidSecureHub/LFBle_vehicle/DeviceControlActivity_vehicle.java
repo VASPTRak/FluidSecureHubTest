@@ -112,7 +112,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
     private String mDeviceAddress;
     private String HFDeviceName;
     private String HFDeviceAddress;
-    private BluetoothLeService_vehicle  mBluetoothLeServiceVehicle;
+    private BluetoothLeService_vehicle mBluetoothLeServiceVehicle;
     private boolean mConnected = false;
     private BluetoothGattCharacteristic mNotifyCharacteristic;
     InputMethodManager imm;
@@ -131,7 +131,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
     private static final String TAG = "DeviceControl_vehicle";
     public static String SITE_ID = "0";
     private EditText editVehicleNumber;
-    String FSTagMacAddress = "", IsVehicleHasFob = "", IsOdoMeterRequire = "", IsDepartmentRequire = "", IsPersonnelPINRequire = "", IsPersonnelPINRequireForHub = "", IsOtherRequire = "", IsVehicleNumberRequire = "", IsStayOpenGate = "",IsGateHub = "", IsHoursRequire = "";
+    String FSTagMacAddress = "", IsVehicleHasFob = "", IsOdoMeterRequire = "", IsDepartmentRequire = "", IsPersonnelPINRequire = "", IsPersonnelPINRequireForHub = "", IsOtherRequire = "", IsVehicleNumberRequire = "", IsStayOpenGate = "", IsGateHub = "", IsHoursRequire = "";
     Button btnCancel, btnSave, btn_ReadFobAgain, btnFStag;
     GoogleApiClient mGoogleApiClient;
     public static double CurrentLat = 0, CurrentLng = 0;
@@ -272,7 +272,6 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
         IsStayOpenGate = sharedPrefGatehub.getString(AppConstants.IsStayOpenGate, "");
 
 
-
         SharedPreferences sharedPref = DeviceControlActivity_vehicle.this.getSharedPreferences(Constants.PREF_COLUMN_SITE, Context.MODE_PRIVATE);
         String dataSite = sharedPref.getString(Constants.PREF_COLUMN_SITE, "");
 
@@ -281,7 +280,6 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
 
         //enable hotspot.
         Constants.hotspotstayOn = true;
-
 
 
         //Check Selected FS and  change accordingly
@@ -347,17 +345,17 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
 
                 if (!FSTagMacAddress.isEmpty()) {
 
-                    if (cd.isConnectingToInternet())
-                        if (!isFinishing())
-                        new GetVehicleByFSTagMacAddress().execute();
-                    else
+                    if (cd.isConnectingToInternet()) {
+                        if (!isFinishing()) {
+                            new GetVehicleByFSTagMacAddress().execute();
+                        }
+                    } else {
                         AppConstants.colorToastBigFont(getApplicationContext(), "Please check Internet connection", Color.RED);
-
+                    }
                 } else {
                     Toast.makeText(mBluetoothLeServiceVehicle, "FStagMac Address Not found", Toast.LENGTH_SHORT).show();
                     Log.i(TAG, "FStagMac Address Empty");
                 }
-
             }
         });
 
@@ -387,12 +385,11 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
             btnFStag.setVisibility(View.VISIBLE);
             btnFStag.setEnabled(true);
 
-        }else {
+        } else {
 
             btnFStag.setVisibility(View.GONE);
             btnFStag.setEnabled(false);
         }
-
 
 
         Count = 1;
@@ -555,7 +552,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
 
 
             String Str_data = data.toString().trim();
-            Log.i(TAG,"displayData Response LF:" + Str_data);
+            Log.i(TAG, "displayData Response LF:" + Str_data);
             //if (AppConstants.GenerateLogs) AppConstants.WriteinFile(TAG + "  displayData Response LF: " + Str_data);
             String Str_check = Str_data.replace(" ", "");
 
@@ -569,16 +566,18 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
                     tv_fobkey.setText(Sep2.replace(" ", ""));
                 } catch (Exception ex) {
                     System.out.println(ex);
-                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  displayData Split Fob_Key  --Exception " + ex);
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + "  displayData Split Fob_Key  --Exception " + ex);
                 }
 
                 if (!LF_FobKey.equalsIgnoreCase("") && LF_FobKey.length() > 5) {
                     tv_fob_number.setText("fob/card No: " + LF_FobKey);
                     AppConstants.APDU_FOB_KEY = LF_FobKey;
                     System.out.println("Vehicle fob value" + AppConstants.APDU_FOB_KEY);
-                    Log.i(TAG,"Vehi fob:" + AppConstants.APDU_FOB_KEY);
+                    Log.i(TAG, "Vehi fob:" + AppConstants.APDU_FOB_KEY);
                     AppConstants.VehicleLocal_FOB_KEY = LF_FobKey;
-                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  Local_FOB_KEY" + AppConstants.VehicleLocal_FOB_KEY);
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + "  Local_FOB_KEY" + AppConstants.VehicleLocal_FOB_KEY);
                     //On LF Fob read success
                     editVehicleNumber.setText("");
                     Istimeout_Sec = false;
@@ -592,7 +591,8 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
 
             if (Count < 3) {
                 // Toast.makeText(getApplicationContext(), "Attempt to read Characteristic: " + Count, Toast.LENGTH_LONG).show();
-                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  Attempt to read Char: " + Count);
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + "  Attempt to read Char: " + Count);
                 Count++;
                 if (mBluetoothLeServiceVehicle != null) {
                     // mBluetoothLeServiceVehicle.readCharacteristic(characteristic);
@@ -625,11 +625,14 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
 
         AppConstants.VehicleLocal_FOB_KEY = "";
 
-        if (cd.isConnectingToInternet())
-            if (!isFinishing())
-            new GetVehicleNuOnFobKeyDetection().execute();
-        else
+        if (cd.isConnectingToInternet()){
+
+            if (!isFinishing()){
+                new GetVehicleNuOnFobKeyDetection().execute();
+            }
+        }else{
             AppConstants.colorToastBigFont(getApplicationContext(), "Please check Internet connection", Color.RED);
+        }
 
         //Temp comment
         /*new Handler().postDelayed(new Runnable() {
@@ -749,6 +752,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
 
         ProgressDialog pd;
         String resp = "";
+
         @Override
         protected void onPreExecute() {
             pd = new ProgressDialog(DeviceControlActivity_vehicle.this);
@@ -788,7 +792,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
                         //pinNumber = Constants.AccPersonnelPIN_FS3;
                         vehicleNumber = editVehicleNumber.getText().toString().trim();
                         Constants.AccVehicleNumber_FS3 = vehicleNumber;
-                        Log.i("ps_Vechile no","Step 2:"+vehicleNumber);
+                        Log.i("ps_Vechile no", "Step 2:" + vehicleNumber);
 
                     } else {
                         //pinNumber = Constants.AccPersonnelPIN_FS4;
@@ -811,8 +815,9 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
 
                     if (AppConstants.APDU_FOB_KEY.equalsIgnoreCase("")) {
 
-                        Log.i(TAG," Vehcile EN Manually: " + vehicleNumber + "  Fob: " + AppConstants.APDU_FOB_KEY);
-                        if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " Vehcile EN Manually: " + vehicleNumber + "  Fob: " + AppConstants.APDU_FOB_KEY);
+                        Log.i(TAG, " Vehcile EN Manually: " + vehicleNumber + "  Fob: " + AppConstants.APDU_FOB_KEY);
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + " Vehcile EN Manually: " + vehicleNumber + "  Fob: " + AppConstants.APDU_FOB_KEY);
                     } else {
                         System.out.println(TAG + " Vehcile FOB No:" + AppConstants.APDU_FOB_KEY + "  VNo:" + vehicleNumber);
                         if (AppConstants.GenerateLogs)
@@ -850,7 +855,8 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
 
             } catch (IOException e) {
                 e.printStackTrace();
-                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " ServerCallFirst InBG Ex:" + e);
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " ServerCallFirst InBG Ex:" + e);
             }
             return resp;
         }
@@ -947,7 +953,8 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
                         String IsNewFob = jsonObject.getString("IsNewFob");
 
 
-                        if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " Vehicle rejected:" + VehicleNumber + " Error:" + ResponceText);
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + " Vehicle rejected:" + VehicleNumber + " Error:" + ResponceText);
 
                         if (ValidationFailFor.equalsIgnoreCase("Pin")) {
 
@@ -1011,9 +1018,10 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
 
                 pd.dismiss();
 
-            }catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
-                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " ServerCallFirst OnPost Exception" + e);
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " ServerCallFirst OnPost Exception" + e);
 
             }
 
@@ -1031,11 +1039,13 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
 
             if (!V_Number.isEmpty() || !AppConstants.APDU_FOB_KEY.isEmpty()) {
 
-                if (cd.isConnectingToInternet())
-                    if (!isFinishing())
-                    new ServerCallFirst().execute();
-                else
+                if (cd.isConnectingToInternet()){
+                    if (!isFinishing()){
+                        new ServerCallFirst().execute();
+                    }
+                } else{
                     AppConstants.colorToastBigFont(getApplicationContext(), "Please check Internet connection", Color.RED);
+                }
 
             } else {
                 //Empty Fob key & enable edit text and Enter button
@@ -1054,7 +1064,8 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
 
         } catch (Exception ex) {
             ex.printStackTrace();
-            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " CallSaveButtonFunctionality Ex:" +ex);
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + " CallSaveButtonFunctionality Ex:" + ex);
         }
     }
 
@@ -1063,13 +1074,14 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
 
         //ProgressDialog pd;
         String resp = "";
+
         @Override
         protected void onPreExecute() {
             /*pd = new ProgressDialog(DeviceControlActivity_vehicle.this);
             pd.setMessage("Please wait...");
             pd.setCancelable(true);
             pd.show();*/
-            Toast.makeText(getApplicationContext(),"Please wait..",Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), "Please wait..", Toast.LENGTH_SHORT).show();
 
         }
 
@@ -1094,7 +1106,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
                     //pinNumber = Constants.AccPersonnelPIN_FS3;
                     //  vehicleNumber = editVehicleNumber.getText().toString().trim();
                     Constants.AccVehicleNumber_FS3 = vehicleNumber;
-                    Log.i("ps_Vechile no","Step 0:"+vehicleNumber);
+                    Log.i("ps_Vechile no", "Step 0:" + vehicleNumber);
                 } else {
                     //pinNumber = Constants.AccPersonnelPIN_FS4;
                     //  vehicleNumber = editVehicleNumber.getText().toString().trim();
@@ -1112,8 +1124,9 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
                 objEntityClass.FOBNumber = AppConstants.APDU_FOB_KEY;
                 objEntityClass.IsVehicleNumberRequire = IsVehicleNumberRequire;
 
-                Log.i(TAG," Vehcile FOB No:" + AppConstants.APDU_FOB_KEY + " VNo:" + vehicleNumber);
-                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " Vehcile FOB No:" + AppConstants.APDU_FOB_KEY + "  VNo:" + vehicleNumber);
+                Log.i(TAG, " Vehcile FOB No:" + AppConstants.APDU_FOB_KEY + " VNo:" + vehicleNumber);
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " Vehcile FOB No:" + AppConstants.APDU_FOB_KEY + "  VNo:" + vehicleNumber);
 
                 Gson gson = new Gson();
                 String jsonData = gson.toJson(objEntityClass);
@@ -1143,7 +1156,8 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
 
             } catch (Exception e) {
                 e.printStackTrace();
-                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " GetVehicleNuOnFobKeyDetection DoInBG Ex:" + e.getMessage() + " ");
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " GetVehicleNuOnFobKeyDetection DoInBG Ex:" + e.getMessage() + " ");
             }
             return resp;
         }
@@ -1187,7 +1201,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
                         editVehicleNumber.setText(VehicleNumber);
                         tv_vehicle_no_below.setText("Vehicle Number: " + VehicleNumber);
                         tv_fob_number.setText("Fob No: " + AppConstants.APDU_FOB_KEY);
-                        Log.i("ps_Vechile no","Step 1:"+VehicleNumber);
+                        Log.i("ps_Vechile no", "Step 1:" + VehicleNumber);
 
                         DisplayScreenFobReadSuccess();
 
@@ -1204,7 +1218,8 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
                         String ResponceText = jsonObject.getString("ResponceText");
                         String ValidationFailFor = jsonObject.getString("ValidationFailFor");
 
-                        if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " Vehcile Fob Read Fail: " + ResponceText);
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + " Vehcile Fob Read Fail: " + ResponceText);
 
                         if (ValidationFailFor.equalsIgnoreCase("Pin")) {
 
@@ -1274,9 +1289,10 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
                     // CommonUtils.showNoInternetDialog(AcceptVehicleActivity.this);
                 }
 
-            }catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
-                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " GetVehicleNuOnFobKeyDetection OnPost Ex:" + e.getMessage() + " ");
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " GetVehicleNuOnFobKeyDetection OnPost Ex:" + e.getMessage() + " ");
                 GetBackToWelcomeActivity();
             }
 
@@ -1423,7 +1439,8 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
                     } catch (Exception e) {
 
                         e.printStackTrace();
-                        if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " TimeoutVehicleScreen Ex:" + e.getMessage() + " ");
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + " TimeoutVehicleScreen Ex:" + e.getMessage() + " ");
                     }
 
                 }
@@ -1850,7 +1867,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity {
 
     }
 
-    public void GetBackToWelcomeActivity(){
+    public void GetBackToWelcomeActivity() {
 
 
         AppConstants.colorToast(getApplicationContext(), "Something went wrong, Please try again", Color.RED);
