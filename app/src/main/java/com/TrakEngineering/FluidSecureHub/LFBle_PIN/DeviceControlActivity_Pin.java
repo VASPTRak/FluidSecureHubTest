@@ -610,7 +610,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                 }else{
                     AppConstants.colorToastBigFont(getApplicationContext(), "Please check Internet connection", Color.RED);
                 }
-                tv_fob_number.setText("fob/card No: " + AppConstants.APDU_FOB_KEY);
+                tv_fob_number.setText("Access Device: " + AppConstants.APDU_FOB_KEY);
             }
         });
 
@@ -766,7 +766,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
         tv_fob_Reader.setVisibility(View.GONE);
         tv_or.setVisibility(View.GONE);
         tv_enter_pin_no.setVisibility(View.VISIBLE);
-        tv_ok.setText("Fob / Card read successfully");
+        tv_ok.setText("Access Device read successfully");
         tv_dont_have_fob.setVisibility(View.GONE);
         etPersonnelPin.setVisibility(View.GONE);
 
@@ -1110,7 +1110,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                             LinearLayout.LayoutParams parms = new LinearLayout.LayoutParams(width, height);
                             parms.gravity = Gravity.CENTER;
                             tv_ok.setLayoutParams(parms);
-                            tv_ok.setText("Invalid fob/card or Unassigned FOB");
+                            tv_ok.setText("Invalid or Unassigned Access Device");
 
                             CommonUtils.showCustomMessageDilaog(DeviceControlActivity_Pin.this, "Message", ResponceMessage);
 
@@ -1231,7 +1231,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                         LinearLayout.LayoutParams parms = new LinearLayout.LayoutParams(width, height);
                         parms.gravity = Gravity.CENTER;
                         tv_ok.setLayoutParams(parms);
-                        tv_ok.setText("Invalid fob/card or Unassigned FOB");
+                        tv_ok.setText("Invalid or Unassigned Access Device");
 
                         CommonUtils.showCustomMessageDilaog(DeviceControlActivity_Pin.this, "Message", ResponceMessage);
 

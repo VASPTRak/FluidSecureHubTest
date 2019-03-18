@@ -1037,7 +1037,11 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         //Reconnect BT reader if disconnected
         ConnectCount = 0;
         ReConnectBTReader();
-        //new GetConnectedDevicesIP().execute();//Refreshed donnected devices list on hose selection.
+
+        if (AppConstants.DetailsListOfConnectedDevices == null || AppConstants.DetailsListOfConnectedDevices.size() == 0){
+            new GetConnectedDevicesIP().execute();//Refreshed donnected devices list on hose selection.
+        }
+
         refreshWiFiList();
         //alertSelectHoseList(tvLatLng.getText().toString() + "\n");
     }
