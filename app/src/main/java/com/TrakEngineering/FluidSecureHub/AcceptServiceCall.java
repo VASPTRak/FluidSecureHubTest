@@ -65,7 +65,10 @@ public class AcceptServiceCall {
 
     public void checkAllFields() {
 
-        new ServerCall().execute();
+        if (!activity.isFinishing()) {
+            new ServerCall().execute();
+        }
+
     }
 
     public class ServerCall extends AsyncTask<Void, Void, String> {
@@ -222,6 +225,9 @@ public class AcceptServiceCall {
 
                 Gson gson = new Gson();
                 String jsonData = gson.toJson(authEntityClass);
+
+                System.out.println("Service call data--"+jsonData);
+
                 if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " Authorization Sequence Data: " + jsonData);
 
                 String authString = "Basic " + AppConstants.convertStingToBase64(authEntityClass.IMEIUDID + ":" + CommonUtils.getCustomerDetails(activity).Email + ":" + "AuthorizationSequence");
@@ -335,8 +341,8 @@ public class AcceptServiceCall {
 
                                 try {
                                     //Info command commented
-                                    URL_INFO = HTTP_URL + "client?command=info";
-                                    new CommandsGET_Info().execute(URL_INFO);
+                                   URL_INFO = HTTP_URL + "client?command=info";
+                                   new CommandsGET_Info().execute(URL_INFO);
 
                                 } catch (Exception e) {
                                     e.printStackTrace();

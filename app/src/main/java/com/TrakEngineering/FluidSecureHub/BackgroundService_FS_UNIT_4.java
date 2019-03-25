@@ -26,6 +26,9 @@ import com.TrakEngineering.FluidSecureHub.enity.TankMonitorEntity;
 import com.TrakEngineering.FluidSecureHub.enity.TrazComp;
 import com.TrakEngineering.FluidSecureHub.enity.UpdateTransactionStatusClass;
 import com.TrakEngineering.FluidSecureHub.enity.UpgradeVersionEntity;
+import com.TrakEngineering.FluidSecureHub.offline.EntityOffTranz;
+import com.TrakEngineering.FluidSecureHub.offline.OffDBController;
+import com.TrakEngineering.FluidSecureHub.offline.OfflineConstants;
 import com.TrakEngineering.FluidSecureHub.server.ServerHandler;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.gson.Gson;
@@ -72,9 +75,11 @@ public class BackgroundService_FS_UNIT_4 extends Service {
 
     private static final String TAG = "BS_FS4  ";
     String EMPTY_Val = "";
-    private ConnectionDetector cd;
+    ConnectionDetector cd = new ConnectionDetector(BackgroundService_FS_UNIT_4.this);
     String HTTP_URL = "";
+    public long sqlite_id = 0;
     private int AttemptCount = 0;
+    private String CurrTxnMode = "online";
 
     String URL_INFO = HTTP_URL + "client?command=info";
     String URL_STATUS = HTTP_URL + "client?command=status";
@@ -113,7 +118,7 @@ public class BackgroundService_FS_UNIT_4 extends Service {
     SimpleDateFormat sdformat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
 
     private String vehicleNumber, odometerTenths = "0", dNumber = "", pNumber = "", oText = "", hNumber = "";
-    String LinkName, OtherName, IsOtherRequire, OtherLabel, VehicleNumber, PrintDate, CompanyName, Location, PersonName, PrinterMacAddress, PrinterName, TransactionId, VehicleId, PhoneNumber, PersonId, PulseRatio, MinLimit, FuelTypeId, ServerDate, IntervalToStopFuel,IsTLDCall,EnablePrinter;
+    String LinkName, OtherName, IsOtherRequire, OtherLabel, VehicleNumber, PrintDate, CompanyName, Location, PersonName, PrinterMacAddress, PrinterName, TransactionId, VehicleId, PhoneNumber, PersonId, PulseRatio, MinLimit, FuelTypeId, ServerDate, IntervalToStopFuel, IsTLDCall, EnablePrinter;
 
     public static String FOLDER_PATH = Environment.getExternalStorageDirectory().getAbsolutePath() + "/FSBin/";
     public static String PATH_BIN_FILE1 = "user1.2048.new.5.bin";
@@ -140,6 +145,7 @@ public class BackgroundService_FS_UNIT_4 extends Service {
     ConnectivityManager connection_manager;
     DBController controller = new DBController(BackgroundService_FS_UNIT_4.this);
 
+    OffDBController offcontroller = new OffDBController(BackgroundService_FS_UNIT_4.this);
 
     @Nullable
     @Override
@@ -170,7 +176,8 @@ public class BackgroundService_FS_UNIT_4 extends Service {
                 IsFuelingStop = "0";
                 IsLastTransaction = "0";
 
-                Log.d("Service", "not null");
+                sqlite_id = (long) extras.get("sqlite_id");
+
                 HTTP_URL = (String) extras.get("HTTP_URL");
 
                 URL_INFO = HTTP_URL + "client?command=info";
@@ -207,111 +214,120 @@ public class BackgroundService_FS_UNIT_4 extends Service {
                 Constants.FS_4STATUS = "BUSY";
                 Constants.BusyVehicleNumberList.add(Constants.AccVehicleNumber_FS4);
 
-                SharedPreferences sharedPref = this.getSharedPreferences(Constants.PREF_VehiFuel, Context.MODE_PRIVATE);
-                TransactionId = sharedPref.getString("TransactionId_FS4", "");
-                VehicleId = sharedPref.getString("VehicleId_FS4", "");
-                PhoneNumber = sharedPref.getString("PhoneNumber_FS4", "");
-                PersonId = sharedPref.getString("PersonId_FS4", "");
-                PulseRatio = sharedPref.getString("PulseRatio_FS4", "1");
-                MinLimit = sharedPref.getString("MinLimit_FS4", "0");
-                FuelTypeId = sharedPref.getString("FuelTypeId_FS4", "");
-                ServerDate = sharedPref.getString("ServerDate_FS4", "");
-                IntervalToStopFuel = sharedPref.getString("IntervalToStopFuel_FS4", "0");
-                IsTLDCall = sharedPref.getString("IsTLDCall_FS4", "False");
-                EnablePrinter = sharedPref.getString("EnablePrinter_FS4", "False");
 
-                LinkName = AppConstants.CURRENT_SELECTED_SSID;
-
-                listOfConnectedIP_FS_UNIT_4.clear();
-                ListConnectedHotspotIP_FS_UNIT_4AsyncCall();
-
-                //settransactionID to FSUNIT
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-
-                        new CommandsPOST().execute(URL_SET_TXNID, "{\"txtnid\":" + TransactionId + "}");
-
-                    }
-                }, 1500);
-
-
-                //Create and Empty transactiin into SQLite DB
-                HashMap<String, String> mapsts = new HashMap<>();
-                mapsts.put("transId", TransactionId);
-                mapsts.put("transStatus", "1");
-
-                controller.insertTransStatus(mapsts);
-                ////////////////////////////////////////////
-                String userEmail = CommonUtils.getCustomerDetails_backgroundService_FS4(BackgroundService_FS_UNIT_4.this).PersonEmail;
-                String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(BackgroundService_FS_UNIT_4.this) + ":" + userEmail + ":" + "TransactionComplete");
-
-                HashMap<String, String> imap = new HashMap<>();
-                imap.put("jsonData", "");
-                imap.put("authString", authString);
-
-                sqliteID = controller.insertTransactions(imap);
-                CommonUtils.AddRemovecurrentTransactionList(true,TransactionId);//Add transaction Id to list
-                //////////////////////////////////////////////////////////////
-
-
-                //=====================UpgradeTransaction Status = 1=================
-                cd = new ConnectionDetector(BackgroundService_FS_UNIT_4.this);
                 if (cd.isConnectingToInternet()) {
-                    try {
+
+                    CurrTxnMode = "online";
+                    SharedPreferences sharedPref = this.getSharedPreferences(Constants.PREF_VehiFuel, Context.MODE_PRIVATE);
+                    TransactionId = sharedPref.getString("TransactionId_FS4", "");
+                    VehicleId = sharedPref.getString("VehicleId_FS4", "");
+                    PhoneNumber = sharedPref.getString("PhoneNumber_FS4", "");
+                    PersonId = sharedPref.getString("PersonId_FS4", "");
+                    PulseRatio = sharedPref.getString("PulseRatio_FS4", "1");
+                    MinLimit = sharedPref.getString("MinLimit_FS4", "0");
+                    FuelTypeId = sharedPref.getString("FuelTypeId_FS4", "");
+                    ServerDate = sharedPref.getString("ServerDate_FS4", "");
+                    IntervalToStopFuel = sharedPref.getString("IntervalToStopFuel_FS4", "0");
+                    IsTLDCall = sharedPref.getString("IsTLDCall_FS4", "False");
+                    EnablePrinter = sharedPref.getString("EnablePrinter_FS4", "False");
+
+                    LinkName = AppConstants.CURRENT_SELECTED_SSID;
+
+                    listOfConnectedIP_FS_UNIT_4.clear();
+                    ListConnectedHotspotIP_FS_UNIT_4AsyncCall();
+
+                    //settransactionID to FSUNIT
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+
+                            new CommandsPOST().execute(URL_SET_TXNID, "{\"txtnid\":" + TransactionId + "}");
+
+                        }
+                    }, 1500);
+
+
+                    //Create and Empty transactiin into SQLite DB
+                    HashMap<String, String> mapsts = new HashMap<>();
+                    mapsts.put("transId", TransactionId);
+                    mapsts.put("transStatus", "1");
+
+                    controller.insertTransStatus(mapsts);
+                    ////////////////////////////////////////////
+                    String userEmail = CommonUtils.getCustomerDetails_backgroundService_FS4(BackgroundService_FS_UNIT_4.this).PersonEmail;
+                    String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(BackgroundService_FS_UNIT_4.this) + ":" + userEmail + ":" + "TransactionComplete");
+
+                    HashMap<String, String> imap = new HashMap<>();
+                    imap.put("jsonData", "");
+                    imap.put("authString", authString);
+
+                    sqliteID = controller.insertTransactions(imap);
+                    CommonUtils.AddRemovecurrentTransactionList(true,TransactionId);//Add transaction Id to list
+                    //////////////////////////////////////////////////////////////
+
+
+                    //=====================UpgradeTransaction Status = 1=================
+                    cd = new ConnectionDetector(BackgroundService_FS_UNIT_4.this);
+                    if (cd.isConnectingToInternet()) {
+                        try {
+                            UpdateTransactionStatusClass authEntity = new UpdateTransactionStatusClass();
+                            authEntity.TransactionId = TransactionId;
+                            authEntity.Status = "1";
+                            authEntity.IMEIUDID = AppConstants.getIMEI(BackgroundService_FS_UNIT_4.this);
+
+                            BackgroundService_FS_UNIT_4.UpdateAsynTask authTestAsynTask = new BackgroundService_FS_UNIT_4.UpdateAsynTask(authEntity);
+                            authTestAsynTask.execute();
+                            authTestAsynTask.get();
+
+                            String serverRes = authTestAsynTask.response;
+
+                            if (serverRes != null) {
+                            }
+
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        } catch (ExecutionException e) {
+                            e.printStackTrace();
+                        }
+                    } else {
+
+                        AppConstants.colorToast(BackgroundService_FS_UNIT_4.this, "Please check Internet Connection.", Color.RED);
                         UpdateTransactionStatusClass authEntity = new UpdateTransactionStatusClass();
                         authEntity.TransactionId = TransactionId;
                         authEntity.Status = "1";
                         authEntity.IMEIUDID = AppConstants.getIMEI(BackgroundService_FS_UNIT_4.this);
 
-                        BackgroundService_FS_UNIT_4.UpdateAsynTask authTestAsynTask = new BackgroundService_FS_UNIT_4.UpdateAsynTask(authEntity);
-                        authTestAsynTask.execute();
-                        authTestAsynTask.get();
 
-                        String serverRes = authTestAsynTask.response;
+                        Gson gson1 = new Gson();
+                        String jsonData1 = gson1.toJson(authEntity);
 
-                        if (serverRes != null) {
-                        }
+                        System.out.println("AP_FS_PIPE_4 UpdatetransactionData......" + jsonData1);
 
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    } catch (ExecutionException e) {
-                        e.printStackTrace();
+                        String userEmail1 = CommonUtils.getCustomerDetails_backgroundService_FS4(this).PersonEmail;
+                        String authString1 = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(this) + ":" + userEmail1 + ":" + "UpgradeTransactionStatus");
+
+                        HashMap<String, String> imapStatus = new HashMap<>();
+                        imapStatus.put("jsonData", jsonData1);
+                        imapStatus.put("authString", authString1);
+
+                        controller.insertIntoUpdateTranStatus(imapStatus);
+
                     }
+
+
+                    //=========================UpgradeTransactionStatus Ends===============
+
+                    minFuelLimit = Double.parseDouble(MinLimit);
+
+                    numPulseRatio = Double.parseDouble(PulseRatio);
+
+                    stopAutoFuelSeconds = Long.parseLong(IntervalToStopFuel);
+
                 } else {
 
-                    AppConstants.colorToast(BackgroundService_FS_UNIT_4.this, "Please check Internet Connection.", Color.RED);
-                    UpdateTransactionStatusClass authEntity = new UpdateTransactionStatusClass();
-                    authEntity.TransactionId = TransactionId;
-                    authEntity.Status = "1";
-                    authEntity.IMEIUDID = AppConstants.getIMEI(BackgroundService_FS_UNIT_4.this);
-
-
-                    Gson gson1 = new Gson();
-                    String jsonData1 = gson1.toJson(authEntity);
-
-                    System.out.println("AP_FS_PIPE_4 UpdatetransactionData......" + jsonData1);
-
-                    String userEmail1 = CommonUtils.getCustomerDetails_backgroundService_FS4(this).PersonEmail;
-                    String authString1 = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(this) + ":" + userEmail1 + ":" + "UpgradeTransactionStatus");
-
-                    HashMap<String, String> imapStatus = new HashMap<>();
-                    imapStatus.put("jsonData", jsonData1);
-                    imapStatus.put("authString", authString1);
-
-                    controller.insertIntoUpdateTranStatus(imapStatus);
-
+                    CurrTxnMode = "offline";
+                    offlineLogic4();
                 }
-
-
-                //=========================UpgradeTransactionStatus Ends===============
-
-                minFuelLimit = Double.parseDouble(MinLimit);
-
-                numPulseRatio = Double.parseDouble(PulseRatio);
-
-                stopAutoFuelSeconds = Long.parseLong(IntervalToStopFuel);
-
 
                 System.out.println("iiiiii" + IntervalToStopFuel);
                 System.out.println("minFuelLimit" + minFuelLimit);
@@ -1003,7 +1019,7 @@ public class BackgroundService_FS_UNIT_4 extends Service {
                 if (AppConstants.NeedToRenameFS4) {
 
                     consoleString += "RENAME:\n" + jsonRename;
-
+                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " Link Rename true:"+jsonRename);
                     new BackgroundService_FS_UNIT_4.CommandsPOST().execute(URL_WIFI, jsonRename);
 
                 }
@@ -1204,41 +1220,48 @@ public class BackgroundService_FS_UNIT_4 extends Service {
         Constants.FS_4Gallons = (precision.format(fillqty));
         Constants.FS_4Pulse = outputQuantity;
 
+        if (CurrTxnMode.equalsIgnoreCase("online")) {
+            ////////////////////////////////////-Update transaction ---
+            TrazComp authEntityClass = new TrazComp();
+            authEntityClass.TransactionId = TransactionId;
+            authEntityClass.FuelQuantity = fillqty;
+            authEntityClass.AppInfo = " Version:" + CommonUtils.getVersionCode(BackgroundService_FS_UNIT_4.this) + " " + AppConstants.getDeviceName() + " Android " + android.os.Build.VERSION.RELEASE + " " + "--Main Transaction--";
+            authEntityClass.TransactionFrom = "A";
+            authEntityClass.Pulses = Integer.parseInt(counts);
+            authEntityClass.IsFuelingStop = IsFuelingStop;
+            authEntityClass.IsLastTransaction = IsLastTransaction;
 
-        ////////////////////////////////////-Update transaction ---
-        TrazComp authEntityClass = new TrazComp();
-        authEntityClass.TransactionId = TransactionId;
-        authEntityClass.FuelQuantity = fillqty;
-        authEntityClass.AppInfo = " Version:" + CommonUtils.getVersionCode(BackgroundService_FS_UNIT_4.this) + " " + AppConstants.getDeviceName() + " Android " + android.os.Build.VERSION.RELEASE + " " + "--Main Transaction--";
-        authEntityClass.TransactionFrom = "A";
-        authEntityClass.Pulses = Integer.parseInt(counts);
-        authEntityClass.IsFuelingStop = IsFuelingStop;
-        authEntityClass.IsLastTransaction = IsLastTransaction;
+            Gson gson = new Gson();
+            String jsonData = gson.toJson(authEntityClass);
 
-        Gson gson = new Gson();
-        String jsonData = gson.toJson(authEntityClass);
+            if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+"  Link:" + LinkName +" Pulses:"+Integer.parseInt(counts)+" Qty:"+fillqty+" TxnID:"+TransactionId);
 
-        if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+"  Link:" + LinkName +" Pulses:"+Integer.parseInt(counts)+" Qty:"+fillqty+" TxnID:"+TransactionId);
-
-        String userEmail = CommonUtils.getCustomerDetails_backgroundService_FS4(BackgroundService_FS_UNIT_4.this).PersonEmail;
-        String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(BackgroundService_FS_UNIT_4.this) + ":" + userEmail + ":" + "TransactionComplete");
+            String userEmail = CommonUtils.getCustomerDetails_backgroundService_FS4(BackgroundService_FS_UNIT_4.this).PersonEmail;
+            String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(BackgroundService_FS_UNIT_4.this) + ":" + userEmail + ":" + "TransactionComplete");
 
 
-        HashMap<String, String> imap = new HashMap<>();
-        imap.put("jsonData", jsonData);
-        imap.put("authString", authString);
-        imap.put("sqliteId", sqliteID + "");
+            HashMap<String, String> imap = new HashMap<>();
+            imap.put("jsonData", jsonData);
+            imap.put("authString", authString);
+            imap.put("sqliteId", sqliteID + "");
 
-        if (fillqty > 0) {
+            if (fillqty > 0) {
 
-            int rowseffected = controller.updateTransactions(imap);
-            System.out.println("rowseffected-" + rowseffected);
-            if (rowseffected == 0) {
+                int rowseffected = controller.updateTransactions(imap);
+                System.out.println("rowseffected-" + rowseffected);
+                if (rowseffected == 0) {
 
-                controller.insertTransactions(imap);
+                    controller.insertTransactions(imap);
+                }
+
+                controller.deleteTransStatusByTransID(TransactionId);
+
             }
-
-            controller.deleteTransStatusByTransID(TransactionId);
+        } else {
+            if (fillqty > 0) {
+                offcontroller.updateOfflinePulsesQuantity(sqlite_id + "", counts, fillqty + "");
+            }
+            if (AppConstants.GenerateLogs)AppConstants.WriteinFile("Offline  Link:" + LinkName + "  Pulses:" + Integer.parseInt(counts) + " Qty:" + fillqty);
 
         }
 
@@ -1272,45 +1295,7 @@ public class BackgroundService_FS_UNIT_4 extends Service {
 
     public void TransactionCompleteFunction() {
 
-        CommonUtils.AddRemovecurrentTransactionList(false,TransactionId);//Remove transaction Id from list
-
-        if (IsTLDCall.equalsIgnoreCase("True")) {
-            TankMonitorReading(); //Get Tank Monitor Reading and save it to server
-        }
-
-        ////////////////////--UpgradeCurrentVersion to server--///////////////////////////////////////////////////////
-
-        SharedPreferences myPrefUP = this.getSharedPreferences(Constants.PREF_FS_UPGRADE, 0);
-        String hoseid = myPrefUP.getString("hoseid_fs4", "");
-        String fsversion = myPrefUP.getString("fsversion_fs4", "");
-
-        UpgradeVersionEntity objEntityClass = new UpgradeVersionEntity();
-        objEntityClass.IMEIUDID = AppConstants.getIMEI(BackgroundService_FS_UNIT_4.this);
-        objEntityClass.Email = CommonUtils.getCustomerDetails_backgroundService_FS4(this).PersonEmail;
-        objEntityClass.HoseId = hoseid;
-        objEntityClass.Version = fsversion;
-
-        if (hoseid != null && !hoseid.trim().isEmpty()) {
-            BackgroundService_FS_UNIT_4.UpgradeCurrentVersionWithUgradableVersion objUP = new BackgroundService_FS_UNIT_4.UpgradeCurrentVersionWithUgradableVersion(objEntityClass);
-            objUP.execute();
-            System.out.println(objUP.response);
-
-            try {
-                JSONObject jsonObject = new JSONObject(objUP.response);
-                String ResponceMessage = jsonObject.getString("ResponceMessage");
-                String ResponceText = jsonObject.getString("ResponceText");
-
-                if (ResponceMessage.equalsIgnoreCase("success")) {
-
-                    // AppConstants.clearSharedPrefByName(BackgroundService_AP.this, Constants.PREF_FS_UPGRADE);
-                }
-
-            } catch (Exception e) {
-
-            }
-        }
-
-        /////////////////////////////////////////////////////////////////////////
+        CommonUtils.AddRemovecurrentTransactionList(false, TransactionId);//Remove transaction Id from list
 
 
         SharedPreferences sharedPrefODO = this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
@@ -1339,106 +1324,205 @@ public class BackgroundService_FS_UNIT_4 extends Service {
         OtherName = sharedPref.getString("accOther_FS4", "");
 
 
-        double VehicleSum_FS4 = Double.parseDouble(sharedPref.getString("VehicleSum_FS4", ""));
-        double DeptSum_FS4 = Double.parseDouble(sharedPref.getString("DeptSum_FS4", ""));
-        double VehPercentage_FS4 = Double.parseDouble(sharedPref.getString("VehPercentage_FS4", ""));
-        double DeptPercentage_FS4 = Double.parseDouble(sharedPref.getString("DeptPercentage_FS4", ""));
-        String SurchargeType_FS4 = sharedPref.getString("SurchargeType_FS4", "");
-        double ProductPrice_FS4 = Double.parseDouble(sharedPref.getString("ProductPrice_FS4", ""));
+        if (cd.isConnectingToInternet()) {
 
-
-        //----------------------------
-
-        // ------------------------------------Printer Stop Multiple transactions issue--------------------------------------------------------------------------------
-
-        LinkName = AppConstants.FS4_CONNECTED_SSID;//AppConstants.CURRENT_SELECTED_SSID;
-
-        //Print Transaction Receipt
-        DecimalFormat precision = new DecimalFormat("0.00");
-        String Qty = (precision.format(fillqty));
-        double FuelQuantity = Double.parseDouble(Qty);
-
-        //---------print cost--------
-        String InitPrintCost = CalculatePrice(SurchargeType_FS4, FuelQuantity, ProductPrice_FS4, VehicleSum_FS4, DeptSum_FS4, VehPercentage_FS4, DeptPercentage_FS4);
-        DecimalFormat precision_cost = new DecimalFormat("0.00");
-        String PrintCost = (precision_cost.format(Double.parseDouble(InitPrintCost)));
-
-
-        if (IsOtherRequire.equalsIgnoreCase("true")) {
-
-            printReceipt = GetPrintReciptForOther(CompanyName, PrintDate, LinkName, Location, VehicleNumber, PersonName, OtherLabel, OtherName, Qty, PrintCost);
-            // printReceipt = " \n\n------FluidSecure Receipt------ \n\nCompany   : " + CompanyName +"\n\nTime/Date : "+PrintDate+"\n\nLocation  : "+LinkName+","+Location+","+"\n\nVehicle # : "+VehicleNumber+"\n\nPersonnel : "+PersonName+" \n\nQty       : " + Qty + "\n\n"+OtherLabel+":"+OtherName+ "\n\n ---------Thank You---------"+"\n\n\n\n\n\n\n\n\n\n\n\n";
-        } else {
-            printReceipt = GetPrintRecipt(CompanyName, PrintDate, LinkName, Location, VehicleNumber, PersonName, Qty, PrintCost);
-            // printReceipt = " \n\n------FluidSecure Receipt------ \n\nCompany   : " + CompanyName +"\n\nTime/Date : "+PrintDate+"\n\nLocation  : "+LinkName+","+Location+"\n\nVehicle # : "+VehicleNumber+"\n\nPersonnel : "+PersonName+" \n\nQty       : " + Qty + "\n\n ---------Thank You---------"+"\n\n\n\n\n\n\n\n\n\n\n\n";
-        }
-
-        try {
-            if (EnablePrinter.equalsIgnoreCase("True")) {
-                //Start background Service to print recipt
-                Intent serviceIntent = new Intent(BackgroundService_FS_UNIT_4.this, BackgroundServiceBluetoothPrinter.class);
-                serviceIntent.putExtra("printReceipt", printReceipt);
-                startService(serviceIntent);
+            if (IsTLDCall.equalsIgnoreCase("True")) {
+                TankMonitorReading(); //Get Tank Monitor Reading and save it to server
             }
 
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+            ////////////////////--UpgradeCurrentVersion to server--///////////////////////////////////////////////////////
 
-        //------------------------------------Ends--------------------------------------------------------------------------------
+            SharedPreferences myPrefUP = this.getSharedPreferences(Constants.PREF_FS_UPGRADE, 0);
+            String hoseid = myPrefUP.getString("hoseid_fs4", "");
+            String fsversion = myPrefUP.getString("fsversion_fs4", "");
 
-        try {
+            UpgradeVersionEntity objEntityClass = new UpgradeVersionEntity();
+            objEntityClass.IMEIUDID = AppConstants.getIMEI(BackgroundService_FS_UNIT_4.this);
+            objEntityClass.Email = CommonUtils.getCustomerDetails_backgroundService_FS4(this).PersonEmail;
+            objEntityClass.HoseId = hoseid;
+            objEntityClass.Version = fsversion;
 
-            TrazComp authEntityClass = new TrazComp();
-            authEntityClass.TransactionId = TransactionId;
-            authEntityClass.FuelQuantity = fillqty;
-            authEntityClass.Pulses = Pulses;
-            authEntityClass.TransactionFrom = "A";
-            authEntityClass.AppInfo = " Version:" + CommonUtils.getVersionCode(BackgroundService_FS_UNIT_4.this) + " " + AppConstants.getDeviceName() + " Android " + android.os.Build.VERSION.RELEASE + " ";
-            authEntityClass.IsFuelingStop = IsFuelingStop;
-            authEntityClass.IsLastTransaction = IsLastTransaction;
+            if (hoseid != null && !hoseid.trim().isEmpty()) {
+                BackgroundService_FS_UNIT_4.UpgradeCurrentVersionWithUgradableVersion objUP = new BackgroundService_FS_UNIT_4.UpgradeCurrentVersionWithUgradableVersion(objEntityClass);
+                objUP.execute();
+                System.out.println(objUP.response);
 
+                try {
+                    JSONObject jsonObject = new JSONObject(objUP.response);
+                    String ResponceMessage = jsonObject.getString("ResponceMessage");
+                    String ResponceText = jsonObject.getString("ResponceText");
 
-            Gson gson = new Gson();
-            String jsonData = gson.toJson(authEntityClass);
+                    if (ResponceMessage.equalsIgnoreCase("success")) {
 
-            //if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+"  InTransactionComplete jsonData " + jsonData);
-            System.out.println("AP_FS_4 TrazComp......" + jsonData);
-
-            String userEmail = CommonUtils.getCustomerDetails_backgroundService_FS4(this).PersonEmail;
-
-            String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(this) + ":" + userEmail + ":" + "TransactionComplete");
-
-            HashMap<String, String> imap = new HashMap<>();
-            imap.put("jsonData", jsonData);
-            imap.put("authString", authString);
-
-            boolean isInsert = true;
-            ArrayList<HashMap<String, String>> alltranz = controller.getAllTransaction();
-            if (alltranz != null && alltranz.size() > 0) {
-
-                for (int i = 0; i < alltranz.size(); i++) {
-
-                    if (jsonData.equalsIgnoreCase(alltranz.get(i).get("jsonData")) && authString.equalsIgnoreCase(alltranz.get(i).get("authString"))) {
-                        isInsert = false;
-                        break;
+                        // AppConstants.clearSharedPrefByName(BackgroundService_AP.this, Constants.PREF_FS_UPGRADE);
                     }
+
+                } catch (Exception e) {
+
                 }
             }
 
 
-            if (isInsert && fillqty > 0) {
-                // controller.insertTransactions(imap);
+            double VehicleSum_FS4 = Double.parseDouble(sharedPref.getString("VehicleSum_FS4", ""));
+            double DeptSum_FS4 = Double.parseDouble(sharedPref.getString("DeptSum_FS4", ""));
+            double VehPercentage_FS4 = Double.parseDouble(sharedPref.getString("VehPercentage_FS4", ""));
+            double DeptPercentage_FS4 = Double.parseDouble(sharedPref.getString("DeptPercentage_FS4", ""));
+            String SurchargeType_FS4 = sharedPref.getString("SurchargeType_FS4", "");
+            double ProductPrice_FS4 = Double.parseDouble(sharedPref.getString("ProductPrice_FS4", ""));
+
+
+            //----------------------------
+
+            // ------------------------------------Printer Stop Multiple transactions issue--------------------------------------------------------------------------------
+
+            LinkName = AppConstants.FS4_CONNECTED_SSID;//AppConstants.CURRENT_SELECTED_SSID;
+
+            //Print Transaction Receipt
+            DecimalFormat precision = new DecimalFormat("0.00");
+            String Qty = (precision.format(fillqty));
+            double FuelQuantity = Double.parseDouble(Qty);
+
+            //---------print cost--------
+            String InitPrintCost = CalculatePrice(SurchargeType_FS4, FuelQuantity, ProductPrice_FS4, VehicleSum_FS4, DeptSum_FS4, VehPercentage_FS4, DeptPercentage_FS4);
+            DecimalFormat precision_cost = new DecimalFormat("0.00");
+            String PrintCost = (precision_cost.format(Double.parseDouble(InitPrintCost)));
+
+
+            if (IsOtherRequire.equalsIgnoreCase("true")) {
+
+                printReceipt = GetPrintReciptForOther(CompanyName, PrintDate, LinkName, Location, VehicleNumber, PersonName, OtherLabel, OtherName, Qty, PrintCost);
+                // printReceipt = " \n\n------FluidSecure Receipt------ \n\nCompany   : " + CompanyName +"\n\nTime/Date : "+PrintDate+"\n\nLocation  : "+LinkName+","+Location+","+"\n\nVehicle # : "+VehicleNumber+"\n\nPersonnel : "+PersonName+" \n\nQty       : " + Qty + "\n\n"+OtherLabel+":"+OtherName+ "\n\n ---------Thank You---------"+"\n\n\n\n\n\n\n\n\n\n\n\n";
+            } else {
+                printReceipt = GetPrintRecipt(CompanyName, PrintDate, LinkName, Location, VehicleNumber, PersonName, Qty, PrintCost);
+                // printReceipt = " \n\n------FluidSecure Receipt------ \n\nCompany   : " + CompanyName +"\n\nTime/Date : "+PrintDate+"\n\nLocation  : "+LinkName+","+Location+"\n\nVehicle # : "+VehicleNumber+"\n\nPersonnel : "+PersonName+" \n\nQty       : " + Qty + "\n\n ---------Thank You---------"+"\n\n\n\n\n\n\n\n\n\n\n\n";
             }
 
-            clearEditTextFields();
+            try {
+                if (EnablePrinter.equalsIgnoreCase("True")) {
+                    //Start background Service to print recipt
+                    Intent serviceIntent = new Intent(BackgroundService_FS_UNIT_4.this, BackgroundServiceBluetoothPrinter.class);
+                    serviceIntent.putExtra("printReceipt", printReceipt);
+                    startService(serviceIntent);
+                }
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            //------------------------------------Ends--------------------------------------------------------------------------------
+
+            try {
+
+                TrazComp authEntityClass = new TrazComp();
+                authEntityClass.TransactionId = TransactionId;
+                authEntityClass.FuelQuantity = fillqty;
+                authEntityClass.Pulses = Pulses;
+                authEntityClass.TransactionFrom = "A";
+                authEntityClass.AppInfo = " Version:" + CommonUtils.getVersionCode(BackgroundService_FS_UNIT_4.this) + " " + AppConstants.getDeviceName() + " Android " + android.os.Build.VERSION.RELEASE + " ";
+                authEntityClass.IsFuelingStop = IsFuelingStop;
+                authEntityClass.IsLastTransaction = IsLastTransaction;
 
 
-        } catch (Exception ex) {
+                Gson gson = new Gson();
+                String jsonData = gson.toJson(authEntityClass);
 
-            CommonUtils.LogMessage("APFS_4", "AuthTestAsyncTask ", ex);
+                //if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+"  InTransactionComplete jsonData " + jsonData);
+                System.out.println("AP_FS_4 TrazComp......" + jsonData);
+
+                String userEmail = CommonUtils.getCustomerDetails_backgroundService_FS4(this).PersonEmail;
+
+                String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(this) + ":" + userEmail + ":" + "TransactionComplete");
+
+                HashMap<String, String> imap = new HashMap<>();
+                imap.put("jsonData", jsonData);
+                imap.put("authString", authString);
+
+                boolean isInsert = true;
+                ArrayList<HashMap<String, String>> alltranz = controller.getAllTransaction();
+                if (alltranz != null && alltranz.size() > 0) {
+
+                    for (int i = 0; i < alltranz.size(); i++) {
+
+                        if (jsonData.equalsIgnoreCase(alltranz.get(i).get("jsonData")) && authString.equalsIgnoreCase(alltranz.get(i).get("authString"))) {
+                            isInsert = false;
+                            break;
+                        }
+                    }
+                }
+
+
+                if (isInsert && fillqty > 0) {
+                    // controller.insertTransactions(imap);
+                }
+
+                clearEditTextFields();
+
+
+            } catch (Exception ex) {
+
+                CommonUtils.LogMessage("APFS_4", "AuthTestAsyncTask ", ex);
+            }
+
+
+            isTransactionComp = true;
+
+            AppConstants.BUSY_STATUS = true;
+
+
+            //btnStop.setVisibility(View.GONE);
+            consoleString = "";
+            //tvConsole.setText("");
+
+
+            if (AppConstants.NeedToRename) {
+                String userEmail = CommonUtils.getCustomerDetails_backgroundService_FS4(this).PersonEmail;
+
+                String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(this) + ":" + userEmail + ":" + "SetHoseNameReplacedFlag");
+
+                RenameHose rhose = new RenameHose();
+                rhose.SiteId = AppConstants.R_SITE_ID;
+                rhose.HoseId = AppConstants.R_HOSE_ID;
+                rhose.IsHoseNameReplaced = "Y";
+
+                Gson gson = new Gson();
+                String jsonData = gson.toJson(rhose);
+
+                storeIsRenameFlag(this, AppConstants.NeedToRename, jsonData, authString);
+
+            }
+            if (!CommonUtils.isMyServiceRunning(BackgroundService.class, this)) {
+                startService(new Intent(this, BackgroundService.class));
+            }
+
         }
+        else {
+            try {
 
+                EntityOffTranz authEntityClass = offcontroller.getTransactionDetailsBySqliteId(sqlite_id);
+                authEntityClass.TransactionFrom="AP";
+                authEntityClass.AppInfo = " Version:" + CommonUtils.getVersionCode(BackgroundService_FS_UNIT_4.this) + " " + AppConstants.getDeviceName() + " Android " + Build.VERSION.RELEASE + " ";
+
+
+                Gson gson = new Gson();
+                String jsonData = gson.toJson(authEntityClass);
+
+                //if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+"  InTransactionComplete jsonData " + jsonData);
+                System.out.println("link4 TrazComp......" + jsonData);
+
+                String userEmail = CommonUtils.getCustomerDetailsCC(this).PersonEmail;
+
+                String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(this) + ":" + userEmail + ":" + "TransactionComplete");
+
+
+
+                clearEditTextFields();
+
+
+            } catch (Exception ex) {
+
+                CommonUtils.LogMessage("APFS_4", "AuthTestAsyncTask ", ex);
+            }
+        }
 
         isTransactionComp = true;
 
@@ -1449,26 +1533,6 @@ public class BackgroundService_FS_UNIT_4 extends Service {
         consoleString = "";
         //tvConsole.setText("");
 
-
-        if (AppConstants.NeedToRename) {
-            String userEmail = CommonUtils.getCustomerDetails_backgroundService_FS4(this).PersonEmail;
-
-            String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(this) + ":" + userEmail + ":" + "SetHoseNameReplacedFlag");
-
-            RenameHose rhose = new RenameHose();
-            rhose.SiteId = AppConstants.R_SITE_ID;
-            rhose.HoseId = AppConstants.R_HOSE_ID;
-            rhose.IsHoseNameReplaced = "Y";
-
-            Gson gson = new Gson();
-            String jsonData = gson.toJson(rhose);
-
-            storeIsRenameFlag(this, AppConstants.NeedToRename, jsonData, authString);
-
-        }
-        if (!CommonUtils.isMyServiceRunning(BackgroundService.class,this)){
-            startService(new Intent(this, BackgroundService.class));
-        }
 
     }
 
@@ -2048,6 +2112,39 @@ public class BackgroundService_FS_UNIT_4 extends Service {
         Constants.FS_4STATUS = "FREE";
         clearEditTextFields();
         stopSelf();
+    }
+
+    public void offlineLogic4() {
+        TransactionId = "0";
+        PhoneNumber = "0";
+        FuelTypeId = "0";
+        ServerDate = "0";
+        IsTLDCall = "0";
+
+
+        EntityOffTranz tzc = offcontroller.getTransactionDetailsBySqliteId(sqlite_id);
+
+        VehicleId = tzc.VehicleId;
+        PersonId = tzc.PersonId;
+        String siteid = tzc.SiteId;
+
+        HashMap<String, String> linkmap = offcontroller.getLinksDetailsBySiteId(siteid);
+        IntervalToStopFuel = linkmap.get("PumpOffTime");
+        PulseRatio = linkmap.get("Pulserratio");
+
+        EnablePrinter = offcontroller.getOfflineHubDetails(BackgroundService_FS_UNIT_4.this).EnablePrinter;
+
+        LinkName = AppConstants.CURRENT_SELECTED_SSID;
+
+        listOfConnectedIP_FS_UNIT_4.clear();
+        ListConnectedHotspotIP_FS_UNIT_4AsyncCall();
+
+        minFuelLimit = OfflineConstants.getFuelLimit(BackgroundService_FS_UNIT_4.this);
+
+        numPulseRatio = Double.parseDouble(PulseRatio);
+
+        stopAutoFuelSeconds = Long.parseLong(IntervalToStopFuel);
+
     }
 
 }

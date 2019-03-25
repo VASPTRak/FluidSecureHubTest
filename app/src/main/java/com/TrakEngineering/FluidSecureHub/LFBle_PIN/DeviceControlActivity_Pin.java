@@ -12,6 +12,7 @@ import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Rect;
+import android.net.ConnectivityManager;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -46,12 +47,16 @@ import com.TrakEngineering.FluidSecureHub.BackgroundServiceKeepDataTransferAlive
 import com.TrakEngineering.FluidSecureHub.CommonUtils;
 import com.TrakEngineering.FluidSecureHub.ConnectionDetector;
 import com.TrakEngineering.FluidSecureHub.Constants;
+import com.TrakEngineering.FluidSecureHub.DisplayMeterActivity;
 import com.TrakEngineering.FluidSecureHub.LFBle_vehicle.DeviceControlActivity_vehicle;
+import com.TrakEngineering.FluidSecureHub.NetworkReceiver;
 import com.TrakEngineering.FluidSecureHub.R;
 import com.TrakEngineering.FluidSecureHub.WelcomeActivity;
 import com.TrakEngineering.FluidSecureHub.enity.CheckPinFobEntity;
 import com.TrakEngineering.FluidSecureHub.enity.UserInfoEntity;
 import com.TrakEngineering.FluidSecureHub.enity.VehicleRequireEntity;
+import com.TrakEngineering.FluidSecureHub.offline.OffDBController;
+import com.TrakEngineering.FluidSecureHub.offline.OfflineConstants;
 import com.TrakEngineering.FluidSecureHub.server.ServerHandler;
 import com.google.gson.Gson;
 import com.squareup.okhttp.OkHttpClient;
@@ -62,7 +67,7 @@ import com.squareup.okhttp.Response;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.IOException;
+import java.net.SocketTimeoutException;
 import java.util.HashMap;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -79,6 +84,10 @@ import static com.TrakEngineering.FluidSecureHub.server.ServerHandler.TEXT;
 public class DeviceControlActivity_Pin extends AppCompatActivity {
 
     public int cnt123 = 0;
+
+    OffDBController controller = new OffDBController(DeviceControlActivity_Pin.this);
+
+    private NetworkReceiver receiver = new NetworkReceiver();
 
     public static final String EXTRAS_DEVICE_NAME = "DEVICE_NAME";
     public static final String EXTRAS_DEVICE_ADDRESS = "DEVICE_ADDRESS";
@@ -103,7 +112,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
     //--------------------------
 
     private static final String TAG = "DeviceControl_Pin";
-    public static String SITE_ID = "0";
+
     public static double CurrentLat = 0, CurrentLng = 0;
     RelativeLayout footer_keybord;
     LinearLayout Linear_layout_Save_back_buttons;
@@ -115,7 +124,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
     EditText etPersonnelPin;
     TextView tv_enter_pin_no, tv_ok;
     Button btnSave, btnCancel, btn_ReadFobAgain;
-    String IsPersonHasFob = "", IsOdoMeterRequire = "", IsDepartmentRequire = "", IsPersonnelPINRequire = "", IsOtherRequire = "", IsVehicleNumberRequire = "", IsStayOpenGate = "", IsGateHub;
+    String IsPersonHasFob = "", IsOdoMeterRequire = "", IsDepartmentRequire = "", IsPersonnelPINRequire = "", IsOtherRequire = "",IsVehicleNumberRequire = "",IsStayOpenGate= "",IsGateHub;
     String TimeOutinMinute;
 
     int FobReadingCount = 0;
@@ -218,12 +227,13 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
         IsGateHub = sharedPrefGatehub.getString(AppConstants.IsGateHub, "");
         IsStayOpenGate = sharedPrefGatehub.getString(AppConstants.IsStayOpenGate, "");
 
+
+        /* site id is mismatching
         SharedPreferences sharedPref = DeviceControlActivity_Pin.this.getSharedPreferences(Constants.PREF_COLUMN_SITE, Context.MODE_PRIVATE);
         String dataSite = sharedPref.getString(Constants.PREF_COLUMN_SITE, "");
-
-
         SITE_ID = parseSiteData(dataSite);
         AppConstants.SITE_ID = SITE_ID;
+        */
 
         // Sets up UI references.
         tv_fobkey = (TextView) findViewById(R.id.tv_fobkey);
@@ -302,35 +312,57 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                 String pin = etPersonnelPin.getText().toString().trim();
                 String FKey = AppConstants.APDU_FOB_KEY;
 
-                if (FKey.equalsIgnoreCase("")) {
-                    if (cd.isConnectingToInternet()) {
-                        if (!isFinishing()) {
-                            new CallSaveButtonFunctionality().execute();
+                //////////common for online offline///////////////////////////////
+                HashMap<String, String> hmap = new HashMap<>();
+
+                if (pin != null && !pin.trim().isEmpty()) {
+                    hmap = controller.getPersonnelDetailsByPIN(pin);
+                    offlinePersonInitialization(hmap);
+
+                } else if (FKey != null && !FKey.trim().isEmpty()) {
+
+                    String fob = AppConstants.APDU_FOB_KEY.replace(":", "");
+
+                    hmap = controller.getPersonnelDetailsByFOBnumber(fob);
+                    offlinePersonInitialization(hmap);
+
+                }
+                ///////////////////////////////
+
+                if (cd.isConnectingToInternet()) {
+
+                    if (FKey.equalsIgnoreCase("")) {
+                        if (cd.isConnectingToInternet())
+                            new CallSaveButtonFunctionality().execute();//Press Enter fun
+                        else
+                            AppConstants.colorToastBigFont(getApplicationContext(), "Please check Internet connection", Color.RED);
+
+                    } else if (pin.equalsIgnoreCase("") && !FKey.equalsIgnoreCase("")) {
+                        if (cd.isConnectingToInternet())
+                            new GetPinNuOnFobKeyDetection().execute();
+                        else
+                            AppConstants.colorToastBigFont(getApplicationContext(), "Please check Internet connection", Color.RED);
+
+                    } else if (!pin.equalsIgnoreCase("") && !FKey.equalsIgnoreCase("")) {
+
+                        if (cd.isConnectingToInternet())
+                            new GetPinNuOnFobKeyDetection().execute();
+                        else
+                            AppConstants.colorToastBigFont(getApplicationContext(), "Please check Internet connection", Color.RED);
+                    }
+                } else {
+
+                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile("Offline Pin : " + pin);
+
+                    if (OfflineConstants.isOfflineAccess(DeviceControlActivity_Pin.this)) {
+                        //offline----------
+                        if (!pin.isEmpty()) {
+                            checkPINvalidation(hmap);
+                        } else {
+                            checkPINvalidation(hmap);
                         }
                     } else {
-                        AppConstants.colorToastBigFont(getApplicationContext(), "Please check Internet connection", Color.RED);
-                    }
-
-                } else if (pin.equalsIgnoreCase("") && !FKey.equalsIgnoreCase("")) {
-                    if (cd.isConnectingToInternet()) {
-
-                        if (!isFinishing()) {
-                            new GetPinNuOnFobKeyDetection().execute();
-                        }
-
-                    } else {
-                        AppConstants.colorToastBigFont(getApplicationContext(), "Please check Internet connection", Color.RED);
-                    }
-
-
-                } else if (!pin.equalsIgnoreCase("") && !FKey.equalsIgnoreCase("")) {
-
-                    if (cd.isConnectingToInternet()){
-                        if (!isFinishing()){
-                            new GetPinNuOnFobKeyDetection().execute();
-                        }
-                    }else{
-                        AppConstants.colorToastBigFont(getApplicationContext(), "Please check Internet connection", Color.RED);
+                        AppConstants.colorToastBigFont(getApplicationContext(), AppConstants.OFF1, Color.RED);
                     }
 
                 }
@@ -369,6 +401,11 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
             }
         });
 
+
+        // Registers BroadcastReceiver to track network connection changes.
+        IntentFilter ifilter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
+        receiver = new NetworkReceiver();
+        this.registerReceiver(receiver, ifilter);
 
     }
 
@@ -477,6 +514,10 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
         t.cancel();
         unbindService(mServiceConnection);
         mBluetoothLeServicePin = null;
+
+        if (receiver != null) {
+            this.unregisterReceiver(receiver);
+        }
     }
 
     @Override
@@ -534,8 +575,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
 
             String Str_data = data.toString().trim();
             System.out.println("FOK_KEY Vehi " + Str_data);
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "  Response LF: " + Str_data);
+            if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+"  Response LF: " + Str_data);
             String Str_check = Str_data.replace(" ", "");
             if (!Str_check.equalsIgnoreCase("000000")) {
                 try {
@@ -546,11 +586,10 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                     tv_fobkey.setText(Sep2.replace(" ", ""));
                 } catch (Exception ex) {
                     System.out.println(ex);
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + "  displayData Split Fob_Key  --Exception " + ex);
+                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+"  displayData Split Fob_Key  --Exception " + ex);
                 }
 
-                if (!LF_FobKey.equalsIgnoreCase("") && LF_FobKey.length() > 5) {//
+                if (!LF_FobKey.equalsIgnoreCase("" ) && LF_FobKey.length() > 5) {//
                     //tv_enter_pin_no.setText("Fob Read Successfully");
                     tv_fob_number.setText("");//"Fob No: " + LF_FobKey
                     AppConstants.PinLocal_FOB_KEY = LF_FobKey;
@@ -565,8 +604,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
 
                 if (Count < 3) {
                     // Toast.makeText(getApplicationContext(),"Attempt to read Characteristic: "+Count, Toast.LENGTH_LONG).show();
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + "  Attempt to read Char: " + Count);
+                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+"  Attempt to read Char: " + Count);
                     Count++;
                     if (mBluetoothLeServicePin != null) {
                         // mBluetoothLeServiceVehicle.readCharacteristic(characteristic);
@@ -603,14 +641,34 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                 etPersonnelPin.setText("");
                 System.out.println("pin2 FOK_KEY" + AppConstants.APDU_FOB_KEY);
                 ScreenOutTime.cancel();//Stop screenout
-                if (cd.isConnectingToInternet()){
-                    if (!isFinishing()){
+                String test = AppConstants.APDU_FOB_KEY;
+                tv_fob_number.setText("Access Device No: " + test);
+
+                try {
+
+                    String fob = AppConstants.APDU_FOB_KEY.replace(":", "").trim();
+
+                    if (cd.isConnectingToInternet())
                         new GetPinNuOnFobKeyDetection().execute();
+                    else {
+
+
+                        HashMap<String, String> hmap = controller.getPersonnelDetailsByFOBnumber(fob);
+                        offlinePersonInitialization(hmap);
+
+                        if (OfflineConstants.isOfflineAccess(DeviceControlActivity_Pin.this)) {
+                            checkPINvalidation(hmap);
+                            String PinNumber = hmap.get("PinNumber");
+                            etPersonnelPin.setText(PinNumber);
+                        } else {
+                            AppConstants.colorToastBigFont(getApplicationContext(), AppConstants.OFF1, Color.RED);
+                        }
                     }
-                }else{
-                    AppConstants.colorToastBigFont(getApplicationContext(), "Please check Internet connection", Color.RED);
+                    tv_fob_number.setText("Access Device No: " + test);
+
+                } catch (Exception e) {
+                    System.out.println("Pin FobreadSuccess-" + e.getMessage());
                 }
-                tv_fob_number.setText("Access Device: " + AppConstants.APDU_FOB_KEY);
             }
         });
 
@@ -669,8 +727,16 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
 
     public void DisplayScreenInit() {
 
-        SharedPreferences sharedPrefODO = DeviceControlActivity_Pin.this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
-        IsPersonHasFob = sharedPrefODO.getString(AppConstants.IsPersonHasFob, "false");
+        if (cd.isConnectingToInternet()) {
+            SharedPreferences sharedPrefODO = DeviceControlActivity_Pin.this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
+            IsPersonHasFob = sharedPrefODO.getString(AppConstants.IsPersonHasFob, "false");
+        } else {
+            IsPersonHasFob = controller.getOfflineHubDetails(DeviceControlActivity_Pin.this).PersonhasFOB;
+
+            if(IsPersonHasFob.trim().equalsIgnoreCase("y"))
+                IsPersonHasFob="true";
+        }
+
 
         if (IsPersonHasFob.equalsIgnoreCase("true")) {
 
@@ -773,8 +839,9 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
         Linear_layout_Save_back_buttons.setVisibility(View.VISIBLE);
 
 
-        btnCancel.setVisibility(View.VISIBLE);
+        btnCancel.setVisibility(View.GONE);
         btnSave.setVisibility(View.GONE);
+
 
     }
 
@@ -815,7 +882,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                         Constants.AccPersonnelPIN_FS3 = etPersonnelPin.getText().toString().trim();
 
                         vehicleNumber = Constants.AccVehicleNumber_FS3;
-                        Log.i("ps_Vechile no", "Step 3:" + vehicleNumber);
+                        Log.i("ps_Vechile no","Step 3:"+vehicleNumber);
                     } else {
                         Constants.AccPersonnelPIN_FS4 = etPersonnelPin.getText().toString().trim();
                         vehicleNumber = Constants.AccVehicleNumber_FS4;
@@ -833,12 +900,12 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                     objEntityClass.FromNewFOBChange = "Y";
                     objEntityClass.FOBNumber = AppConstants.APDU_FOB_KEY;
                     objEntityClass.IsVehicleNumberRequire = IsVehicleNumberRequire;
+                    objEntityClass.Barcode = "";
                     AppConstants.FOB_KEY_VEHICLE = AppConstants.APDU_FOB_KEY;
 
                     if (AppConstants.APDU_FOB_KEY.equalsIgnoreCase("")) {
                         Log.i(TAG, "PIN EN Manually: " + etPersonnelPin.getText().toString().trim() + "  Fob:" + AppConstants.APDU_FOB_KEY);
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + " PIN EN Manually: " + etPersonnelPin.getText().toString().trim() + "  Fob:" + AppConstants.APDU_FOB_KEY);
+                        if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " PIN EN Manually: " + etPersonnelPin.getText().toString().trim() + "  Fob:" + AppConstants.APDU_FOB_KEY);
                     } else {
                         Log.i(TAG, "PIN FOB:" + AppConstants.APDU_FOB_KEY + "  PIN No: " + String.valueOf(etPersonnelPin.getText()));
                         if (AppConstants.GenerateLogs)
@@ -874,7 +941,12 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
 
                 }
 
-            } catch (IOException e) {
+            } catch (SocketTimeoutException e){
+                e.printStackTrace();
+                if (AppConstants.GenerateLogs) AppConstants.WriteinFile(TAG + " CallSaveButtonFunctionality  STE2 " + e);
+                GetBackToWelcomeActivity();
+
+            }catch (Exception e) {
                 e.printStackTrace();
             }
             return resp;
@@ -960,8 +1032,8 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
 
                             /*AppConstants.colorToastBigFont(this, "Some thing went wrong Please try again..\n"+ResponceText, Color.RED);
                              if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG+" Some thing went wrong Please try again..(~else if~)\n"+ResponceText);
-                            AppConstants.ClearEdittextFielsOnBack(DeviceControlActivity_Pin.this); //Clear EditText on move to welcome activity.
-                            Intent intent = new Intent(DeviceControlActivity_Pin.this, WelcomeActivity.class);
+                            AppConstants.ClearEdittextFielsOnBack(DeviceControlActivity_tld.this); //Clear EditText on move to welcome activity.
+                            Intent intent = new Intent(DeviceControlActivity_tld.this, WelcomeActivity.class);
                             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                             startActivity(intent);*/
 
@@ -973,14 +1045,14 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
 
                             /*AppConstants.colorToastBigFont(this, "Some thing went wrong Please try again..\n"+ResponceText, Color.RED);
                              if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG+" Some thing went wrong Please try again..(~else~)\n"+ResponceText);
-                            AppConstants.ClearEdittextFielsOnBack(DeviceControlActivity_Pin.this); //Clear EditText on move to welcome activity.
-                            Intent intent = new Intent(DeviceControlActivity_Pin.this, WelcomeActivity.class);
+                            AppConstants.ClearEdittextFielsOnBack(DeviceControlActivity_tld.this); //Clear EditText on move to welcome activity.
+                            Intent intent = new Intent(DeviceControlActivity_tld.this, WelcomeActivity.class);
                             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                             startActivity(intent);*/
                         }
 
                     }
-                } catch (Exception e) {
+                }catch (Exception e){
                     e.printStackTrace();
                 }
             }
@@ -995,12 +1067,12 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
 
         @Override
         protected void onPreExecute() {
-            /*pd = new ProgressDialog(DeviceControlActivity_Pin.this);
+            /*pd = new ProgressDialog(DeviceControlActivity_tld.this);
             pd.setMessage("Please wait...");
             pd.setCancelable(true);
             pd.show();*/
 
-            Toast.makeText(getApplicationContext(), "Please wait...", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(),"Please wait...",Toast.LENGTH_SHORT).show();
 
         }
 
@@ -1014,9 +1086,8 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
             objEntityClass.PersonFOBNumber = AppConstants.APDU_FOB_KEY;
             objEntityClass.FromNewFOBChange = "Y";
 
-            System.out.println(TAG + "Personnel PIN: Read FOB:" + AppConstants.APDU_FOB_KEY + "  PIN Number: " + String.valueOf(etPersonnelPin.getText()));
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "Personnel PIN: Read FOB:" + AppConstants.APDU_FOB_KEY + "  PIN Number: " + String.valueOf(etPersonnelPin.getText()));
+            System.out.println(TAG+"Personnel PIN: Read FOB:"+AppConstants.APDU_FOB_KEY+"  PIN Number: "+String.valueOf(etPersonnelPin.getText()));
+            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG+"Personnel PIN: Read FOB:"+AppConstants.APDU_FOB_KEY+"  PIN Number: "+String.valueOf(etPersonnelPin.getText()));
 
 
             try {
@@ -1049,7 +1120,12 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                 resp = response.body().string();
 
 
-            } catch (Exception ex) {
+            }catch (SocketTimeoutException e){
+                e.printStackTrace();
+                if (AppConstants.GenerateLogs) AppConstants.WriteinFile(TAG + " GetPinNuOnFobKeyDetection  STE1 " + e);
+                GetBackToWelcomeActivity();
+
+            }catch (Exception ex) {
                 CommonUtils.LogMessage("TAG", "CheckValidPinOrFOBNUmber ", ex);
             }
 
@@ -1057,11 +1133,12 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
         }
 
 
+        @RequiresApi(api = Build.VERSION_CODES.N)
         @Override
         protected void onPostExecute(String serverRes) {
 
 
-            try {
+            try{
 
                 if (serverRes != null) {
 
@@ -1097,8 +1174,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
 
                     } else {
 
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + " Pin Fob Fail: " + ResponceMessage);
+                        if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG +" Pin Fob Fail: "+ResponceMessage);
                         if (IsNewFob.equalsIgnoreCase("No")) {
                             AppConstants.APDU_FOB_KEY = "";
                             onResume();
@@ -1110,11 +1186,11 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                             LinearLayout.LayoutParams parms = new LinearLayout.LayoutParams(width, height);
                             parms.gravity = Gravity.CENTER;
                             tv_ok.setLayoutParams(parms);
-                            tv_ok.setText("Invalid or Unassigned Access Device");
+                            tv_ok.setText("Invalid Access Device or Unassigned FOB");
 
                             CommonUtils.showCustomMessageDilaog(DeviceControlActivity_Pin.this, "Message", ResponceMessage);
 
-                        } else {
+                        }else{
 
                             AcceptPinNumber();
 
@@ -1124,14 +1200,14 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
 
                             if (IsPersonHasFob.equalsIgnoreCase("true")) {
                                 CommonUtils.SimpleMessageDilaog(DeviceControlActivity_Pin.this, "Message", ResponceMessage);
-                            } else {
+                            }else{
                                 CommonUtils.showCustomMessageDilaog(DeviceControlActivity_Pin.this, "Message", ResponceMessage);
                             }
                         }
 
                         if (IsGateHub.equalsIgnoreCase("True")) {
                             Istimeout_Sec = false;
-                        } else {
+                        }else{
                             Istimeout_Sec = true;
                         }
                         TimeoutPinScreen();
@@ -1157,401 +1233,10 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
 
                 }
 
-            } catch (Exception ex) {
+            }catch (Exception ex) {
                 Log.e("TAG", ex.getMessage());
             }
 
-        }
-    }
-
-    public void GetPinNuOnFobKeyDetectionOld() {
-
-        try {
-
-            CheckPinFobEntity objEntityClass = new CheckPinFobEntity();
-            objEntityClass.IMEIUDID = AppConstants.getIMEI(DeviceControlActivity_Pin.this);
-            objEntityClass.PersonPIN = String.valueOf(etPersonnelPin.getText());
-            objEntityClass.PersonFOBNumber = AppConstants.APDU_FOB_KEY;
-            objEntityClass.FromNewFOBChange = "Y";
-
-            System.out.println(TAG + "Personnel PIN: Read FOB:" + AppConstants.APDU_FOB_KEY + "  PIN Number: " + String.valueOf(etPersonnelPin.getText()));
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "Personnel PIN: Read FOB:" + AppConstants.APDU_FOB_KEY + "  PIN Number: " + String.valueOf(etPersonnelPin.getText()));
-
-            DeviceControlActivity_Pin.CheckValidPinOrFOBNUmber vehTestAsynTask1 = new DeviceControlActivity_Pin.CheckValidPinOrFOBNUmber(objEntityClass);
-            vehTestAsynTask1.execute();
-            vehTestAsynTask1.get();
-
-            String serverRes = vehTestAsynTask1.response;
-
-            if (serverRes != null) {
-
-
-                JSONObject jsonObject = new JSONObject(serverRes);
-
-                String ResponceMessage = jsonObject.getString("ResponceMessage");
-                System.out.println("ResponceMessage..dt.." + ResponceMessage);
-                String PersonFOBNumber = jsonObject.getString("PersonFOBNumber");
-                String PersonPIN = jsonObject.getString("PersonPIN");
-                String IsNewFob = jsonObject.getString("IsNewFob");
-
-                if (ResponceMessage.equalsIgnoreCase("success")) {
-
-                    DisplayScreenFobReadSuccess();
-                    tv_enter_pin_no.setText("Personnel Number:" + PersonPIN);
-                    System.out.println("PersonFOBNumber.." + PersonFOBNumber + "PersonPin" + PersonPIN);
-                    etPersonnelPin.setText(PersonPIN);
-                    InCaseOfGateHub();
-
-                    /*if (IsGateHub.equalsIgnoreCase("True")) {
-                        InCaseOfGateHub();//skip CallSaveButtonFunctionality server call if gate hub true
-
-                    }else{
-                        new Handler().postDelayed(new Runnable() {
-                            @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-                            @Override
-                            public void run() {
-                                CallSaveButtonFunctionality();//Press Enter fun
-                            }
-                        }, 1000);
-                    }*/
-
-                } else {
-
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + " Pin Fob Fail: " + ResponceMessage);
-                    if (IsNewFob.equalsIgnoreCase("No")) {
-                        AppConstants.APDU_FOB_KEY = "";
-                        onResume();
-
-                        tv_fob_Reader.setVisibility(View.GONE);
-
-                        int width = ActionBar.LayoutParams.WRAP_CONTENT;
-                        int height = ActionBar.LayoutParams.WRAP_CONTENT;
-                        LinearLayout.LayoutParams parms = new LinearLayout.LayoutParams(width, height);
-                        parms.gravity = Gravity.CENTER;
-                        tv_ok.setLayoutParams(parms);
-                        tv_ok.setText("Invalid or Unassigned Access Device");
-
-                        CommonUtils.showCustomMessageDilaog(DeviceControlActivity_Pin.this, "Message", ResponceMessage);
-
-                    } else {
-
-                        AcceptPinNumber();
-
-                        InputMethodManager inputMethodManager = (InputMethodManager) etPersonnelPin.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
-                        etPersonnelPin.requestFocus();
-                        inputMethodManager.showSoftInput(etPersonnelPin, 0);
-
-                        if (IsPersonHasFob.equalsIgnoreCase("true")) {
-                            CommonUtils.SimpleMessageDilaog(DeviceControlActivity_Pin.this, "Message", ResponceMessage);
-                        } else {
-                            CommonUtils.showCustomMessageDilaog(DeviceControlActivity_Pin.this, "Message", ResponceMessage);
-                        }
-                    }
-
-                    if (IsGateHub.equalsIgnoreCase("True")) {
-                        Istimeout_Sec = false;
-                    } else {
-                        Istimeout_Sec = true;
-                    }
-                    TimeoutPinScreen();
-                    btnSave.setEnabled(true);
-                    tv_fob_number.setText("");
-                    tv_fob_number.setVisibility(View.GONE);
-                    tv_or.setVisibility(View.GONE);
-                    tv_dont_have_fob.setVisibility(View.VISIBLE);
-                    String content = "Enter your<br> <b>PERSONNEL ID </b>in<br> the green box below";
-
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                        tv_dont_have_fob.setText(Html.fromHtml(content, Html.FROM_HTML_MODE_LEGACY));
-                        System.out.println(Html.fromHtml(content, Html.FROM_HTML_MODE_LEGACY));
-                    } else {
-                        tv_dont_have_fob.setText(Html.fromHtml(content));
-                        System.out.println(Html.fromHtml(content));
-                    }
-
-                    Linear_layout_Save_back_buttons.setVisibility(View.VISIBLE);
-                    etPersonnelPin.setVisibility(View.VISIBLE);
-                    etPersonnelPin.setText("");
-                }
-
-            }
-
-        } catch (Exception ex) {
-            Log.e("TAG", ex.getMessage());
-        }
-    }
-
-    public class CheckValidPinOrFOBNUmber extends AsyncTask<Void, Void, String> {
-
-        CheckPinFobEntity vrentity = null;
-        ProgressDialog pd;
-        public String response = null;
-
-        public CheckValidPinOrFOBNUmber(CheckPinFobEntity vrentity) {
-            this.vrentity = vrentity;
-        }
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-
-            pd = new ProgressDialog(DeviceControlActivity_Pin.this);
-            pd.setMessage("Please wait...");
-            pd.setCancelable(true);
-            pd.setCancelable(false);
-            pd.show();
-        }
-
-        @Override
-        protected String doInBackground(Void... voids) {
-
-            try {
-                ServerHandler serverHandler = new ServerHandler();
-
-                Gson gson = new Gson();
-                String jsonData = gson.toJson(vrentity);
-                String userEmail = CommonUtils.getCustomerDetails(DeviceControlActivity_Pin.this).PersonEmail;
-
-                System.out.println("jsonData123" + jsonData);
-                //----------------------------------------------------------------------------------
-                String authString = "Basic " + AppConstants.convertStingToBase64(vrentity.IMEIUDID + ":" + userEmail + ":" + "CheckValidPinOrFOBNUmber");
-                response = serverHandler.PostTextData(DeviceControlActivity_Pin.this, AppConstants.webURL, jsonData, authString);
-                //----------------------------------------------------------------------------------
-                System.out.println("jsonData1234" + response);
-            } catch (Exception ex) {
-
-                CommonUtils.LogMessage("TAG", "CheckValidPinOrFOBNUmber ", ex);
-            }
-            return response;
-        }
-
-        @Override
-        protected void onPostExecute(String s) {
-            super.onPostExecute(s);
-            pd.dismiss();
-        }
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-    public void CallSaveButtonFunctionalityOld() {
-
-
-        String vehicleNumber = "";
-
-        if (!etPersonnelPin.getText().toString().trim().isEmpty()) {
-
-            if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS1")) {
-                Constants.AccPersonnelPIN_FS1 = etPersonnelPin.getText().toString().trim();
-
-                vehicleNumber = Constants.AccVehicleNumber_FS1;
-
-            } else if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS2")) {
-                Constants.AccPersonnelPIN = etPersonnelPin.getText().toString().trim();
-
-                vehicleNumber = Constants.AccVehicleNumber;
-
-            } else if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS3")) {
-                Constants.AccPersonnelPIN_FS3 = etPersonnelPin.getText().toString().trim();
-
-                vehicleNumber = Constants.AccVehicleNumber_FS3;
-            } else {
-                Constants.AccPersonnelPIN_FS4 = etPersonnelPin.getText().toString().trim();
-                vehicleNumber = Constants.AccVehicleNumber_FS4;
-            }
-
-            Istimeout_Sec = false;
-
-            try {
-                VehicleRequireEntity objEntityClass = new VehicleRequireEntity();
-                objEntityClass.IMEIUDID = AppConstants.getIMEI(DeviceControlActivity_Pin.this);
-                objEntityClass.VehicleNumber = vehicleNumber;
-                objEntityClass.WifiSSId = AppConstants.LAST_CONNECTED_SSID;
-                objEntityClass.SiteId = Integer.parseInt(AppConstants.SITE_ID);
-                objEntityClass.PersonnelPIN = etPersonnelPin.getText().toString().trim();
-                objEntityClass.RequestFromAPP = "AP";
-                objEntityClass.FromNewFOBChange = "Y";
-                objEntityClass.FOBNumber = AppConstants.APDU_FOB_KEY;
-                objEntityClass.IsVehicleNumberRequire = IsVehicleNumberRequire;
-                AppConstants.FOB_KEY_VEHICLE = AppConstants.APDU_FOB_KEY;
-
-                if (AppConstants.APDU_FOB_KEY.equalsIgnoreCase("")) {
-                    Log.i(TAG, "PIN EN Manually: " + etPersonnelPin.getText().toString().trim() + "  Fob:" + AppConstants.APDU_FOB_KEY);
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + " PIN EN Manually: " + etPersonnelPin.getText().toString().trim() + "  Fob:" + AppConstants.APDU_FOB_KEY);
-                } else {
-                    Log.i(TAG, "PIN FOB:" + AppConstants.APDU_FOB_KEY + "  PIN No: " + String.valueOf(etPersonnelPin.getText()));
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + "PIN FOB:" + AppConstants.APDU_FOB_KEY + "  PIN No: " + String.valueOf(etPersonnelPin.getText()));
-                }
-
-                DeviceControlActivity_Pin.CheckVehicleRequireOdometerEntryAndRequireHourEntry vehTestAsynTask = new DeviceControlActivity_Pin.CheckVehicleRequireOdometerEntryAndRequireHourEntry(objEntityClass);
-                vehTestAsynTask.execute();
-                vehTestAsynTask.get();
-
-                String serverRes = vehTestAsynTask.response;
-
-                if (serverRes != null) {
-
-
-                    JSONObject jsonObject = new JSONObject(serverRes);
-
-                    String ResponceMessage = jsonObject.getString("ResponceMessage");
-
-                    System.out.println("ResponceMessage.." + ResponceMessage);
-
-
-                    if (ResponceMessage.equalsIgnoreCase("success")) {
-
-
-                        //if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG +" PIN Accepted:" + etPersonnelPin.getText().toString().trim());
-
-                        btnSave.setClickable(false);
-
-                        SharedPreferences sharedPrefODO = DeviceControlActivity_Pin.this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
-                        String IsPersonnelPINRequire = sharedPrefODO.getString(AppConstants.IsPersonnelPINRequire, "");
-                        String IsHoursRequire = sharedPrefODO.getString(AppConstants.IsHoursRequire, "");
-                        String IsDepartmentRequire = sharedPrefODO.getString(AppConstants.IsDepartmentRequire, "");
-                        String IsOtherRequire = sharedPrefODO.getString(AppConstants.IsOtherRequire, "");
-
-
-                        if (IsDepartmentRequire.equalsIgnoreCase("True") && !IsGateHub.equalsIgnoreCase("True")) {
-
-                            Intent intent = new Intent(DeviceControlActivity_Pin.this, AcceptDeptActivity.class);
-                            startActivity(intent);
-
-                        } else if (IsOtherRequire.equalsIgnoreCase("True") && !IsGateHub.equalsIgnoreCase("True")) {
-
-                            Intent intent = new Intent(DeviceControlActivity_Pin.this, AcceptOtherActivity.class);
-                            startActivity(intent);
-
-                        } else {
-
-                            AcceptServiceCall asc = new AcceptServiceCall();
-                            asc.activity = DeviceControlActivity_Pin.this;
-                            asc.checkAllFields();
-                        }
-                    } else {
-
-                        String ResponceText = jsonObject.getString("ResponceText");
-                        String ValidationFailFor = jsonObject.getString("ValidationFailFor");
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + " PIN rejected:" + etPersonnelPin.getText().toString().trim() + " Error:" + ResponceText);
-
-                        if (ValidationFailFor.equalsIgnoreCase("Pin")) {
-
-                            AppConstants.colorToastBigFont(this, ResponceText, Color.RED);
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(TAG + "  ValidateFor Pin" + ResponceText);
-                            //Clear Pin edit text
-                            if (Constants.CurrentSelectedHose.equals("FS1")) {
-                                Constants.AccPersonnelPIN_FS1 = "";
-                            } else if (Constants.CurrentSelectedHose.equals("FS2")) {
-                                Constants.AccPersonnelPIN = "";
-                            } else if (Constants.CurrentSelectedHose.equals("FS3")) {
-                                Constants.AccPersonnelPIN_FS3 = "";
-                            } else if (Constants.CurrentSelectedHose.equals("FS4")) {
-                                Constants.AccPersonnelPIN_FS4 = "";
-                            }
-
-                            recreate();
-
-                        } else if (ValidationFailFor.equalsIgnoreCase("Vehicle")) {
-
-                            AppConstants.colorToastBigFont(this, ResponceText, Color.RED);
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(TAG + "  ValidateFor Vehicle" + ResponceText);
-
-                            /*AppConstants.colorToastBigFont(this, "Some thing went wrong Please try again..\n"+ResponceText, Color.RED);
-                             if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG+" Some thing went wrong Please try again..(~else if~)\n"+ResponceText);
-                            AppConstants.ClearEdittextFielsOnBack(DeviceControlActivity_Pin.this); //Clear EditText on move to welcome activity.
-                            Intent intent = new Intent(DeviceControlActivity_Pin.this, WelcomeActivity.class);
-                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                            startActivity(intent);*/
-
-                        } else {
-
-                            AppConstants.colorToastBigFont(this, ResponceText, Color.RED);
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(TAG + "  ValidateFor Else" + ResponceText);
-
-                            /*AppConstants.colorToastBigFont(this, "Some thing went wrong Please try again..\n"+ResponceText, Color.RED);
-                             if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG+" Some thing went wrong Please try again..(~else~)\n"+ResponceText);
-                            AppConstants.ClearEdittextFielsOnBack(DeviceControlActivity_Pin.this); //Clear EditText on move to welcome activity.
-                            Intent intent = new Intent(DeviceControlActivity_Pin.this, WelcomeActivity.class);
-                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                            startActivity(intent);*/
-                        }
-
-                    }
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-                   /* if (IsOtherRequire.equalsIgnoreCase("True")) {
-                        Intent intent = new Intent(AcceptPinActivity.this, AcceptOtherActivity.class);
-                        startActivity(intent);
-                    } else {
-                        AcceptServiceCall asc = new AcceptServiceCall();
-                        asc.activity = AcceptPinActivity.this;
-                        asc.checkAllFields();
-                    }*/
-        } else {
-            CommonUtils.showMessageDilaog(DeviceControlActivity_Pin.this, "Error Message", "Please enter Personnel Pin, and try again.");
-        }
-
-    }
-
-    public class CheckVehicleRequireOdometerEntryAndRequireHourEntry extends AsyncTask<Void, Void, Void> {
-
-        VehicleRequireEntity vrentity = null;
-
-        public String response = null;
-        private ProgressDialog pd;
-
-        public CheckVehicleRequireOdometerEntryAndRequireHourEntry(VehicleRequireEntity vrentity) {
-            this.vrentity = vrentity;
-        }
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            pd = new ProgressDialog(DeviceControlActivity_Pin.this);
-            pd.setMessage("Please wait...");
-            pd.setCancelable(true);
-            pd.setCancelable(false);
-            pd.show();
-        }
-
-        @Override
-        protected Void doInBackground(Void... voids) {
-
-            try {
-                ServerHandler serverHandler = new ServerHandler();
-
-                Gson gson = new Gson();
-                String jsonData = gson.toJson(vrentity);
-                String userEmail = CommonUtils.getCustomerDetails(DeviceControlActivity_Pin.this).PersonEmail;
-
-                System.out.println("jsonDatajsonDatajsonData" + jsonData);
-                //----------------------------------------------------------------------------------
-                String authString = "Basic " + AppConstants.convertStingToBase64(vrentity.IMEIUDID + ":" + userEmail + ":" + "CheckVehicleRequireOdometerEntryAndRequireHourEntry");
-                response = serverHandler.PostTextData(DeviceControlActivity_Pin.this, AppConstants.webURL, jsonData, authString);
-                //----------------------------------------------------------------------------------
-
-            } catch (Exception ex) {
-
-                CommonUtils.LogMessage("AcceptPinActivity", "CheckVehicleRequireOdometerEntryAndRequireHourEntry ", ex);
-            }
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void aVoid) {
-            super.onPostExecute(aVoid);
-            pd.dismiss();
         }
     }
 
@@ -1583,7 +1268,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                                 hideKeybord();
                                 Istimeout_Sec = false;
                                 AppConstants.ClearEdittextFielsOnBack(DeviceControlActivity_Pin.this);
-                                // ActivityHandler.GetBacktoWelcomeActivity();
+
 
                                 Intent i = new Intent(DeviceControlActivity_Pin.this, WelcomeActivity.class);
                                 i.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -1677,7 +1362,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
         return ssiteId;
     }
 
-    public void InCaseOfGateHub() {
+    public void InCaseOfGateHub(){
 
         //if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG +" InCaseOfGateHub PIN Accepted:" + etPersonnelPin.getText().toString().trim());
 
@@ -1708,6 +1393,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
         Istimeout_Sec = false;
 
 
+
         btnSave.setClickable(false);
 
         SharedPreferences sharedPrefODO = DeviceControlActivity_Pin.this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
@@ -1734,6 +1420,103 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
             asc.checkAllFields();
         }
 
+
+    }
+
+    public void checkPINvalidation(HashMap<String, String> hmap) {
+        if (hmap.size() > 0) {
+
+            offlinePersonInitialization(hmap);
+
+            String Authorizedlinks = hmap.get("Authorizedlinks");
+            String AssignedVehicles = hmap.get("AssignedVehicles");
+
+
+
+            if (!Authorizedlinks.isEmpty() || Authorizedlinks.contains(",")) {
+                boolean isAllowed = false;
+
+                String parts[] = Authorizedlinks.split(",");
+                for (String allowedId : parts) {
+                    if (AppConstants.R_SITE_ID.equalsIgnoreCase(allowedId)) {
+                        isAllowed = true;
+                        break;
+                    }
+                }
+
+                if (isAllowed) {
+
+                    boolean isAssigned = false;
+
+                    if (!AssignedVehicles.isEmpty() || AssignedVehicles.contains(",")) {
+
+                        if (AssignedVehicles.trim().equalsIgnoreCase("all")) {
+                            isAssigned = true;
+                        } else {
+                            String parts2[] = AssignedVehicles.split(",");
+                            for (String allowedId : parts2) {
+                                if (AppConstants.OFF_VEHICLE_ID.equalsIgnoreCase(allowedId)) {
+                                    isAssigned = true;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (isAssigned) {
+                            Intent ii = new Intent(DeviceControlActivity_Pin.this, DisplayMeterActivity.class);
+                            startActivity(ii);
+                        } else {
+                            AppConstants.colorToastBigFont(getApplicationContext(), "Vehicle is not assigned for this PIN", Color.RED);
+                        }
+
+
+                    } else {
+                        AppConstants.colorToastBigFont(getApplicationContext(), "Personnel is not allowed for selected Vehicle", Color.RED);
+                    }
+
+
+                } else {
+                    AppConstants.colorToastBigFont(getApplicationContext(), "Personnel is not allowed for selected Link", Color.RED);
+                }
+
+            }
+
+        } else {
+            AppConstants.colorToastBigFont(getApplicationContext(), "Personnel is not found", Color.RED);
+            onResume();
+        }
+    }
+
+    public void offlinePersonInitialization(HashMap<String, String> hmap) {
+
+        if (hmap != null && hmap.size() > 0) {
+            String PersonId = hmap.get("PersonId");
+            String PinNumber = hmap.get("PinNumber");
+            String FuelLimitPerTxn = hmap.get("FuelLimitPerTxn");
+            String FuelLimitPerDay = hmap.get("FuelLimitPerDay");
+            String FOBNumber = hmap.get("FOBNumber");
+            String RequireHours = hmap.get("RequireHours");
+
+
+            AppConstants.OFF_PERSON_PIN = PinNumber;
+
+            OfflineConstants.storeCurrentTransaction(DeviceControlActivity_Pin.this, "", "", "", "", "", PersonId, "", "");
+
+            OfflineConstants.storeFuelLimit(DeviceControlActivity_Pin.this,"","","",PersonId,FuelLimitPerTxn,FuelLimitPerDay);
+        }
+    }
+
+    public void GetBackToWelcomeActivity() {
+
+
+        AppConstants.colorToast(getApplicationContext(), "Something went wrong, Please try again", Color.RED);
+
+        Istimeout_Sec = false;
+        AppConstants.ClearEdittextFielsOnBack(DeviceControlActivity_Pin.this);
+
+        Intent i = new Intent(DeviceControlActivity_Pin.this, WelcomeActivity.class);
+        i.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        startActivity(i);
 
     }
 

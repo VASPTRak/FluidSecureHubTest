@@ -75,7 +75,7 @@
                     android:layout_height="wrap_content"
                     android:textColor="@color/black"
                     android:textAllCaps="false"
-                    android:text="Present your Access Device Below"
+                    android:text="Present your personnel Access Device Below"
                     android:textAppearance="?android:attr/textAppearanceLarge"
                     android:textSize="@dimen/go_button_text" />
                 <!--android:text="Please Hold Personnel FOB to Reader"-->
@@ -147,7 +147,7 @@
                     android:id="@+id/tv_fob_number"
                     android:gravity="left"
                     android:textStyle="bold"
-                    android:text="Access Device#:"
+                    android:text="Access Device:"
                     android:textSize="@dimen/date_text" />
 
 

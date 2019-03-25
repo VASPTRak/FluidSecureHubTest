@@ -78,7 +78,7 @@
                     android:textColor="@color/black"
                     android:textAppearance="?android:attr/textAppearanceLarge"
                     android:textAllCaps="false"
-                    android:text="Present your Access Device Below"
+                    android:text="Present your vehicle Access Device Below"
                     android:textSize="@dimen/go_button_text" />
 
                 <TextView
@@ -144,7 +144,7 @@
                     android:layout_marginLeft="20dp"
                     android:id="@+id/tv_fob_number"
                     android:gravity="left"
-                    android:text="Access Device#:"
+                    android:text="Access Device:"
                     android:textSize="@dimen/date_text" />
 
 
@@ -218,6 +218,7 @@
                 android:layout_marginRight="100dp"
                 android:layout_marginLeft="100dp"
                 android:layout_marginBottom="90dp"
+                android:orientation="vertical"
                 android:layout_gravity="center">
 
                 <Button
@@ -227,6 +228,17 @@
                     android:layout_gravity="center"
                     android:background="@color/colorFluid"
                     android:text=" Use FSTag "
+                    android:textColor="@color/white"
+                    android:textSize="@dimen/go_button_text" />
+
+                <Button
+                    android:id="@+id/btn_barcode"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:layout_gravity="center"
+                    android:background="@color/colorFluid"
+                    android:text=" Use Barcode "
                     android:textColor="@color/white"
                     android:textSize="@dimen/go_button_text" />
 

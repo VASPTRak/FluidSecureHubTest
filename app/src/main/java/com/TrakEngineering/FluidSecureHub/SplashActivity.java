@@ -33,7 +33,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.TrakEngineering.FluidSecureHub.WifiHotspot.WifiApManager;
+import com.TrakEngineering.FluidSecureHub.offline.OfflineConstants;
 import com.TrakEngineering.FluidSecureHub.server.GPSTracker;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -83,7 +83,7 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
     protected static final int REQUEST_CHECK_SETTINGS = 0x1;
 
 
-    WifiApManager wifiApManager;
+    com.TrakEngineering.FluidSecureHub.WifiHotspot.WifiApManager wifiApManager;
     ConnectivityManager connection_manager;
 
 
@@ -102,7 +102,7 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
 
         mGoogleApiClient.connect();
 
-        wifiApManager = new WifiApManager(this);
+        wifiApManager = new com.TrakEngineering.FluidSecureHub.WifiHotspot.WifiApManager(this);
         boolean permission;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             permission = Settings.System.canWrite(SplashActivity.this);
@@ -123,7 +123,22 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
 
 
         if (!AppConstants.isMobileDataAvailable(SplashActivity.this)) {
-            AppConstants.AlertDialogFinish(SplashActivity.this, "Please check your Mobile Data is On");
+            AppConstants.colorToastBigFont(getApplicationContext(), "OFFLINE MODE", Color.BLUE);
+
+            try {
+                checkPermissionTask checkPermissionTask = new checkPermissionTask();
+                checkPermissionTask.execute();
+                checkPermissionTask.get();
+
+                if (checkPermissionTask.isValue) {
+
+                    startActivity(new Intent(SplashActivity.this, WelcomeActivity.class));
+                    finish();
+
+                }
+            } catch (Exception ex) {
+                Log.e(TAG, ex.getMessage());
+            }
 
         }/*else if (!CommonUtils.isHotspotEnabled(SplashActivity.this)) {
            // AppConstants.AlertDialogFinish(SplashActivity.this, "Please enable hotspot of your device");
@@ -487,6 +502,10 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
                     int WifiChannelToUse = jsonObject.getInt("WifiChannelToUse");
                     boolean fa_data = Boolean.parseBoolean(jsonObject.getString("EnbDisHubForFA"));
 
+                    String IsOfflineAllow = jsonObject.getString("IsOfflineAllow");
+
+                    OfflineConstants.storeOfflineAccess(SplashActivity.this, IsOfflineAllow);
+
                     CommonUtils.FA_FlagSavePref(SplashActivity.this,fa_data,"FAData");
                     CommonUtils.SaveLogFlagInPref(SplashActivity.this,IsLogging,"LogRequiredFlag");//Save logging to preferances
                     storeBT_FOBDetails(BluetoothCardReader, BluetoothCardReaderMacAddress,LFBluetoothCardReader,LFBluetoothCardReaderMacAddress);
@@ -608,8 +627,7 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
             if (response != null && response.startsWith("{"))
                 actionOnResult(response);
             else
-                AppConstants.alertBigFinishActivity(SplashActivity.this,"Please check your Internet data");
-            //recreate();
+                RetryAlertDialogButtonClicked("Server connection problem...Please try it again");
         }
     }
 
@@ -630,6 +648,26 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
         );
         AlertDialog alertDialog = alertDialogBuilder.create();
         alertDialog.show();
+    }
+
+    public void RetryAlertDialogButtonClicked(String msg) {
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(msg)
+                .setCancelable(false)
+                .setPositiveButton("Exit", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        SplashActivity.this.finish();
+                    }
+                })
+                .setNegativeButton("Retry", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        recreate();
+                        dialog.cancel();
+                    }
+                });
+        AlertDialog alert = builder.create();
+        alert.show();
     }
 
 

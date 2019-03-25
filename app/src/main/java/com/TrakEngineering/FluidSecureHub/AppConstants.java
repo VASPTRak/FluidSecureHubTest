@@ -85,15 +85,39 @@ public class AppConstants {
     public static String webIP = "https://www.fluidsecure.net/"; // = "http://103.8.126.241:89/";//test
     public static String webURL = webIP + "HandlerTrak.ashx";
     public static String LoginURL = webIP + "LoginHandler.ashx";
-    // public static String webIP = "http://fluidsecure.cloudapp.net/"; //live
-    //public static String webIP = "http://103.8.126.241:93/";//New link for FS_AP
-    //public static String webIP = "http://103.8.126.241:8988/";//new for hotspot changes
+
+
+    public static String API_URL_TOKEN = webIP + "token";
+    public static String API_URL_HUB = webIP + "api/Offline/GetHub";
+    public static String API_URL_LINK = webIP + "api/Offline/GetLinks";
+    public static String API_URL_VEHICLE = webIP + "api/Offline/GetVehicles";
+    public static String API_URL_PERSONNEL = webIP + "api/Offline/GetPersonnel";
+    public static String API_URL_SYNC_TRANS = webIP + "api/Offline/OFFLineImportTransactions";
+
+
+    public static String OFF_VEHICLE_ID;
+    public static String OFF_PERSON_PIN;
+    public static String OFF_ODO_REQUIRED;
+    public static String OFF_HOUR_REQUIRED;
+    public static String OFF_CURRENT_ODO;
+    public static String OFF_CURRENT_HOUR;
+    public static String OFF_ODO_Reasonable;
+    public static String OFF_ODO_Conditions;
+    public static String OFF_ODO_Limit;
+
 
     public static String ESP32_update = "NO";
     public static String PIC_update = "NO";
     public static boolean GenerateLogs;
     public static boolean EnableFA;
 
+    public static String OFF1="Please check your Internet Data";
+
+    public static boolean IS_MOBILE_ON;
+    public static boolean IS_MOBILE_MSG;
+    public static boolean PRE_STATE_MOBILEDATA;
+
+    public static String LOG_FluidSecure_Auto = "";
     public static String Server_mesage = "Server Not Connected..!!!";
     public static String Server_Request;
     public static String Server_Response;

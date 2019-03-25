@@ -3,7 +3,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.TrakEngineering.FluidSecureHub">
 
+    <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
@@ -11,7 +13,6 @@
     <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission
         android:name="android.permission.WRITE_SETTINGS"
         tools:ignore="ProtectedPermissions" />
@@ -22,8 +23,6 @@
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
-    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
-    <uses-permission android:name="android.permission.GET_TASKS" />
 
     <permission
         android:name="android.permission.INTERACT_ACROSS_USERS_FULL"
@@ -41,6 +40,8 @@
 
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.GET_TASKS" />
 
     <supports-screens
         android:anyDensity="true"
@@ -241,7 +242,14 @@
             android:fitsSystemWindows="true"
             android:windowSoftInputMode="adjustResize" />
         <activity android:name=".SelectFSActivity" />
+        <activity
+            android:name=".Vision_scanner.BarcodeCaptureActivity"
+            android:label="Read Barcode" />
 
+        <service
+            android:name=".EddystoneScanner.FStagScannerService"
+            android:enabled="true"
+            android:exported="false"></service>
         <service
             android:name=".BackgroundServiceNew.MyService_FSNP"
             android:enabled="true"
@@ -251,6 +259,25 @@
             android:exported="false" />
         <service
             android:name=".BatteryBackgroundService"
+            android:enabled="true"
+            android:exported="true" />
+        <service
+            android:name=".offline.OffBackgroundService"
+            android:enabled="true"
+            android:exported="true" />
+        <service
+            android:name=".offline.OffTranzSyncService"
+            android:enabled="true"
+            android:exported="true" />
+        <service
+            android:name=".TLD_GattServer.DeviceControlActivity_tld"
+            android:enabled="true"
+            android:exported="true" />
+        <service
+            android:name=".TLD_GattServer.BluetoothLeService_tld"
+            android:enabled="true" />
+        <service
+            android:name=".offline.StopRunningTransactionBackgroundService"
             android:enabled="true"
             android:exported="true"></service>
     </application>

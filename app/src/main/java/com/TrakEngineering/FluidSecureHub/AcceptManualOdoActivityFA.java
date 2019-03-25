@@ -8,11 +8,13 @@ import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.TrakEngineering.FluidSecureHub.EddystoneScanner.EddystoneScannerService;
 import com.TrakEngineering.FluidSecureHub.enity.FsnpInfo;
 import com.TrakEngineering.FluidSecureHub.server.ServerHandler;
 import com.google.gson.Gson;
@@ -25,8 +27,8 @@ public class AcceptManualOdoActivityFA extends AppCompatActivity {
     TextView tv_enter_odo;
     Button btnSave,cancelAction;
     ServerHandler serverHandler = new ServerHandler();
-    String VehId = "",VehicleNumber = "";
-    private static final String TAG = "AcceptManualOdoActivityFA";
+    String VehId = "",VehicleNumber = "",InstantIdMacAddress ="",FSNPMacAddress = "";
+    private static final String TAG = "AccManualOdoActivityFA";
     ProgressDialog pd = null;
     String PreviousOdo = "", OdoLimit = "", OdometerReasonabilityConditions = "", CheckOdometerReasonable = "";
     String OdoMeter = "";
@@ -44,7 +46,8 @@ public class AcceptManualOdoActivityFA extends AppCompatActivity {
         tv_enter_odo = (TextView) findViewById(R.id.tv_enter_odo);
 
         VehId = getIntent().getStringExtra("VehicleID");
-        VehicleNumber = getIntent().getStringExtra("VehicleNumber");
+        FSNPMacAddress = getIntent().getStringExtra("FSNPMacAddress");
+        InstantIdMacAddress = getIntent().getStringExtra("InstantIdMacAddress");
 
         tv_enter_odo.setText("Enter Odometer Manually For Vehicle Number: "+VehicleNumber);
 
@@ -188,10 +191,17 @@ public class AcceptManualOdoActivityFA extends AppCompatActivity {
 
         System.out.println(TAG + "Response" + jsonData);
         //if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG +"Response" + jsonData);
-
         try {
             String serverRes = new SaveOdometerManually().execute(jsonData, authString).get();
+
             ClearOdometerScreenFlag();
+
+            Thread.sleep(1000);
+
+            //Start same transaction again
+            EddystoneScannerService obj = new EddystoneScannerService();
+            obj.StartTransactionProcess(FSNPMacAddress, InstantIdMacAddress);
+
             Intent i = new Intent(AcceptManualOdoActivityFA.this, WelcomeActivity.class);
             i.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
             startActivity(i);
@@ -252,6 +262,8 @@ public class AcceptManualOdoActivityFA extends AppCompatActivity {
 
             } catch (Exception e) {
                 e.printStackTrace();
+                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  SaveOdometerManually DoInBG Ex-"+e);
+
             }
 
             return response;
@@ -266,10 +278,15 @@ public class AcceptManualOdoActivityFA extends AppCompatActivity {
                 JSONObject jsonObj = new JSONObject(resp);
                 String ResponceMessage = jsonObj.getString(AppConstants.RES_MESSAGE);
                 String ResponceText = jsonObj.getString(AppConstants.RES_TEXT);
+                Log.i(TAG ,"  SaveOdometerManually ResponceMessage:"+ResponceMessage+" ResponceText"+ResponceText);
+                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  SaveOdometerManually ResponceMessage:"+ResponceMessage+" ResponceText"+ResponceText);
+
 
 
             } catch (Exception e) {
                 e.printStackTrace();
+                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  SaveOdometerManually OnPost Ex-");
+
             }
         }
     }

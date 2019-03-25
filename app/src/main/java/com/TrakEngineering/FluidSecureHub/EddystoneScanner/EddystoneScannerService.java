@@ -62,7 +62,7 @@ public class EddystoneScannerService extends Service {
     private static final String TAG = EddystoneScannerService.class.getSimpleName();
     int ps = 1;
     public String HTTP_URL = "", SelectedHose = "", SelectedHoseStp = "";
-    private ArrayList<String> CalledOnce = new ArrayList<>();
+    public static ArrayList<String> CalledOnce = new ArrayList<>();
 
     // …if you feel like making the log a bit noisier…
     private static boolean DEBUG_SCAN = true;
@@ -108,6 +108,7 @@ public class EddystoneScannerService extends Service {
     private static final byte TYPE_URL = 0x10;
     private static final byte TYPE_TLM = 0x20;
 
+
     //Callback interface for the UI
     public interface OnBeaconEventListener {
         void onBeaconIdentifier(String deviceAddress, int rssi, String instanceId);
@@ -130,36 +131,13 @@ public class EddystoneScannerService extends Service {
 
         startScanning();
 
-        t = new Thread() {
-
-            @Override
-            public void run() {
-                try {
-                    while (!isInterrupted()) {
-                        Thread.sleep(30000);
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                Log.i(TAG, "CalledOnce clear");
-                                if (CalledOnce != null){CalledOnce.clear();}
-                            }
-                        });
-                    }
-                } catch (InterruptedException e) {
-                }
-            }
-        };
-
-        t.start();
-
-
     }
+
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     public void onDestroy() {
         super.onDestroy();
-        t.interrupt();
         stopScanning();
     }
 
@@ -230,30 +208,33 @@ public class EddystoneScannerService extends Service {
                 .build();
 
         mBluetoothLeScanner.startScan(filters, settings, mScanCallback);
-        if (DEBUG_SCAN) Log.d(TAG, "Scanning started…");
+        if (DEBUG_SCAN) Log.d(TAG, "FSNP Scanning Service started…");
+        if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " FSNP Scanning Service started…");
     }
 
     /* Terminate scanning */
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private void stopScanning() {
         mBluetoothLeScanner.stopScan(mScanCallback);
-        if (DEBUG_SCAN) Log.d(TAG, "Scanning stopped…");
+        if (DEBUG_SCAN) Log.d(TAG, "FSNP Scanning Service stopped…");
+        if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " FSNP Scanning Service stopped…");
     }
 
     /* Handle UID packet discovery on the main thread */
     private void processUidPacket(String deviceAddress, int rssi, String id) {
-        if (DEBUG_SCAN) {
-            Log.d(TAG, "Eddystone--(" + deviceAddress + ") id = " + id);
-        }
 
+        //if (DEBUG_SCAN)Log.d(TAG, "Eddystone--(" + deviceAddress + ") id = " + id);
         String Trim_id = id.replaceAll(":","").toLowerCase().trim();
 
         //UseFobkey
-        UseFobkey(rssi,Trim_id);
+        //UseFobkey(rssi,Trim_id);
 
         //FA Logic
         FSNPMacAddress = deviceAddress;
         InstantIdMacAddress = Trim_id;
+
+//        if (DEBUG_SCAN) Log.d(TAG, "FSNP Scan result: FSNPMacAddress"+FSNPMacAddress+" InstantIdMacAddress:"+InstantIdMacAddress);
+//        if (AppConstascan_typents.GenerateLogs)AppConstants.WriteinFile(TAG + "FSNP Scan result: FSNPMacAddress"+FSNPMacAddress+" InstantIdMacAddress:"+InstantIdMacAddress);
 
         StartTransactionProcess(FSNPMacAddress, InstantIdMacAddress);
 
@@ -345,6 +326,7 @@ public class EddystoneScannerService extends Service {
     public void StartTransactionProcess(String fsnpMacAddress, String instantIdMacAddress) {
 
         try {
+            if (DEBUG_SCAN) Log.d(TAG, "Start transaction FSNP_MAC: "+fsnpMacAddress+" FSTagMac: "+instantIdMacAddress);
 
             boolean SCall = IsServerCallRequired(fsnpMacAddress);
             if (SCall == true) {
@@ -363,24 +345,23 @@ public class EddystoneScannerService extends Service {
 
                 } else {
 
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + "  StartTransactionProcess ServerCallRequired");
+                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " ServerCallRequired for FSNP_MAC: "+fsnpMacAddress+" FSTagMac: "+instantIdMacAddress);
                     Log.i(TAG, " Server call");
+                    AppConstants.LOG_FluidSecure_Auto = AppConstants.LOG_FluidSecure_Auto+"\n"+"Server call";
                     CalledOnce.add(fsnpMacAddress);
                     CheckFSNPDetails(authString, IMEI_UDID, Email, FSNPMacAddress, FSTagMacAddress);
 
                 }
 
-
             } else {
 
                 Log.i(TAG, " Server call Not required");
+                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " Server call Not required "+fsnpMacAddress+" FSTagMac: "+instantIdMacAddress);
             }
 
         } catch (Exception e) {
             e.printStackTrace();
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "  StartTransactionProcess" + e);
+            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  StartTransactionProcess" + e);
         }
 
     }
@@ -516,10 +497,10 @@ public class EddystoneScannerService extends Service {
 
                         } catch (NullPointerException e) {
                             e.printStackTrace();
+                            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  CheckFSNPDetails Ex-" + e);
                         }
 
                         Log.i(TAG, "\nCheckFSNPDetails Response: " + response.body().getResponceMessage() + "\nText: " + response.body().getResponceText() + "\nVehicleId: " + response.body().getVehicleId());
-
 
                         // if (response.body().getVehicleId() != null && !response.body().getVehicleId().isEmpty()) {}
                         Log.i(TAG, " CheckFSNPDetails Response success");
@@ -533,7 +514,9 @@ public class EddystoneScannerService extends Service {
 
                     } else {
 
-                        Log.i(TAG, " Incase of response fail");
+                        Log.i(TAG, " Response fail");
+                        if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " Response fail"+response.body().getResponceText());
+                        //AppConstants.LOG_FluidSecure_Auto = //AppConstants.LOG_FluidSecure_Auto+"\n"+TAG + " Response fail"+response.body().getResponceText();
 
                         for (int i = 0; i < AppConstants.DetailsListOfConnectedDevices.size(); i++) {
 
@@ -553,8 +536,10 @@ public class EddystoneScannerService extends Service {
                                         HTTP_URL = "http://" + IpAddress + ":80/";
                                         //SelectedHose = String.valueOf(AppConstants.DetailsServerSSIDList.indexOf("MacAddress"));
                                         SelectedHose = String.valueOf(p);
+                                        Constants.FA_Message = RespMsg + " " + RespTxt + " " + fsnpName;
+                                        AppConstants.colorToast(EddystoneScannerService.this, RespMsg + " " + RespTxt + " " + fsnpName, Color.RED);
 
-                                        if (!fsnpName.isEmpty()) {
+                                        /*if (!fsnpName.isEmpty()) {
 
                                             Constants.FA_Message = RespMsg + " " + RespTxt + " " + fsnpName;
                                             ///   if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  CheckFSNPDetails Response fail msg: "+RespMsg + " " + RespTxt + " " + fsnpName);
@@ -563,8 +548,7 @@ public class EddystoneScannerService extends Service {
                                         if (ps < 3) {
                                             AppConstants.colorToast(EddystoneScannerService.this, RespMsg + " " + RespTxt + " " + fsnpName, Color.RED);
                                             ps++;
-                                        }
-
+                                        }*/
 
                                     }
                                 }
@@ -580,16 +564,16 @@ public class EddystoneScannerService extends Service {
                 public void onFailure(Call<ServerResponse> call, Throwable t) {
                     // handle execution failures like no internet connectivity
                     BusProvider.getInstance().post(new ErrorEvent(-2, t.getMessage()));
-                    Log.i(TAG, "Something went wrong in retrofit call --handle execution failures like no internet connectivity.");
-                    //    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  Something went wrong in retrofit call --handle execution failures like no internet connectivity.");
+                    Log.i(TAG, "Something went wrong in retrofit call No internet connectivity or server connection fail.");
+                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  Something went wrong in retrofit call No internet connectivity or server connection fail.");
+                    //AppConstants.LOG_FluidSecure_Auto = //AppConstants.LOG_FluidSecure_Auto+"\n"+TAG + " Something went wrong in retrofit call No internet connectivity or server connection fail.";
                 }
             });
 
 
         } catch (Exception e) {
             e.printStackTrace();
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "  CheckFSNPDetails" + e);
+            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  CheckFSNPDetails Ex-" + e);
         }
     }
 
@@ -599,7 +583,7 @@ public class EddystoneScannerService extends Service {
                                     String FOBNumber, String Company, String Location, String PersonName, String PrinterName, String PrinterMacAddress, String VehicleSum,
                                     String DeptSum, String VehPercentage, String DeptPercentage, String SurchargeType, String ProductPrice, String parameter, String FSNPMacAddress, String RequireManualOdo, String VehicleNumber, String IsTLDCall,String EnablePrinter) {
 
-
+        long sqlite_id = 0;
         //get ip address of current selected hose to form url
         try {
 
@@ -616,12 +600,14 @@ public class EddystoneScannerService extends Service {
                         String MacAddress = AppConstants.DetailsServerSSIDList.get(p).get("MacAddress");
                         String fsnpAddress = AppConstants.DetailsServerSSIDList.get(p).get("FSNPMacAddress");
                         String fsnpName = AppConstants.DetailsServerSSIDList.get(p).get("FSAntenna2");
+                        //FSNPMacAddress
 
-                        if (MacAddress.equalsIgnoreCase(Mac_Address) )//&& FSNPMacAddress.equalsIgnoreCase(fsnpAddress) temp cmt
+                        if (MacAddress.equalsIgnoreCase(Mac_Address) && BLE_MacAddress.equalsIgnoreCase(fsnpAddress))//&& FSNPMacAddress.equalsIgnoreCase(fsnpAddress) temp cmt
                         {
                             HTTP_URL = "http://" + IpAddress + ":80/";
                             //SelectedHose = String.valueOf(AppConstants.DetailsServerSSIDList.indexOf("MacAddress"));
                             SelectedHose = String.valueOf(p);
+                            break;
 
                         }
                     }
@@ -630,147 +616,206 @@ public class EddystoneScannerService extends Service {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "  ProcessFSNPDtails" + e);
+            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  ProcessFSNPDtails" + e);
         }
 
-        //Save response data to sharedpreferance
-        SaveDataToSharedPreferances(serverRes, RespTxt, SelectedHose, VehicleId, MinLimit, SiteId, PulseRatio, PersonId, FuelTypeId, PhoneNumber, ServerDate,
-                PumpOnTime, PumpOffTime, PulserStopTime, TransactionId, FirmwareVersion, FilePath,
-                FOBNumber, Company, Location, PersonName, PrinterName, PrinterMacAddress, VehicleSum,
-                DeptSum, VehPercentage, DeptPercentage, SurchargeType, ProductPrice, parameter, IsTLDCall,EnablePrinter);
+        if (!SelectedHose.equalsIgnoreCase("")) {
 
-        if (SelectedHose.equalsIgnoreCase("0") && !HTTP_URL.equals("") && Constants.FS_1STATUS.equalsIgnoreCase("FREE")) {
-
-            if (RequireManualOdo.equalsIgnoreCase("Y")) {
-
-                if (Constants.ManualOdoScreenFree.equalsIgnoreCase("Yes")) {
-                    Log.i(TAG, " Enter Odometer manually");
-                    //    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  Enter Odometer manually");
-                    Constants.FS_1OdoScreen = "BUSY";
-                    Constants.ManualOdoScreenFree = "No";
-                    Toast.makeText(getApplicationContext(), "Direct to AcceptManualOdoActivityFA", Toast.LENGTH_SHORT).show();
-                    Intent intent = new Intent(EddystoneScannerService.this, AcceptManualOdoActivityFA.class);
-                    intent.putExtra("VehicleID", VehicleId);
-                    intent.putExtra("VehicleNumber", VehicleNumber);
-                    startActivity(intent);
-
-                } else {
-                    Log.i(TAG, " Manuall Odometer screen busy");
-                    //    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  Manuall Odometer screen busy");
-                }
+            //Save response data to sharedpreferance
+            SaveDataToSharedPreferances(serverRes, RespTxt, SelectedHose, VehicleId, MinLimit, SiteId, PulseRatio, PersonId, FuelTypeId, PhoneNumber, ServerDate,
+                    PumpOnTime, PumpOffTime, PulserStopTime, TransactionId, FirmwareVersion, FilePath,
+                    FOBNumber, Company, Location, PersonName, PrinterName, PrinterMacAddress, VehicleSum,
+                    DeptSum, VehPercentage, DeptPercentage, SurchargeType, ProductPrice, parameter, IsTLDCall, EnablePrinter);
 
 
-            } else {
+            //-------------------------Begin Saperate fun-----------------------------------
 
+            if (SelectedHose.equalsIgnoreCase("0") && !HTTP_URL.equals("") && Constants.FS_1STATUS.equalsIgnoreCase("FREE")) {
+
+                Log.i(TAG, " SelectedHose 0th position");
                 if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "  Started BackgroundService_AP_PIPE for hose: " + SelectedHose);
-                Constants.FS_1STATUS = "BUSY";
-                Intent serviceIntent = new Intent(EddystoneScannerService.this, BackgroundService_AP_PIPE.class);
-                serviceIntent.putExtra("HTTP_URL", HTTP_URL);
-                startService(serviceIntent);
+                    AppConstants.WriteinFile(TAG + " SelectedHose 0th position");
 
-            }
 
-        } else if (SelectedHose.equalsIgnoreCase("1") && !HTTP_URL.equals("") && Constants.FS_2STATUS.equalsIgnoreCase("FREE")) {
+                if (RequireManualOdo.equalsIgnoreCase("Y")) {
 
-            if (RequireManualOdo.equalsIgnoreCase("Y")) {
+                    if (Constants.ManualOdoScreenFree.equalsIgnoreCase("Yes")) {
+                        Log.i(TAG, " Enter Odometer manually");
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + "  Enter Odometer manually");
+                        //AppConstants.LOG_FluidSecure_Auto = //AppConstants.LOG_FluidSecure_Auto+"\n"+TAG + " Enter Odometer manually";
 
-                if (Constants.ManualOdoScreenFree.equalsIgnoreCase("Yes")) {
-                    Log.i(TAG, " Enter Odometer manually");
-                    //   if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  Enter Odometer manually");
-                    Constants.FS_2OdoScreen = "BUSY";
-                    Constants.ManualOdoScreenFree = "No";
-                    Toast.makeText(getApplicationContext(), "Direct to AcceptManualOdoActivityFA", Toast.LENGTH_SHORT).show();
-                    Intent intent = new Intent(EddystoneScannerService.this, AcceptManualOdoActivityFA.class);
-                    intent.putExtra("VehicleID", VehicleId);
-                    intent.putExtra("VehicleNumber", VehicleNumber);
-                    startActivity(intent);
+                        Constants.FS_1OdoScreen = "BUSY";
+                        Constants.ManualOdoScreenFree = "No";
+                        Toast.makeText(getApplicationContext(), "Direct to AcceptManualOdoActivityFA", Toast.LENGTH_SHORT).show();
+                        Intent intent = new Intent(EddystoneScannerService.this, AcceptManualOdoActivityFA.class);
+                        intent.putExtra("VehicleID", VehicleId);
+                        intent.putExtra("VehicleNumber", VehicleNumber);
+                        intent.putExtra("FSNPMacAddress", FSNPMacAddress);
+                        intent.putExtra("InstantIdMacAddress", InstantIdMacAddress);
+                        startActivity(intent);
+
+                    } else {
+                        Log.i(TAG, " Manuall Odometer screen busy");
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + "  Manuall Odometer screen busy");
+                        //AppConstants.LOG_FluidSecure_Auto = //AppConstants.LOG_FluidSecure_Auto+"\n"+TAG + " Manuall Odometer screen busy";
+                    }
+
 
                 } else {
-                    Log.i(TAG, " Manuall Odometer screen busy");
-                    //    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  Manuall Odometer screen busy");
+
+                    Log.i(TAG, " Started BackgroundService_AP_PIPE for hose: " + SelectedHose);
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + "  Started BackgroundService_AP_PIPE for hose: " + SelectedHose);
+                    Constants.FS_1STATUS = "BUSY";
+                    Intent serviceIntent = new Intent(EddystoneScannerService.this, BackgroundService_AP_PIPE.class);
+                    serviceIntent.putExtra("HTTP_URL", HTTP_URL);
+                    serviceIntent.putExtra("sqlite_id", sqlite_id);
+                    startService(serviceIntent);
+
+                }
+
+            } else if (SelectedHose.equalsIgnoreCase("1") && !HTTP_URL.equals("") && Constants.FS_2STATUS.equalsIgnoreCase("FREE")) {
+
+                Log.i(TAG, " SelectedHose 1th position");
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " SelectedHose 1th position");
+
+                if (RequireManualOdo.equalsIgnoreCase("Y")) {
+
+                    if (Constants.ManualOdoScreenFree.equalsIgnoreCase("Yes")) {
+                        Log.i(TAG, " Enter Odometer manually");
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + "  Enter Odometer manually");
+                        Constants.FS_2OdoScreen = "BUSY";
+                        Constants.ManualOdoScreenFree = "No";
+                        Toast.makeText(getApplicationContext(), "Direct to AcceptManualOdoActivityFA", Toast.LENGTH_SHORT).show();
+                        Intent intent = new Intent(EddystoneScannerService.this, AcceptManualOdoActivityFA.class);
+                        intent.putExtra("VehicleID", VehicleId);
+                        intent.putExtra("VehicleNumber", VehicleNumber);
+                        intent.putExtra("FSNPMacAddress", FSNPMacAddress);
+                        intent.putExtra("InstantIdMacAddress", InstantIdMacAddress);
+                        startActivity(intent);
+
+                    } else {
+                        Log.i(TAG, " Manuall Odometer screen busy");
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + "  Manuall Odometer screen busy");
+
+                    }
+
+
+                } else {
+
+
+                    Log.i(TAG, " Started BackgroundService_AP for hose: " + SelectedHose);
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + "  Started BackgroundService_AP for hose: " + SelectedHose);
+                    SelectedHose = "";
+                    Constants.FS_2STATUS = "BUSY";
+                    Intent serviceIntent = new Intent(EddystoneScannerService.this, BackgroundService_AP.class);
+                    serviceIntent.putExtra("HTTP_URL", HTTP_URL);
+                    serviceIntent.putExtra("sqlite_id", sqlite_id);
+                    startService(serviceIntent);
 
                 }
 
 
-            } else {
+            } else if (SelectedHose.equalsIgnoreCase("2") && !HTTP_URL.equals("") && Constants.FS_3STATUS.equalsIgnoreCase("FREE")) {
 
-                SelectedHose = "";
-                //   if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  Started BackgroundService_AP for hose: "+SelectedHose);
-                Constants.FS_2STATUS = "BUSY";
-                Intent serviceIntent = new Intent(EddystoneScannerService.this, BackgroundService_AP.class);
-                serviceIntent.putExtra("HTTP_URL", HTTP_URL);
-                startService(serviceIntent);
+                Log.i(TAG, " SelectedHose 2nd position");
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " SelectedHose 2nd position");
 
-            }
+                if (RequireManualOdo.equalsIgnoreCase("Y")) {
 
+                    if (Constants.ManualOdoScreenFree.equalsIgnoreCase("Yes")) {
+                        Log.i(TAG, " Enter Odometer manually");
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + "  Enter Odometer manually");
+                        Constants.FS_3OdoScreen = "BUSY";
+                        Constants.ManualOdoScreenFree = "No";
+                        Toast.makeText(getApplicationContext(), "Direct to AcceptManualOdoActivityFA", Toast.LENGTH_SHORT).show();
+                        Intent intent = new Intent(EddystoneScannerService.this, AcceptManualOdoActivityFA.class);
+                        intent.putExtra("VehicleID", VehicleId);
+                        intent.putExtra("VehicleNumber", VehicleNumber);
+                        intent.putExtra("FSNPMacAddress", FSNPMacAddress);
+                        intent.putExtra("InstantIdMacAddress", InstantIdMacAddress);
+                        startActivity(intent);
 
-        } else if (SelectedHose.equalsIgnoreCase("2") && !HTTP_URL.equals("") && Constants.FS_3STATUS.equalsIgnoreCase("FREE")) {
-
-            if (RequireManualOdo.equalsIgnoreCase("Y")) {
-
-                if (Constants.ManualOdoScreenFree.equalsIgnoreCase("Yes")) {
-                    Log.i(TAG, " Enter Odometer manually");
-                    //    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  Enter Odometer manually");
-                    Constants.FS_3OdoScreen = "BUSY";
-                    Constants.ManualOdoScreenFree = "No";
-                    Toast.makeText(getApplicationContext(), "Direct to AcceptManualOdoActivityFA", Toast.LENGTH_SHORT).show();
-                    Intent intent = new Intent(EddystoneScannerService.this, AcceptManualOdoActivityFA.class);
-                    intent.putExtra("VehicleID", VehicleId);
-                    intent.putExtra("VehicleNumber", VehicleNumber);
-                    startActivity(intent);
-
-                } else {
-                    Log.i(TAG, " Manuall Odometer screen busy");
-                    //   if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  Manuall Odometer screen busy");
-                }
-
-            } else {
-
-                //    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  Started BackgroundService_FS_UNIT_3 for hose: "+SelectedHose);
-                Constants.FS_3STATUS = "BUSY";
-                Intent serviceIntent = new Intent(EddystoneScannerService.this, BackgroundService_FS_UNIT_3.class);
-                serviceIntent.putExtra("HTTP_URL", HTTP_URL);
-                startService(serviceIntent);
-
-            }
-
-
-        } else if (SelectedHose.equalsIgnoreCase("3") && !HTTP_URL.equals("") && Constants.FS_4STATUS.equalsIgnoreCase("FREE")) {
-
-
-            if (RequireManualOdo.equalsIgnoreCase("Y")) {
-
-                if (Constants.ManualOdoScreenFree.equalsIgnoreCase("Yes")) {
-                    Log.i(TAG, " Enter Odometer manually");
-                    //     if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  Enter Odometer manually");
-                    Constants.FS_4OdoScreen = "BUSY";
-                    Constants.ManualOdoScreenFree = "No";
-                    Toast.makeText(getApplicationContext(), "Direct to AcceptManualOdoActivityFA", Toast.LENGTH_SHORT).show();
-                    Intent intent = new Intent(EddystoneScannerService.this, AcceptManualOdoActivityFA.class);
-                    intent.putExtra("VehicleID", VehicleId);
-                    intent.putExtra("VehicleNumber", VehicleNumber);
-                    startActivity(intent);
+                    } else {
+                        Log.i(TAG, " Manuall Odometer screen busy");
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + "  Manuall Odometer screen busy");
+                    }
 
                 } else {
-                    Log.i(TAG, " Manuall Odometer screen busy");
-                    //    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  Manuall Odometer screen busy");
+
+                    Log.i(TAG, " Started BackgroundService_FS_UNIT_3 for hose: " + SelectedHose);
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + "  Started BackgroundService_FS_UNIT_3 for hose: " + SelectedHose);
+                    Constants.FS_3STATUS = "BUSY";
+                    Intent serviceIntent = new Intent(EddystoneScannerService.this, BackgroundService_FS_UNIT_3.class);
+                    serviceIntent.putExtra("HTTP_URL", HTTP_URL);
+                    serviceIntent.putExtra("sqlite_id", sqlite_id);
+                    startService(serviceIntent);
+
                 }
 
 
+            } else if (SelectedHose.equalsIgnoreCase("3") && !HTTP_URL.equals("") && Constants.FS_4STATUS.equalsIgnoreCase("FREE")) {
+
+                Log.i(TAG, " SelectedHose 3rd position");
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " SelectedHose 0th position");
+
+                if (RequireManualOdo.equalsIgnoreCase("Y")) {
+
+                    if (Constants.ManualOdoScreenFree.equalsIgnoreCase("Yes")) {
+                        Log.i(TAG, " Enter Odometer manually");
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + "  Enter Odometer manually");
+                        Constants.FS_4OdoScreen = "BUSY";
+                        Constants.ManualOdoScreenFree = "No";
+                        Toast.makeText(getApplicationContext(), "Direct to AcceptManualOdoActivityFA", Toast.LENGTH_SHORT).show();
+                        Intent intent = new Intent(EddystoneScannerService.this, AcceptManualOdoActivityFA.class);
+                        intent.putExtra("VehicleID", VehicleId);
+                        intent.putExtra("VehicleNumber", VehicleNumber);
+                        intent.putExtra("FSNPMacAddress", FSNPMacAddress);
+                        intent.putExtra("InstantIdMacAddress", InstantIdMacAddress);
+                        startActivity(intent);
+
+                    } else {
+                        Log.i(TAG, " Manuall Odometer screen busy");
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + "  Manuall Odometer screen busy");
+                    }
+
+
+                } else {
+
+                    Log.i(TAG, " Started BackgroundService_FS_UNIT_4 for hose: " + SelectedHose);
+                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  Started BackgroundService_FS_UNIT_4 for hose: " + SelectedHose);
+                    Constants.FS_4STATUS = "BUSY";
+                    Intent serviceIntent = new Intent(EddystoneScannerService.this, BackgroundService_FS_UNIT_4.class);
+                    serviceIntent.putExtra("HTTP_URL", HTTP_URL);
+                    serviceIntent.putExtra("sqlite_id", sqlite_id);
+                    startService(serviceIntent);
+
+                }
+
             } else {
-
-                //   if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  Started BackgroundService_FS_UNIT_4 for hose: "+SelectedHose);
-                Constants.FS_4STATUS = "BUSY";
-                Intent serviceIntent = new Intent(EddystoneScannerService.this, BackgroundService_FS_UNIT_4.class);
-                serviceIntent.putExtra("HTTP_URL", HTTP_URL);
-                startService(serviceIntent);
-
+                Log.i(TAG, " Something went wrong in FA Hose selection or Forming http url");
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " Something went wrong in FA Hose selection or Forming http url");
             }
 
-        } else {
-            Log.i(TAG, " Something went wrong in FA Hose selection or Forming http url");
+            //-------------------------End Saperate fun-----------------------------------
+        }else{
+
+            Log.i(TAG, " Something went wrong in hose Selection..Please check configuration");
+            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " Something went wrong in hose Selection..Please check configuration");
         }
 
         return null;
@@ -957,40 +1002,17 @@ public class EddystoneScannerService extends Service {
 
             } catch (Exception e) {
                 e.printStackTrace();
+                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " SaveDataToSharedPreferances Ex"+e);
+
             }
+
+        }else{
+
+            Log.i(TAG, " SaveDataToSharedPreferances serverRes null");
+            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " SaveDataToSharedPreferances serverRes null");
 
         }
         return pinNumber;
-    }
-
-    private void UseFobkey(int rssi, String id){
-
-        boolean AlreadyPresent = true;
-        HashMap<String, String> map = new HashMap<>();
-        //map.put("BleName", device.getName());
-        map.put("BleMacAddress", id);
-        map.put("BleRssi", String.valueOf(rssi));
-
-        if (WelcomeActivity.ListOfBleDevices.size() != 0) {
-
-            for (int p = 0; p < WelcomeActivity.ListOfBleDevices.size(); p++) {
-
-                String BleMacAddr = WelcomeActivity.ListOfBleDevices.get(p).get("BleMacAddress");
-                if (id.equalsIgnoreCase(BleMacAddr)) {
-                    AlreadyPresent = false;
-                }
-            }
-
-        } else {
-            Log.i(TAG, "List not empty");
-        }
-
-
-        if (AlreadyPresent) {
-            WelcomeActivity.ListOfBleDevices.add(map);
-        }
-
-
     }
 
 }

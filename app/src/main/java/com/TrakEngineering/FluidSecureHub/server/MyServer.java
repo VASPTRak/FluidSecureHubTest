@@ -85,16 +85,26 @@ public class MyServer extends NanoHTTPD {
             //String protocallVersion =  ;
             //AppConstants.Header_data = "POST: " + Post + "\nHost: " + host + "\nFSTag: " + FSTag + "\nFirmware version: " + FirmwareVersion + "\nContentLength: " + ContentLength+"\nVIN: "+VIN+"\nODOK: "+ODOK;
 
-            AppConstants.Header_data = "POST: " + Post + "\nHost: " + host +"\nVIN: "+VIN+"\nODOK: "+ODOK + "\nFSTag: " + FSTag + "\nFirmware version: " + FirmwareVersion + "\nContentLength: " + ContentLength;
-            //if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  HttpServer Header_data " + AppConstants.Header_data);
-
             Integer contentLength = Integer.parseInt(session.getHeaders().get("content-length"));
             byte[] buffer = new byte[contentLength];
             session.getInputStream().read(buffer, 0, contentLength);
             Log.i(TAG," RequestBody: " + new String(buffer));
             fsvmData = new String(buffer);
+
+           /* if (fsvmData != null && fsvmData.contains("VIN=")){
+
+                String str1[] = fsvmData.split(",");
+                String _4 = str1[3];
+                VIN = "";//_4.replace("VIN=","").trim();
+
+            }*/
+
             AppConstants.Server_Request = "FsvmData:" + fsvmData + "\nData in param:  " + A;
             //if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  HttpServer Server_Reques " + AppConstants.Server_Request);
+
+            AppConstants.Header_data = "POST: " + Post + "\nHost: " + host +"\nVIN: "+VIN+"\nODOK: "+ODOK + "\nFSTag: " + FSTag + "\nFirmware version: " + FirmwareVersion + "\nContentLength: " + ContentLength;
+            //if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  HttpServer Header_data " + AppConstants.Header_data);
+
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -105,7 +115,8 @@ public class MyServer extends NanoHTTPD {
 
         try {
 
-            String xyz = "+{FSVMOBD2.asm082318a,BV=BB,PE=1376/1375,OBD=4,VIN=JTEBU5J7PRAKASH,RPM=0B,SPD=00,ODOK=001376,HRS=000010,MIL=0,PC=06,C31=1376,C05=7E,C10=0000002E00000000000000000000005FC0000ED90064BB004BAA00000000000000000000011F1F40199CC0289516F424502490B3C600002040100?\"}}";
+            String xyz = "+{FSVMOBD2.asm082318a,BV=BB,PE=1376/1375,OBD=4,VIN=,RPM=0B,SPD=00,ODOK=001376,HRS=000010,MIL=0,PC=06,C31=1376,C05=7E,C10=0000002E00000000000000000000005FC0000ED90064BB004BAA00000000000000000000011F1F40199CC0289516F424502490B3C600002040100?\"}}";
+
             Log.i(TAG," FsvmData:" + fsvmData);
             FsvmInfo objEntityClass = new FsvmInfo();
             objEntityClass.IMEIUDID = AppConstants.getIMEI(ctx);
@@ -126,13 +137,16 @@ public class MyServer extends NanoHTTPD {
             String userEmail = CommonUtils.getCustomerDetailsCC(ctx).PersonEmail;
             String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(ctx) + ":" + userEmail + ":" + "VINAuthorization");
 
-            Log.i(TAG," Response" + jsonData);
+            Log.i(TAG," NanoHTTPD serve response jsonData:" + jsonData);
+            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  NanoHTTPD serve response jsonData:"+jsonData);
+
 
             try {
 
                 String response = new  SaveFsvmDataToServer().execute(jsonData, authString).get();
-
                 Log.i(TAG,"SaveFsvmDataToServer_Response" + response);
+                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " SaveFsvmDataToServer_Response" + response);
+
                 if (!response.equals(null) || !response.equals("")){
 
                     JSONObject jsonObject = new JSONObject(response);

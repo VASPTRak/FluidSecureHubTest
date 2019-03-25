@@ -7,6 +7,7 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.IntentSender;
 import android.content.SharedPreferences;
 import android.graphics.Color;
@@ -38,6 +39,9 @@ import com.TrakEngineering.FluidSecureHub.enity.RenameHose;
 import com.TrakEngineering.FluidSecureHub.enity.StatusForUpgradeVersionEntity;
 import com.TrakEngineering.FluidSecureHub.enity.TrazComp;
 import com.TrakEngineering.FluidSecureHub.enity.UpgradeVersionEntity;
+import com.TrakEngineering.FluidSecureHub.offline.EntityOffTranz;
+import com.TrakEngineering.FluidSecureHub.offline.OffDBController;
+import com.TrakEngineering.FluidSecureHub.offline.OfflineConstants;
 import com.TrakEngineering.FluidSecureHub.server.ServerHandler;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -108,7 +112,12 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
     Socket socketFS = new Socket();
     String consoleString = "", outputQuantity = "0";
     boolean stopTimer = true;
+
     DBController controller = new DBController(DisplayMeterActivity.this);
+    OffDBController offcontroller = new OffDBController(DisplayMeterActivity.this);
+
+    private NetworkReceiver receiver = new NetworkReceiver();
+
     String VehicleId, PhoneNumber, PersonId, PulseRatio, MinLimit, FuelTypeId, ServerDate, IntervalToStopFuel;
     double minFuelLimit = 0, numPulseRatio = 0;
     long stopAutoFuelSeconds = 0;
@@ -193,6 +202,9 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
     ConnectionDetector cd = new ConnectionDetector(DisplayMeterActivity.this);
 
+
+    long sqlite_id = 0;
+
     @Override
     protected void onPostResume() {
         super.onPostResume();
@@ -243,6 +255,17 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
         InItGUI();
         tvWifiList = (TextView) findViewById(R.id.tvWifiList);
+
+
+        //offline-----------start
+        EntityOffTranz authEntityClass = OfflineConstants.getCurrentTransaction(DisplayMeterActivity.this);
+        authEntityClass.PersonPin = AppConstants.OFF_PERSON_PIN;
+
+        sqlite_id = offcontroller.insertOfflineTransactions(authEntityClass);
+
+        AppConstants.clearSharedPrefByName(DisplayMeterActivity.this, "storeCurrentTransaction");
+
+        //offline-----------end
 
         SharedPreferences sharedPrefODO = DisplayMeterActivity.this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
         IsOdoMeterRequire = sharedPrefODO.getString(AppConstants.IsOdoMeterRequire, "");
@@ -429,6 +452,11 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
         //Connect to bluetoothPrinter
 //        new SetBTConnectionPrinter().execute();
+
+        // Registers BroadcastReceiver to track network connection changes.
+        IntentFilter ifilter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
+        receiver = new NetworkReceiver();
+        this.registerReceiver(receiver, ifilter);
 
 
     }
@@ -759,7 +787,16 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                 btnStart.setClickable(false);
                 btnStart.setBackgroundColor(Color.parseColor("#F88800"));
 
-                StartbuttonFunctionality();
+                if (cd.isConnectingToInternet()) {
+                    StartbuttonFunctionality();
+                } else {
+                    if (OfflineConstants.isOfflineAccess(DisplayMeterActivity.this)) {
+                        StartbuttonFunctionality();
+                    } else {
+                        AppConstants.colorToastBigFont(getApplicationContext(), AppConstants.OFF1, Color.RED);
+                    }
+                }
+
 
                 break;
 
@@ -2421,6 +2458,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
                 Intent serviceIntent = new Intent(DisplayMeterActivity.this, BackgroundService_AP_PIPE.class);
                 serviceIntent.putExtra("HTTP_URL", HTTP_URL);
+                serviceIntent.putExtra("sqlite_id", sqlite_id);
                 startService(serviceIntent);
 
                 Intent i = new Intent(DisplayMeterActivity.this, WelcomeActivity.class);
@@ -2433,6 +2471,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
                 Intent serviceIntent = new Intent(DisplayMeterActivity.this, BackgroundService_AP.class);
                 serviceIntent.putExtra("HTTP_URL", HTTP_URL);
+                serviceIntent.putExtra("sqlite_id", sqlite_id);
                 startService(serviceIntent);
 
                 Intent i = new Intent(DisplayMeterActivity.this, WelcomeActivity.class);
@@ -2444,6 +2483,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
                 Intent serviceIntent = new Intent(DisplayMeterActivity.this, BackgroundService_FS_UNIT_3.class);
                 serviceIntent.putExtra("HTTP_URL", HTTP_URL);
+                serviceIntent.putExtra("sqlite_id", sqlite_id);
                 startService(serviceIntent);
 
                 Intent i = new Intent(DisplayMeterActivity.this, WelcomeActivity.class);
@@ -2455,6 +2495,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
                 Intent serviceIntent = new Intent(DisplayMeterActivity.this, BackgroundService_FS_UNIT_4.class);//change background service to fsunite3
                 serviceIntent.putExtra("HTTP_URL", HTTP_URL);
+                serviceIntent.putExtra("sqlite_id", sqlite_id);
                 startService(serviceIntent);
 
                 Intent i = new Intent(DisplayMeterActivity.this, WelcomeActivity.class);
@@ -2465,7 +2506,8 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
         } catch (Exception e) {
             e.printStackTrace();
-            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " StartbuttonFunctionality " +e);
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + " StartbuttonFunctionality " + e);
         }
 
     }
@@ -3093,7 +3135,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                 System.out.println(result);
 
 
-                AppConstants.WriteinFile(TAG + "  cmtxtnid10 " + resp);
+                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  cmtxtnid10 " + resp);
 
                 arrayList = new ArrayList<>();
 
@@ -3129,7 +3171,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
                     String json10txn = gs.toJson(ety);
                     System.out.println("cmtxtnid_10_record----" + json10txn);
-                    AppConstants.WriteinFile(TAG + "  txn json " + json10txn);
+                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  txn json " + json10txn);
 
 
                     System.out.println("storeCmtxtnid_10_record" + WelcomeActivity.SelectedItemPosFor10Txn);
@@ -3151,4 +3193,12 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
         }
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        if (receiver != null) {
+            this.unregisterReceiver(receiver);
+        }
+    }
 }

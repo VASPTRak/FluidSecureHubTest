@@ -61,6 +61,7 @@ public class Constants {
     public static final String PREF_Log_Data = "LogData";
     public static final String PREF_FA_Data = "FAData";
     public static final String PREF_VehiFuel = "SaveVehiFuelInPref";
+    public static final String PREF_TldDetails = "SaveTldDetailsInPref";
     public static final String PREF_FS_UPGRADE = "SaveFSUpgrade";
 
     public static String CurrentSelectedHose = "";
