@@ -162,7 +162,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     private double longitude = 0;
     TextView tvSSIDName, tv_NFS1, tv_NFS2, tv_NFS3, tv_NFS4, tv_FA_message;//tv_fs1_pulse
     TextView tv_request, tv_response, tv_Display_msg, tv_file_address;
-    LinearLayout linearHose, linear_fs_1, linear_fs_2, linear_fs_3, linear_fs_4, Fs1_beginFuel, Fs3_beginFuel, Fs2_beginFuel, Fs4_beginFuel, linearLayout_MainActivity;
+    LinearLayout linear_debug_window,linearHose, linear_fs_1, linear_fs_2, linear_fs_3, linear_fs_4, Fs1_beginFuel, Fs3_beginFuel, Fs2_beginFuel, Fs4_beginFuel, linearLayout_MainActivity;
     WifiManager mainWifi;
     StringBuilder sb = new StringBuilder();
     private MyServer server;
@@ -186,6 +186,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     public static boolean IsUpgradeInprogress_FS2 = false;
     public static boolean IsUpgradeInprogress_FS3 = false;
     public static boolean IsUpgradeInprogress_FS4 = false;
+
+    public static boolean FA_DebugWindow = false;
 
     private static final int EXPIRE_TIMEOUT = 5000;
     private static final int EXPIRE_TASK_PERIOD = 1000;
@@ -386,6 +388,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         } else {
             Log.i(TAG, "This is when onResume() is called when the screen state has not changed ");
         }
+
+        DebugWindow();
 
     }
 
@@ -1099,6 +1103,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         tv_fs4QTN = (TextView) findViewById(R.id.tv_fs4QTN);
 
         imgFuelLogo = (ImageView) findViewById(R.id.imgFuelLogo);
+        linear_debug_window = (LinearLayout) findViewById(R.id.linear_debug_window);
         linearHose = (LinearLayout) findViewById(R.id.linearHose);
         linearLayout_MainActivity = (LinearLayout) findViewById(R.id.linearLayout_MainActivity);
         linear_fs_1 = (LinearLayout) findViewById(R.id.linear_fs_1);
@@ -5049,6 +5054,16 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 //TLD Service
                 ConfigureTld();
                 break;
+            case R.id.enable_debug_window:
+
+                if (FA_DebugWindow){
+                    FA_DebugWindow = false;
+                }else{
+                    FA_DebugWindow = true;
+                }
+                onResume();
+
+                break;
 
         }
         return super.onOptionsItemSelected(item);
@@ -7404,5 +7419,14 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             AppConstants.colorToastBigFont(getApplicationContext(), "Please select link and try..", Color.RED);
         }
 
+    }
+
+    private void DebugWindow(){
+
+        if (FA_DebugWindow){
+            linear_debug_window.setVisibility(View.VISIBLE);
+        }else{
+            linear_debug_window.setVisibility(View.GONE);
+        }
     }
 }

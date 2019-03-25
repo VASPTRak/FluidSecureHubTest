@@ -292,6 +292,7 @@ public class EddystoneScannerService extends Service {
             final String deviceAddress = result.getDevice().getAddress();
             final int rssi = result.getRssi();
             byte frameType = data[0];
+
             switch (frameType) {
                 case TYPE_UID:
                     final String id = SampleBeacon.getInstanceId(data);
@@ -309,9 +310,7 @@ public class EddystoneScannerService extends Service {
                     final float temp = SampleBeacon.getTlmTemperature(data);
                     mCallbackHandler.post(new Runnable() {
                         @Override
-                        public void run() {
-                            processTlmPacket(deviceAddress, battery, temp);
-                        }
+                        public void run() {processTlmPacket(deviceAddress, battery, temp);}
                     });
                     break;
                 case TYPE_URL:
@@ -368,6 +367,7 @@ public class EddystoneScannerService extends Service {
 
     public boolean IsServerCallRequired(String fsnpMacAddress) {
 
+
         String HoseNO = "";
         for (int p = 0; p < AppConstants.DetailsServerSSIDList.size(); p++) {
 
@@ -381,6 +381,8 @@ public class EddystoneScannerService extends Service {
 
             }
         }
+
+        if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " Size of DetailsServerSSIDList: " + AppConstants.DetailsServerSSIDList.size()+ " Hose No:"+HoseNO);
 
         if (HoseNO.equalsIgnoreCase("0") && Constants.FS_1STATUS.equalsIgnoreCase("FREE") && Constants.FS_1OdoScreen.equalsIgnoreCase("FREE")) {
             return true;

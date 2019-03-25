@@ -7,6 +7,12 @@
         android:title="configure TLD"
         app:showAsAction="never" />
 
+    <item
+        android:id="@+id/enable_debug_window"
+        android:orderInCategory="100"
+        android:title="DebugWindow"
+        app:showAsAction="never" />
+
 
     <item android:id="@+id/mclose"
         android:orderInCategory="104"

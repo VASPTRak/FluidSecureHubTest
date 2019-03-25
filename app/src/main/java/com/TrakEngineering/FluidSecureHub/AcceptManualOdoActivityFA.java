@@ -62,6 +62,7 @@ public class AcceptManualOdoActivityFA extends AppCompatActivity {
             @Override
             public void onClick(View view) {
 
+                ClearOdometerScreenFlag();
                 Intent i = new Intent(AcceptManualOdoActivityFA.this, WelcomeActivity.class);
                 i.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 startActivity(i);
