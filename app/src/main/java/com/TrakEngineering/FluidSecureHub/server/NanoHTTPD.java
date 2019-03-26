@@ -1790,9 +1790,7 @@ public abstract class NanoHTTPD {
         return this.myServerSocket == null ? -1 : this.myServerSocket.getLocalPort();
     }
 
-    public final boolean isAlive() {
-        return wasStarted() && !this.myServerSocket.isClosed() && this.myThread.isAlive();
-    }
+
 
     /**
      * Call before start() to serve over HTTPS instead of HTTP

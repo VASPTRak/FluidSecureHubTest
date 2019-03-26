@@ -2,6 +2,7 @@ package com.TrakEngineering.FluidSecureHub;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.app.AlarmManager;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -131,6 +132,7 @@ import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
 import static android.os.Build.VERSION.SDK_INT;
+import static com.TrakEngineering.FluidSecureHub.R.id.book_now;
 import static com.TrakEngineering.FluidSecureHub.R.id.textView;
 import static com.TrakEngineering.FluidSecureHub.server.MyServer.ctx;
 import static com.TrakEngineering.FluidSecureHub.server.ServerHandler.TEXT;
@@ -462,8 +464,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         tvSSIDName = (TextView) findViewById(R.id.tvSSIDName);
         tvLatLng = (TextView) findViewById(R.id.tvLatLng);
         tvLatLng.setVisibility(View.GONE);
-
-
+        AppConstants.Server_mesage = "Server Not Connected..!!!";
         if (cd.isConnectingToInternet()) {
             AppConstants.PRE_STATE_MOBILEDATA = true;
         }else{
@@ -513,7 +514,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         tv_Display_msg = (TextView) findViewById(R.id.tv_Display_msg);
         tv_file_address = (TextView) findViewById(R.id.tv_file_address);
         btn_clear_data = (Button) findViewById(R.id.btn_clear_data);
-        tv_file_address.setText("File Download url: http://192.168.43.1:8550/www/FSVM/FileName.bin");
+        tv_file_address.setText("File Download url: http://192.168.43.1:8550/FSVM/FileName.bin");
 
         //setUrlFromSharedPref(this);//Set url App Txt URL
         //UpdateServerMessages();
@@ -790,10 +791,6 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
         if (cd.isConnectingToInternet())
             startService(new Intent(this, OffTranzSyncService.class));
-
-
-        // Picasso.get().load("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQck4tF4G_9CHF_A42lLyXrrIj8qRci6Vjw9L5ZudEVZJgsAwGo").into(imgFuelLogo);
-
 
     }
 
@@ -5949,6 +5946,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 Intent intent = new Intent(this, EddystoneScannerService.class);
                 bindService(intent, this, BIND_AUTO_CREATE);
                 mHandler.post(mPruneTask);
+
             } else {
 
                 if (AppConstants.GenerateLogs)
@@ -5958,16 +5956,21 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             }
 
             //TODO MyServer FSVM
-            ctx = WelcomeActivity.this;
-            try {
+            if (AppConstants.Server_mesage.equalsIgnoreCase("Server Not Connected..!!!")){
 
-                server = new MyServer();
-                DownloadFileHttp abc = new DownloadFileHttp();
+                ctx = WelcomeActivity.this;
+                try {
 
-            } catch (Exception e) {
-                e.printStackTrace();
-                if (AppConstants.GenerateLogs) AppConstants.WriteinFile(TAG + " MyServer Ex-" + e);
+                    server = new MyServer();
+                    DownloadFileHttp abc = new DownloadFileHttp();
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    if (AppConstants.GenerateLogs) AppConstants.WriteinFile(TAG + " MyServer Ex-" + e);
+                }
+
             }
+
 
         } else {
             if (AppConstants.GenerateLogs) AppConstants.WriteinFile(TAG + " FA Disabled");
@@ -6032,7 +6035,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     AppConstants.WriteinFile(TAG + "  Link is unavailable info command");
                 //AppConstants.colorToastBigFont(WelcomeActivity.this, " Link is unavailable", Color.RED);
 
-            }
+             }
 
 
         } catch (Exception e) {
@@ -7428,5 +7431,15 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         }else{
             linear_debug_window.setVisibility(View.GONE);
         }
+    }
+
+    private boolean isMyServiceRunning(Class<?> serviceClass) {
+        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (serviceClass.getName().equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
     }
 }
