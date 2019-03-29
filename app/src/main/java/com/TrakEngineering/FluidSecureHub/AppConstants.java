@@ -116,6 +116,8 @@ public class AppConstants {
     public static boolean IS_MOBILE_ON;
     public static boolean IS_MOBILE_MSG;
     public static boolean PRE_STATE_MOBILEDATA;
+    public static boolean CURRENT_STATE_MOBILEDATA;
+    public static boolean AUTH_CALL_SUCCESS;
 
     public static String LOG_FluidSecure_Auto = "";
     public static String Server_mesage = "Server Not Connected..!!!";

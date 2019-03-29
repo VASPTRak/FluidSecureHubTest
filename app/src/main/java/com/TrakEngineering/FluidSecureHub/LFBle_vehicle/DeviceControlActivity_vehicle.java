@@ -1123,6 +1123,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
                     new ServerCallFirst().execute();
                 else {
                     //offline---------------
+                    AppConstants.AUTH_CALL_SUCCESS = false;
                     if (AppConstants.GenerateLogs)AppConstants.WriteinFile("Offline Vehicle No.: " + V_Number);
 
                     if (OfflineConstants.isOfflineAccess(DeviceControlActivity_vehicle.this)) {

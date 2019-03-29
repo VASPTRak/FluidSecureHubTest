@@ -362,6 +362,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         OnWelcomeActivity = true;
 
         if (cd.isConnectingToInternet()) {
+
+            AppConstants.CURRENT_STATE_MOBILEDATA = true;
             if (IsGateHub.equalsIgnoreCase("True")) {
                 CheckForGateSoftwareTimer();//gate software timer executor
             } else {
@@ -370,6 +372,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
 
         } else {
+
+            AppConstants.CURRENT_STATE_MOBILEDATA = false;
             if (OfflineConstants.isOfflineAccess(WelcomeActivity.this)) {
                 new GetOfflineSSIDUsingLocationOnResume().execute();
             } else {
@@ -381,7 +385,6 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         DeleteOldLogFiles();//Delete log files older than 1 month
         //Reconnect BT reader if disconnected
         //RetryHfreaderConnection();
-
 
         // only when screen turns on
         if (!ScreenReceiver.screenOff) {
@@ -1999,7 +2002,6 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     CommonUtils.SaveTldDetailsInPref(WelcomeActivity.this, IsTLDCall, IsTLDFirmwareUpgrade, TLDFirmwareFilePath, TLDFIrmwareVersion, PROBEMacAddress, selMacAddress);
 
                     /////////////////////////////////////////////////////
-
 
                     //Firmware upgrade
                     System.out.println("IsUpgradeIsUpgrade: " + IsUpgrade);

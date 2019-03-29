@@ -199,6 +199,9 @@ public class OffTranzSyncService extends Service {
                         System.out.println("OFFline json synced");
                         controller.deleteTransactionIfNotEmpty();
 
+                        //eXCEPT RECENT 8 EMPTY TRANSACTION DELET REMANING EMPTY TRANSACTION
+                        controller.deleteLast4TransactionIfNotEmpty();
+
                     } else
                         System.out.println("OFFline json synced FAILEDDDD");
 

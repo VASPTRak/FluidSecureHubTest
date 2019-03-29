@@ -27,6 +27,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.nio.file.FileAlreadyExistsException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.ExecutionException;
@@ -66,6 +67,8 @@ public class AcceptServiceCall {
     public void checkAllFields() {
 
         if (!activity.isFinishing()) {
+
+            AppConstants.AUTH_CALL_SUCCESS = false;
             new ServerCall().execute();
         }
 
@@ -276,6 +279,7 @@ public class AcceptServiceCall {
 
                     if (ResponceMessage.equalsIgnoreCase("success")) {
 
+                        AppConstants.AUTH_CALL_SUCCESS = true;
                         //OnHose Selection
                         if (Constants.CurrentSelectedHose.equals("FS1")) {
 
@@ -321,6 +325,7 @@ public class AcceptServiceCall {
 
 
                             if (IsGateHub.equalsIgnoreCase("True")) {
+
 
                                 Log.e("GateSoftwareDelayIssue","   IsGatehub true");
                                 //System.out.println("Gate hub true skip display meter ancivity and start transiction ");
@@ -519,6 +524,8 @@ public class AcceptServiceCall {
                         String ResponceText = jsonObject.getString("ResponceText");
                         String ValidationFailFor = jsonObject.getString("ValidationFailFor");
                         //CommonUtils.showMessageDilaog(activity, "Message", ResponceText);
+
+                        AppConstants.AUTH_CALL_SUCCESS = false;
 
                         AppConstants.colorToastBigFont(activity, ResponceText, Color.RED);
 

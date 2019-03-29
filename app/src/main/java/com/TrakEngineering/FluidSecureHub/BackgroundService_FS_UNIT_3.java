@@ -217,10 +217,14 @@ public class BackgroundService_FS_UNIT_3 extends Service {
                 Constants.FS_3STATUS = "BUSY";
                 Constants.BusyVehicleNumberList.add(Constants.AccVehicleNumber_FS3);
 
-
-                if (cd.isConnectingToInternet()) {
-
+                if (cd.isConnectingToInternet() && AppConstants.AUTH_CALL_SUCCESS ){
                     CurrTxnMode = "online";
+                }else{
+                    CurrTxnMode = "offline";
+                }
+
+                if (cd.isConnectingToInternet() && CurrTxnMode.equalsIgnoreCase("online")) {
+
 
                     SharedPreferences sharedPref = this.getSharedPreferences(Constants.PREF_VehiFuel, Context.MODE_PRIVATE);
                     TransactionId = sharedPref.getString("TransactionId_FS3", "");
@@ -329,7 +333,6 @@ public class BackgroundService_FS_UNIT_3 extends Service {
 
                 } else {
                     //offline---------------------
-                    CurrTxnMode = "offline";
                     offlineLogic3();
                 }
 
@@ -1365,6 +1368,8 @@ public class BackgroundService_FS_UNIT_3 extends Service {
                 }
             }
 
+            try {
+
             double VehicleSum_FS3 = Double.parseDouble(sharedPref.getString("VehicleSum_FS3", ""));
             double DeptSum_FS3 = Double.parseDouble(sharedPref.getString("DeptSum_FS3", ""));
             double VehPercentage_FS3 = Double.parseDouble(sharedPref.getString("VehPercentage_FS3", ""));
@@ -1391,7 +1396,7 @@ public class BackgroundService_FS_UNIT_3 extends Service {
                 // printReceipt = " \n\n------FluidSecure Receipt------ \n\nCompany   : " + CompanyName +"\n\nTime/Date : "+PrintDate+"\n\nLocation  : "+LinkName+","+Location+"\n\nVehicle # : "+VehicleNumber+"\n\nPersonnel : "+PersonName+" \n\nQty       : " + Qty + "\n\n ---------Thank You---------"+"\n\n\n\n\n\n\n\n\n\n\n\n";
             }
 
-            try {
+
 
                 if (EnablePrinter.equalsIgnoreCase("True")) {
                     //Start background Service to print recipt

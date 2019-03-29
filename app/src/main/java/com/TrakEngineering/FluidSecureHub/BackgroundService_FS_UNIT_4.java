@@ -214,10 +214,14 @@ public class BackgroundService_FS_UNIT_4 extends Service {
                 Constants.FS_4STATUS = "BUSY";
                 Constants.BusyVehicleNumberList.add(Constants.AccVehicleNumber_FS4);
 
-
-                if (cd.isConnectingToInternet()) {
-
+                if (cd.isConnectingToInternet() && AppConstants.AUTH_CALL_SUCCESS ){
                     CurrTxnMode = "online";
+                }else{
+                    CurrTxnMode = "offline";
+                }
+
+                if (cd.isConnectingToInternet() && CurrTxnMode.equalsIgnoreCase("online")) {
+
                     SharedPreferences sharedPref = this.getSharedPreferences(Constants.PREF_VehiFuel, Context.MODE_PRIVATE);
                     TransactionId = sharedPref.getString("TransactionId_FS4", "");
                     VehicleId = sharedPref.getString("VehicleId_FS4", "");
@@ -325,7 +329,6 @@ public class BackgroundService_FS_UNIT_4 extends Service {
 
                 } else {
 
-                    CurrTxnMode = "offline";
                     offlineLogic4();
                 }
 
@@ -1362,6 +1365,7 @@ public class BackgroundService_FS_UNIT_4 extends Service {
                 }
             }
 
+            try {
 
             double VehicleSum_FS4 = Double.parseDouble(sharedPref.getString("VehicleSum_FS4", ""));
             double DeptSum_FS4 = Double.parseDouble(sharedPref.getString("DeptSum_FS4", ""));
@@ -1397,7 +1401,7 @@ public class BackgroundService_FS_UNIT_4 extends Service {
                 // printReceipt = " \n\n------FluidSecure Receipt------ \n\nCompany   : " + CompanyName +"\n\nTime/Date : "+PrintDate+"\n\nLocation  : "+LinkName+","+Location+"\n\nVehicle # : "+VehicleNumber+"\n\nPersonnel : "+PersonName+" \n\nQty       : " + Qty + "\n\n ---------Thank You---------"+"\n\n\n\n\n\n\n\n\n\n\n\n";
             }
 
-            try {
+
                 if (EnablePrinter.equalsIgnoreCase("True")) {
                     //Start background Service to print recipt
                     Intent serviceIntent = new Intent(BackgroundService_FS_UNIT_4.this, BackgroundServiceBluetoothPrinter.class);

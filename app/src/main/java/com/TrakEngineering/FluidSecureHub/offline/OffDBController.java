@@ -266,7 +266,35 @@ public class OffDBController extends SQLiteOpenHelper {
         database.execSQL(deleteQuery);
     }
 
+    public void deleteLast4TransactionIfNotEmpty() {
+        Log.d(LOGCAT, "delete");
+        SQLiteDatabase database = this.getWritableDatabase();
+        String delete1 = "SELECT  id  FROM " + TBL_TRANSACTION + " where FuelQuantity == '' ORDER BY ID  DESC LIMIT 8";
+        String deleteQuery = "DELETE FROM  " + TBL_TRANSACTION + " where FuelQuantity == '' AND id  NOT IN ("+delete1+")";
+        Log.d("query", deleteQuery);
+        database.execSQL(deleteQuery);
+    }
 
+    public ArrayList<HashMap<String, String>> getLast4() {
+
+        ArrayList<HashMap<String, String>> wordList;
+        wordList = new ArrayList<HashMap<String, String>>();
+        String a="4";
+        String selectQuery = "SELECT  id  FROM " + TBL_TRANSACTION + " where FuelQuantity == '' ORDER BY ID DESC";
+
+
+        SQLiteDatabase database = this.getWritableDatabase();
+        Cursor cursor = database.rawQuery(selectQuery, null);
+        if (cursor.moveToFirst()) {
+            do {
+                System.out.println("OOO***" + cursor.getString(0));
+
+
+
+            } while (cursor.moveToNext());
+        }
+        return wordList;
+    }
 
 
     public ArrayList<HashMap<String, String>> getAllLinks() {

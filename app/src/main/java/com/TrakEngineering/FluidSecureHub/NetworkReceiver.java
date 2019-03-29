@@ -39,10 +39,14 @@ public class NetworkReceiver extends BroadcastReceiver {
             CurrentState = true;
             AppConstants.IS_MOBILE_MSG = false;
 
-            //sync offline transactions
-            context.startService(new Intent(context, OffTranzSyncService.class));
-            //sync online transactions
-            context.startService(new Intent(context, BackgroundService.class));
+            if (Constants.FS_1STATUS.equalsIgnoreCase("FREE") && Constants.FS_2STATUS.equalsIgnoreCase("FREE") && Constants.FS_3STATUS.equalsIgnoreCase("FREE") && Constants.FS_4STATUS.equalsIgnoreCase("FREE")) {
+
+                //sync offline transactions
+                context.startService(new Intent(context, OffTranzSyncService.class));
+                //sync online transactions
+                context.startService(new Intent(context, BackgroundService.class));
+            }
+
 
         } else {
             wifiConnected = false;
@@ -67,128 +71,7 @@ public class NetworkReceiver extends BroadcastReceiver {
             AppConstants.PRE_STATE_MOBILEDATA = CurrentState;
             AppConstants.colorToastBigFont(context, "Network Switched", Color.RED);
             context.startService(new Intent(context, StopRunningTransactionBackgroundService.class));
-            //StopRunningTransaction();
         }
 
-    }
-
-    public void StopRunningTransaction() {
-
-
-        if (Constants.FS_1STATUS.equalsIgnoreCase("BUSY") && Constants.FS_2STATUS.equalsIgnoreCase("BUSY") && Constants.FS_3STATUS.equalsIgnoreCase("BUSY") && Constants.FS_4STATUS.equalsIgnoreCase("BUSY")) {
-            //Stop All 4 transaction
-            StopTxn(0);
-            StopTxn(1);
-            StopTxn(2);
-            StopTxn(3);
-        } else if (Constants.FS_1STATUS.equalsIgnoreCase("BUSY") && Constants.FS_2STATUS.equalsIgnoreCase("BUSY") && Constants.FS_3STATUS.equalsIgnoreCase("BUSY")) {
-            //Stop 1,2,3
-            StopTxn(0);
-            StopTxn(1);
-            StopTxn(2);
-        } else if (Constants.FS_1STATUS.equalsIgnoreCase("BUSY") && Constants.FS_2STATUS.equalsIgnoreCase("BUSY")) {
-            //Stop 1,2
-            StopTxn(0);
-            StopTxn(1);
-
-        } else if (Constants.FS_1STATUS.equalsIgnoreCase("BUSY")) {
-            //Stop only 1
-            StopTxn(0);
-        } else if (Constants.FS_2STATUS.equalsIgnoreCase("BUSY")) {
-            //Stop only 2
-            StopTxn(1);
-        } else if (Constants.FS_3STATUS.equalsIgnoreCase("BUSY")) {
-            //Stop only 3
-            StopTxn(2);
-        } else if (Constants.FS_4STATUS.equalsIgnoreCase("BUSY")) {
-            //Stop only 4
-            StopTxn(3);
-        }
-
-    }
-
-    public void StopTxn(int p){
-
-        try {
-
-            for (int i = 0; i < AppConstants.DetailsListOfConnectedDevices.size(); i++) {
-
-                String Mac_Address = AppConstants.DetailsListOfConnectedDevices.get(i).get("macAddress");
-                String IpAddress = AppConstants.DetailsListOfConnectedDevices.get(i).get("ipAddress");
-
-                //List of Near-by FSNP/Ble mac address list
-                if (AppConstants.DetailsServerSSIDList != null && !AppConstants.DetailsServerSSIDList.isEmpty()) {
-
-                    String MacAddress = AppConstants.DetailsServerSSIDList.get(p).get("MacAddress");
-                    String fsnpAddress = AppConstants.DetailsServerSSIDList.get(p).get("FSNPMacAddress");
-                    String fsnpName = AppConstants.DetailsServerSSIDList.get(p).get("FSAntenna2");
-
-                    if (MacAddress.equalsIgnoreCase(Mac_Address)) {
-                        String HTTP_URL = "http://" + IpAddress + ":80/";
-                        String jsonRelayOff = "{\"relay_request\":{\"Password\":\"12345678\",\"Status\":0}}";
-                        String URL_RELAY_FS1 = HTTP_URL + "config?command=relay";
-                        new CommandsPOST().execute(URL_RELAY_FS1, jsonRelayOff);
-                        break;
-
-                    }
-
-                }
-
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "  StopTxn" + e);
-        }
-
-    }
-
-    public class CommandsPOST extends AsyncTask<String, Void, String> {
-
-        public String resp = "";
-
-
-        protected String doInBackground(String... param) {
-
-            System.out.println("url" + param[0]);
-            try {
-
-
-                MediaType JSON = MediaType.parse("application/json");
-
-                OkHttpClient client = new OkHttpClient();
-
-                RequestBody body = RequestBody.create(JSON, param[1]);
-
-                Request request = new Request.Builder()
-                        .url(param[0])
-                        .post(body)
-                        .build();
-
-                Response response = client.newCall(request).execute();
-                resp = response.body().string();
-
-            } catch (Exception e) {
-                Log.d("Ex", e.getMessage());
-            }
-
-
-            return resp;
-        }
-
-        @Override
-        protected void onPostExecute(String result) {
-
-
-            try {
-                System.out.println(result);
-
-            } catch (Exception e) {
-
-                System.out.println(e);
-            }
-
-        }
     }
 }

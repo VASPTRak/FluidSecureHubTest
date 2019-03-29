@@ -72,6 +72,7 @@ public class CommonUtils {
     public static String FOLDER_PATH = Environment.getExternalStorageDirectory().getAbsolutePath() + "/FSBin/";
     public static String PATH_BIN_FILE1 = "user1.2048.new.5.bin";
 
+    public static String FOLDER_PATH_TLD_Firmware = Environment.getExternalStorageDirectory().getAbsolutePath() + "/www/TLD/";
     public static String FOLDER_PATH_FSVM_Firmware = Environment.getExternalStorageDirectory().getAbsolutePath() + "/www/FSVM/";
     public static String FOLDER_PATH_FSNP_Firmware = Environment.getExternalStorageDirectory().getAbsolutePath() + "/www/FSNP/";
 

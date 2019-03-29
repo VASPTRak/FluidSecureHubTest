@@ -231,6 +231,12 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
     protected void onResume() {
         super.onResume();
 
+        if (cd.isConnectingToInternet()){
+            AppConstants.CURRENT_STATE_MOBILEDATA = true;
+        }else{
+            AppConstants.CURRENT_STATE_MOBILEDATA = false;
+        }
+
         //Hide keyboard
         this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 
@@ -786,6 +792,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                 Istimeout_Sec = false;
                 btnStart.setClickable(false);
                 btnStart.setBackgroundColor(Color.parseColor("#F88800"));
+                boolean test = AppConstants.CURRENT_STATE_MOBILEDATA;
 
                 if (cd.isConnectingToInternet()) {
                     StartbuttonFunctionality();
@@ -2633,12 +2640,15 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                         e.printStackTrace();
                     }
 
+                    /*//Skip in offline mode
+                    if (cd.isConnectingToInternet() && AppConstants.AUTH_CALL_SUCCESS ){
 
-                    GetLastTransaction();
+                        GetLastTransaction();
+                        getCMDLast10Txn(); //temp comment
 
-                    getCMDLast10Txn(); //temp comment
-
+                    }*/
                     new CommandsGET_RelayResp().execute(URL_RELAY);
+
 
                     //Info command else commented
                 } else {

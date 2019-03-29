@@ -352,6 +352,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                     }
                 } else {
 
+                    AppConstants.AUTH_CALL_SUCCESS = false;
                     if (AppConstants.GenerateLogs)AppConstants.WriteinFile("Offline Pin : " + pin);
 
                     if (OfflineConstants.isOfflineAccess(DeviceControlActivity_Pin.this)) {

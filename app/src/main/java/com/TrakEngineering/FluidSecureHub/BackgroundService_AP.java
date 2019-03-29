@@ -208,10 +208,14 @@ public class BackgroundService_AP extends Service {
                 Constants.FS_2STATUS = "BUSY";
                 Constants.BusyVehicleNumberList.add(Constants.AccVehicleNumber);
 
-
-                if (cd.isConnectingToInternet()) {
-
+                if (cd.isConnectingToInternet() && AppConstants.AUTH_CALL_SUCCESS ){
                     CurrTxnMode = "online";
+                }else{
+                    CurrTxnMode = "offline";
+                }
+
+                if (cd.isConnectingToInternet() && CurrTxnMode.equalsIgnoreCase("online")) {
+
                     SharedPreferences sharedPref = this.getSharedPreferences(Constants.PREF_VehiFuel, Context.MODE_PRIVATE);
                     TransactionId = sharedPref.getString("TransactionId", "");
                     VehicleId = sharedPref.getString("VehicleId", "");
@@ -321,7 +325,6 @@ public class BackgroundService_AP extends Service {
 
 
                 } else {
-                    CurrTxnMode = "offline";
                     //offline------------
                     offlineLogic2();
 
@@ -1368,37 +1371,40 @@ public class BackgroundService_AP extends Service {
 
 
 
-
-            double VehicleSum = Double.parseDouble(sharedPref.getString("VehicleSum", "1"));
-            double DeptSum = Double.parseDouble(sharedPref.getString("DeptSum", ""));
-            double VehPercentage = Double.parseDouble(sharedPref.getString("VehPercentage", ""));
-            double DeptPercentage = Double.parseDouble(sharedPref.getString("DeptPercentage", ""));
-            String SurchargeType = sharedPref.getString("SurchargeType", "");
-            double ProductPrice = Double.parseDouble(sharedPref.getString("ProductPrice", ""));
-
-
-            //Print Transaction Receipt
-            DecimalFormat precision = new DecimalFormat("0.00");
-            String Qty = (precision.format(fillqty));
-
-            double FuelQuantity = Double.parseDouble(Qty);
-
-            //---------print cost--------
-            String InitPrintCost = CalculatePrice(SurchargeType, FuelQuantity, ProductPrice, VehicleSum, DeptSum, VehPercentage, DeptPercentage);
-            DecimalFormat precision_cost = new DecimalFormat("0.00");
-            String PrintCost = (precision_cost.format(Double.parseDouble(InitPrintCost)));
-
-
-            if (IsOtherRequire.equalsIgnoreCase("true")) {
-
-                printReceipt = GetPrintReciptForOther(CompanyName, PrintDate, LinkName, Location, VehicleNumber, PersonName, OtherLabel, OtherName, Qty, PrintCost);
-                // printReceipt = " \n\n------FluidSecure Receipt------ \n\nCompany   : " + CompanyName +"\n\nTime/Date : "+PrintDate+"\n\nLocation  : "+LinkName+","+Location+","+"\n\nVehicle # : "+VehicleNumber+"\n\nPersonnel : "+PersonName+" \n\nQty       : " + Qty + "\n\n"+OtherLabel+":"+OtherName+ "\n\n ---------Thank You---------"+"\n\n\n\n\n\n\n\n\n\n\n\n";
-            } else {
-                printReceipt = GetPrintRecipt(CompanyName, PrintDate, LinkName, Location, VehicleNumber, PersonName, Qty, PrintCost);
-                // printReceipt = " \n\n------FluidSecure Receipt------ \n\nCompany   : " + CompanyName +"\n\nTime/Date : "+PrintDate+"\n\nLocation  : "+LinkName+","+Location+"\n\nVehicle # : "+VehicleNumber+"\n\nPersonnel : "+PersonName+" \n\nQty       : " + Qty + "\n\n ---------Thank You---------"+"\n\n\n\n\n\n\n\n\n\n\n\n";
-            }
-
             try {
+
+                double VehicleSum = Double.parseDouble(sharedPref.getString("VehicleSum", "1"));
+                double DeptSum = Double.parseDouble(sharedPref.getString("DeptSum", ""));
+                double VehPercentage = Double.parseDouble(sharedPref.getString("VehPercentage", ""));
+                double DeptPercentage = Double.parseDouble(sharedPref.getString("DeptPercentage", ""));
+                String SurchargeType = sharedPref.getString("SurchargeType", "");
+                double ProductPrice = Double.parseDouble(sharedPref.getString("ProductPrice", ""));
+
+
+                //Print Transaction Receipt
+                DecimalFormat precision = new DecimalFormat("0.00");
+                String Qty = (precision.format(fillqty));
+
+                double FuelQuantity = Double.parseDouble(Qty);
+
+                //---------print cost--------
+                String InitPrintCost = CalculatePrice(SurchargeType, FuelQuantity, ProductPrice, VehicleSum, DeptSum, VehPercentage, DeptPercentage);
+                DecimalFormat precision_cost = new DecimalFormat("0.00");
+                String PrintCost = (precision_cost.format(Double.parseDouble(InitPrintCost)));
+
+
+                if (IsOtherRequire.equalsIgnoreCase("true")) {
+
+                    printReceipt = GetPrintReciptForOther(CompanyName, PrintDate, LinkName, Location, VehicleNumber, PersonName, OtherLabel, OtherName, Qty, PrintCost);
+                    // printReceipt = " \n\n------FluidSecure Receipt------ \n\nCompany   : " + CompanyName +"\n\nTime/Date : "+PrintDate+"\n\nLocation  : "+LinkName+","+Location+","+"\n\nVehicle # : "+VehicleNumber+"\n\nPersonnel : "+PersonName+" \n\nQty       : " + Qty + "\n\n"+OtherLabel+":"+OtherName+ "\n\n ---------Thank You---------"+"\n\n\n\n\n\n\n\n\n\n\n\n";
+                } else {
+                    printReceipt = GetPrintRecipt(CompanyName, PrintDate, LinkName, Location, VehicleNumber, PersonName, Qty, PrintCost);
+                    // printReceipt = " \n\n------FluidSecure Receipt------ \n\nCompany   : " + CompanyName +"\n\nTime/Date : "+PrintDate+"\n\nLocation  : "+LinkName+","+Location+"\n\nVehicle # : "+VehicleNumber+"\n\nPersonnel : "+PersonName+" \n\nQty       : " + Qty + "\n\n ---------Thank You---------"+"\n\n\n\n\n\n\n\n\n\n\n\n";
+                }
+
+
+
+
 
                 if (EnablePrinter.equalsIgnoreCase("True")) {
 

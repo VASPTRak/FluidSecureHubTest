@@ -222,9 +222,15 @@ public class BackgroundService_AP_PIPE extends Service {
                 Constants.FS_1STATUS = "BUSY";
                 Constants.BusyVehicleNumberList.add(Constants.AccVehicleNumber_FS1);
 
-                if (cd.isConnectingToInternet()) {
-
+                if (cd.isConnectingToInternet() && AppConstants.AUTH_CALL_SUCCESS ){
                     CurrTxnMode = "online";
+                }else{
+                    CurrTxnMode = "offline";
+                }
+
+                if (cd.isConnectingToInternet() && CurrTxnMode.equalsIgnoreCase("online")) {
+
+
                     SharedPreferences sharedPref = this.getSharedPreferences(Constants.PREF_VehiFuel, Context.MODE_PRIVATE);
                     TransactionId = sharedPref.getString("TransactionId_FS1", "");
                     VehicleId = sharedPref.getString("VehicleId_FS1", "");
@@ -331,7 +337,7 @@ public class BackgroundService_AP_PIPE extends Service {
 
 
                 } else {
-                    CurrTxnMode = "offline";
+
                     offlineLogic1();
                 }
 
@@ -1406,6 +1412,7 @@ public class BackgroundService_AP_PIPE extends Service {
                 }
             }
 
+            try {
 
             double VehicleSum_FS1 = Double.parseDouble(sharedPref.getString("VehicleSum_FS1", ""));
             double DeptSum_FS1 = Double.parseDouble(sharedPref.getString("DeptSum_FS1", ""));
@@ -1438,7 +1445,7 @@ public class BackgroundService_AP_PIPE extends Service {
                 // printReceipt = " \n\n------FluidSecure Receipt------ \n\nCompany   : " + CompanyName +"\n\nTime/Date : "+PrintDate+"\n\nLocation  : "+LinkName+","+Location+"\n\nVehicle # : "+VehicleNumber+"\n\nPersonnel : "+PersonName+" \n\nQty       : " + Qty + "\n\n ---------Thank You---------"+"\n\n\n\n\n\n\n\n\n\n\n\n";
             }
 
-            try {
+
                 if (EnablePrinter.equalsIgnoreCase("True")) {
                     //Start background Service to print recipt
                     Intent serviceIntent = new Intent(BackgroundService_AP_PIPE.this, BackgroundServiceBluetoothPrinter.class);
