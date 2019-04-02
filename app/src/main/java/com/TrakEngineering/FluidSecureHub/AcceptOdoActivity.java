@@ -49,6 +49,8 @@ public class AcceptOdoActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
 
+        AppConstants.OdoErrorCode = "0";
+
         if (Constants.CurrentSelectedHose.equals("FS1")) {
             editOdoTenths.setText(ZR(String.valueOf(Constants.AccOdoMeter_FS1)));
         } else if (Constants.CurrentSelectedHose.equals("FS2")) {
@@ -236,6 +238,12 @@ public class AcceptOdoActivity extends AppCompatActivity {
                                 allValid();
                             } else {
                                 cnt123 += 1;
+
+                                if (cnt123 > 2){
+                                    AppConstants.OdoErrorCode = "1";
+                                }else{
+                                    AppConstants.OdoErrorCode = "0";
+                                }
 
                                 if (cnt123 > 3) {
                                     //gooooo

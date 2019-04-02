@@ -210,6 +210,7 @@ public class AcceptServiceCall {
                 authEntityClass.WifiSSId = CONNECTED_SSID;
                 authEntityClass.SiteId = Integer.parseInt(AppConstants.SITE_ID);
 
+                authEntityClass.ErrorCode = AppConstants.OdoErrorCode;
                 authEntityClass.OdoMeter = accOdoMeter;
                 authEntityClass.Hours = accHours;
                 authEntityClass.DepartmentNumber = DeptNumber;
@@ -222,7 +223,6 @@ public class AcceptServiceCall {
 
                 authEntityClass.CurrentLat = "" + Constants.Latitude;
                 authEntityClass.CurrentLng = "" + Constants.Longitude;
-
 
                 authEntityClass.AppInfo = " Version " + CommonUtils.getVersionCode(activity) + " " + AppConstants.getDeviceName().toLowerCase() + " ";
 
@@ -346,8 +346,8 @@ public class AcceptServiceCall {
 
                                 try {
                                     //Info command commented
-                                   URL_INFO = HTTP_URL + "client?command=info";
-                                   new CommandsGET_Info().execute(URL_INFO);
+                                    URL_INFO = HTTP_URL + "client?command=info";
+                                    new CommandsGET_Info().execute(URL_INFO);
 
                                 } catch (Exception e) {
                                     e.printStackTrace();

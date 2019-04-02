@@ -10,6 +10,7 @@ public class EntityOffTranz {
     public String PersonId;
     public String FuelQuantity;
     public String TransactionDateTime;
+    public String OfflineFakeTransactionId;
     public String AppInfo;
     public String Pulses;
     public String TransactionFrom;

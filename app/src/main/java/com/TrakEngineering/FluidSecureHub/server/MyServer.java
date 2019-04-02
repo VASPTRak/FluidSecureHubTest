@@ -64,9 +64,12 @@ public class MyServer extends NanoHTTPD {
         File f = new File(Environment.getExternalStorageDirectory() + "/FA_FileDownload/Download.txt");
         String mimeType = "text/plain";
 
+        Log.i(TAG,"http server called");
+        if (AppConstants.GenerateLogs) AppConstants.WriteinFile(TAG + " http server called");
+
         if (tlddd == null) {
 
-        try {
+            try {
 
                 WelcomeActivity.WakeUpScreen(); //WakeUp Screen
 
@@ -100,13 +103,13 @@ public class MyServer extends NanoHTTPD {
                 Log.i(TAG, " RequestBody: " + new String(buffer));
                 fsvmData = new String(buffer);
 
-           /* if (fsvmData != null && fsvmData.contains("VIN=")){
+                if (fsvmData != null && fsvmData.contains("VIN=")){
 
-                String str1[] = fsvmData.split(",");
-                String _4 = str1[3];
-                VIN = "";//_4.replace("VIN=","").trim();
+                    String str1[] = fsvmData.split(",");
+                    String _4 = str1[3];
+                    VIN = "";//_4.replace("VIN=","").trim();
 
-            }*/
+                }
 
                 AppConstants.Server_Request = "FsvmData:" + fsvmData + "\nData in param:  " + A;
                 //if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  HttpServer Server_Reques " + AppConstants.Server_Request);
@@ -235,16 +238,30 @@ public class MyServer extends NanoHTTPD {
             String LinkMacAddress = sharedPref.getString("selMacAddress", "");
             String PROBEMacAddress = sharedPref.getString("PROBEMacAddress", "");
 
-            /*if (IsTLDFirmwareUpgrade.equalsIgnoreCase("Y") && TLDFirmwareFilePath != null) {
+            if (IsTLDFirmwareUpgrade.equalsIgnoreCase("Y") && TLDFirmwareFilePath != null) {
 
                 String[] parts = TLDFirmwareFilePath.split("/");
                 String FileName = parts[6]; // FSVM.bin
                 new BackgroundServiceDownloadFirmware.DownloadTLDFileFromURL().execute(TLDFirmwareFilePath, FileName);
-            }*/
+            }
 
             ResMsg = "{\"TLD_update\":\""+IsTLDFirmwareUpgrade+"\"}";
 
         }
+
+
+        //Temp code below
+        /*UpdateESP32_update = "NO";
+        UpdatePIC_update = "YES";
+
+        FsvmInfo objEntityClass = new FsvmInfo();
+        //objEntityClass.FSVM = "upgrade";
+        objEntityClass.ESP32_update = UpdateESP32_update;//AppConstants.ESP32_update;
+        objEntityClass.PIC_update = UpdatePIC_update;//AppConstants.PIC_update;
+
+        Gson gson = new Gson();
+        String jsonData_fsvm = gson.toJson(objEntityClass);
+        ResMsg = jsonData_fsvm;*/
 
         return newFixedLengthResponse(ResMsg, f);
 

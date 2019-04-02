@@ -72,7 +72,7 @@ public class BackgroundService_AP extends Service {
     ConnectionDetector cd = new ConnectionDetector(BackgroundService_AP.this);
     private int AttemptCount = 0;
     public static ArrayList<String> listOfConnectedIP_AP = new ArrayList<String>();
-    private String CurrTxnMode = "online";
+    private String CurrTxnMode = "online",OffLastTXNid = "";
 
     //String HTTP_URL = "http://192.168.43.140:80/";//for pipe
     //String HTTP_URL = "http://192.168.43.5:80/";//Other FS
@@ -1266,7 +1266,7 @@ public class BackgroundService_AP extends Service {
         } else {
 
             if (fillqty > 0) {
-                offcontroller.updateOfflinePulsesQuantity(sqlite_id + "", counts, fillqty + "");
+                offcontroller.updateOfflinePulsesQuantity(sqlite_id + "", counts, fillqty + "",OffLastTXNid);
             }
 
             if (AppConstants.GenerateLogs)AppConstants.WriteinFile("Offline  Link:" + LinkName + "  Pulses:" + Integer.parseInt(counts) + " Qty:" + fillqty);
@@ -2108,6 +2108,23 @@ public class BackgroundService_AP extends Service {
         FuelTypeId = "0";
         ServerDate = "0";
         IsTLDCall = "0";
+
+
+        //settransactionID to FSUNIT
+        /*new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+
+
+                String curr_date = AppConstants.currentDateFormat("hhmmss");//"yyyyMMdd hhmmss"
+                System.out.println("curr_date"+curr_date);
+
+                OffLastTXNid = "99999999";//+sqlite_id+curr_date;
+                System.out.println("OfflineLastTransactionID_BackgroundService" + OffLastTXNid);
+                new BackgroundService_AP.CommandsPOST().execute(URL_SET_TXNID, "{\"txtnid\":" + OffLastTXNid + "}");
+
+            }
+        }, 1500);*/
 
 
         EntityOffTranz tzc = offcontroller.getTransactionDetailsBySqliteId(sqlite_id);

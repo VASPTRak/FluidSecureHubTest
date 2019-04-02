@@ -45,7 +45,7 @@ public class OffDBController extends SQLiteOpenHelper {
         String query4 = "CREATE TABLE " + TBL_PERSONNEL + " ( Id INTEGER PRIMARY KEY, PersonId INTEGER, PinNumber TEXT, FuelLimitPerTxn TEXT,FuelLimitPerDay TEXT,FOBNumber TEXT,Authorizedlinks TEXT,AssignedVehicles TEXT)";
         database.execSQL(query4);
 
-        String query5 = "CREATE TABLE " + TBL_TRANSACTION + " ( Id INTEGER PRIMARY KEY, HubId TEXT, SiteId TEXT, VehicleId INTEGER, CurrentOdometer TEXT, CurrentHours TEXT, PersonId TEXT, PersonPin TEXT, FuelQuantity TEXT, Pulses TEXT,TransactionDateTime TEXT)";
+        String query5 = "CREATE TABLE " + TBL_TRANSACTION + " ( Id INTEGER PRIMARY KEY, HubId TEXT, SiteId TEXT, VehicleId INTEGER, CurrentOdometer TEXT, CurrentHours TEXT, PersonId TEXT, PersonPin TEXT, FuelQuantity TEXT, Pulses TEXT,TransactionDateTime TEXT,OfflineFakeTransactionId TEXT)";
         database.execSQL(query5);
 
     }
@@ -232,6 +232,7 @@ public class OffDBController extends SQLiteOpenHelper {
         values.put("FuelQuantity", eot.FuelQuantity);
         values.put("Pulses", eot.Pulses);
         values.put("TransactionDateTime", eot.TransactionDateTime);
+        values.put("OfflineFakeTransactionId", eot.OfflineFakeTransactionId);
 
         long insertedID = database.insert(TBL_TRANSACTION, null, values);
         database.close();
@@ -240,11 +241,12 @@ public class OffDBController extends SQLiteOpenHelper {
     }
 
 
-    public int updateOfflinePulsesQuantity(String sqlite_id, String Pulses, String Quantity) {
+    public int updateOfflinePulsesQuantity(String sqlite_id, String Pulses, String Quantity,String OfflineFakeTransactionId) {
         SQLiteDatabase database = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put("Pulses", Pulses);
         values.put("FuelQuantity", Quantity);
+        values.put("OfflineFakeTransactionId", OfflineFakeTransactionId);
 
         return database.update(TBL_TRANSACTION, values, "Id" + " = ?", new String[]{sqlite_id});
     }
@@ -401,7 +403,7 @@ public class OffDBController extends SQLiteOpenHelper {
             hmObj.FuelQuantity = cursor.getString(8);
             hmObj.Pulses = cursor.getString(9);
             hmObj.TransactionDateTime = cursor.getString(10);
-
+            hmObj.OfflineFakeTransactionId = isNULL(cursor.getString(11));
 
         }
         return hmObj;
@@ -434,6 +436,7 @@ public class OffDBController extends SQLiteOpenHelper {
                 hmObj.TransactionDateTime = isNULL(cursor.getString(10));
                 hmObj.TransactionFrom = "AP";
                 hmObj.AppInfo = " Version:" + CommonUtils.getVersionCode(ctx) + " " + AppConstants.getDeviceName() + " Android " + Build.VERSION.RELEASE + " ";
+                hmObj.OfflineFakeTransactionId = isNULL(cursor.getString(11));
 
 
                 // if(!hmObj.FuelQuantity.trim().isEmpty())

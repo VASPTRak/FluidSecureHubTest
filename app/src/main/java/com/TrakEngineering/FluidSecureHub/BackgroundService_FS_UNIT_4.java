@@ -79,7 +79,7 @@ public class BackgroundService_FS_UNIT_4 extends Service {
     String HTTP_URL = "";
     public long sqlite_id = 0;
     private int AttemptCount = 0;
-    private String CurrTxnMode = "online";
+    private String CurrTxnMode = "online",OffLastTXNid = "";
 
     String URL_INFO = HTTP_URL + "client?command=info";
     String URL_STATUS = HTTP_URL + "client?command=status";
@@ -1262,7 +1262,7 @@ public class BackgroundService_FS_UNIT_4 extends Service {
             }
         } else {
             if (fillqty > 0) {
-                offcontroller.updateOfflinePulsesQuantity(sqlite_id + "", counts, fillqty + "");
+                offcontroller.updateOfflinePulsesQuantity(sqlite_id + "", counts, fillqty + "",OffLastTXNid);
             }
             if (AppConstants.GenerateLogs)AppConstants.WriteinFile("Offline  Link:" + LinkName + "  Pulses:" + Integer.parseInt(counts) + " Qty:" + fillqty);
 
@@ -1367,39 +1367,39 @@ public class BackgroundService_FS_UNIT_4 extends Service {
 
             try {
 
-            double VehicleSum_FS4 = Double.parseDouble(sharedPref.getString("VehicleSum_FS4", ""));
-            double DeptSum_FS4 = Double.parseDouble(sharedPref.getString("DeptSum_FS4", ""));
-            double VehPercentage_FS4 = Double.parseDouble(sharedPref.getString("VehPercentage_FS4", ""));
-            double DeptPercentage_FS4 = Double.parseDouble(sharedPref.getString("DeptPercentage_FS4", ""));
-            String SurchargeType_FS4 = sharedPref.getString("SurchargeType_FS4", "");
-            double ProductPrice_FS4 = Double.parseDouble(sharedPref.getString("ProductPrice_FS4", ""));
+                double VehicleSum_FS4 = Double.parseDouble(sharedPref.getString("VehicleSum_FS4", ""));
+                double DeptSum_FS4 = Double.parseDouble(sharedPref.getString("DeptSum_FS4", ""));
+                double VehPercentage_FS4 = Double.parseDouble(sharedPref.getString("VehPercentage_FS4", ""));
+                double DeptPercentage_FS4 = Double.parseDouble(sharedPref.getString("DeptPercentage_FS4", ""));
+                String SurchargeType_FS4 = sharedPref.getString("SurchargeType_FS4", "");
+                double ProductPrice_FS4 = Double.parseDouble(sharedPref.getString("ProductPrice_FS4", ""));
 
 
-            //----------------------------
+                //----------------------------
 
-            // ------------------------------------Printer Stop Multiple transactions issue--------------------------------------------------------------------------------
+                // ------------------------------------Printer Stop Multiple transactions issue--------------------------------------------------------------------------------
 
-            LinkName = AppConstants.FS4_CONNECTED_SSID;//AppConstants.CURRENT_SELECTED_SSID;
+                LinkName = AppConstants.FS4_CONNECTED_SSID;//AppConstants.CURRENT_SELECTED_SSID;
 
-            //Print Transaction Receipt
-            DecimalFormat precision = new DecimalFormat("0.00");
-            String Qty = (precision.format(fillqty));
-            double FuelQuantity = Double.parseDouble(Qty);
+                //Print Transaction Receipt
+                DecimalFormat precision = new DecimalFormat("0.00");
+                String Qty = (precision.format(fillqty));
+                double FuelQuantity = Double.parseDouble(Qty);
 
-            //---------print cost--------
-            String InitPrintCost = CalculatePrice(SurchargeType_FS4, FuelQuantity, ProductPrice_FS4, VehicleSum_FS4, DeptSum_FS4, VehPercentage_FS4, DeptPercentage_FS4);
-            DecimalFormat precision_cost = new DecimalFormat("0.00");
-            String PrintCost = (precision_cost.format(Double.parseDouble(InitPrintCost)));
+                //---------print cost--------
+                String InitPrintCost = CalculatePrice(SurchargeType_FS4, FuelQuantity, ProductPrice_FS4, VehicleSum_FS4, DeptSum_FS4, VehPercentage_FS4, DeptPercentage_FS4);
+                DecimalFormat precision_cost = new DecimalFormat("0.00");
+                String PrintCost = (precision_cost.format(Double.parseDouble(InitPrintCost)));
 
 
-            if (IsOtherRequire.equalsIgnoreCase("true")) {
+                if (IsOtherRequire.equalsIgnoreCase("true")) {
 
-                printReceipt = GetPrintReciptForOther(CompanyName, PrintDate, LinkName, Location, VehicleNumber, PersonName, OtherLabel, OtherName, Qty, PrintCost);
-                // printReceipt = " \n\n------FluidSecure Receipt------ \n\nCompany   : " + CompanyName +"\n\nTime/Date : "+PrintDate+"\n\nLocation  : "+LinkName+","+Location+","+"\n\nVehicle # : "+VehicleNumber+"\n\nPersonnel : "+PersonName+" \n\nQty       : " + Qty + "\n\n"+OtherLabel+":"+OtherName+ "\n\n ---------Thank You---------"+"\n\n\n\n\n\n\n\n\n\n\n\n";
-            } else {
-                printReceipt = GetPrintRecipt(CompanyName, PrintDate, LinkName, Location, VehicleNumber, PersonName, Qty, PrintCost);
-                // printReceipt = " \n\n------FluidSecure Receipt------ \n\nCompany   : " + CompanyName +"\n\nTime/Date : "+PrintDate+"\n\nLocation  : "+LinkName+","+Location+"\n\nVehicle # : "+VehicleNumber+"\n\nPersonnel : "+PersonName+" \n\nQty       : " + Qty + "\n\n ---------Thank You---------"+"\n\n\n\n\n\n\n\n\n\n\n\n";
-            }
+                    printReceipt = GetPrintReciptForOther(CompanyName, PrintDate, LinkName, Location, VehicleNumber, PersonName, OtherLabel, OtherName, Qty, PrintCost);
+                    // printReceipt = " \n\n------FluidSecure Receipt------ \n\nCompany   : " + CompanyName +"\n\nTime/Date : "+PrintDate+"\n\nLocation  : "+LinkName+","+Location+","+"\n\nVehicle # : "+VehicleNumber+"\n\nPersonnel : "+PersonName+" \n\nQty       : " + Qty + "\n\n"+OtherLabel+":"+OtherName+ "\n\n ---------Thank You---------"+"\n\n\n\n\n\n\n\n\n\n\n\n";
+                } else {
+                    printReceipt = GetPrintRecipt(CompanyName, PrintDate, LinkName, Location, VehicleNumber, PersonName, Qty, PrintCost);
+                    // printReceipt = " \n\n------FluidSecure Receipt------ \n\nCompany   : " + CompanyName +"\n\nTime/Date : "+PrintDate+"\n\nLocation  : "+LinkName+","+Location+"\n\nVehicle # : "+VehicleNumber+"\n\nPersonnel : "+PersonName+" \n\nQty       : " + Qty + "\n\n ---------Thank You---------"+"\n\n\n\n\n\n\n\n\n\n\n\n";
+                }
 
 
                 if (EnablePrinter.equalsIgnoreCase("True")) {
@@ -2125,6 +2125,21 @@ public class BackgroundService_FS_UNIT_4 extends Service {
         ServerDate = "0";
         IsTLDCall = "0";
 
+        //settransactionID to FSUNIT
+        /*new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+
+
+                String curr_date = AppConstants.currentDateFormat("hhmmss");//"yyyyMMdd hhmmss"
+                System.out.println("curr_date"+curr_date);
+
+                OffLastTXNid = "99999999";//+sqlite_id+curr_date;
+                System.out.println("OfflineLastTransactionID_BackgroundService" + OffLastTXNid);
+                new CommandsPOST().execute(URL_SET_TXNID, "{\"txtnid\":" + OffLastTXNid + "}");
+
+            }
+        }, 1500);*/
 
         EntityOffTranz tzc = offcontroller.getTransactionDetailsBySqliteId(sqlite_id);
 
@@ -2152,4 +2167,5 @@ public class BackgroundService_FS_UNIT_4 extends Service {
     }
 
 }
+
 

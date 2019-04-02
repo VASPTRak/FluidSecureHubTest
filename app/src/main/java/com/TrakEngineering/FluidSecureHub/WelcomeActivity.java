@@ -5958,7 +5958,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             }
 
             //TODO MyServer FSVM
-            if (AppConstants.Server_mesage.equalsIgnoreCase("Server Not Connected..!!!")){
+            //if (AppConstants.Server_mesage.equalsIgnoreCase("Server Not Connected..!!!")){}
 
                 ctx = WelcomeActivity.this;
                 try {
@@ -5971,7 +5971,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     if (AppConstants.GenerateLogs) AppConstants.WriteinFile(TAG + " MyServer Ex-" + e);
                 }
 
-            }
+
 
 
         } else {

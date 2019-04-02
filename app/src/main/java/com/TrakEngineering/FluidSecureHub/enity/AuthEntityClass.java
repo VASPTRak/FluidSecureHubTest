@@ -8,6 +8,7 @@ public class AuthEntityClass {
     public String IMEIUDID;
     public String VehicleNumber;
     public String FOBNumber;
+    public String ErrorCode;
     public int OdoMeter;
     public int Hours;
     public String WifiSSId;

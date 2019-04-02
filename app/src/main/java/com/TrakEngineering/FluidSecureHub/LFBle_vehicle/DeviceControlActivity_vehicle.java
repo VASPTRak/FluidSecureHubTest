@@ -2221,3 +2221,4 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
     }
 
 }
+

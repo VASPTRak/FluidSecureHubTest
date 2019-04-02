@@ -124,7 +124,7 @@ public class AppConstants {
     public static String Server_Request;
     public static String Server_Response;
     public static String Header_data;
-
+    public static String OdoErrorCode = "0";
 
     public static boolean FlickeringScreenOff;
     public static String NoSleepRespTime = "";
