@@ -59,7 +59,7 @@ public class NetworkReceiver extends BroadcastReceiver {
             System.out.println("Network Switched");
             AppConstants.PRE_STATE_MOBILEDATA = CurrentState;
             AppConstants.colorToastBigFont(context, "Network Switched", Color.RED);
-            context.startService(new Intent(context, StopRunningTransactionBackgroundService.class));
+            //context.startService(new Intent(context, StopRunningTransactionBackgroundService.class));
         }
 
     }
