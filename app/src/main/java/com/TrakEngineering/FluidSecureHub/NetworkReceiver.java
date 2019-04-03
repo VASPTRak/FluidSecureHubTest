@@ -1,25 +1,14 @@
 package com.TrakEngineering.FluidSecureHub;
 
-import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.AsyncTask;
-import android.util.Log;
 
-import com.TrakEngineering.FluidSecureHub.EddystoneScanner.EddystoneScannerService;
 import com.TrakEngineering.FluidSecureHub.offline.OffTranzSyncService;
 import com.TrakEngineering.FluidSecureHub.offline.StopRunningTransactionBackgroundService;
-import com.squareup.okhttp.MediaType;
-import com.squareup.okhttp.OkHttpClient;
-import com.squareup.okhttp.Request;
-import com.squareup.okhttp.RequestBody;
-import com.squareup.okhttp.Response;
-
-import static com.google.android.gms.internal.zzs.TAG;
 
 public class NetworkReceiver extends BroadcastReceiver {
 
@@ -39,12 +28,12 @@ public class NetworkReceiver extends BroadcastReceiver {
             CurrentState = true;
             AppConstants.IS_MOBILE_MSG = false;
 
-            if (Constants.FS_1STATUS.equalsIgnoreCase("FREE") && Constants.FS_2STATUS.equalsIgnoreCase("FREE") && Constants.FS_3STATUS.equalsIgnoreCase("FREE") && Constants.FS_4STATUS.equalsIgnoreCase("FREE")) {
+            if (WelcomeActivity.OnWelcomeActivity && Constants.FS_1STATUS.equalsIgnoreCase("FREE") && Constants.FS_2STATUS.equalsIgnoreCase("FREE") && Constants.FS_3STATUS.equalsIgnoreCase("FREE") && Constants.FS_4STATUS.equalsIgnoreCase("FREE")) {
 
                 //sync offline transactions
                 context.startService(new Intent(context, OffTranzSyncService.class));
                 //sync online transactions
-                context.startService(new Intent(context, BackgroundService.class));
+                //context.startService(new Intent(context, BackgroundService.class));
             }
 
 

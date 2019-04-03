@@ -53,6 +53,7 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.Stack;
 
+import static android.content.Context.ACTIVITY_SERVICE;
 import static android.content.Context.INPUT_METHOD_SERVICE;
 import static android.content.Context.POWER_SERVICE;
 import static android.content.Context.WIFI_SERVICE;
@@ -1142,7 +1143,7 @@ public class CommonUtils {
 
 
     public static boolean isMyServiceRunning(Class<?> serviceClass, Context context) {
-        ActivityManager manager = (ActivityManager)context. getSystemService(Context.ACTIVITY_SERVICE);
+        ActivityManager manager = (ActivityManager)context. getSystemService(ACTIVITY_SERVICE);
         for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
             if (serviceClass.getName().equals(service.service.getClassName())) {
                 Log.i("Service already","running");
@@ -1150,6 +1151,18 @@ public class CommonUtils {
             }
         }
         Log.i("Service not","running");
+        return false;
+    }
+
+    public static boolean checkServiceRunning(String package_name){
+        ActivityManager manager = (ActivityManager) ctx.getSystemService(ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE))
+        {
+            if (package_name.equals(service.service.getClassName()))
+            {
+                return true;
+            }
+        }
         return false;
     }
 

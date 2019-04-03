@@ -164,7 +164,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     private double longitude = 0;
     TextView tvSSIDName, tv_NFS1, tv_NFS2, tv_NFS3, tv_NFS4, tv_FA_message;//tv_fs1_pulse
     TextView tv_request, tv_response, tv_Display_msg, tv_file_address;
-    LinearLayout linear_debug_window,linearHose, linear_fs_1, linear_fs_2, linear_fs_3, linear_fs_4, Fs1_beginFuel, Fs3_beginFuel, Fs2_beginFuel, Fs4_beginFuel, linearLayout_MainActivity;
+    LinearLayout linear_debug_window, linearHose, linear_fs_1, linear_fs_2, linear_fs_3, linear_fs_4, Fs1_beginFuel, Fs3_beginFuel, Fs2_beginFuel, Fs4_beginFuel, linearLayout_MainActivity;
     WifiManager mainWifi;
     StringBuilder sb = new StringBuilder();
     private MyServer server;
@@ -470,7 +470,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         AppConstants.Server_mesage = "Server Not Connected..!!!";
         if (cd.isConnectingToInternet()) {
             AppConstants.PRE_STATE_MOBILEDATA = true;
-        }else{
+        } else {
             AppConstants.PRE_STATE_MOBILEDATA = false;
         }
 
@@ -1128,12 +1128,15 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
     public void selectHoseAction(View v) {
 
+        //SyncServerData();//Check for pending SQLite data
+        SyncSqliteData();
+
         linearHose.setClickable(false);
         //Reconnect BT reader if disconnected
         ConnectCount = 0;
         ReConnectBTReader();
 
-        if (AppConstants.DetailsListOfConnectedDevices == null || AppConstants.DetailsListOfConnectedDevices.size() == 0){
+        if (AppConstants.DetailsListOfConnectedDevices == null || AppConstants.DetailsListOfConnectedDevices.size() == 0) {
             new GetConnectedDevicesIP().execute();//Refreshed donnected devices list on hose selection.
         }
 
@@ -1310,6 +1313,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
 
     }
+
     public class handleGetAndroidSSID extends AsyncTask<String, Void, String> {
 
 
@@ -3028,7 +3032,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
             SharedPreferences sharedPrefODO = WelcomeActivity.this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
             IsOtherRequire = sharedPrefODO.getString(AppConstants.IsOtherRequire, "");
-            WifiChannelToUse =  sharedPrefODO.getInt(AppConstants.WifiChannelToUse, 11);
+            WifiChannelToUse = sharedPrefODO.getInt(AppConstants.WifiChannelToUse, 11);
 
             WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(context.WIFI_SERVICE);
             Method getConfigMethod = wifiManager.getClass().getMethod("getWifiApConfiguration");
@@ -3047,7 +3051,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 int val = wcFreq.getInt(wifiConfig);
                 Log.i("Config was", "val=" + val);
                 if (WifiChannelToUse != val) {
-                    wcFreq.setInt(wifiConfig,WifiChannelToUse); // channel 11
+                    wcFreq.setInt(wifiConfig, WifiChannelToUse); // channel 11
                     //Toggle Wifi..
                     wifiApManager.setWifiApEnabled(null, false);  //Disable Hotspot
                     new Handler().postDelayed(new Runnable() {
@@ -4411,7 +4415,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
     public void OnHoseSelected_OnClick(String position) {
 
-        //SyncServerData();//Check for pending SQLite data
+
 
         String IpAddress = "";
         SelectedItemPos = Integer.parseInt(position);
@@ -5055,9 +5059,9 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 break;
             case R.id.enable_debug_window:
 
-                if (FA_DebugWindow){
+                if (FA_DebugWindow) {
                     FA_DebugWindow = false;
-                }else{
+                } else {
                     FA_DebugWindow = true;
                 }
                 onResume();
@@ -5960,18 +5964,16 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             //TODO MyServer FSVM
             //if (AppConstants.Server_mesage.equalsIgnoreCase("Server Not Connected..!!!")){}
 
-                ctx = WelcomeActivity.this;
-                try {
+            ctx = WelcomeActivity.this;
+            try {
 
-                    server = new MyServer();
-                    DownloadFileHttp abc = new DownloadFileHttp();
+                server = new MyServer();
+                DownloadFileHttp abc = new DownloadFileHttp();
 
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    if (AppConstants.GenerateLogs) AppConstants.WriteinFile(TAG + " MyServer Ex-" + e);
-                }
-
-
+            } catch (Exception e) {
+                e.printStackTrace();
+                if (AppConstants.GenerateLogs) AppConstants.WriteinFile(TAG + " MyServer Ex-" + e);
+            }
 
 
         } else {
@@ -6037,7 +6039,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     AppConstants.WriteinFile(TAG + "  Link is unavailable info command");
                 //AppConstants.colorToastBigFont(WelcomeActivity.this, " Link is unavailable", Color.RED);
 
-             }
+            }
 
 
         } catch (Exception e) {
@@ -7019,6 +7021,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
     public void SyncServerData() {
 
+
         DBController controller = new DBController(WelcomeActivity.this);
         ArrayList<HashMap<String, String>> uData = controller.getAllTransaction();
 
@@ -7030,6 +7033,19 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             System.out.println("BackgroundService STOP...");
         }
 
+    }
+
+    public void SyncSqliteData() {
+
+        if (WelcomeActivity.OnWelcomeActivity && Constants.FS_1STATUS.equalsIgnoreCase("FREE") && Constants.FS_2STATUS.equalsIgnoreCase("FREE") && Constants.FS_3STATUS.equalsIgnoreCase("FREE") && Constants.FS_4STATUS.equalsIgnoreCase("FREE")) {
+
+            if (cd.isConnectingToInternet()) {
+                //sync offline transactions
+                startService(new Intent(WelcomeActivity.this, OffTranzSyncService.class));
+                //sync online transaction
+                startService(new Intent(WelcomeActivity.this, BackgroundService.class));
+            }
+        }
     }
 
 
@@ -7426,11 +7442,11 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
     }
 
-    private void DebugWindow(){
+    private void DebugWindow() {
 
-        if (FA_DebugWindow){
+        if (FA_DebugWindow) {
             linear_debug_window.setVisibility(View.VISIBLE);
-        }else{
+        } else {
             linear_debug_window.setVisibility(View.GONE);
         }
     }

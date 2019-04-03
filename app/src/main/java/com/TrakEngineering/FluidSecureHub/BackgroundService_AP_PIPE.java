@@ -1576,9 +1576,11 @@ public class BackgroundService_AP_PIPE extends Service {
 
             }
 
-            if (!CommonUtils.isMyServiceRunning(BackgroundService.class, this)) {
+            boolean BSRunning =  CommonUtils.checkServiceRunning("com.TrakEngineering.FluidSecureHub.BackgroundService");
+            if (!BSRunning) {
                 startService(new Intent(this, BackgroundService.class));
             }
+
         } else {
             //offline---------------------------
 

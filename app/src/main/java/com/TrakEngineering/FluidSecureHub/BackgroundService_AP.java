@@ -1489,12 +1489,13 @@ public class BackgroundService_AP extends Service {
             }
 
 
-            if (!CommonUtils.isMyServiceRunning(BackgroundService.class, this)) {
+            boolean BSRunning =  CommonUtils.checkServiceRunning("com.TrakEngineering.FluidSecureHub.BackgroundService");
+            if (!BSRunning) {
                 startService(new Intent(this, BackgroundService.class));
             }
+
         }else {
             try {
-
 
                 EntityOffTranz authEntityClass = offcontroller.getTransactionDetailsBySqliteId(sqlite_id);
                 authEntityClass.TransactionFrom="AP";
