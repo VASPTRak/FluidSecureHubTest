@@ -55,10 +55,10 @@ public class MyServer extends NanoHTTPD {
 
     @Override
     public Response serve(IHTTPSession session) {
-        String tlddd = null;
+        String TLD = null;
         String FSTag = "",FirmwareVersion = "",fsvmData = "",RequestBody = "",ContentLength = "",host = "",ODOK = "", VIN = "";
         String ResMsg = "";
-        tlddd = session.getHeaders().get("tld");
+        TLD = session.getHeaders().get("TLD");
 
         // Accessfile from Internal storage
         File f = new File(Environment.getExternalStorageDirectory() + "/FA_FileDownload/Download.txt");
@@ -67,7 +67,7 @@ public class MyServer extends NanoHTTPD {
         Log.i(TAG,"http server called");
         if (AppConstants.GenerateLogs) AppConstants.WriteinFile(TAG + " http server called");
 
-        if (tlddd == null) {
+        if (TLD == null) {
 
             try {
 
@@ -230,22 +230,28 @@ public class MyServer extends NanoHTTPD {
 
         }else{
 
-            SharedPreferences sharedPref = ctx.getSharedPreferences(Constants.PREF_TldDetails, Context.MODE_PRIVATE);
-            String IsTLDCall = sharedPref.getString("IsTLDCall", "");
-            String IsTLDFirmwareUpgrade = sharedPref.getString("IsTLDFirmwareUpgrade", "N");
-            String TLDFirmwareFilePath = sharedPref.getString("TLDFirmwareFilePath", "");
-            String TLDFIrmwareVersion = sharedPref.getString("TLDFirmwareFilePath", "");
-            String LinkMacAddress = sharedPref.getString("selMacAddress", "");
-            String PROBEMacAddress = sharedPref.getString("PROBEMacAddress", "");
+            if (TLD.equalsIgnoreCase("Y")){
 
-            if (IsTLDFirmwareUpgrade.equalsIgnoreCase("Y") && TLDFirmwareFilePath != null) {
+                SharedPreferences sharedPref = ctx.getSharedPreferences(Constants.PREF_TldDetails, Context.MODE_PRIVATE);
+                String IsTLDCall = sharedPref.getString("IsTLDCall", "");
+                String IsTLDFirmwareUpgrade = sharedPref.getString("IsTLDFirmwareUpgrade", "N");
+                String TLDFirmwareFilePath = sharedPref.getString("TLDFirmwareFilePath", "");
+                String TLDFIrmwareVersion = sharedPref.getString("TLDFirmwareFilePath", "");
+                String LinkMacAddress = sharedPref.getString("selMacAddress", "");
+                String PROBEMacAddress = sharedPref.getString("PROBEMacAddress", "");
 
-                String[] parts = TLDFirmwareFilePath.split("/");
-                String FileName = parts[6]; // FSVM.bin
-                new BackgroundServiceDownloadFirmware.DownloadTLDFileFromURL().execute(TLDFirmwareFilePath, FileName);
+                if (IsTLDFirmwareUpgrade.equalsIgnoreCase("Y") && TLDFirmwareFilePath != null) {
+
+                    String[] parts = TLDFirmwareFilePath.split("/");
+                    String FileName = parts[6]; // FSVM.bin
+                    new BackgroundServiceDownloadFirmware.DownloadTLDFileFromURL().execute(TLDFirmwareFilePath, FileName);
+                }
+
             }
 
-            ResMsg = "{\"TLD_update\":\""+IsTLDFirmwareUpgrade+"\"}";
+
+
+            ResMsg = "{\"TLD_update\":\""+TLD+"\"}";
 
         }
 

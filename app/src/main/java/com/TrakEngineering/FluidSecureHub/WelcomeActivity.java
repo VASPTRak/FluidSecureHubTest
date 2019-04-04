@@ -6605,11 +6605,11 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         if (isSuccess) {
             countWifi = 100;
             loading.dismiss();
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "  WIFI CONNECTED " + AppConstants.CURRENT_SELECTED_SSID);
+            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  WIFI CONNECTED " + AppConstants.CURRENT_SELECTED_SSID);
             AppConstants.colorToastBigFont(WelcomeActivity.this, "CONNECTED TO:- " + AppConstants.CURRENT_SELECTED_SSID, Color.BLUE);
 
             new WiFiConnectTask().execute();
+
         } else {
 
             if (countWifi <= 2) {
