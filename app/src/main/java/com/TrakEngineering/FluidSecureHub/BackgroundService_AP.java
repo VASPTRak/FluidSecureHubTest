@@ -1489,7 +1489,7 @@ public class BackgroundService_AP extends Service {
             }
 
 
-            boolean BSRunning =  CommonUtils.checkServiceRunning("com.TrakEngineering.FluidSecureHub.BackgroundService");
+            boolean BSRunning =  CommonUtils.checkServiceRunning(BackgroundService_AP.this,AppConstants.PACKAGE_BACKGROUND_SERVICE);
             if (!BSRunning) {
                 startService(new Intent(this, BackgroundService.class));
             }

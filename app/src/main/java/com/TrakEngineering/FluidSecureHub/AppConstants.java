@@ -80,6 +80,8 @@ public class AppConstants {
     public static final String IsGateHub= "IsGateHub";
     public static final String IsStayOpenGate = "IsStayOpenGate";
 
+    public static final String PACKAGE_BACKGROUND_SERVICE = "com.TrakEngineering.FluidSecureHub.BackgroundService";
+
     public static ArrayList<HashMap<String, String>> temp_serverSSIDList;
 
     public static String webIP = "https://www.fluidsecure.net/"; // = "http://103.8.126.241:89/";//test

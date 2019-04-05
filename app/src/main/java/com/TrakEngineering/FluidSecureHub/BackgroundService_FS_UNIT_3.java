@@ -1486,7 +1486,7 @@ public class BackgroundService_FS_UNIT_3 extends Service {
                 storeIsRenameFlag(this, AppConstants.NeedToRename, jsonData, authString);
 
             }
-            boolean BSRunning =  CommonUtils.checkServiceRunning("com.TrakEngineering.FluidSecureHub.BackgroundService");
+            boolean BSRunning =  CommonUtils.checkServiceRunning(BackgroundService_FS_UNIT_3.this,AppConstants.PACKAGE_BACKGROUND_SERVICE);
             if (!BSRunning) {
                 startService(new Intent(this, BackgroundService.class));
             }
