@@ -278,7 +278,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
         etInput = (EditText) findViewById(R.id.etInput);
 
 
-        getSupportActionBar().setTitle(R.string.fs_name);
+        getSupportActionBar().setTitle(AppConstants.BrandName);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
         Intent gattServiceIntent = new Intent(this, BluetoothLeService_vehicle.class);

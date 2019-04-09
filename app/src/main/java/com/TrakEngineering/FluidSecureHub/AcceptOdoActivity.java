@@ -100,7 +100,7 @@ public class AcceptOdoActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_accept_odo);
 
-        getSupportActionBar().setTitle(R.string.fs_name);
+        getSupportActionBar().setTitle(AppConstants.BrandName);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
         InItGUI();

@@ -14,7 +14,7 @@ android {
         minSdkVersion 21
         targetSdkVersion 27
         versionCode 48
-        versionName "0.38.4"
+        versionName "0.38.6"
         multiDexEnabled true
     }
     buildTypes {
@@ -69,5 +69,7 @@ dependencies {
 
     // Important - the CameraSource implementation in this project requires version 8.1 or higher.
     implementation 'com.google.android.gms:play-services-vision:8.1.0'
+    //
+    implementation 'com.squareup.picasso:picasso:2.71828'
 
 }

@@ -92,7 +92,7 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
 
-
+        getSupportActionBar().setTitle("Hub Application");
         CommonUtils.LogMessage(TAG, "SplashActivity", null);
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addApi(LocationServices.API)
@@ -360,7 +360,7 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
         boolean isValue = false;
 
         try {
-            String[] permissions = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.READ_PHONE_STATE, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.RECORD_AUDIO, Manifest.permission.BLUETOOTH, Manifest.permission.ACCESS_COARSE_LOCATION};
+            String[] permissions = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.READ_PHONE_STATE, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.RECORD_AUDIO, Manifest.permission.BLUETOOTH, Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.CAMERA};
 
             boolean isGranted = checkPermission(SplashActivity.this, permissions[0]);
 
@@ -499,15 +499,20 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
                     String IsGateHub = jsonObject.getString("IsGateHub");
                     String IsStayOpenGate = jsonObject.getString("StayOpenGate");
                     String IsVehicleNumberRequire = jsonObject.getString("IsVehicleNumberRequire");
+                    String CompanyBrandName = jsonObject.getString("CompanyBrandName");
+                    String CompanyBrandLogoLink = jsonObject.getString("CompanyBrandLogoLink");
+                    String SupportEmail = jsonObject.getString("SupportEmail");
+                    String SupportPhonenumber = jsonObject.getString("SupportPhonenumber");
                     int WifiChannelToUse = jsonObject.getInt("WifiChannelToUse");
                     boolean fa_data = Boolean.parseBoolean(jsonObject.getString("EnbDisHubForFA"));
+
 
                     String IsOfflineAllow = jsonObject.getString("IsOfflineAllow");
 
                     OfflineConstants.storeOfflineAccess(SplashActivity.this, IsOfflineAllow);
 
+                    CommonUtils.SaveLogFlagInPref(SplashActivity.this,IsLogging,CompanyBrandName,CompanyBrandLogoLink,SupportEmail,SupportPhonenumber);//Save logging to preferances
                     CommonUtils.FA_FlagSavePref(SplashActivity.this,fa_data,"FAData");
-                    CommonUtils.SaveLogFlagInPref(SplashActivity.this,IsLogging,"LogRequiredFlag");//Save logging to preferances
                     storeBT_FOBDetails(BluetoothCardReader, BluetoothCardReaderMacAddress,LFBluetoothCardReader,LFBluetoothCardReaderMacAddress);
 
                     CommonUtils.SaveDataInPrefForGatehub (SplashActivity.this, IsGateHub, IsStayOpenGate);

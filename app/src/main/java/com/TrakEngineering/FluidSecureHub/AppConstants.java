@@ -80,7 +80,14 @@ public class AppConstants {
     public static final String IsGateHub= "IsGateHub";
     public static final String IsStayOpenGate = "IsStayOpenGate";
 
-    public static final String PACKAGE_BACKGROUND_SERVICE = "com.TrakEngineering.FluidSecureHub.BackgroundService";
+    public static final String LogRequiredFlag = "LogRequiredFlag";
+    public static final String CompanyBrandName = "CompanyBrandName";
+    public static final String CompanyBrandLogoLink = "CompanyBrandLogoLink";
+    public static final String SupportEmail = "SupportEmail";
+    public static final String SupportPhonenumber = "SupportPhonenumber";
+    public static String BrandName = "FluidSecure";
+
+    public static final String PACKAGE_BACKGROUND_SERVICE = "com.TrakEngineering.FluidSecureHubTest.BackgroundService";
 
     public static ArrayList<HashMap<String, String>> temp_serverSSIDList;
 
@@ -127,6 +134,7 @@ public class AppConstants {
     public static String Server_Response;
     public static String Header_data;
     public static String OdoErrorCode = "0";
+
 
     public static boolean FlickeringScreenOff;
     public static String NoSleepRespTime = "";

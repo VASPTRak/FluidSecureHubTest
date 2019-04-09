@@ -400,7 +400,7 @@
                     android:text="Disconnect" />
 
                 <ImageView
-                    android:id="@+id/imageView"
+                    android:id="@+id/FSlogo_img"
                     android:layout_width="270sp"
                     android:layout_height="100sp"
                     android:layout_gravity="center_horizontal"
@@ -1117,6 +1117,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="left"
+                    android:id="@+id/support_email"
                     android:text="Email:    support@fluidsecure.com"
                     android:textColor="#000"
                     android:textSize="18sp" />
@@ -1125,6 +1126,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="left"
+                    android:id="@+id/support_phone"
                     android:text="Or Call:  850-878-4585"
                     android:textColor="#000"
                     android:textSize="18sp" />

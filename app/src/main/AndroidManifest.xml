@@ -249,7 +249,7 @@
         <service
             android:name=".EddystoneScanner.FStagScannerService"
             android:enabled="true"
-            android:exported="false"></service>
+            android:exported="false" />
         <service
             android:name=".BackgroundServiceNew.MyService_FSNP"
             android:enabled="true"
@@ -278,6 +278,10 @@
             android:enabled="true" />
         <service
             android:name=".offline.StopRunningTransactionBackgroundService"
+            android:enabled="true"
+            android:exported="true" />
+        <service
+            android:name=".BackgroundServiceClearOlderPictures"
             android:enabled="true"
             android:exported="true"></service>
     </application>

@@ -461,11 +461,15 @@ public class CommonUtils {
         return false;
     }
 
-    public static void SaveLogFlagInPref(Activity activity,String data, String key){
+    public static void SaveLogFlagInPref(Activity activity,String data,String CompanyBrandName, String CompanyBrandLogoLink,String SupportEmail, String SupportPhonenumber){
 
         SharedPreferences pref = activity.getSharedPreferences(Constants.PREF_Log_Data, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = pref.edit();
-        editor.putString(key, data);
+        editor.putString(AppConstants.LogRequiredFlag, data);
+        editor.putString(AppConstants.CompanyBrandName, CompanyBrandName);
+        editor.putString(AppConstants.CompanyBrandLogoLink, CompanyBrandLogoLink);
+        editor.putString(AppConstants.SupportEmail, SupportEmail);
+        editor.putString(AppConstants.SupportPhonenumber, SupportPhonenumber);
         editor.commit();
 
 

@@ -54,7 +54,7 @@ public class AcceptOtherActivity extends AppCompatActivity {
         btnSave = (Button) findViewById(R.id.btnSave);
         btnCancel = (Button) findViewById(R.id.btnCancel);
 
-        getSupportActionBar().setTitle(R.string.fs_name);
+        getSupportActionBar().setTitle(AppConstants.BrandName);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
 

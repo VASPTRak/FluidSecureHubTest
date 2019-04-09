@@ -240,7 +240,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
         etInput = (EditText) findViewById(R.id.etInput);
 
 
-        getSupportActionBar().setTitle(R.string.fs_name);
+        getSupportActionBar().setTitle(AppConstants.BrandName);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
         Intent gattServiceIntent = new Intent(this, BluetoothLeService_Pin.class);

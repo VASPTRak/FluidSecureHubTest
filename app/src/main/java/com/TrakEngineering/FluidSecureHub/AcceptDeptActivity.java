@@ -61,7 +61,7 @@ public class AcceptDeptActivity extends AppCompatActivity {
         footer_keybord = (RelativeLayout) findViewById(R.id.footer_keybord);
 
 
-        getSupportActionBar().setTitle(R.string.fs_name);
+        getSupportActionBar().setTitle(AppConstants.BrandName);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
 

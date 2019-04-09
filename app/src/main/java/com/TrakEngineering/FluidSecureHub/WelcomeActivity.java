@@ -20,11 +20,16 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.IntentSender;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.Matrix;
+import android.graphics.PixelFormat;
+import android.graphics.SurfaceTexture;
+import android.hardware.Camera;
 import android.location.Location;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
@@ -98,6 +103,7 @@ import com.squareup.okhttp.Request;
 import com.squareup.okhttp.RequestBody;
 import com.squareup.okhttp.Response;
 import com.squareup.okhttp.ResponseBody;
+import com.squareup.picasso.Picasso;
 import com.thanosfisherman.wifiutils.WifiUtils;
 
 import org.json.JSONArray;
@@ -106,12 +112,14 @@ import org.json.JSONObject;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
@@ -119,7 +127,6 @@ import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.URL;
 import java.net.URLConnection;
-import java.sql.SQLOutput;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -132,10 +139,10 @@ import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
 import static android.os.Build.VERSION.SDK_INT;
-import static com.TrakEngineering.FluidSecureHub.R.id.book_now;
 import static com.TrakEngineering.FluidSecureHub.R.id.textView;
 import static com.TrakEngineering.FluidSecureHub.server.MyServer.ctx;
 import static com.TrakEngineering.FluidSecureHub.server.ServerHandler.TEXT;
+
 
 
 public class WelcomeActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, View.OnClickListener, View.OnTouchListener, ServiceConnection, EddystoneScannerService.OnBeaconEventListener {
@@ -157,12 +164,13 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     private ImageView imgFuelLogo;
     private TextView tvTitle, tv_SiteName, Fa_log;
     private Spinner SpinBroadcastChannel;
-    private Button btnGo, btnRetryWifi, btn_clear_data;
+    private Button btnGo, btnRetryWifi, btn_clear_data, btnTkPhoto;
     private ConnectionDetector cd = new ConnectionDetector(WelcomeActivity.this);
     ;
     private double latitude = 0;
     private double longitude = 0;
-    TextView tvSSIDName, tv_NFS1, tv_NFS2, tv_NFS3, tv_NFS4, tv_FA_message;//tv_fs1_pulse
+    ImageView FSlogo_img;
+    TextView tvSSIDName, tv_NFS1, tv_NFS2, tv_NFS3, tv_NFS4, tv_FA_message,support_phone,support_email;//tv_fs1_pulse
     TextView tv_request, tv_response, tv_Display_msg, tv_file_address;
     LinearLayout linear_debug_window, linearHose, linear_fs_1, linear_fs_2, linear_fs_3, linear_fs_4, Fs1_beginFuel, Fs3_beginFuel, Fs2_beginFuel, Fs4_beginFuel, linearLayout_MainActivity;
     WifiManager mainWifi;
@@ -485,8 +493,6 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         TextView tvVersionNum = (TextView) findViewById(R.id.tvVersionNum);
         tvVersionNum.setText("Version " + CommonUtils.getVersionCode(WelcomeActivity.this));
 
-        CheckIfLogIsRequired();//If checkbox is checked write logs in text file else not wite logs
-
         mHandler = new Handler();
         // Initializes a Bluetooth adapter.  For API level 18 and above, get a reference to
         // BluetoothAdapter through BluetoothManager.
@@ -503,6 +509,10 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         mGoogleApiClient.connect();
 
         InItGUI();
+
+        //If checkbox is checked write logs in text file else not wite logs
+        //And Set Fuiel branding Information
+        IsLogRequiredAndBranding();
 
         SharedPreferences sharedPrefGatehub = WelcomeActivity.this.getSharedPreferences(Constants.PREF_COLUMN_GATE_HUB, Context.MODE_PRIVATE);
         IsGateHub = sharedPrefGatehub.getString(AppConstants.IsGateHub, "");
@@ -525,6 +535,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         //new GetConnectedDevicesIP().execute();
         KeepDataTransferAlive();//Check For FirmwreUpgrade & KeepDataTransferAlive
 
+        clearOlderPictures(); //Clear pictures captured on GO button click which are older than 60 days
 
         /* //TODO  BackgroundServiceFSNP
          new Handler().postDelayed(new Runnable() {
@@ -881,6 +892,15 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
     }
 
+    //Calling background servince to clear pictures captured on GO button click which are older than 60 days
+    public void clearOlderPictures() {
+        Calendar cal = Calendar.getInstance();
+        Intent name = new Intent(WelcomeActivity.this, BackgroundServiceClearOlderPictures.class);
+        PendingIntent pintent = PendingIntent.getService(getApplicationContext(), 0, name, 0);
+        AlarmManager alarm = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        alarm.setRepeating(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), 86400000, pintent); //86400000
+    }
+
     public void KeepDataTransferAlive() {
 
         Calendar cal = Calendar.getInstance();
@@ -1095,6 +1115,10 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         tv_NFS3 = (TextView) findViewById(R.id.tv_NFS3);
         tv_NFS4 = (TextView) findViewById(R.id.tv_NFS4);
 
+        FSlogo_img = (ImageView) findViewById(R.id.FSlogo_img);
+        support_phone = (TextView) findViewById(R.id.support_phone);
+        support_email = (TextView) findViewById(R.id.support_email);
+
         tv_FA_message = (TextView) findViewById(R.id.tv_FA_message);
 
         tv_fs1QTN = (TextView) findViewById(R.id.tv_fs1QTN);
@@ -1144,8 +1168,99 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         //alertSelectHoseList(tvLatLng.getText().toString() + "\n");
     }
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        if (requestCode == 0) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED
+                    && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
+                btnTkPhoto.setEnabled(true);
+            }
+        }
+    }
+
+
+    //Method to launch camera for capturing image from front camera on GO button click
+    public void launchCamera (){
+        Camera camera = Camera.open(1);
+        Camera.Parameters parameters = camera.getParameters();
+        parameters.setPictureFormat(PixelFormat.JPEG);
+        camera.setParameters(parameters);
+
+        //SurfaceView mview = new SurfaceView(getBaseContext());
+        SurfaceTexture surfaceTexture = new SurfaceTexture(0);
+
+        try {
+            //camera.setPreviewDisplay(mview.getHolder());
+            camera.setPreviewTexture(surfaceTexture);
+            camera.startPreview();
+            camera.takePicture(null, null, new Camera.PictureCallback() {
+                @Override
+                public void onPictureTaken(byte[] data, Camera camera) {
+
+                    // Uri uriTarget = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, new ContentValues());
+                    OutputStream imageFileOS;
+
+                    String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+                    String fileName = "IMG_"+ timeStamp;
+
+                    File path = new File(Environment.getExternalStorageDirectory() + "/FSPictureData");
+
+                    if (!path.exists()) {
+                        File wallpaperDirectory = new File("/sdcard/FSPictureData/");
+                        wallpaperDirectory.mkdirs();
+                    }
+
+                    File file = new File(new File("/sdcard/FSPictureData/"), fileName + ".png");
+
+                    //To roate an image captured from camera since the image gets auto rotated
+                    InputStream is = new ByteArrayInputStream(data);
+                    Bitmap bitmap = BitmapFactory.decodeStream(is);
+
+                    int w = bitmap.getWidth();
+                    int h = bitmap.getHeight();
+
+                    Matrix mtx = new Matrix();
+                    mtx.postRotate(270);
+                    // Rotating Bitmap
+                    Bitmap rotatedBMP = Bitmap.createBitmap(bitmap, 0, 0, w, h, mtx, true);
+                    ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                    rotatedBMP.compress(Bitmap.CompressFormat.PNG, 100, stream);
+                    data = stream.toByteArray();
+
+                    try {
+
+                        //imageFileOS = getContentResolver().openOutputStream(uriTarget);
+                        imageFileOS = new FileOutputStream(file);
+                        imageFileOS.write(data);
+                        imageFileOS.flush();
+                        imageFileOS.close();
+
+                        // Bitmap bmp = BitmapFactory.decodeByteArray(data,0,data.length);
+                        // createDirectoryAndSaveFile(uriTarget,bmp,fileName);
+
+                        // Toast.makeText(getApplicationContext(), "Image saved: " + file.toString(), Toast.LENGTH_LONG).show();
+
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+
+                    } catch (IOException e) {
+                        e.printStackTrace();
+
+                    }
+                    //finish();
+
+                }
+            });
+
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
+
     public void goButtonAction(View view) {
 
+        launchCamera();     //Calling camera activity for image capture on GO button click
 
         ///////////////////common online offline///////////////////////////////
         EntityHub obj = offcontroller.getOfflineHubDetails(WelcomeActivity.this);
@@ -5924,11 +6039,23 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         }
     }
 
-    public void CheckIfLogIsRequired() {
+    public void IsLogRequiredAndBranding() {
 
         SharedPreferences sharedPref = this.getSharedPreferences(Constants.PREF_Log_Data, Context.MODE_PRIVATE);
-        AppConstants.GenerateLogs = Boolean.parseBoolean(sharedPref.getString("LogRequiredFlag", "True"));
-        System.out.println("AppConstants.GenerateLogs" + AppConstants.GenerateLogs);
+        AppConstants.GenerateLogs = Boolean.parseBoolean(sharedPref.getString(AppConstants.LogRequiredFlag, "True"));
+        String CompanyBrandName = sharedPref.getString(AppConstants.CompanyBrandName, "");
+        String CompanyBrandLogoLink = sharedPref.getString(AppConstants.CompanyBrandLogoLink, "");
+        String SupportEmail = sharedPref.getString(AppConstants.SupportEmail, "");
+        String SupportPhonenumber = sharedPref.getString(AppConstants.SupportPhonenumber, "");
+
+        AppConstants.BrandName = CompanyBrandName;
+        support_email.setText(SupportEmail);
+        support_phone.setText(SupportPhonenumber);
+
+        getSupportActionBar().setTitle(AppConstants.BrandName);
+        getSupportActionBar().setIcon(R.drawable.fuel_secure_lock);
+
+        Picasso.get().load(CompanyBrandLogoLink).into((ImageView) findViewById(R.id.FSlogo_img));
 
     }
 
@@ -5955,8 +6082,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
             } else {
 
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "Failed to start EddystoneScannerService Scanning");
+                //if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "Failed to start EddystoneScannerService Scanning");
                 Log.e(TAG, " Failed to start EddystoneScannerService Scanning");
 
             }
@@ -6593,7 +6719,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
         WifiUtils.withContext(WelcomeActivity.this)
                 .connectWith(ote, otePass)
-                .setTimeout(5000)
+                .setTimeout(10000)
                 .onConnectionResult(WelcomeActivity.this::checkResult)
                 .start();
 

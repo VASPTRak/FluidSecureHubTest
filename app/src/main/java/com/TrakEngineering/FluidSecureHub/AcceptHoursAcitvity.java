@@ -72,7 +72,7 @@ public class AcceptHoursAcitvity extends AppCompatActivity {
         //  ActivityHandler.addActivities(5, AcceptHoursAcitvity.this);
 
         setContentView(R.layout.activity_accept_hours_acitvity);
-        getSupportActionBar().setTitle(R.string.fs_name);
+        getSupportActionBar().setTitle(AppConstants.BrandName);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
         InItGUI();

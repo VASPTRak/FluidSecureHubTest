@@ -255,7 +255,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
         // ActivityHandler.addActivities(7, DisplayMeterActivity.this);
 
-        getSupportActionBar().setTitle(R.string.fs_name);
+        getSupportActionBar().setTitle(AppConstants.BrandName);
         //getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         //getSupportActionBar().setDisplayShowHomeEnabled(true);
 
