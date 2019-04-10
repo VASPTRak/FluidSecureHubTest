@@ -46,6 +46,7 @@ public class AcceptServiceCall {
     String IsOdoMeterRequire = "", IsDepartmentRequire = "", IsPersonnelPINRequire = "", IsOtherRequire = "", IsVehicleNumberRequire = "", IsStayOpenGate = "", IsGateHub = "";
     private static final String TAG = "AcceptServiceCall";
     long stopAutoFuelSecondstemp = 0;
+    long sqlite_id = 0;
 
     String HTTP_URL = "";
     String URL_GET_TXNID = HTTP_URL + "client?command=lasttxtnid";
@@ -613,6 +614,7 @@ public class AcceptServiceCall {
                     //Start Background Service
                     Intent serviceIntent = new Intent(activity, BackgroundService_AP_PIPE.class);
                     serviceIntent.putExtra("HTTP_URL", HTTP_URL);
+                    serviceIntent.putExtra("sqlite_id", sqlite_id);
                     activity.startService(serviceIntent);
                     //get back to welcome activity
 
