@@ -6621,7 +6621,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                     String SSID_mac = serverSSIDList.get(0).get("MacAddress");
                                     String ReconfigureLink = serverSSIDList.get(0).get("ReconfigureLink");
                                     String Chk_ip = AppConstants.DetailsListOfConnectedDevices.get(0).get("ipAddress");
-
+                                    AppConstants.SITE_ID = serverSSIDList.get(0).get("SiteId");
 
                                     if (Chk_ip != null && Chk_ip.length() > 3 && !ReconfigureLink.equalsIgnoreCase("true")) {
 
