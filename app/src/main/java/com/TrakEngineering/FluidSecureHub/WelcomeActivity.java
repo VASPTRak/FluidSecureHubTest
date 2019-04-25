@@ -6497,8 +6497,9 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         IsGateHub = jsonObject.getString("IsGateHub");
                         IsStayOpenGate = jsonObject.getString("StayOpenGate");
                         boolean fa_data = Boolean.parseBoolean(jsonObject.getString("EnbDisHubForFA"));
+                        boolean UseBarcode = Boolean.parseBoolean(jsonObject.getString("UseBarcode"));
                         CommonUtils.SaveDataInPrefForGatehub(WelcomeActivity.this, IsGateHub, IsStayOpenGate);
-                        CommonUtils.FA_FlagSavePref(WelcomeActivity.this, fa_data, "FAData");
+                        CommonUtils.FA_FlagSavePref(WelcomeActivity.this, fa_data, UseBarcode);
 
                         BackgroundServiceKeepDataTransferAlive.SSIDList.clear();//clear SSIDList
 
@@ -6622,6 +6623,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                     String ReconfigureLink = serverSSIDList.get(0).get("ReconfigureLink");
                                     String Chk_ip = AppConstants.DetailsListOfConnectedDevices.get(0).get("ipAddress");
                                     AppConstants.SITE_ID = serverSSIDList.get(0).get("SiteId");
+
 
                                     if (Chk_ip != null && Chk_ip.length() > 3 && !ReconfigureLink.equalsIgnoreCase("true")) {
 
@@ -6968,8 +6970,9 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         IsGateHub = jsonObject.getString("IsGateHub");
                         IsStayOpenGate = jsonObject.getString("StayOpenGate");
                         boolean fa_data = Boolean.parseBoolean(jsonObject.getString("EnbDisHubForFA"));
+                        boolean UseBarcode = Boolean.parseBoolean(jsonObject.getString("UseBarcode"));
                         CommonUtils.SaveDataInPrefForGatehub(WelcomeActivity.this, IsGateHub, IsStayOpenGate);
-                        CommonUtils.FA_FlagSavePref(WelcomeActivity.this, fa_data, "FAData");
+                        CommonUtils.FA_FlagSavePref(WelcomeActivity.this, fa_data, UseBarcode);
 
                         BackgroundServiceKeepDataTransferAlive.SSIDList.clear();//clear SSIDList
 
@@ -7305,8 +7308,9 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     IsGateHub = jsonObject.getString("IsGateHub");
                     IsStayOpenGate = jsonObject.getString("StayOpenGate");
                     boolean fa_data = Boolean.parseBoolean(jsonObject.getString("EnbDisHubForFA"));
+                    boolean UseBarcode = Boolean.parseBoolean(jsonObject.getString("UseBarcode"));
                     CommonUtils.SaveDataInPrefForGatehub(WelcomeActivity.this, IsGateHub, IsStayOpenGate);
-                    CommonUtils.FA_FlagSavePref(WelcomeActivity.this, fa_data, "FAData");
+                    CommonUtils.FA_FlagSavePref(WelcomeActivity.this, fa_data, UseBarcode);
 
                     JSONArray Requests = jsonObjectSite.getJSONArray(AppConstants.RES_DATA_SSID);
 

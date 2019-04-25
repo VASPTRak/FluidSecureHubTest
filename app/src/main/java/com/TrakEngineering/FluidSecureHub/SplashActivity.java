@@ -504,6 +504,7 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
                     String SupportEmail = jsonObject.getString("SupportEmail");
                     String SupportPhonenumber = jsonObject.getString("SupportPhonenumber");
                     int WifiChannelToUse = jsonObject.getInt("WifiChannelToUse");
+                    boolean UseBarcode = Boolean.parseBoolean(jsonObject.getString("UseBarcode"));
                     boolean fa_data = Boolean.parseBoolean(jsonObject.getString("EnbDisHubForFA"));
 
 
@@ -512,7 +513,7 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
                     OfflineConstants.storeOfflineAccess(SplashActivity.this, IsOfflineAllow);
 
                     CommonUtils.SaveLogFlagInPref(SplashActivity.this,IsLogging,CompanyBrandName,CompanyBrandLogoLink,SupportEmail,SupportPhonenumber);//Save logging to preferances
-                    CommonUtils.FA_FlagSavePref(SplashActivity.this,fa_data,"FAData");
+                    CommonUtils.FA_FlagSavePref(SplashActivity.this,fa_data,UseBarcode);
                     storeBT_FOBDetails(BluetoothCardReader, BluetoothCardReaderMacAddress,LFBluetoothCardReader,LFBluetoothCardReaderMacAddress);
 
                     CommonUtils.SaveDataInPrefForGatehub (SplashActivity.this, IsGateHub, IsStayOpenGate);

@@ -1466,6 +1466,24 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
 
     public void DisplayScreenInit() {
 
+
+        SharedPreferences sharedPref = this.getSharedPreferences(Constants.PREF_FA_Data, Context.MODE_PRIVATE);
+        boolean FAStatus = sharedPref.getBoolean(AppConstants.FAData, false);
+        boolean BarcodeStatus = sharedPref.getBoolean(AppConstants.UseBarcode, false);
+
+        if (FAStatus){
+            btnFStag.setVisibility(View.VISIBLE);
+        }else{
+            btnFStag.setVisibility(View.GONE);
+        }
+
+        if (BarcodeStatus){
+            btn_barcode.setVisibility(View.VISIBLE);
+        }else{
+            btn_barcode.setVisibility(View.GONE);
+        }
+
+
         if (cd.isConnectingToInternet()) {
             SharedPreferences sharedPrefODO = DeviceControlActivity_vehicle.this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
             IsVehicleHasFob = sharedPrefODO.getString(AppConstants.ISVehicleHasFob, "false");
@@ -1486,8 +1504,6 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
 
             tv_fob_Reader.setVisibility(View.VISIBLE);
             btnSave.setVisibility(View.GONE);
-            btn_barcode.setVisibility(View.GONE);
-            btnFStag.setVisibility(View.GONE);
             btnSave.setClickable(false);
 
             tv_or.setVisibility(View.GONE);
@@ -1520,8 +1536,6 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
 
             btnSave.setClickable(true);
             btnSave.setVisibility(View.VISIBLE);
-            btn_barcode.setVisibility(View.VISIBLE);
-            btnFStag.setVisibility(View.VISIBLE);
             btnCancel.setVisibility(View.VISIBLE);
 
             int width = ActionBar.LayoutParams.MATCH_PARENT;

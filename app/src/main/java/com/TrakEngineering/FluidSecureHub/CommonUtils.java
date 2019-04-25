@@ -475,11 +475,12 @@ public class CommonUtils {
 
     }
 
-    public static void FA_FlagSavePref(Activity activity,boolean data, String key){
+    public static void FA_FlagSavePref(Activity activity,boolean data, boolean barcodedata){
 
         SharedPreferences pref = activity.getSharedPreferences(Constants.PREF_FA_Data, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = pref.edit();
-        editor.putBoolean(key,data);
+        editor.putBoolean(AppConstants.FAData,data);
+        editor.putBoolean(AppConstants.UseBarcode,barcodedata);
         editor.commit();
 
 
