@@ -132,6 +132,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Timer;
@@ -319,6 +320,10 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     ServerHandler serverHandler = new ServerHandler();
 
     //============ Bluetooth reader Gatt end==============
+
+    //============ For Schedule Reboot ==========
+    int rebootDay, rebootHours, rebootMinutes;
+    //========= Schedule Reboot end ==========
 
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
     @Override
@@ -890,6 +895,28 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         //scan and enable hotspot if OFF
         Constants.hotspotstayOn = true;
 
+    }
+
+    //Calling background servince to reboot the device at scheduled time
+    public void scheduleReboot(int hours, int minutes, int day) {
+        Calendar cur_cal = new GregorianCalendar();
+        cur_cal.setTimeInMillis(System.currentTimeMillis());//set the current time and date for this calendar
+        Log.d(TAG, "Hours : " + hours + " Minutes : " + minutes);
+        Calendar cal = new GregorianCalendar();
+        //cal.add(Calendar.DAY_OF_YEAR, cur_cal.get(Calendar.DAY_OF_YEAR));
+        //cal.add(Calendar.DAY_OF_WEEK, day);
+        cal.set(Calendar.HOUR_OF_DAY, hours);
+        cal.set(Calendar.MINUTE, minutes);
+        cal.set(Calendar.SECOND, cur_cal.get(Calendar.SECOND));
+        cal.set(Calendar.MILLISECOND, cur_cal.get(Calendar.MILLISECOND));
+        cal.set(Calendar.DATE, cur_cal.get(Calendar.DATE));
+        cal.set(Calendar.MONTH, cur_cal.get(Calendar.MONTH));
+
+        Intent name = new Intent(WelcomeActivity.this, BackgroundServiceScheduleReboot.class);
+        PendingIntent pintent = PendingIntent.getService(getApplicationContext(), 0, name, 0);
+        AlarmManager alarm = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        alarm.setExact(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), pintent);
+        //alarm.set(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), pintent);
     }
 
     //Calling background servince to clear pictures captured on GO button click which are older than 60 days
@@ -2206,6 +2233,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                         }, 3000);
 
                                     } catch (Exception e) {
+
+                                        Constants.hotspotstayOn = true;
                                         Log.i(TAG, "Link ReConfiguration process -Step 1 Exception" + e);
                                         if (AppConstants.GenerateLogs)
                                             AppConstants.WriteinFile(TAG + "Link ReConfiguration process -Step 1 Exception" + e);
@@ -6546,6 +6575,17 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                 //Current Fs wifi password
                                 Constants.CurrFsPass = Password;
 
+                                //For schedule reboot
+                                String dayForReboot = jsonObject.getString("RebootDay");
+                                rebootDay = Integer.parseInt(dayForReboot);
+                                String timeForReboot = jsonObject.getString("RebootTime");
+
+                                String[] timeReboot = timeForReboot.split(":");
+                                rebootHours = Integer.parseInt(timeReboot[0]);
+                                rebootMinutes = Integer.parseInt(timeReboot[1]);
+                                System.out.println("Reboot details 1----------- " + dayForReboot + " " + timeForReboot);
+                                System.out.println("Reboot details 2----------- " + rebootDay + " " + rebootHours + " " + rebootMinutes);
+
                                 HashMap<String, String> map = new HashMap<>();
                                 map.put("SiteId", SiteId);
                                 map.put("HoseId", HoseId);
@@ -6571,6 +6611,30 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                         serverSSIDList.add(map);
                                         AppConstants.DetailsServerSSIDList = serverSSIDList;
                                         BackgroundServiceKeepDataTransferAlive.SSIDList = serverSSIDList;
+
+                                        //For schedule reboot
+                                        Calendar calendar = Calendar.getInstance();
+                                        int currentDay = calendar.get(Calendar.DAY_OF_MONTH);
+                                        int today = calendar.get(Calendar.DAY_OF_WEEK);
+                                        int hours_now = calendar.get(Calendar.HOUR);
+                                        int minutes_now = calendar.get(Calendar.MINUTE);
+
+                                        SharedPreferences settings = getSharedPreferences("PREFS", 0);
+                                        int lastDay = settings.getInt("day", 0);
+
+                                        /*SharedPreferences.Editor editor = settings.edit();
+                                        editor.putInt("day", 0);
+                                        editor.commit();*/
+                                        if (today == rebootDay) {
+                                            if (lastDay != currentDay) {
+                                                SharedPreferences.Editor editor = settings.edit();
+                                                editor.putInt("day", currentDay);
+                                                editor.commit();
+
+                                                //Code that runs once in a day
+                                                scheduleReboot(rebootHours, rebootMinutes, rebootDay);
+                                            }
+                                        }
 
                                     }
 

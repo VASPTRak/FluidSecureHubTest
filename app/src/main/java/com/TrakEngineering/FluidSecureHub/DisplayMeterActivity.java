@@ -205,6 +205,8 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
     long sqlite_id = 0;
 
+    Timer  ScreenOutTime;
+
     @Override
     protected void onPostResume() {
         super.onPostResume();
@@ -214,6 +216,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
             btnStart.setEnabled(false);
             wifiApManager.setWifiApEnabled(null, true);  //Hotspot enabled
             AppConstants.colorToastBigFont(DisplayMeterActivity.this, "Connecting to hotspot, please wait", Color.RED);
+
 
             new Handler().postDelayed(new Runnable() {
                 @Override
@@ -246,6 +249,11 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
         //new TasksbeforeStartBtnAsyncTask().execute();//test
         CompleteTasksbeforeStartbuttonClick();
 
+        if (ScreenOutTime == null) {
+            TimeOutDisplayMeterScreen();
+        }
+
+
     }
 
     @Override
@@ -255,7 +263,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
         // ActivityHandler.addActivities(7, DisplayMeterActivity.this);
 
-        getSupportActionBar().setTitle(AppConstants.BrandName);
+        getSupportActionBar().setTitle(R.string.fs_name);
         //getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         //getSupportActionBar().setDisplayShowHomeEnabled(true);
 
@@ -273,7 +281,8 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
         //offline-----------end
 
-        SharedPreferences sharedPrefODO = DisplayMeterActivity.this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
+
+        /*SharedPreferences sharedPrefODO = DisplayMeterActivity.this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
         IsOdoMeterRequire = sharedPrefODO.getString(AppConstants.IsOdoMeterRequire, "");
         IsDepartmentRequire = sharedPrefODO.getString(AppConstants.IsDepartmentRequire, "");
         IsPersonnelPINRequire = sharedPrefODO.getString(AppConstants.IsPersonnelPINRequire, "");
@@ -294,7 +303,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                 }
 
             }
-        }, screenTimeOut);
+        }, screenTimeOut);*/
 
         getListOfConnectedDevice();
 
@@ -465,6 +474,72 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
         this.registerReceiver(receiver, ifilter);
 
 
+    }
+
+    private void TimeOutDisplayMeterScreen() {
+        SharedPreferences sharedPrefODO = DisplayMeterActivity.this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
+        IsOdoMeterRequire = sharedPrefODO.getString(AppConstants.IsOdoMeterRequire, "");
+        IsDepartmentRequire = sharedPrefODO.getString(AppConstants.IsDepartmentRequire, "");
+        IsPersonnelPINRequire = sharedPrefODO.getString(AppConstants.IsPersonnelPINRequire, "");
+        IsOtherRequire = sharedPrefODO.getString(AppConstants.IsOtherRequire, "");
+        TimeOutinMinute = sharedPrefODO.getString(AppConstants.TimeOut, "1");
+
+        TimeOutinMinute = sharedPrefODO.getString(AppConstants.TimeOut, "1");
+        //long screenTimeOut= (long) (Double.parseDouble(TimeOutinMinute) *60000);
+        long screenTimeOut = Integer.parseInt(TimeOutinMinute) * 60000;
+
+        ScreenOutTime = new Timer();
+        TimerTask ttt = new TimerTask() {
+            @Override
+            public void run() {
+                //do something
+                if (Istimeout_Sec) {
+
+                    try {
+
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Istimeout_Sec = false;
+                                AppConstants.ClearEdittextFielsOnBack(DisplayMeterActivity.this);
+
+
+                                Intent i = new Intent(DisplayMeterActivity.this, WelcomeActivity.class);
+                                i.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                                startActivity(i);
+                            }
+                        });
+
+                        ScreenOutTime.cancel();
+                    } catch (Exception e) {
+
+                        System.out.println(e);
+                    }
+
+                }
+
+            }
+
+            ;
+        };
+        ScreenOutTime.schedule(ttt, screenTimeOut, 500);
+
+    }
+
+    public void ResetTimeoutDisplayMeterScreen(){
+
+
+        if (ScreenOutTime != null) {
+            ScreenOutTime.cancel();
+        }
+
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        TimeOutDisplayMeterScreen();
     }
 
     public void getListOfConnectedDevice() {
@@ -801,6 +876,8 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                         StartbuttonFunctionality();
                     } else {
                         AppConstants.colorToastBigFont(getApplicationContext(), AppConstants.OFF1, Color.RED);
+                        Istimeout_Sec = true;
+                        ResetTimeoutDisplayMeterScreen();
                     }
                 }
 
@@ -916,8 +993,11 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                     e.printStackTrace();
                 }*/
             }
-        } else
+        } else {
             AppConstants.colorToastBigFont(getApplicationContext(), "Please check Internet connection", Color.RED);
+            Istimeout_Sec = true;
+            ResetTimeoutDisplayMeterScreen();
+        }
 
         //Second call will get Status for firwareupdate
         StatusForUpgradeVersionEntity objEntityClass1 = new StatusForUpgradeVersionEntity();
@@ -935,8 +1015,11 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
         if (cd.isConnectingToInternet())
             new GetUpgrateFirmwareStatus().execute(FS_selected, jsonData, authString);
-        else
+        else {
             AppConstants.colorToastBigFont(getApplicationContext(), "Please check Internet connection", Color.RED);
+            Istimeout_Sec = true;
+            ResetTimeoutDisplayMeterScreen();
+        }
 
     }
 
@@ -1600,6 +1683,8 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                         if (fillqty >= minFuelLimit) {
 
                             AppConstants.colorToastBigFont(DisplayMeterActivity.this, "Auto Stop!\n\nYou reached MAX fuel limit.", Color.BLUE);
+                            Istimeout_Sec = true;
+                            ResetTimeoutDisplayMeterScreen();
                             stopButtonFunctionality();
                         }
                     }
@@ -2640,13 +2725,16 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                         e.printStackTrace();
                     }
 
-                    /*//Skip in offline mode
+                    //Skip in offline mode
                     if (cd.isConnectingToInternet() && AppConstants.AUTH_CALL_SUCCESS ){
-
+                        //Current transaction is online
                         GetLastTransaction();
-                        getCMDLast10Txn(); //temp comment
+                        //getCMDLast10Txn(); //temp comment
 
-                    }*/
+                    }else{
+                        //Current transaction is offline dont save
+                    }
+
                     new CommandsGET_RelayResp().execute(URL_RELAY);
 
 
@@ -2660,6 +2748,8 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + "  Link is unavailable infoCmd");
                         AppConstants.colorToastBigFont(DisplayMeterActivity.this, " Link is unavailable", Color.RED);
+                        Istimeout_Sec = true;
+                        ResetTimeoutDisplayMeterScreen();
                         AppConstants.ClearEdittextFielsOnBack(DisplayMeterActivity.this); //Clear EditText on move to welcome activity.
                         Intent intent = new Intent(DisplayMeterActivity.this, WelcomeActivity.class);
                         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -2670,6 +2760,8 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + "  Link Unavailable infoCmd Retry attempt: " + count_InfoCmd);
                         AppConstants.colorToastBigFont(DisplayMeterActivity.this, "Link Unavailable Retry attempt" + count_InfoCmd, Color.RED);
+                        Istimeout_Sec = true;
+                        ResetTimeoutDisplayMeterScreen();
                         getListOfConnectedDevice();
                         new Handler().postDelayed(new Runnable() {
                             @Override
@@ -2743,8 +2835,13 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                 pd.dismiss();
 
                 System.out.println("LastTXNid;;;" + LastTXNid);
+                System.out.println("OfflineLastTransactionID_DisplayMeterAct" + LastTXNid);
 
-                new CommandsGET_Record10().execute(URL_RECORD10_PULSAR, LastTXNid);
+                if (LastTXNid.equalsIgnoreCase("99999999")){
+                    System.out.println("Offline last transaction not saved in sqlite OffLastTXNid:"+LastTXNid);
+                }else{
+                    new CommandsGET_Record10().execute(URL_RECORD10_PULSAR, LastTXNid);
+                }
 
 
             } catch (Exception e) {
@@ -2972,6 +3069,8 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                         if (status.equalsIgnoreCase("1")) {
 
                             AppConstants.colorToastBigFont(DisplayMeterActivity.this, "The link is busy, please try after some time.", Color.RED);
+                            Istimeout_Sec = true;
+                            ResetTimeoutDisplayMeterScreen();
                             AppConstants.ClearEdittextFielsOnBack(DisplayMeterActivity.this); //Clear EditText on move to welcome activity.
                             Intent intent = new Intent(DisplayMeterActivity.this, WelcomeActivity.class);
                             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -3068,6 +3167,8 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + "  Link Unavailable relay");
                         AppConstants.colorToastBigFont(DisplayMeterActivity.this, " Link is unavailable", Color.RED);
+                        Istimeout_Sec = true;
+                        ResetTimeoutDisplayMeterScreen();
                         AppConstants.ClearEdittextFielsOnBack(DisplayMeterActivity.this); //Clear EditText on move to welcome activity.
                         BackgroundServiceKeepDataTransferAlive.IstoggleRequired_DA = true;
                         Intent intent = new Intent(DisplayMeterActivity.this, WelcomeActivity.class);
@@ -3079,6 +3180,8 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + "  Link Unavailable relay Retry attempt: " + count_InfoCmd);
                         AppConstants.colorToastBigFont(DisplayMeterActivity.this, "Link is unavailable Retry attempt" + count_relayCmd, Color.RED);
+                        Istimeout_Sec = true;
+                        ResetTimeoutDisplayMeterScreen();
                         new Handler().postDelayed(new Runnable() {
 
                             @Override

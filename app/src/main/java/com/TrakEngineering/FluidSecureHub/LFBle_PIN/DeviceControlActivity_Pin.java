@@ -16,7 +16,6 @@ import android.net.ConnectivityManager;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
@@ -41,19 +40,15 @@ import android.widget.Toast;
 import com.TrakEngineering.FluidSecureHub.AcceptDeptActivity;
 import com.TrakEngineering.FluidSecureHub.AcceptOtherActivity;
 import com.TrakEngineering.FluidSecureHub.AcceptServiceCall;
-import com.TrakEngineering.FluidSecureHub.AcceptVehicleActivity;
 import com.TrakEngineering.FluidSecureHub.AppConstants;
-import com.TrakEngineering.FluidSecureHub.BackgroundServiceKeepDataTransferAlive;
 import com.TrakEngineering.FluidSecureHub.CommonUtils;
 import com.TrakEngineering.FluidSecureHub.ConnectionDetector;
 import com.TrakEngineering.FluidSecureHub.Constants;
 import com.TrakEngineering.FluidSecureHub.DisplayMeterActivity;
-import com.TrakEngineering.FluidSecureHub.LFBle_vehicle.DeviceControlActivity_vehicle;
 import com.TrakEngineering.FluidSecureHub.NetworkReceiver;
 import com.TrakEngineering.FluidSecureHub.R;
 import com.TrakEngineering.FluidSecureHub.WelcomeActivity;
 import com.TrakEngineering.FluidSecureHub.enity.CheckPinFobEntity;
-import com.TrakEngineering.FluidSecureHub.enity.UserInfoEntity;
 import com.TrakEngineering.FluidSecureHub.enity.VehicleRequireEntity;
 import com.TrakEngineering.FluidSecureHub.offline.OffDBController;
 import com.TrakEngineering.FluidSecureHub.offline.OfflineConstants;
@@ -333,22 +328,40 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
 
                     if (FKey.equalsIgnoreCase("")) {
                         if (cd.isConnectingToInternet())
-                            new CallSaveButtonFunctionality().execute();//Press Enter fun
+                        {
+                            if (!isFinishing()) {
+                                new CallSaveButtonFunctionality().execute();//Press Enter fun
+                            }
+                        }
                         else
+                        {
                             AppConstants.colorToastBigFont(getApplicationContext(), "Please check Internet connection", Color.RED);
+                        }
 
                     } else if (pin.equalsIgnoreCase("") && !FKey.equalsIgnoreCase("")) {
                         if (cd.isConnectingToInternet())
-                            new GetPinNuOnFobKeyDetection().execute();
+                        {
+                            if (!isFinishing()) {
+                                new GetPinNuOnFobKeyDetection().execute();
+                            }
+                        }
                         else
+                        {
                             AppConstants.colorToastBigFont(getApplicationContext(), "Please check Internet connection", Color.RED);
+                        }
 
                     } else if (!pin.equalsIgnoreCase("") && !FKey.equalsIgnoreCase("")) {
 
                         if (cd.isConnectingToInternet())
-                            new GetPinNuOnFobKeyDetection().execute();
+                        {
+                            if (!isFinishing()) {
+                                new GetPinNuOnFobKeyDetection().execute();
+                            }
+                        }
                         else
+                        {
                             AppConstants.colorToastBigFont(getApplicationContext(), "Please check Internet connection", Color.RED);
+                        }
                     }
                 } else {
 
@@ -650,7 +663,11 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                     String fob = AppConstants.APDU_FOB_KEY.replace(":", "").trim();
 
                     if (cd.isConnectingToInternet())
-                        new GetPinNuOnFobKeyDetection().execute();
+                    {
+                        if (!isFinishing()) {
+                            new GetPinNuOnFobKeyDetection().execute();
+                        }
+                    }
                     else {
 
 
@@ -1033,8 +1050,8 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
 
                             /*AppConstants.colorToastBigFont(this, "Some thing went wrong Please try again..\n"+ResponceText, Color.RED);
                              if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG+" Some thing went wrong Please try again..(~else if~)\n"+ResponceText);
-                            AppConstants.ClearEdittextFielsOnBack(DeviceControlActivity_tld.this); //Clear EditText on move to welcome activity.
-                            Intent intent = new Intent(DeviceControlActivity_tld.this, WelcomeActivity.class);
+                            AppConstants.ClearEdittextFielsOnBack(DeviceControlActivity_fsnp.this); //Clear EditText on move to welcome activity.
+                            Intent intent = new Intent(DeviceControlActivity_fsnp.this, WelcomeActivity.class);
                             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                             startActivity(intent);*/
 
@@ -1046,8 +1063,8 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
 
                             /*AppConstants.colorToastBigFont(this, "Some thing went wrong Please try again..\n"+ResponceText, Color.RED);
                              if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG+" Some thing went wrong Please try again..(~else~)\n"+ResponceText);
-                            AppConstants.ClearEdittextFielsOnBack(DeviceControlActivity_tld.this); //Clear EditText on move to welcome activity.
-                            Intent intent = new Intent(DeviceControlActivity_tld.this, WelcomeActivity.class);
+                            AppConstants.ClearEdittextFielsOnBack(DeviceControlActivity_fsnp.this); //Clear EditText on move to welcome activity.
+                            Intent intent = new Intent(DeviceControlActivity_fsnp.this, WelcomeActivity.class);
                             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                             startActivity(intent);*/
                         }
@@ -1068,7 +1085,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
 
         @Override
         protected void onPreExecute() {
-            /*pd = new ProgressDialog(DeviceControlActivity_tld.this);
+            /*pd = new ProgressDialog(DeviceControlActivity_fsnp.this);
             pd.setMessage("Please wait...");
             pd.setCancelable(true);
             pd.show();*/
@@ -1189,6 +1206,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                             tv_ok.setLayoutParams(parms);
                             tv_ok.setText("Invalid Access Device or Unassigned FOB");
 
+                            ResetTimeoutPinScreen();
                             CommonUtils.showCustomMessageDilaog(DeviceControlActivity_Pin.this, "Message", ResponceMessage);
 
                         }else{
@@ -1202,6 +1220,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                             if (IsPersonHasFob.equalsIgnoreCase("true")) {
                                 CommonUtils.SimpleMessageDilaog(DeviceControlActivity_Pin.this, "Message", ResponceMessage);
                             }else{
+                                ResetTimeoutPinScreen();
                                 CommonUtils.showCustomMessageDilaog(DeviceControlActivity_Pin.this, "Message", ResponceMessage);
                             }
                         }
@@ -1292,6 +1311,22 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
         ScreenOutTime.schedule(ttt, screenTimeOut, 500);
 
 
+    }
+
+    public void ResetTimeoutPinScreen(){
+
+
+        if (ScreenOutTime != null) {
+            ScreenOutTime.cancel();
+        }
+
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        TimeoutPinScreen();
     }
 
     public void hideKeybord() {

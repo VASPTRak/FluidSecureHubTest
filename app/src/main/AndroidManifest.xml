@@ -283,6 +283,10 @@
         <service
             android:name=".BackgroundServiceClearOlderPictures"
             android:enabled="true"
+            android:exported="true" />
+        <service
+            android:name=".BackgroundServiceScheduleReboot"
+            android:enabled="true"
             android:exported="true"></service>
     </application>
 

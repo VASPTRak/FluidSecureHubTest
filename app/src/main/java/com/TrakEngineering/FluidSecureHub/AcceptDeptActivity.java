@@ -19,6 +19,9 @@ import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 public class AcceptDeptActivity extends AppCompatActivity {
 
     EditText   etDeptNumber;
@@ -28,7 +31,7 @@ public class AcceptDeptActivity extends AppCompatActivity {
     String TimeOutinMinute;
     boolean Istimeout_Sec=true;
     RelativeLayout footer_keybord;
-
+    Timer t, ScreenOutTime;
 
     @Override
     protected void onResume() {
@@ -42,6 +45,10 @@ public class AcceptDeptActivity extends AppCompatActivity {
             etDeptNumber.setText(Constants.AccDepartmentNumber_FS3);
         } else if (Constants.CurrentSelectedHose.equals("FS4")) {
             etDeptNumber.setText(Constants.AccDepartmentNumber_FS4);
+        }
+
+        if (ScreenOutTime == null) {
+            TimeoutDeptScreen();
         }
 
     }
@@ -183,6 +190,8 @@ public class AcceptDeptActivity extends AppCompatActivity {
                         asc.checkAllFields();
                     }*/
                 } else {
+                    Istimeout_Sec = true;
+                    ResetTimeoutDeptScreen();
                     CommonUtils.showMessageDilaog(AcceptDeptActivity.this, "Error Message", "Please enter Department Number, and try again.");
                 }
 
@@ -211,6 +220,71 @@ public class AcceptDeptActivity extends AppCompatActivity {
                 hideKeybord();
             }
         });
+    }
+
+    private void TimeoutDeptScreen() {
+        SharedPreferences sharedPrefODO = AcceptDeptActivity.this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
+        IsOdoMeterRequire = sharedPrefODO.getString(AppConstants.IsOdoMeterRequire, "");
+        IsDepartmentRequire = sharedPrefODO.getString(AppConstants.IsDepartmentRequire, "");
+        IsPersonnelPINRequire = sharedPrefODO.getString(AppConstants.IsPersonnelPINRequire, "");
+        IsOtherRequire = sharedPrefODO.getString(AppConstants.IsOtherRequire, "");
+
+        TimeOutinMinute = sharedPrefODO.getString(AppConstants.TimeOut, "1");
+        //long screenTimeOut= (long) (Double.parseDouble(TimeOutinMinute) *60000);
+        long screenTimeOut = Integer.parseInt(TimeOutinMinute) * 60000;
+
+        ScreenOutTime = new Timer();
+        TimerTask ttt = new TimerTask() {
+            @Override
+            public void run() {
+                //do something
+                if (Istimeout_Sec) {
+
+                    try {
+
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                hideKeybord();
+                                Istimeout_Sec = false;
+                                AppConstants.ClearEdittextFielsOnBack(AcceptDeptActivity.this);
+
+
+                                Intent i = new Intent(AcceptDeptActivity.this, WelcomeActivity.class);
+                                i.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                                startActivity(i);
+                            }
+                        });
+
+                        ScreenOutTime.cancel();
+                    } catch (Exception e) {
+
+                        System.out.println(e);
+                    }
+
+                }
+
+            }
+
+            ;
+        };
+        ScreenOutTime.schedule(ttt, screenTimeOut, 500);
+    }
+
+    public void ResetTimeoutDeptScreen(){
+
+
+        if (ScreenOutTime != null) {
+            ScreenOutTime.cancel();
+        }
+
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        TimeoutDeptScreen();
     }
 
     //============SoftKeyboard enable/disable Detection======

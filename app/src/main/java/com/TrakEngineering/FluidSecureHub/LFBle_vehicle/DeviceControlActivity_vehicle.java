@@ -51,9 +51,7 @@ import com.TrakEngineering.FluidSecureHub.AcceptHoursAcitvity;
 import com.TrakEngineering.FluidSecureHub.AcceptOdoActivity;
 import com.TrakEngineering.FluidSecureHub.AcceptOtherActivity;
 import com.TrakEngineering.FluidSecureHub.AcceptServiceCall;
-import com.TrakEngineering.FluidSecureHub.AcceptVehicleActivity;
 import com.TrakEngineering.FluidSecureHub.AppConstants;
-import com.TrakEngineering.FluidSecureHub.BackgroundServiceKeepDataTransferAlive;
 import com.TrakEngineering.FluidSecureHub.CommonUtils;
 import com.TrakEngineering.FluidSecureHub.ConnectionDetector;
 import com.TrakEngineering.FluidSecureHub.Constants;
@@ -65,9 +63,7 @@ import com.TrakEngineering.FluidSecureHub.NetworkReceiver;
 import com.TrakEngineering.FluidSecureHub.R;
 import com.TrakEngineering.FluidSecureHub.Vision_scanner.BarcodeCaptureActivity;
 import com.TrakEngineering.FluidSecureHub.WelcomeActivity;
-import com.TrakEngineering.FluidSecureHub.enity.AuthEntityClass;
 import com.TrakEngineering.FluidSecureHub.enity.UpgradeVersionEntity;
-import com.TrakEngineering.FluidSecureHub.enity.UserInfoEntity;
 import com.TrakEngineering.FluidSecureHub.enity.VehicleRequireEntity;
 import com.TrakEngineering.FluidSecureHub.offline.EntityHub;
 import com.TrakEngineering.FluidSecureHub.offline.OffDBController;
@@ -89,21 +85,15 @@ import org.json.JSONObject;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 
 import static com.TrakEngineering.FluidSecureHub.server.ServerHandler.TEXT;
@@ -175,6 +165,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
     int FobRetryCount = 0;
     long screenTimeOut;
     Timer t, ScreenOutTimeVehicle;
+    TimerTask TOut;
     String FOLDER_PATH = Environment.getExternalStorageDirectory().getAbsolutePath() + "/FSBin/";
 
     //-------------------------
@@ -318,7 +309,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
         //Constants.AccPersonnelPIN = "";
         //Constants.AccOther = "";
 
-       /* if (AppConstants.UP_Upgrade) {
+        if (AppConstants.UP_Upgrade) {
 
             File folder = new File(Environment.getExternalStorageDirectory() + File.separator + "FSBin");
             boolean success = true;
@@ -334,7 +325,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
             if (AppConstants.UP_FilePath != null)
                 new DeviceControlActivity_vehicle.DownloadFileFromURL().execute(AppConstants.UP_FilePath, "user1.2048.new.5.bin");
 
-        }*/
+        }
 
         editVehicleNumber.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
@@ -450,7 +441,11 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
             Istimeout_Sec = true;
         }
 
-        TimeoutVehicleScreen();
+        if (ScreenOutTimeVehicle == null) {
+            TimeoutVehicleScreen();
+        }
+
+
         registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter());
         if (mBluetoothLeServiceVehicle != null) {
 
@@ -672,7 +667,9 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
             offlineVehicleInitialization(hmap);
 
             if (cd.isConnectingToInternet()) {
-                new GetVehicleNuOnFobKeyDetection().execute();
+                if (!isFinishing()) {
+                    new GetVehicleNuOnFobKeyDetection().execute();
+                }
             } else {
                 ///offlline-------------------
 
@@ -1030,6 +1027,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
                             if (IsVehicleHasFob.equalsIgnoreCase("true")) {
                                 CommonUtils.SimpleMessageDilaog(DeviceControlActivity_vehicle.this, "Message", ResponceText);
                             } else {
+                                RestTimeoutVehicleScreen();
                                 CommonUtils.showCustomMessageDilaog(DeviceControlActivity_vehicle.this, "Message", ResponceText);
                             }
 
@@ -1063,6 +1061,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
                             if (IsVehicleHasFob.equalsIgnoreCase("true")) {
                                 CommonUtils.SimpleMessageDilaog(DeviceControlActivity_vehicle.this, "Message", ResponceText);
                             } else {
+                                RestTimeoutVehicleScreen();
                                 CommonUtils.showCustomMessageDilaog(DeviceControlActivity_vehicle.this, "Message", ResponceText);
                             }
 
@@ -1078,6 +1077,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
                             editVehicleNumber.setEnabled(true);
                             editVehicleNumber.setFocusable(true);
                             tv_vehicle_no_below.setText("Enter Vehicle Number:");
+                            RestTimeoutVehicleScreen();
                             CommonUtils.showCustomMessageDilaog(DeviceControlActivity_vehicle.this, "Message", ResponceText);
                         }
 
@@ -1120,19 +1120,21 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
                 offlineVehicleInitialization(hmap);
 
                 if (cd.isConnectingToInternet())
-                    new ServerCallFirst().execute();
-                else {
-                    //offline---------------
-                    AppConstants.AUTH_CALL_SUCCESS = false;
-                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile("Offline Vehicle No.: " + V_Number);
-
-                    if (OfflineConstants.isOfflineAccess(DeviceControlActivity_vehicle.this)) {
-                        checkVehicleOFFLINEvalidation(hmap);
-                    } else {
-                        AppConstants.colorToastBigFont(getApplicationContext(), AppConstants.OFF1, Color.RED);
+                    if (!isFinishing()) {
+                        new ServerCallFirst().execute();
                     }
+                    else {
+                        //offline---------------
+                        AppConstants.AUTH_CALL_SUCCESS = false;
+                        if (AppConstants.GenerateLogs)AppConstants.WriteinFile("Offline Vehicle No.: " + V_Number);
 
-                }
+                        if (OfflineConstants.isOfflineAccess(DeviceControlActivity_vehicle.this)) {
+                            checkVehicleOFFLINEvalidation(hmap);
+                        } else {
+                            AppConstants.colorToastBigFont(getApplicationContext(), AppConstants.OFF1, Color.RED);
+                        }
+
+                    }
 
             } else {
                 //Empty Fob key & enable edit text and Enter button
@@ -1324,12 +1326,13 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
                         } else if (ValidationFailFor.equalsIgnoreCase("Pin")) {
 
                         /*AppConstants.colorToastBigFont(this, ResponceText, Color.RED);
-                        Intent i = new Intent(this, DeviceControlActivity_tld.class);
+                        Intent i = new Intent(this, DeviceControlActivity_fsnp.class);
                         startActivity(i);*/
 
                         } else if (ValidationFailFor.equalsIgnoreCase("invalidfob")) {
 
                             //AppConstants.colorToastBigFont(this, ResponceText, Color.RED);
+                            // RestTimeoutVehicleScreen();
                             //CommonUtils.showCustomMessageDilaog(DeviceControlActivity_vehicle.this, "Message", ResponceText);
 //                        Intent i = new Intent(this, WelcomeActivity.class);
 //                        startActivity(i);
@@ -1462,6 +1465,22 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
         ScreenOutTimeVehicle.schedule(tttt, screenTimeOut, 500);
 
 
+    }
+
+    private void RestTimeoutVehicleScreen(){
+
+
+        if (ScreenOutTimeVehicle != null) {
+            ScreenOutTimeVehicle.cancel();
+        }
+
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        TimeoutVehicleScreen();
     }
 
     public void DisplayScreenInit() {
@@ -1797,7 +1816,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
 
 
                     } else {
-
+                        RestTimeoutVehicleScreen();
                         CommonUtils.showCustomMessageDilaog(DeviceControlActivity_vehicle.this, "Message", ResponceText);
                         //AppConstants.colorToastBigFont(DeviceControlActivity_vehicle.this, ResponceText, Color.RED);
                     }
@@ -1983,6 +2002,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
 
 
                 } else {
+                    RestTimeoutVehicleScreen();
                     Toast.makeText(mBluetoothLeServiceVehicle, "FStagMac Address Not found", Toast.LENGTH_SHORT).show();
                     Log.i(TAG, "FStagMac Address Empty");
                 }
@@ -2041,6 +2061,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
          * sideloads to report whether or not the feature exists.
          */
         if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
+            RestTimeoutVehicleScreen();
             Toast.makeText(this, "No LE Support.", Toast.LENGTH_SHORT).show();
             finish();
             return false;
@@ -2235,4 +2256,3 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
     }
 
 }
-
