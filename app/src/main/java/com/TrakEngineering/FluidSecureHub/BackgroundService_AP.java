@@ -43,7 +43,11 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.InetAddress;
+import java.net.MalformedURLException;
+import java.net.Socket;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -72,7 +76,7 @@ public class BackgroundService_AP extends Service {
     ConnectionDetector cd = new ConnectionDetector(BackgroundService_AP.this);
     private int AttemptCount = 0;
     public static ArrayList<String> listOfConnectedIP_AP = new ArrayList<String>();
-    private String CurrTxnMode = "online",OffLastTXNid = "";
+    private String CurrTxnMode = "online", OffLastTXNid = "";
 
     //String HTTP_URL = "http://192.168.43.140:80/";//for pipe
     //String HTTP_URL = "http://192.168.43.5:80/";//Other FS
@@ -208,9 +212,9 @@ public class BackgroundService_AP extends Service {
                 Constants.FS_2STATUS = "BUSY";
                 Constants.BusyVehicleNumberList.add(Constants.AccVehicleNumber);
 
-                if (cd.isConnectingToInternet() && AppConstants.AUTH_CALL_SUCCESS ){
+                if (cd.isConnectingToInternet() && AppConstants.AUTH_CALL_SUCCESS) {
                     CurrTxnMode = "online";
-                }else{
+                } else {
                     CurrTxnMode = "offline";
                 }
 
@@ -406,7 +410,7 @@ public class BackgroundService_AP extends Service {
     }
 
 
-    private String RelayOnThreeAttempts () {
+    private String RelayOnThreeAttempts() {
 
         String IsRelayOn = "";
         try {
@@ -444,7 +448,7 @@ public class BackgroundService_AP extends Service {
     }
 
 
-    public void stopFirstTimer ( boolean flag){
+    public void stopFirstTimer(boolean flag) {
         if (flag) {
             tFirst.cancel();
             tFirst.purge();
@@ -565,7 +569,7 @@ public class BackgroundService_AP extends Service {
         }
     }
 
-    public void startQuantityInterval () {
+    public void startQuantityInterval() {
 
 
         new Timer().schedule(new TimerTask() {
@@ -626,7 +630,7 @@ public class BackgroundService_AP extends Service {
 
     }
 
-    public boolean IsFsConnected (String toMatchString){
+    public boolean IsFsConnected(String toMatchString) {
 
         for (String HttpAddress : listOfConnectedIP_AP) {
             if (HttpAddress.contains(toMatchString))
@@ -701,7 +705,7 @@ public class BackgroundService_AP extends Service {
         }
     }
 
-    public void GETPulsarQuantityAsyncCall (String URL_GET_PULSAR){
+    public void GETPulsarQuantityAsyncCall(String URL_GET_PULSAR) {
         OkHttpClient httpClient = new OkHttpClient();
         Request request = new Request.Builder()
                 .url(URL_GET_PULSAR)
@@ -774,7 +778,7 @@ public class BackgroundService_AP extends Service {
         });
     }
 
-    public void pulsarQtyLogic (String result){
+    public void pulsarQtyLogic(String result) {
 
         int secure_status = 0;
 
@@ -853,7 +857,8 @@ public class BackgroundService_AP extends Service {
 
                         IsFuelingStop = "1";
                         System.out.println("APFS33 Auto Stop! Count down timer completed");
-                        if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  Link:" + LinkName + " Auto Stop! Count down timer completed");
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + "  Link:" + LinkName + " Auto Stop! Count down timer completed");
                         AppConstants.colorToastBigFont(this, AppConstants.FS2_CONNECTED_SSID + " Auto Stop!\n\nCount down timer completed.", Color.BLUE);
                         stopButtonFunctionality();
                         this.stopSelf();
@@ -912,7 +917,7 @@ public class BackgroundService_AP extends Service {
         }
     }
 
-    public void stopButtonFunctionality () {
+    public void stopButtonFunctionality() {
 
 
         quantityRecords.clear();
@@ -1004,7 +1009,7 @@ public class BackgroundService_AP extends Service {
 
     }
 
-    public void finalLastStep () {
+    public void finalLastStep() {
 
 
         new CommandsPOST().execute(URL_SET_PULSAR, jsonPulsarOff);
@@ -1040,7 +1045,14 @@ public class BackgroundService_AP extends Service {
                 @Override
                 public void run() {
 
-                    new BackgroundService_AP.CommandsPOST().execute(URL_UPGRADE_START, "");
+
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + " URL_UPGRADE_START:" + URL_UPGRADE_START);
+
+                    String command = "upgrade?command=start";
+                    new TCPCommandsPOST().execute(HTTP_URL, command);
+
+                    //new BackgroundService_AP.CommandsPOST().execute(URL_UPGRADE_START, "");
 
                     //upgrade bin
                     String LocalPath = FOLDER_PATH + PATH_BIN_FILE1;
@@ -1133,7 +1145,7 @@ public class BackgroundService_AP extends Service {
         }
     }
 
-    public void secondsTimeLogic (String currentDT){
+    public void secondsTimeLogic(String currentDT) {
 
         try {
 
@@ -1182,7 +1194,7 @@ public class BackgroundService_AP extends Service {
         }
     }
 
-    public boolean qtyFrequencyCount () {
+    public boolean qtyFrequencyCount() {
 
 
         if (quantityRecords.size() > 0) {
@@ -1210,7 +1222,7 @@ public class BackgroundService_AP extends Service {
         return false;
     }
 
-    public void convertCountToQuantity (String counts){
+    public void convertCountToQuantity(String counts) {
         outputQuantity = counts;
 
         Pulses = Integer.parseInt(outputQuantity);
@@ -1266,14 +1278,15 @@ public class BackgroundService_AP extends Service {
         } else {
 
             if (fillqty > 0) {
-                offcontroller.updateOfflinePulsesQuantity(sqlite_id + "", counts, fillqty + "",OffLastTXNid);
+                offcontroller.updateOfflinePulsesQuantity(sqlite_id + "", counts, fillqty + "", OffLastTXNid);
             }
 
-            if (AppConstants.GenerateLogs)AppConstants.WriteinFile("Offline  Link:" + LinkName + "  Pulses:" + Integer.parseInt(counts) + " Qty:" + fillqty);
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile("Offline  Link:" + LinkName + "  Pulses:" + Integer.parseInt(counts) + " Qty:" + fillqty);
         }
     }
 
-    public void GetDetails () {
+    public void GetDetails() {
         vehicleNumber = Constants.AccVehicleNumber;
         odometerTenths = Constants.AccOdoMeter + "";
         dNumber = Constants.AccDepartmentNumber;
@@ -1298,7 +1311,7 @@ public class BackgroundService_AP extends Service {
         }
     }
 
-    public void TransactionCompleteFunction () {
+    public void TransactionCompleteFunction() {
 
         CommonUtils.AddRemovecurrentTransactionList(false, TransactionId);//Remove transaction Id from list
 
@@ -1370,7 +1383,6 @@ public class BackgroundService_AP extends Service {
             /////////////////////////////////////////////////////////////////////////
 
 
-
             try {
 
                 double VehicleSum = Double.parseDouble(sharedPref.getString("VehicleSum", "1"));
@@ -1401,9 +1413,6 @@ public class BackgroundService_AP extends Service {
                     printReceipt = GetPrintRecipt(CompanyName, PrintDate, LinkName, Location, VehicleNumber, PersonName, Qty, PrintCost);
                     // printReceipt = " \n\n------FluidSecure Receipt------ \n\nCompany   : " + CompanyName +"\n\nTime/Date : "+PrintDate+"\n\nLocation  : "+LinkName+","+Location+"\n\nVehicle # : "+VehicleNumber+"\n\nPersonnel : "+PersonName+" \n\nQty       : " + Qty + "\n\n ---------Thank You---------"+"\n\n\n\n\n\n\n\n\n\n\n\n";
                 }
-
-
-
 
 
                 if (EnablePrinter.equalsIgnoreCase("True")) {
@@ -1470,7 +1479,6 @@ public class BackgroundService_AP extends Service {
             }
 
 
-
             if (AppConstants.NeedToRename) {
                 String userEmail = CommonUtils.getCustomerDetails_backgroundService(this).PersonEmail;
 
@@ -1489,16 +1497,16 @@ public class BackgroundService_AP extends Service {
             }
 
 
-            boolean BSRunning =  CommonUtils.checkServiceRunning(BackgroundService_AP.this,AppConstants.PACKAGE_BACKGROUND_SERVICE);
+            boolean BSRunning = CommonUtils.checkServiceRunning(BackgroundService_AP.this, AppConstants.PACKAGE_BACKGROUND_SERVICE);
             if (!BSRunning) {
                 startService(new Intent(this, BackgroundService.class));
             }
 
-        }else {
+        } else {
             try {
 
                 EntityOffTranz authEntityClass = offcontroller.getTransactionDetailsBySqliteId(sqlite_id);
-                authEntityClass.TransactionFrom="AP";
+                authEntityClass.TransactionFrom = "AP";
                 authEntityClass.AppInfo = " Version:" + CommonUtils.getVersionCode(BackgroundService_AP.this) + " " + AppConstants.getDeviceName() + " Android " + Build.VERSION.RELEASE + " ";
 
                 Gson gson = new Gson();
@@ -1532,10 +1540,9 @@ public class BackgroundService_AP extends Service {
         //tvConsole.setText("");
 
 
-
     }
 
-    public void TankMonitorReading () {
+    public void TankMonitorReading() {
 
         String mac_address = "";
         String probe_reading = "";
@@ -1575,7 +1582,8 @@ public class BackgroundService_AP extends Service {
                     Tem_data = tld.getString("Tem_data");
                     String Checksum = tld.getString("Checksum");
 
-                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  TLD:" + " mac:" + mac_address + " SensorID:" + Sensor_ID + " Res-code:" + Response_code + " LSB:" + LSB + " MSB:" + MSB + " Temp:" + Tem_data + " Chksum:" + Checksum);
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + "  TLD:" + " mac:" + mac_address + " SensorID:" + Sensor_ID + " Res-code:" + Response_code + " LSB:" + LSB + " MSB:" + MSB + " Temp:" + Tem_data + " Chksum:" + Checksum);
 
                     //Get mac address of probe
                     //String mac_str = GetMacAddressOfProbe(level);
@@ -1624,8 +1632,8 @@ public class BackgroundService_AP extends Service {
 
     }
 
-    public void storeIsRenameFlag (Context context,boolean flag, String jsonData, String
-            authString){
+    public void storeIsRenameFlag(Context context, boolean flag, String jsonData, String
+            authString) {
         SharedPreferences pref;
 
         SharedPreferences.Editor editor;
@@ -1680,7 +1688,7 @@ public class BackgroundService_AP extends Service {
 
     }
 
-    public void clearEditTextFields () {
+    public void clearEditTextFields() {
 
         Constants.AccVehicleNumber = "";
         Constants.AccOdoMeter = 0;
@@ -1754,7 +1762,12 @@ public class BackgroundService_AP extends Service {
                 new Handler().postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        new BackgroundService_AP.CommandsPOST().execute(URL_RESET, "");
+
+
+                        String command = "upgrade?command=reset";
+                        new TCPCommandsPOST().execute(HTTP_URL, command);
+
+                        // new BackgroundService_AP.CommandsPOST().execute(URL_RESET, "");
 
                         System.out.println("AFTER SECONDS 5");
                     }
@@ -1823,7 +1836,7 @@ public class BackgroundService_AP extends Service {
         }
     }
 
-    public boolean getPulsarResponseEmptyFor3times () {
+    public boolean getPulsarResponseEmptyFor3times() {
 
         boolean flag = false;
 
@@ -1845,7 +1858,7 @@ public class BackgroundService_AP extends Service {
         return flag;
     }
 
-    private static byte[] readBytesFromFile (String filePath){
+    private static byte[] readBytesFromFile(String filePath) {
 
         FileInputStream fileInputStream = null;
         byte[] bytesArray = null;
@@ -1876,7 +1889,7 @@ public class BackgroundService_AP extends Service {
 
     }
 
-    public void changeUpgradeFirmwareVersionstatus () {
+    public void changeUpgradeFirmwareVersionstatus() {
 
 
         SharedPreferences sharedPref = BackgroundService_AP.this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
@@ -1950,9 +1963,9 @@ public class BackgroundService_AP extends Service {
 
     }
 
-    private String CalculatePrice (String SurchargeType,double FuelQuantity,
-                                   double ProductPrice, double VehicleSum, double DeptSum, double VehPercentage,
-                                   double DeptPercentage){
+    private String CalculatePrice(String SurchargeType, double FuelQuantity,
+                                  double ProductPrice, double VehicleSum, double DeptSum, double VehPercentage,
+                                  double DeptPercentage) {
 
         double cost = 0.0;
         if (SurchargeType.equalsIgnoreCase("0")) {
@@ -2005,7 +2018,7 @@ public class BackgroundService_AP extends Service {
 
     }
 
-    public String GetMacAddressOfProbe (String level){
+    public String GetMacAddressOfProbe(String level) {
 
         String MacAddress = "";
         try {
@@ -2027,7 +2040,7 @@ public class BackgroundService_AP extends Service {
     }
 
 
-    public void ListConnectedHotspotIP_APAsyncCall () {
+    public void ListConnectedHotspotIP_APAsyncCall() {
 
         Thread thread = new Thread(new Runnable() {
 
@@ -2091,7 +2104,7 @@ public class BackgroundService_AP extends Service {
 
     }
 
-    private void ExitBackgroundService () {
+    private void ExitBackgroundService() {
 
         CommonUtils.AddRemovecurrentTransactionList(false, TransactionId);//Remove transaction Id from list
         if (AppConstants.GenerateLogs)
@@ -2155,5 +2168,68 @@ public class BackgroundService_AP extends Service {
 
 
     }
+
+    public class TCPCommandsPOST extends AsyncTask<String, Void, String> {
+
+        String response = "";
+
+        @SuppressLint("LongLogTag")
+        @Override
+        protected String doInBackground(String... param) {
+
+            // Log.e(TAG, "~~~~~TCP for strt~~~~~");
+            //http://192.168.43.67:80/tld?level=info
+            String Command = param[1];
+            String serverip1 = param[0].replace("http://", "");
+            String SERVER_IP = serverip1.replace(":80/", "").trim();
+            String strcmd = "POST /" + Command + " HTTP/1.1\r\nContent-Type: application/json; charset=utf-8\r\nContent-Length: \r\nHost: 192.168.4.1\r\nConnection: Keep-Alive\r\nAccept-Encoding: gzip\r\nUser-Agent: okhttp/3.6.0\r\n\r\n";
+
+
+            try {
+                String host = SERVER_IP;//"192.168.43.210";//url.getHost();
+                int port = 80;// SERVER_PORT;
+
+                // Open a TCP connection
+                Socket socket = new Socket(host, port);
+                // Send the request over the socket
+                PrintWriter writer = new PrintWriter(socket.getOutputStream());
+                writer.print(strcmd);
+                writer.flush();
+                // Read the response
+                BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                StringBuilder InfoRespo = new StringBuilder();
+                String next_record = null;
+                while ((next_record = reader.readLine()) != null) {
+                    System.out.println("next_record" + next_record);
+                    InfoRespo.append(next_record);
+
+                }
+                //Log.i(TAG, " InfoRespo: " + InfoRespo);
+                response = InfoRespo.toString();
+                socket.close();
+            } catch (MalformedURLException ex) {
+                ex.printStackTrace();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            } catch (Exception ex) {
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " TCPCommandsPOST DoInbackground" + ex.getMessage());
+            }
+            return response;
+        }
+
+
+        @SuppressLint("LongLogTag")
+        @Override
+        protected void onPostExecute(String res) {
+
+            //Log.e(TAG, "~~~~~TCP for end~~~~~");
+            Log.i(TAG, "Socket response" + res);
+            if (AppConstants.GenerateLogs) AppConstants.WriteinFile(TAG + "Socket response" + res);
+
+        }
+
+    }
+
 
 }

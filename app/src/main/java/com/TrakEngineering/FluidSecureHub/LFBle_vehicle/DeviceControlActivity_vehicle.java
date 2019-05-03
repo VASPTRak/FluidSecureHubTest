@@ -1288,6 +1288,24 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
                         editor.commit();
 
                         editVehicleNumber.setText(VehicleNumber);
+                        Log.i(TAG, "Vehicle Number Returned by server: " + VehicleNumber);
+                        if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "Vehicle Number Returned by server: " + VehicleNumber);
+
+                        //Added code to fix Inalid vehicle on pin screen
+                        if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS1")) {
+                            Constants.AccVehicleNumber_FS1 = VehicleNumber;
+                        } else if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS2")) {
+                             Constants.AccVehicleNumber = VehicleNumber;
+                        } else if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS3")) {
+                             Constants.AccVehicleNumber_FS3 = VehicleNumber;
+                        } else if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS4")) {
+                             Constants.AccVehicleNumber_FS4 = VehicleNumber;
+                        } else{
+                            Log.i(TAG, "Something went wrong in hose selection");
+                            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "Something went wrong in hose selection");
+                        }
+
+
                         tv_vehicle_no_below.setText("Vehicle Number: " + VehicleNumber);
                         if (!AppConstants.APDU_FOB_KEY.isEmpty()) {
                             tv_fob_number.setText("Access Device No:" + AppConstants.APDU_FOB_KEY);
@@ -1810,6 +1828,22 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
                         String VehicleNumber = jsonObjectSite.getString("VehicleNumber");
                         String FOBNumber = jsonObjectSite.getString("FOBNumber");
                         editVehicleNumber.setText(VehicleNumber);
+
+                        Log.i(TAG, "Vehicle Number Returned by server -fstag: " + VehicleNumber);
+                        if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "Set vehicle Number -fstag: " + VehicleNumber);
+                        //Added code to fix Inalid vehicle on pin screen
+                        if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS1")) {
+                            Constants.AccVehicleNumber_FS1 = VehicleNumber;
+                        } else if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS2")) {
+                            Constants.AccVehicleNumber = VehicleNumber;
+                        } else if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS3")) {
+                            Constants.AccVehicleNumber_FS3 = VehicleNumber;
+                        } else if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS4")) {
+                            Constants.AccVehicleNumber_FS4 = VehicleNumber;
+                        } else{
+                            Log.i(TAG, "Something went wrong in hose selection -fstag");
+                            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "Something went wrong in hose selection -fstag");
+                        }
                         //AppConstants.colorToastBigFont(DeviceControlActivity_vehicle.this, "VehicleNumber: "+VehicleNumber, Color.GREEN);
 
                         FstagCustomMessageDilaog(DeviceControlActivity_vehicle.this, "Message", "Vehicle Number Found: " + VehicleNumber);

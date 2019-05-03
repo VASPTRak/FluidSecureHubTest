@@ -48,7 +48,11 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.InetAddress;
+import java.net.MalformedURLException;
+import java.net.Socket;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -1043,7 +1047,10 @@ public class BackgroundService_FS_UNIT_4 extends Service {
                 @Override
                 public void run() {
 
-                    new BackgroundService_FS_UNIT_4.CommandsPOST().execute(URL_UPGRADE_START, "");
+                    String command = "upgrade?command=start";
+                    new TCPCommandsPOST().execute(HTTP_URL, command);
+
+                    //new CommandsPOST().execute(URL_UPGRADE_START, "");
 
                     //upgrade bin
                     String LocalPath = FOLDER_PATH + PATH_BIN_FILE1;
@@ -1757,8 +1764,11 @@ public class BackgroundService_FS_UNIT_4 extends Service {
                 new Handler().postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        Toast.makeText(getApplicationContext(), "URL rest cmd", Toast.LENGTH_LONG).show();
-                        new BackgroundService_FS_UNIT_4.CommandsPOST().execute(URL_RESET, "");
+
+                        String command = "upgrade?command=reset";
+                        new TCPCommandsPOST().execute(HTTP_URL, command);
+
+                        //new BackgroundService_FS_UNIT_4.CommandsPOST().execute(URL_RESET, "");
 
                         System.out.println("AFTER SECONDS 5");
                     }
@@ -2168,6 +2178,69 @@ public class BackgroundService_FS_UNIT_4 extends Service {
 
     }
 
-}
+    public class TCPCommandsPOST extends AsyncTask<String, Void, String> {
 
+        String response = "";
+
+        @SuppressLint("LongLogTag")
+        @Override
+        protected String doInBackground(String... param) {
+
+
+
+            // Log.e(TAG, "~~~~~TCP for strt~~~~~");
+            //http://192.168.43.67:80/tld?level=info
+            String Command = param[1];
+            String serverip1 = param[0].replace("http://","");
+            String SERVER_IP = serverip1.replace(":80/","").trim();
+            String strcmd = "POST /"+Command+" HTTP/1.1\r\nContent-Type: application/json; charset=utf-8\r\nContent-Length: \r\nHost: 192.168.4.1\r\nConnection: Keep-Alive\r\nAccept-Encoding: gzip\r\nUser-Agent: okhttp/3.6.0\r\n\r\n";
+
+
+            try {
+                String host = SERVER_IP;//"192.168.43.210";//url.getHost();
+                int port = 80;// SERVER_PORT;
+
+                // Open a TCP connection
+                Socket socket = new Socket(host, port);
+                // Send the request over the socket
+                PrintWriter writer = new PrintWriter(socket.getOutputStream());
+                writer.print(strcmd);
+                writer.flush();
+                // Read the response
+                BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                StringBuilder InfoRespo = new StringBuilder();
+                String next_record = null;
+                while ((next_record = reader.readLine()) != null) {
+                    System.out.println("next_record"+next_record);
+                    InfoRespo.append(next_record);
+
+                }
+                //Log.i(TAG, " InfoRespo: " + InfoRespo);
+                response = InfoRespo.toString();
+                socket.close();
+            } catch (MalformedURLException ex) {
+                ex.printStackTrace();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            } catch (Exception ex){
+                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " TCPCommandsPOST DoInbackground"+ex.getMessage());
+            }
+            return response;
+        }
+
+
+
+        @SuppressLint("LongLogTag")
+        @Override
+        protected void onPostExecute(String res) {
+
+            //Log.e(TAG, "~~~~~TCP for end~~~~~");
+            Log.i(TAG, "Socket response" + res);
+
+
+        }
+
+    }
+
+}
 

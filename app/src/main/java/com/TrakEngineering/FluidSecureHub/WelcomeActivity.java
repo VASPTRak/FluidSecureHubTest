@@ -48,6 +48,8 @@ import android.os.PowerManager;
 import android.provider.Settings;
 import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
+import android.text.SpannableStringBuilder;
+import android.text.style.RelativeSizeSpan;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -586,7 +588,13 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         }
                     }, 2000);
 
-                } else if (mConnectState == BluetoothReader.STATE_CONNECTED) {
+                } else if (mConnectState == BluetoothReader.CARD_STATUS_ABSENT) {
+
+                    String text =  "The device not connected";
+                    SpannableStringBuilder biggerText = new SpannableStringBuilder(text);
+                    biggerText.setSpan(new RelativeSizeSpan(1.35f), 0, text.length(), 0);
+                    Toast.makeText(WelcomeActivity.this, biggerText, Toast.LENGTH_LONG).show();
+
                 } else {
 
                     if (mDeviceName != null && mDeviceAddress.contains(":")) {
@@ -5068,7 +5076,11 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                             "The device is unable to set notification!",
                                             Toast.LENGTH_SHORT).show();
                                 } else {
-                                    Toast.makeText(WelcomeActivity.this, "The device is ready to use!", Toast.LENGTH_SHORT).show();
+                                    String text =  "The device is ready to use!";
+                                    SpannableStringBuilder biggerText = new SpannableStringBuilder(text);
+                                    biggerText.setSpan(new RelativeSizeSpan(1.35f), 0, text.length(), 0);
+                                    Toast.makeText(WelcomeActivity.this, biggerText, Toast.LENGTH_LONG).show();
+
                                 }
                             }
                         });

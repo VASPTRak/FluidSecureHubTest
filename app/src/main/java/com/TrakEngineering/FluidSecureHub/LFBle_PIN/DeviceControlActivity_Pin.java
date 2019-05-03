@@ -921,6 +921,9 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                     objEntityClass.Barcode = "";
                     AppConstants.FOB_KEY_VEHICLE = AppConstants.APDU_FOB_KEY;
 
+                    Log.i(TAG, "VehicleNumber: " + vehicleNumber);
+                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "VehicleNumber: " + vehicleNumber);
+
                     if (AppConstants.APDU_FOB_KEY.equalsIgnoreCase("")) {
                         Log.i(TAG, "PIN EN Manually: " + etPersonnelPin.getText().toString().trim() + "  Fob:" + AppConstants.APDU_FOB_KEY);
                         if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " PIN EN Manually: " + etPersonnelPin.getText().toString().trim() + "  Fob:" + AppConstants.APDU_FOB_KEY);
