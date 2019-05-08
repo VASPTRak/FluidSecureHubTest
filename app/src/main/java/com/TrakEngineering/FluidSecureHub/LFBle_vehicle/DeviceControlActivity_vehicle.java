@@ -956,6 +956,23 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
                         String PreviousHours = jsonObject.getString("PreviousHours");
                         String HoursLimit = jsonObject.getString("HoursLimit");
 
+                        editVehicleNumber.setText(VehicleNumber);
+                        Log.i(TAG, "Vehicle Number Returned by server t: " + VehicleNumber);
+                        if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "Vehicle Number Returned by server t: " + VehicleNumber);
+
+                        //Added code to fix Inalid vehicle on pin screen
+                        if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS1")) {
+                            Constants.AccVehicleNumber_FS1 = VehicleNumber;
+                        } else if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS2")) {
+                            Constants.AccVehicleNumber = VehicleNumber;
+                        } else if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS3")) {
+                            Constants.AccVehicleNumber_FS3 = VehicleNumber;
+                        } else if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS4")) {
+                            Constants.AccVehicleNumber_FS4 = VehicleNumber;
+                        } else{
+                            Log.i(TAG, "Something went wrong in hose selection t");
+                            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "Something went wrong in hose selection t");
+                        }
 
                         SharedPreferences sharedPref = DeviceControlActivity_vehicle.this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
                         SharedPreferences.Editor editor = sharedPref.edit();
