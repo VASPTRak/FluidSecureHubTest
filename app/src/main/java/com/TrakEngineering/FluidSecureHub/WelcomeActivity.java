@@ -592,7 +592,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                     String text =  "The device not connected";
                     SpannableStringBuilder biggerText = new SpannableStringBuilder(text);
-                    biggerText.setSpan(new RelativeSizeSpan(1.35f), 0, text.length(), 0);
+                    biggerText.setSpan(new RelativeSizeSpan(2.00f), 0, text.length(), 0);
                     Toast.makeText(WelcomeActivity.this, biggerText, Toast.LENGTH_LONG).show();
 
                 } else {
@@ -1295,7 +1295,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
     public void goButtonAction(View view) {
 
-        launchCamera();     //Calling camera activity for image capture on GO button click
+       //launchCamera();     //Calling camera activity for image capture on GO button click
 
         ///////////////////common online offline///////////////////////////////
         EntityHub obj = offcontroller.getOfflineHubDetails(WelcomeActivity.this);
@@ -5078,7 +5078,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                 } else {
                                     String text =  "The device is ready to use!";
                                     SpannableStringBuilder biggerText = new SpannableStringBuilder(text);
-                                    biggerText.setSpan(new RelativeSizeSpan(1.35f), 0, text.length(), 0);
+                                    biggerText.setSpan(new RelativeSizeSpan(2.00f), 0, text.length(), 0);
                                     Toast.makeText(WelcomeActivity.this, biggerText, Toast.LENGTH_LONG).show();
 
                                 }
@@ -5780,37 +5780,28 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                             if (AppConstants.GenerateLogs)
                                 AppConstants.WriteinFile(TAG + " Please check if HF reader is connected");
 
-                        } else {
+                            if (Constants.FS_1STATUS.equalsIgnoreCase("FREE") && Constants.FS_2STATUS.equalsIgnoreCase("FREE") && Constants.FS_3STATUS.equalsIgnoreCase("FREE") && Constants.FS_4STATUS.equalsIgnoreCase("FREE")) {
 
-                            int diff = getDate(AppConstants.NoSleepCurrentTime);
-                            if (diff >= 10) {//10
-                                //Grater than 15 min no response from HF reader
-                                //Send Email
-                                Log.i(TAG, "HF reader response time diff is: " + diff);
+                                if (mDeviceName != null && mDeviceAddress.contains(":")) {
 
-                                if (EmailReaderNotConnected) {
-                                    Log.i(TAG, "Email already sent");
-                                    if (AppConstants.GenerateLogs)
-                                        AppConstants.WriteinFile(TAG + " Email already sent");
-                                    if (mDeviceName != null && mDeviceAddress.contains(":")) {
-                                        connectReader();
-                                    }
+                                    Log.i(TAG, "recreate called first case");
+                                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " recreate called first case");
+
+                                    recreate();
+
                                 } else {
-                                    EmailReaderNotConnected = true;
-                                    Log.i(TAG, "Send Email");
+                                    Log.i(TAG, "Please check DeviceName & DeviceAddress");
                                     if (AppConstants.GenerateLogs)
-                                        AppConstants.WriteinFile(TAG + " Send Email");
-                                    SendEmailReaderNotConnectedAsyncCall();
+                                        AppConstants.WriteinFile(TAG + " Please check DeviceName & DeviceAddress");
                                 }
 
-                            } else if (diff >= 5) {//5
-                                //Grater than 10 min no response from HF reader
-                                //Recreate main activity
-                                Log.i(TAG, "HF reader response time diff is: " + diff);
-                                Log.i(TAG, "Retry attempt 2 reader connect");
-                                if (AppConstants.GenerateLogs)
-                                    AppConstants.WriteinFile(TAG + " Retry attempt 2 reader connect");
-                                //Disable BT
+                            }else{
+                                Log.i(TAG, "Hose busy..can not recreate");
+                                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "Hose busy..can not recreate");
+                            }
+
+                            /*if (mDeviceName != null && mDeviceAddress.contains(":")) {
+                                //Disable BT------------
                                 final BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
                                 mBluetoothAdapter.disable();
                                 Log.i(TAG, "BT OFF");
@@ -5820,9 +5811,103 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                 new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                     @Override
                                     public void run() {
+                                        //Enable BT------------
+                                        mBluetoothAdapter.enable();
+                                        Log.i(TAG, "BT ON");
+                                        // if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " BT ON");
+                                    }
+                                }, 4000);
+
+                                new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+
+                                        //Connect Reader----------
+                                        connectReader();
+                                    }
+                                }, 6000);
+
+                            } else {
+
+                                Log.i(TAG, "Please check DeviceName & DeviceAddress");
+                                if (AppConstants.GenerateLogs)
+                                    AppConstants.WriteinFile(TAG + " Please check DeviceName & DeviceAddress");
+
+                            }*/
+
+                        } else {
+
+                            int diff = getDate(AppConstants.NoSleepCurrentTime);
+                            if (diff >= 5) {//10
+                                //Grater than 15 min no response from HF reader
+                                //Send Email
+                                Log.i(TAG, "HF reader response time diff is: " + diff);
+                                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "HF reader response time diff is: " + diff);
+
+                                if (EmailReaderNotConnected) {
+                                    Log.i(TAG, "Email already sent");
+                                    if (AppConstants.GenerateLogs)
+                                        AppConstants.WriteinFile(TAG + " Email already sent");
+                                    //Connect Reader
+                                    connectReader();
+                                } else {
+                                    EmailReaderNotConnected = true;
+                                    Log.i(TAG, "Send Email");
+                                    if (AppConstants.GenerateLogs)
+                                        AppConstants.WriteinFile(TAG + " Send Email");
+                                    SendEmailReaderNotConnectedAsyncCall();
+                                }
+
+                            } else if (diff >= 2) {//5
+                                //Grater than 10 min no response from HF reader
+                                //Recreate main activity
+                                Log.i(TAG, "HF reader response time diff is: " + diff);
+                                Log.i(TAG, "Retry attempt 2 reader connect");
+                                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "HF reader response time diff is: " + diff);
+
+                                if (Constants.FS_1STATUS.equalsIgnoreCase("FREE") && Constants.FS_2STATUS.equalsIgnoreCase("FREE") && Constants.FS_3STATUS.equalsIgnoreCase("FREE") && Constants.FS_4STATUS.equalsIgnoreCase("FREE")) {
+
+                                    if (mDeviceName != null && mDeviceAddress.contains(":")) {
+
+                                        Log.i(TAG, "recreate called second case");
+                                        if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " recreate called second case");
+
+                                        recreate();
+
+                                    } else {
+                                        Log.i(TAG, "Please check DeviceName & DeviceAddress");
+                                        if (AppConstants.GenerateLogs)
+                                            AppConstants.WriteinFile(TAG + " Please check DeviceName & DeviceAddress");
+                                    }
+
+                                }else{
+                                    Log.i(TAG, "Hose busy..can not recreate");
+                                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "Hose busy..can not recreate");
+                                }
+
+
+
+
+                                /*if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " Retry attempt 2 reader connect");
+                                //Disable BT
+                                final BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+                                mBluetoothAdapter.disable();
+                                Log.i(TAG, "BT OFF");
+                                if (AppConstants.GenerateLogs)
+                                    AppConstants.WriteinFile(TAG + " BT OFF");
+                                //   if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " BT OFF");
+                                disconnectReader();
+                                if (AppConstants.GenerateLogs)
+                                    AppConstants.WriteinFile(TAG + " disconnectReader()");
+
+                                new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
                                         //Enable BT
                                         mBluetoothAdapter.enable();
                                         Log.i(TAG, "BT ON");
+                                        if (AppConstants.GenerateLogs)
+                                            AppConstants.WriteinFile(TAG + " BT ON");
                                         //      if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " BT ON");
                                     }
                                 }, 4000);
@@ -5832,11 +5917,11 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                     public void run() {
 
                                         //Connect Reader
-                                        if (mDeviceName != null && mDeviceAddress.contains(":")) {
-                                            connectReader();
-                                        }
+                                        connectReader();
+                                        if (AppConstants.GenerateLogs)
+                                            AppConstants.WriteinFile(TAG + " connectReader()");
                                     }
-                                }, 6000);
+                                }, 6000);*/
 
 
                             } else if (diff >= 1) {//1
@@ -5844,12 +5929,16 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                 //Recreate main activity
                                 Log.i(TAG, "HF reader response time diff is: " + diff);
                                 Log.i(TAG, "Retry attempt 1 reader connect");
+                                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "HF reader response time diff is: " + diff);
+
                                 if (AppConstants.GenerateLogs)
                                     AppConstants.WriteinFile(TAG + " Retry attempt 1 reader connect");
                                 //Disable BT
                                 final BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
                                 mBluetoothAdapter.disable();
                                 disconnectReader();
+                                if (AppConstants.GenerateLogs)
+                                    AppConstants.WriteinFile(TAG + " disconnectReader()");
 
                                 new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                     @Override
@@ -5864,17 +5953,16 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                     public void run() {
 
                                         //Connect Reader
-                                        if (mDeviceName != null && mDeviceAddress.contains(":")) {
-                                            connectReader();
-                                        }
+                                        connectReader();
+                                        if (AppConstants.GenerateLogs)
+                                            AppConstants.WriteinFile(TAG + " connectReader()");
                                     }
                                 }, 4000);
 
 
                             } else {
                                 Log.i(TAG, "HF reader is working fine");
-                                if (AppConstants.GenerateLogs)
-                                    AppConstants.WriteinFile(TAG + " HF reader is working fine");
+                                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " HF reader is working fine");
                             }
                         }
 

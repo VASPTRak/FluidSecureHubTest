@@ -21,6 +21,8 @@ import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Html;
 import android.text.InputType;
+import android.text.SpannableStringBuilder;
+import android.text.style.RelativeSizeSpan;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
@@ -1092,8 +1094,10 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
             pd.setMessage("Please wait...");
             pd.setCancelable(true);
             pd.show();*/
-
-            Toast.makeText(getApplicationContext(),"Please wait...",Toast.LENGTH_SHORT).show();
+            String text =  "Please wait..";
+            SpannableStringBuilder biggerText = new SpannableStringBuilder(text);
+            biggerText.setSpan(new RelativeSizeSpan(2.00f), 0, text.length(), 0);
+            Toast.makeText(getApplicationContext(), biggerText, Toast.LENGTH_LONG).show();
 
         }
 
