@@ -26,6 +26,9 @@ import android.os.Handler;
 import android.provider.Settings;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.text.SpannableString;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.RelativeSizeSpan;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
@@ -1033,8 +1036,13 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
         @Override
         protected void onPreExecute() {
+
+            String s= "Please wait...";
+            SpannableString ss2=  new SpannableString(s);
+            ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
+            ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
             pd = new ProgressDialog(DisplayMeterActivity.this);
-            pd.setMessage("Please wait...");
+            pd.setMessage(ss2);
             pd.setCancelable(false);
         }
 
@@ -1776,8 +1784,13 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
         @Override
         protected void onPreExecute() {
+
+            String s= "Please wait...";
+            SpannableString ss2=  new SpannableString(s);
+            ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
+            ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
             pd = new ProgressDialog(DisplayMeterActivity.this);
-            pd.setMessage("Please wait...");
+            pd.setMessage(ss2);
             pd.setCancelable(false);
         }
 
@@ -2666,8 +2679,13 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
         @Override
         protected void onPreExecute() {
+
+            String s= "Please wait...";
+            SpannableString ss2=  new SpannableString(s);
+            ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
+            ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
             pd = new ProgressDialog(DisplayMeterActivity.this);
-            pd.setMessage("Please wait...");
+            pd.setMessage(ss2);
             pd.setCancelable(false);
             pd.show();
 
@@ -2791,8 +2809,13 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
         @Override
         protected void onPreExecute() {
+
+            String s= "Please wait...";
+            SpannableString ss2=  new SpannableString(s);
+            ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
+            ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
             pd = new ProgressDialog(DisplayMeterActivity.this);
-            pd.setMessage("Please wait...");
+            pd.setMessage(ss2);
             pd.setCancelable(false);
             pd.show();
 
@@ -2861,8 +2884,13 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
         @Override
         protected void onPreExecute() {
+
+            String s= "Please wait...";
+            SpannableString ss2=  new SpannableString(s);
+            ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
+            ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
             pd = new ProgressDialog(DisplayMeterActivity.this);
-            pd.setMessage("Please wait...");
+            pd.setMessage(ss2);
             pd.setCancelable(false);
             pd.show();
 
@@ -3008,8 +3036,13 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
         @Override
         protected void onPreExecute() {
+
+            String s= "Please wait...";
+            SpannableString ss2=  new SpannableString(s);
+            ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
+            ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
             pd = new ProgressDialog(DisplayMeterActivity.this);
-            pd.setMessage("Please wait...");
+            pd.setMessage(ss2);
             pd.setCancelable(false);
             pd.show();
 

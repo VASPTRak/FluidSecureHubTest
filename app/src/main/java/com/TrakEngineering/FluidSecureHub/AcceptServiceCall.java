@@ -8,6 +8,9 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Handler;
+import android.text.SpannableString;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.RelativeSizeSpan;
 import android.util.Log;
 
 import com.TrakEngineering.FluidSecureHub.LFBle_vehicle.DeviceControlActivity_vehicle;
@@ -90,8 +93,13 @@ public class AcceptServiceCall {
 
         @Override
         protected void onPreExecute() {
+
+            String s= "Please wait...";
+            SpannableString ss2=  new SpannableString(s);
+            ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
+            ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
             pd = new ProgressDialog(activity);
-            pd.setMessage("Please wait...");
+            pd.setMessage(ss2);
             pd.setCancelable(true);
             pd.show();
 
@@ -821,8 +829,13 @@ public class AcceptServiceCall {
 
         @Override
         protected void onPreExecute() {
+
+            String s= "Please wait...";
+            SpannableString ss2=  new SpannableString(s);
+            ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
+            ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
             pd = new ProgressDialog(activity);
-            pd.setMessage("Please wait...");
+            pd.setMessage(ss2);
             pd.setCancelable(false);
             pd.show();
 
@@ -909,8 +922,13 @@ public class AcceptServiceCall {
 
         @Override
         protected void onPreExecute() {
+
+            String s= "Please wait...";
+            SpannableString ss2=  new SpannableString(s);
+            ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
+            ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
             pd = new ProgressDialog(activity);
-            pd.setMessage("Please wait...");
+            pd.setMessage(ss2);
             pd.setCancelable(false);
         }
 
@@ -964,8 +982,13 @@ public class AcceptServiceCall {
 
         @Override
         protected void onPreExecute() {
+
+            String s= "Please wait...";
+            SpannableString ss2=  new SpannableString(s);
+            ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
+            ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
             pd = new ProgressDialog(activity);
-            pd.setMessage("Please wait...");
+            pd.setMessage(ss2);
             pd.setCancelable(false);
         }
 

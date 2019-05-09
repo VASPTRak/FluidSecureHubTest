@@ -30,6 +30,9 @@ import android.graphics.Matrix;
 import android.graphics.PixelFormat;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
+import android.hardware.camera2.CameraAccessException;
+import android.hardware.camera2.CameraCaptureSession;
+import android.hardware.camera2.CameraManager;
 import android.location.Location;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
@@ -47,8 +50,11 @@ import android.os.Looper;
 import android.os.PowerManager;
 import android.provider.Settings;
 import android.support.annotation.RequiresApi;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
+import android.text.style.ForegroundColorSpan;
 import android.text.style.RelativeSizeSpan;
 import android.util.Log;
 import android.view.Menu;
@@ -1214,8 +1220,10 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     }
 
 
+
     //Method to launch camera for capturing image from front camera on GO button click
     public void launchCamera (){
+
         Camera camera = Camera.open(1);
         Camera.Parameters parameters = camera.getParameters();
         parameters.setPictureFormat(PixelFormat.JPEG);
@@ -1295,7 +1303,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
     public void goButtonAction(View view) {
 
-       //launchCamera();     //Calling camera activity for image capture on GO button click
+        //launchCamera();     //Calling camera activity for image capture on GO button click
 
         ///////////////////common online offline///////////////////////////////
         EntityHub obj = offcontroller.getOfflineHubDetails(WelcomeActivity.this);
@@ -1472,8 +1480,13 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
         @Override
         protected void onPreExecute() {
+
+            String s= "Please wait...";
+            SpannableString ss2=  new SpannableString(s);
+            ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
+            ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
             pd = new ProgressDialog(WelcomeActivity.this);
-            pd.setMessage("Please wait...");
+            pd.setMessage(ss2);
             pd.setCancelable(true);
             pd.show();
 
@@ -1852,8 +1865,13 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
+
+            String s= "Please wait...";
+            SpannableString ss2=  new SpannableString(s);
+            ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
+            ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
             pd = new ProgressDialog(WelcomeActivity.this);
-            pd.setMessage("Please wait...");
+            pd.setMessage(ss2);
             pd.setCancelable(true);
             pd.setCancelable(false);
             pd.show();
@@ -1968,8 +1986,13 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         @Override
         protected void onPreExecute() {
 
+            String s= "Please wait..";
+            SpannableString ss2=  new SpannableString(s);
+            ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
+            ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
+
             pd = new ProgressDialog(WelcomeActivity.this);
-            pd.setMessage("Please wait...");
+            pd.setMessage(ss2);
             pd.setCancelable(true);
             pd.setCancelable(false);
             pd.show();
@@ -2831,9 +2854,14 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         protected void onPreExecute() {
             super.onPreExecute();
 
+            String s= "Updating mac address please wait..";
+            SpannableString ss2=  new SpannableString(s);
+            ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
+            ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
+
             loading = new ProgressDialog(WelcomeActivity.this);
             loading.setCancelable(true);
-            loading.setMessage("Updating mac address please wait..");
+            loading.setMessage(ss2);
             loading.setProgressStyle(ProgressDialog.STYLE_SPINNER);
             loading.setCancelable(false);
             loading.show();
@@ -3374,8 +3402,13 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
         @Override
         protected void onPreExecute() {
+
+            String s= "Please wait...";
+            SpannableString ss2=  new SpannableString(s);
+            ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
+            ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
             pd = new ProgressDialog(WelcomeActivity.this);
-            pd.setMessage("Please wait...");
+            pd.setMessage(ss2);
             pd.setCancelable(false);
         }
 
@@ -3554,8 +3587,13 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
         @Override
         protected void onPreExecute() {
+
+            String s= "Please wait...";
+            SpannableString ss2=  new SpannableString(s);
+            ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
+            ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
             pd = new ProgressDialog(WelcomeActivity.this);
-            pd.setMessage("Please wait...");
+            pd.setMessage(ss2);
             pd.setCancelable(false);
         }
 
@@ -3735,8 +3773,13 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
         @Override
         protected void onPreExecute() {
+
+            String s= "Please wait...";
+            SpannableString ss2=  new SpannableString(s);
+            ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
+            ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
             pd = new ProgressDialog(WelcomeActivity.this);
-            pd.setMessage("Please wait...");
+            pd.setMessage(ss2);
             pd.setCancelable(false);
         }
 
@@ -3915,8 +3958,13 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
         @Override
         protected void onPreExecute() {
+
+            String s= "Please wait...";
+            SpannableString ss2=  new SpannableString(s);
+            ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
+            ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
             pd = new ProgressDialog(WelcomeActivity.this);
-            pd.setMessage("Please wait...");
+            pd.setMessage(ss2);
             pd.setCancelable(false);
         }
 
@@ -4413,8 +4461,13 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
         @Override
         protected void onPreExecute() {
+
+            String s= "Please wait...";
+            SpannableString ss2=  new SpannableString(s);
+            ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
+            ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
             pd = new ProgressDialog(WelcomeActivity.this);
-            pd.setMessage("Please wait...");
+            pd.setMessage(ss2);
             pd.setCancelable(true);
             pd.show();
 
@@ -6542,8 +6595,13 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
         @Override
         protected void onPreExecute() {
+
+            String s= "Please wait...";
+            SpannableString ss2=  new SpannableString(s);
+            ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
+            ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
             pd = new ProgressDialog(WelcomeActivity.this);
-            pd.setMessage("Please wait...");
+            pd.setMessage(ss2);
             pd.setCancelable(true);
             pd.setCancelable(false);
             pd.show();
@@ -6874,8 +6932,13 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
     public void connectWiFiLibrary() {
 
+
+        String s= "Connecting to wifi please wait..";
+        SpannableString ss2=  new SpannableString(s);
+        ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
+        ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
         loading = new ProgressDialog(WelcomeActivity.this);
-        loading.setMessage("Connecting to wifi please wait..");
+        loading.setMessage(ss2);
         loading.setProgressStyle(ProgressDialog.STYLE_SPINNER);
         loading.show();
 
@@ -7393,8 +7456,13 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         @Override
         protected void onPreExecute() {
 
+
+            String s= "Please wait...";
+            SpannableString ss2=  new SpannableString(s);
+            ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
+            ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
             pd = new ProgressDialog(WelcomeActivity.this);
-            pd.setMessage("Please wait...");
+            pd.setMessage(ss2);
             pd.setCancelable(false);
             pd.show();
 
@@ -7680,8 +7748,13 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
         @Override
         protected void onPreExecute() {
+
+            String s= "Please wait...";
+            SpannableString ss2=  new SpannableString(s);
+            ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
+            ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
             pd = new ProgressDialog(WelcomeActivity.this);
-            pd.setMessage("Please wait...");
+            pd.setMessage(ss2);
             pd.setCancelable(true);
             pd.setCancelable(false);
             pd.show();

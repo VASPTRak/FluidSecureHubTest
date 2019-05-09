@@ -29,7 +29,9 @@ import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Html;
 import android.text.InputType;
+import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
+import android.text.style.ForegroundColorSpan;
 import android.text.style.RelativeSizeSpan;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -804,8 +806,13 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
         protected void onPreExecute() {
 
             try {
+
+                String s= "Please wait...";
+                SpannableString ss2=  new SpannableString(s);
+                ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
+                ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
                 pd = new ProgressDialog(DeviceControlActivity_vehicle.this);
-                pd.setMessage("Please wait...");
+                pd.setMessage(ss2);
                 pd.setCancelable(true);
                 pd.show();
             } catch (Exception e) {
@@ -1768,8 +1775,13 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
         @Override
         protected void onPreExecute() {
 
+
+            String s= "Please wait...";
+            SpannableString ss2=  new SpannableString(s);
+            ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
+            ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
             pd = new ProgressDialog(DeviceControlActivity_vehicle.this);
-            pd.setMessage("Please wait...");
+            pd.setMessage(ss2);
             pd.setCancelable(true);
             pd.setCancelable(false);
             pd.show();
@@ -2001,8 +2013,13 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
 
         @Override
         protected void onPreExecute() {
+
+            String s= "Please wait...";
+            SpannableString ss2=  new SpannableString(s);
+            ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
+            ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
             pd = new ProgressDialog(DeviceControlActivity_vehicle.this);
-            pd.setMessage("Please wait...");
+            pd.setMessage(ss2);
             pd.setCancelable(true);
             pd.setCancelable(false);
             pd.show();

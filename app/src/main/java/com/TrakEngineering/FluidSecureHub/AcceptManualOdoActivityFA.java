@@ -8,6 +8,9 @@ import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.text.SpannableString;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.RelativeSizeSpan;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -235,9 +238,13 @@ public class AcceptManualOdoActivityFA extends AppCompatActivity {
         protected void onPreExecute() {
             super.onPreExecute();
 
+            String s= "Updating Odo meter please wait..";
+            SpannableString ss2=  new SpannableString(s);
+            ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
+            ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
             pd = new ProgressDialog(AcceptManualOdoActivityFA.this);
             pd.setCancelable(true);
-            pd.setMessage("Updating Odo meter please wait..");
+            pd.setMessage(ss2);
             pd.setProgressStyle(ProgressDialog.STYLE_SPINNER);
             pd.setCancelable(false);
             pd.show();

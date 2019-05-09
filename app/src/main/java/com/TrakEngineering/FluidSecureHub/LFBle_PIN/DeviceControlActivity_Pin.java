@@ -21,7 +21,9 @@ import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Html;
 import android.text.InputType;
+import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
+import android.text.style.ForegroundColorSpan;
 import android.text.style.RelativeSizeSpan;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -872,8 +874,13 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
 
         @Override
         protected void onPreExecute() {
+
+            String s= "Please wait...";
+            SpannableString ss2=  new SpannableString(s);
+            ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
+            ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
             pd = new ProgressDialog(DeviceControlActivity_Pin.this);
-            pd.setMessage("Please wait...");
+            pd.setMessage(ss2);
             pd.setCancelable(true);
             pd.show();
 
@@ -1090,10 +1097,8 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
 
         @Override
         protected void onPreExecute() {
-            /*pd = new ProgressDialog(DeviceControlActivity_fsnp.this);
-            pd.setMessage("Please wait...");
-            pd.setCancelable(true);
-            pd.show();*/
+
+
             String text =  "Please wait..";
             SpannableStringBuilder biggerText = new SpannableStringBuilder(text);
             biggerText.setSpan(new RelativeSizeSpan(2.00f), 0, text.length(), 0);
