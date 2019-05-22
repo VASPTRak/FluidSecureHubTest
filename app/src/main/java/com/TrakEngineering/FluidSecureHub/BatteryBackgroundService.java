@@ -128,6 +128,7 @@ public class BatteryBackgroundService extends Service {
                 Request request = new Request.Builder()
                         .url(AppConstants.webURL)
                         .addHeader("Authorization", authString)
+                        .addHeader("ReqType", "battery")
                         .build();
 
                 Response response = client.newCall(request).execute();

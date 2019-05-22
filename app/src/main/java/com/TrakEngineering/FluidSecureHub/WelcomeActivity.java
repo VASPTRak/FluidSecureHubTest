@@ -523,6 +523,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
         InItGUI();
 
+
         //If checkbox is checked write logs in text file else not wite logs
         //And Set Fuiel branding Information
         IsLogRequiredAndBranding();
@@ -5708,7 +5709,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         };
 
 
-        long delay = 10000L;
+        long delay = 60000L;
         long period = 60000L;
         timerNoSleep.scheduleAtFixedRate(repeatedTask, delay, period);
     }

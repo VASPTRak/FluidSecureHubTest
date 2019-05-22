@@ -32,7 +32,7 @@ public class AcceptOtherActivity extends AppCompatActivity {
         if (Constants.CurrentSelectedHose.equals("FS1")) {
             etOther.setText(Constants.AccOther_FS1);
         } else if (Constants.CurrentSelectedHose.equals("FS2")) {
-            etOther.setText(Constants.AccOther_FS1);
+            etOther.setText(Constants.AccOther);
         } else if (Constants.CurrentSelectedHose.equals("FS3")) {
             etOther.setText(Constants.AccOther_FS3);
         } else if (Constants.CurrentSelectedHose.equals("FS4")) {

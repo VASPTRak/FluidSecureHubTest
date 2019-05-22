@@ -140,7 +140,15 @@ public class BackgroundServiceDownloadFirmware extends BackgroundService {
         @Override
         protected String doInBackground(String... f_url) {
             int count;
+
             try {
+
+                File folder = new File(CommonUtils.FOLDER_PATH_TLD_Firmware);
+                boolean success = true;
+                if (!folder.exists()) {
+                    success = folder.mkdirs();
+                }
+
                 URL url = new URL(f_url[0]);
                 URLConnection conection = url.openConnection();
                 conection.connect();

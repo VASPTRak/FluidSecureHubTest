@@ -596,16 +596,33 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
             if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+"  Response LF: " + Str_data);
             String Str_check = Str_data.replace(" ", "");
             if (!Str_check.equalsIgnoreCase("000000")) {
-                try {
-                    String[] Seperate = Str_data.split("\n");
-                    String Sep1 = Seperate[0];
-                    String Sep2 = Seperate[1];
-                    LF_FobKey = Sep2.replace(" ", "");//if no fob presented this value should be empty.
-                    tv_fobkey.setText(Sep2.replace(" ", ""));
-                } catch (Exception ex) {
-                    System.out.println(ex);
-                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+"  displayData Split Fob_Key  --Exception " + ex);
+
+                if (Str_check.contains("\n")){
+
+                    try {
+                        String[] Seperate = Str_data.split("\n");
+                        String Sep1 = Seperate[0];
+                        String Sep2 = Seperate[1];
+                        LF_FobKey = Sep2.replace(" ", "");//if no fob presented this value should be empty.
+                        tv_fobkey.setText(Sep2.replace(" ", ""));
+                    } catch (Exception ex) {
+                        System.out.println(ex);
+                        if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+"  displayData Split Fob_Key  --Exception " + ex);
+                    }
+
+
+                }else{
+
+                    try {
+
+                        LF_FobKey = Str_check.replace(" ", "");//if no fob presented this value should be empty.
+                        tv_fobkey.setText(Str_check.replace(" ", ""));
+                    } catch (Exception ex) {
+                        System.out.println(ex);
+                        if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+"  displayData plain --Exception " + ex);
+                    }
                 }
+
 
                 if (!LF_FobKey.equalsIgnoreCase("" ) && LF_FobKey.length() > 5) {//
                     //tv_enter_pin_no.setText("Fob Read Successfully");

@@ -155,7 +155,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
 
     private EditText editVehicleNumber;
     String FSTagMacAddress = "", IsVehicleHasFob = "", IsOdoMeterRequire = "", IsDepartmentRequire = "", IsPersonnelPINRequire = "", IsPersonnelPINRequireForHub = "", IsOtherRequire = "", IsVehicleNumberRequire = "", IsStayOpenGate = "", IsGateHub = "", IsHoursRequire = "";
-    Button btnCancel, btnSave, btn_ReadFobAgain, btnFStag,btn_barcode;
+    Button btnCancel, btnSave, btn_ReadFobAgain, btnFStag, btn_barcode;
     GoogleApiClient mGoogleApiClient;
     public static double CurrentLat = 0, CurrentLng = 0;
     RelativeLayout footer_keybord;
@@ -589,24 +589,43 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
     private void displayData(String data) {
         if (data != null || !data.isEmpty()) {
 
-
             String Str_data = data.toString().trim();
             Log.i(TAG, "displayData Response LF:" + Str_data);
-            //if (AppConstants.GenerateLogs) AppConstants.WriteinFile(TAG + "  displayData Response LF: " + Str_data);
+            if (AppConstants.GenerateLogs) AppConstants.WriteinFile(TAG + "  displayData Response LF: " + Str_data);
+
             String Str_check = Str_data.replace(" ", "");
 
             if (!Str_check.equalsIgnoreCase("000000")) {
 
-                try {
-                    String[] Seperate = Str_data.split("\n");
-                    String Sep1 = Seperate[0];
-                    String Sep2 = Seperate[1];
-                    LF_FobKey = Sep2.replace(" ", "");//if no fob presented this value should be empty.
-                    tv_fobkey.setText(Sep2.replace(" ", ""));
-                } catch (Exception ex) {
-                    System.out.println(ex);
-                    if (AppConstants.GenerateLogs) AppConstants.WriteinFile(TAG + "  displayData Split Fob_Key  --Exception " + ex);
+                if (Str_check.contains("\n")){
+
+                    try {
+                        String[] Seperate = Str_data.split("\n");
+                        String Sep1 = Seperate[0];
+                        String Sep2 = Seperate[1];
+                        LF_FobKey = Sep2.replace(" ", "");//if no fob presented this value should be empty.
+                        tv_fobkey.setText(Sep2.replace(" ", ""));
+                    } catch (Exception ex) {
+                        System.out.println(ex);
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + "  displayData Split Fob_Key  --Exception " + ex);
+                    }
+
+                }else{
+
+                    try {
+
+                        LF_FobKey = Str_check.replace(" ", "");//if no fob presented this value should be empty.
+                        tv_fobkey.setText(Str_check.replace(" ", ""));
+                    } catch (Exception ex) {
+                        System.out.println(ex);
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + "  displayData plain  --Exception " + ex);
+                    }
+
                 }
+
+
 
                 if (!LF_FobKey.equalsIgnoreCase("") && LF_FobKey.length() > 5) {
                     tv_fob_number.setText("Access Device No: " + LF_FobKey);
@@ -677,7 +696,8 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
             } else {
                 ///offlline-------------------
 
-                if (AppConstants.GenerateLogs)AppConstants.WriteinFile("Offline Vehicle FOB: " + AppConstants.APDU_FOB_KEY);
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile("Offline Vehicle FOB: " + AppConstants.APDU_FOB_KEY);
 
                 editVehicleNumber.setText(hmap.get("VehicleNumber"));
                 tv_vehicle_no_below.setText("Vehicle Number: " + hmap.get("VehicleNumber"));
@@ -807,8 +827,8 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
 
             try {
 
-                String s= "Please wait...";
-                SpannableString ss2=  new SpannableString(s);
+                String s = "Please wait...";
+                SpannableString ss2 = new SpannableString(s);
                 ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
                 ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
                 pd = new ProgressDialog(DeviceControlActivity_vehicle.this);
@@ -876,7 +896,8 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
                     if (AppConstants.APDU_FOB_KEY.equalsIgnoreCase("")) {
 
                         Log.i(TAG, " Vehcile EN Manually: " + vehicleNumber + "  Fob: " + AppConstants.APDU_FOB_KEY + " Barcode_val:" + Barcode_val);
-                        if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " Vehcile EN Manually: " + vehicleNumber + "  Fob: " + AppConstants.APDU_FOB_KEY + " Barcode_val:" + Barcode_val);
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + " Vehcile EN Manually: " + vehicleNumber + "  Fob: " + AppConstants.APDU_FOB_KEY + " Barcode_val:" + Barcode_val);
                     } else {
                         System.out.println(TAG + " Vehcile FOB No:" + AppConstants.APDU_FOB_KEY + "  VNo:" + vehicleNumber + " Barcode_val:" + Barcode_val);
                         if (AppConstants.GenerateLogs)
@@ -912,12 +933,13 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
 
                 }
 
-            } catch (SocketTimeoutException e){
+            } catch (SocketTimeoutException e) {
                 e.printStackTrace();
-                if (AppConstants.GenerateLogs) AppConstants.WriteinFile(TAG + " ServerCallFirst  STE1 " + e);
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " ServerCallFirst  STE1 " + e);
                 GetBackToWelcomeActivity();
 
-            }catch (Exception e) {
+            } catch (Exception e) {
                 e.printStackTrace();
                 if (AppConstants.GenerateLogs)
                     AppConstants.WriteinFile(TAG + " ServerCallFirst InBG Ex:" + e);
@@ -965,7 +987,8 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
 
                         editVehicleNumber.setText(VehicleNumber);
                         Log.i(TAG, "Vehicle Number Returned by server t: " + VehicleNumber);
-                        if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "Vehicle Number Returned by server t: " + VehicleNumber);
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + "Vehicle Number Returned by server t: " + VehicleNumber);
 
                         //Added code to fix Inalid vehicle on pin screen
                         if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS1")) {
@@ -976,9 +999,10 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
                             Constants.AccVehicleNumber_FS3 = VehicleNumber;
                         } else if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS4")) {
                             Constants.AccVehicleNumber_FS4 = VehicleNumber;
-                        } else{
+                        } else {
                             Log.i(TAG, "Something went wrong in hose selection t");
-                            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "Something went wrong in hose selection t");
+                            if (AppConstants.GenerateLogs)
+                                AppConstants.WriteinFile(TAG + "Something went wrong in hose selection t");
                         }
 
                         SharedPreferences sharedPref = DeviceControlActivity_vehicle.this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
@@ -1142,25 +1166,27 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
 
             if (!V_Number.isEmpty() || !AppConstants.APDU_FOB_KEY.isEmpty() || !Barcode_val.isEmpty()) {
 
-                HashMap<String, String> hmap = controller.getVehicleDetailsByVehicleNumber(V_Number);
-                offlineVehicleInitialization(hmap);
-
-                if (cd.isConnectingToInternet())
+                if (cd.isConnectingToInternet()) {
                     if (!isFinishing()) {
                         new ServerCallFirst().execute();
                     }
-                    else {
-                        //offline---------------
-                        AppConstants.AUTH_CALL_SUCCESS = false;
-                        if (AppConstants.GenerateLogs)AppConstants.WriteinFile("Offline Vehicle No.: " + V_Number);
+                } else {
+                    //offline---------------
 
-                        if (OfflineConstants.isOfflineAccess(DeviceControlActivity_vehicle.this)) {
-                            checkVehicleOFFLINEvalidation(hmap);
-                        } else {
-                            AppConstants.colorToastBigFont(getApplicationContext(), AppConstants.OFF1, Color.RED);
-                        }
+                    HashMap<String, String> hmap = controller.getVehicleDetailsByVehicleNumber(V_Number);
+                    offlineVehicleInitialization(hmap);
 
+                    AppConstants.AUTH_CALL_SUCCESS = false;
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile("Offline Vehicle No.: " + V_Number);
+
+                    if (OfflineConstants.isOfflineAccess(DeviceControlActivity_vehicle.this)) {
+                        checkVehicleOFFLINEvalidation(hmap);
+                    } else {
+                        AppConstants.colorToastBigFont(getApplicationContext(), AppConstants.OFF1, Color.RED);
                     }
+
+                }
 
             } else {
                 //Empty Fob key & enable edit text and Enter button
@@ -1196,7 +1222,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
             pd.setMessage("Please wait...");
             pd.setCancelable(true);
             pd.show();*/
-            String text =  "Please wait..";
+            String text = "Please wait..";
             SpannableStringBuilder biggerText = new SpannableStringBuilder(text);
             biggerText.setSpan(new RelativeSizeSpan(2.00f), 0, text.length(), 0);
             Toast.makeText(getApplicationContext(), biggerText, Toast.LENGTH_LONG).show();
@@ -1267,12 +1293,13 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
                 response = client.newCall(request).execute();
                 resp = response.body().string();
 
-            } catch (SocketTimeoutException e){
+            } catch (SocketTimeoutException e) {
                 e.printStackTrace();
-                if (AppConstants.GenerateLogs) AppConstants.WriteinFile(TAG + " GetVehicleNuOnFobKeyDetection  STE1 " + e);
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " GetVehicleNuOnFobKeyDetection  STE1 " + e);
                 GetBackToWelcomeActivity();
 
-            }catch (Exception e) {
+            } catch (Exception e) {
                 e.printStackTrace();
                 if (AppConstants.GenerateLogs)
                     AppConstants.WriteinFile(TAG + " GetVehicleNuOnFobKeyDetection DoInBG Ex:" + e.getMessage() + " ");
@@ -1318,20 +1345,22 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
 
                         editVehicleNumber.setText(VehicleNumber);
                         Log.i(TAG, "Vehicle Number Returned by server: " + VehicleNumber);
-                        if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "Vehicle Number Returned by server: " + VehicleNumber);
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + "Vehicle Number Returned by server: " + VehicleNumber);
 
                         //Added code to fix Inalid vehicle on pin screen
                         if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS1")) {
                             Constants.AccVehicleNumber_FS1 = VehicleNumber;
                         } else if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS2")) {
-                             Constants.AccVehicleNumber = VehicleNumber;
+                            Constants.AccVehicleNumber = VehicleNumber;
                         } else if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS3")) {
-                             Constants.AccVehicleNumber_FS3 = VehicleNumber;
+                            Constants.AccVehicleNumber_FS3 = VehicleNumber;
                         } else if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS4")) {
-                             Constants.AccVehicleNumber_FS4 = VehicleNumber;
-                        } else{
+                            Constants.AccVehicleNumber_FS4 = VehicleNumber;
+                        } else {
                             Log.i(TAG, "Something went wrong in hose selection");
-                            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "Something went wrong in hose selection");
+                            if (AppConstants.GenerateLogs)
+                                AppConstants.WriteinFile(TAG + "Something went wrong in hose selection");
                         }
 
 
@@ -1514,7 +1543,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
 
     }
 
-    private void RestTimeoutVehicleScreen(){
+    private void RestTimeoutVehicleScreen() {
 
 
         if (ScreenOutTimeVehicle != null) {
@@ -1537,15 +1566,15 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
         boolean FAStatus = sharedPref.getBoolean(AppConstants.FAData, false);
         boolean BarcodeStatus = sharedPref.getBoolean(AppConstants.UseBarcode, false);
 
-        if (FAStatus){
+        if (FAStatus) {
             btnFStag.setVisibility(View.VISIBLE);
-        }else{
+        } else {
             btnFStag.setVisibility(View.GONE);
         }
 
-        if (BarcodeStatus){
+        if (BarcodeStatus) {
             btn_barcode.setVisibility(View.VISIBLE);
-        }else{
+        } else {
             btn_barcode.setVisibility(View.GONE);
         }
 
@@ -1776,8 +1805,8 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
         protected void onPreExecute() {
 
 
-            String s= "Please wait...";
-            SpannableString ss2=  new SpannableString(s);
+            String s = "Please wait...";
+            SpannableString ss2 = new SpannableString(s);
             ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
             ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
             pd = new ProgressDialog(DeviceControlActivity_vehicle.this);
@@ -1824,12 +1853,13 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
 
                 //------------------------------
 
-            } catch (SocketTimeoutException ex){
+            } catch (SocketTimeoutException ex) {
                 ex.printStackTrace();
-                if (AppConstants.GenerateLogs) AppConstants.WriteinFile(TAG + " GetVehicleByFSTagMacAddress  STE1 " + ex);
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " GetVehicleByFSTagMacAddress  STE1 " + ex);
                 GetBackToWelcomeActivity();
 
-            }catch (Exception e) {
+            } catch (Exception e) {
                 pd.dismiss();
                 System.out.println("Ex" + e.getMessage());
                 if (AppConstants.GenerateLogs)
@@ -1864,7 +1894,8 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
                         editVehicleNumber.setText(VehicleNumber);
 
                         Log.i(TAG, "Vehicle Number Returned by server -fstag: " + VehicleNumber);
-                        if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "Set vehicle Number -fstag: " + VehicleNumber);
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + "Set vehicle Number -fstag: " + VehicleNumber);
                         //Added code to fix Inalid vehicle on pin screen
                         if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS1")) {
                             Constants.AccVehicleNumber_FS1 = VehicleNumber;
@@ -1874,9 +1905,10 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
                             Constants.AccVehicleNumber_FS3 = VehicleNumber;
                         } else if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS4")) {
                             Constants.AccVehicleNumber_FS4 = VehicleNumber;
-                        } else{
+                        } else {
                             Log.i(TAG, "Something went wrong in hose selection -fstag");
-                            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "Something went wrong in hose selection -fstag");
+                            if (AppConstants.GenerateLogs)
+                                AppConstants.WriteinFile(TAG + "Something went wrong in hose selection -fstag");
                         }
                         //AppConstants.colorToastBigFont(DeviceControlActivity_vehicle.this, "VehicleNumber: "+VehicleNumber, Color.GREEN);
 
@@ -2014,8 +2046,8 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
         @Override
         protected void onPreExecute() {
 
-            String s= "Please wait...";
-            SpannableString ss2=  new SpannableString(s);
+            String s = "Please wait...";
+            SpannableString ss2 = new SpannableString(s);
             ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
             ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
             pd = new ProgressDialog(DeviceControlActivity_vehicle.this);
@@ -2181,14 +2213,14 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
                     HashMap<String, String> hmap = controller.getVehicleDetailsByBarcodeNumber(Barcode_val);
                     offlineVehicleInitialization(hmap);
 
-                    if (cd.isConnectingToInternet()){
+                    if (cd.isConnectingToInternet()) {
                         if (!isFinishing()) {
                             new GetVehicleNuOnFobKeyDetection().execute();
                         }
-                    }
-                    else {
+                    } else {
                         //offline---------------
-                        if (AppConstants.GenerateLogs)AppConstants.WriteinFile("Offline Barcode Read: " + Barcode_val);
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile("Offline Barcode Read: " + Barcode_val);
 
                         if (OfflineConstants.isOfflineAccess(DeviceControlActivity_vehicle.this)) {
                             checkVehicleOFFLINEvalidation(hmap);
@@ -2311,9 +2343,9 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
             AppConstants.OFF_CURRENT_ODO = CurrentOdometer;
             AppConstants.OFF_CURRENT_HOUR = CurrentHours;
 
-            AppConstants.OFF_ODO_Reasonable=CheckOdometerReasonable;
-            AppConstants.OFF_ODO_Conditions=OdometerReasonabilityConditions;
-            AppConstants.OFF_ODO_Limit=OdoLimit;
+            AppConstants.OFF_ODO_Reasonable = CheckOdometerReasonable;
+            AppConstants.OFF_ODO_Conditions = OdometerReasonabilityConditions;
+            AppConstants.OFF_ODO_Limit = OdoLimit;
 
             if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS1")) {
                 Constants.AccVehicleNumber_FS1 = VehicleNumber;
