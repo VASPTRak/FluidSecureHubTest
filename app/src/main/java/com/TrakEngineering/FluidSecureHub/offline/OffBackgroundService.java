@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.IBinder;
+import android.util.Log;
 
 import com.TrakEngineering.FluidSecureHub.AppConstants;
 import com.TrakEngineering.FluidSecureHub.CommonUtils;
@@ -26,6 +27,7 @@ public class OffBackgroundService extends Service {
     OffDBController controller = new OffDBController(OffBackgroundService.this);
 
     ConnectionDetector cd = new ConnectionDetector(OffBackgroundService.this);
+    private static final String TAG = OffBackgroundService.class.getSimpleName();
 
 
     public OffBackgroundService() {
@@ -45,7 +47,9 @@ public class OffBackgroundService extends Service {
 
 
         if (cd.isConnectingToInternet()) {
-            AppConstants.colorToastBigFont(getApplicationContext(), "Start offline data downloading...", Color.BLUE);
+            //AppConstants.colorToastBigFont(getApplicationContext(), "Start offline data downloading...", Color.BLUE);
+            Log.i(TAG ," Started offline data downloading..");
+            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " Started offline data downloading..");
             new GetAPIToken().execute();
         }
 
@@ -545,7 +549,9 @@ public class OffBackgroundService extends Service {
 
                             }
 
-                            AppConstants.colorToastBigFont(getApplicationContext(),"Offline data downloaded", Color.BLUE);
+                            Log.i(TAG ," Offline data downloaded Successfully");
+                            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " Offline data downloaded Successfully");
+                            //AppConstants.colorToastBigFont(getApplicationContext(),"Offline data downloaded", Color.BLUE);
                         }
 
 

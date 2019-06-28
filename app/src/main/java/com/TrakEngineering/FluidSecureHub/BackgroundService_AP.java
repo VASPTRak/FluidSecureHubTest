@@ -1613,6 +1613,8 @@ public class BackgroundService_AP extends Service {
                 obj_entity.TLDTemperature = Tem_data;
                 obj_entity.ReadingDateTime = CurrentDeviceDate;//PrintDate;
                 obj_entity.Response_code = Response_code;//Response_code;
+                obj_entity.Level = "";
+                obj_entity.FromDirectTLD = "n";
 
                 BackgroundService_AP.SaveTankMonitorReadingy TestAsynTask = new BackgroundService_AP.SaveTankMonitorReadingy(obj_entity);
                 TestAsynTask.execute();

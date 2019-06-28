@@ -1,11 +1,14 @@
 package com.TrakEngineering.FluidSecureHub.LFBle_PIN;
 
 import android.app.ActionBar;
+import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
@@ -67,7 +70,9 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.net.SocketTimeoutException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
@@ -95,7 +100,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
     private TextView tv_fobkey;
     private String mDeviceName;
     private String mDeviceAddress;
-    private String HFDeviceName;
+    private String HFDeviceName,IsBothFobAndPinRequired_flag = "no";
     private String HFDeviceAddress;
     private BluetoothLeService_Pin mBluetoothLeServicePin;
     private boolean mConnected = false;
@@ -106,7 +111,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
 
     private EditText etInput;
     String LF_FobKey = "";
-    int Count = 1;
+    int Count = 1,LF_ReaderConnectionCountPin = 0;
 
     //--------------------------
 
@@ -132,6 +137,8 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
     Timer t, ScreenOutTime;
 
     ConnectionDetector cd = new ConnectionDetector(DeviceControlActivity_Pin.this);
+    List<Timer> TimerList = new ArrayList<Timer>();
+
 
     // Code to manage Service lifecycle.
     private final ServiceConnection mServiceConnection = new ServiceConnection() {
@@ -184,7 +191,30 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
             } else if (BluetoothLeService_Pin.ACTION_GATT_DISCONNECTED.equals(action)) {
                 mConnected = false;
                 invalidateOptionsMenu();
-                clearUI();
+
+                if (LF_ReaderConnectionCountPin >= 1){
+                    AppConstants.colorToastBigFont(DeviceControlActivity_Pin.this,"Fail to connect LF reader..",Color.RED);
+                    clearUI();
+                }else{
+
+                    //Retry #622 BLE Card Reader Attempts
+                    // retry connects to the device .
+                    LF_ReaderConnectionCountPin++;
+                    AppConstants.colorToastBigFont(DeviceControlActivity_Pin.this,"Retrying to connect LF reader..",Color.RED);
+                    registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter());
+                    if (mBluetoothLeServicePin != null) {
+
+                        if (mDeviceName != null && mDeviceAddress.contains(":")) {
+                            final boolean result = mBluetoothLeServicePin.connect(mDeviceAddress);
+                            Log.d(TAG, "Connect request result=" + result);
+                        }
+
+                    }
+
+                }
+
+
+
             } else if (BluetoothLeService_Pin.ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
                 // Show all the supported services and characteristics on the user interface.
                 // displayGattServices(mBluetoothLeServicePin.getSupportedGattServices());
@@ -258,7 +288,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
         tv_ok = (TextView) findViewById(R.id.tv_ok);
         tv_dont_have_fob = (TextView) findViewById(R.id.tv_dont_have_fob);//Enter your PERSONNEL ID in the green box below
         String content = "Enter your<br> <b>PERSONNEL ID </b>in<br> the green box below";
-
+        etPersonnelPin.setText("");
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             tv_dont_have_fob.setText(Html.fromHtml(content, Html.FROM_HTML_MODE_LEGACY));
             System.out.println(Html.fromHtml(content, Html.FROM_HTML_MODE_LEGACY));
@@ -380,7 +410,8 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                             checkPINvalidation(hmap);
                         }
                     } else {
-                        AppConstants.colorToastBigFont(getApplicationContext(), AppConstants.OFF1, Color.RED);
+                        CommonUtils.AutoCloseCustomMessageDilaog(DeviceControlActivity_Pin.this, "Message", "Please check your Offline Access");
+                        //AppConstants.colorToastBigFont(getApplicationContext(), AppConstants.OFF1, Color.RED);
                     }
 
                 }
@@ -439,8 +470,11 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
         btn_ReadFobAgain.setLayoutParams(parms);*/
 
         Count = 1;
+        LF_ReaderConnectionCountPin = 0;
         //Toast.makeText(getApplicationContext(), "FOK_KEY" + AppConstants.APDU_FOB_KEY, Toast.LENGTH_SHORT).show();
-        showKeybord();
+        //showKeybord();
+        etPersonnelPin.setText("");
+        IsBothFobAndPinRequired_flag = "no";
         AppConstants.APDU_FOB_KEY = "";
         AppConstants.PinLocal_FOB_KEY = "";
         if (IsGateHub.equalsIgnoreCase("True")) {
@@ -486,13 +520,14 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
 
 
         t = new Timer();
+        TimerList.add(t);
         TimerTask tt = new TimerTask() {
             @Override
             public void run() {
                 //do something
                 if (!AppConstants.PinLocal_FOB_KEY.equalsIgnoreCase("")) {
 
-                    t.cancel();
+                    CancelTimer();
                     System.out.println("Pin FOK_KEY" + AppConstants.APDU_FOB_KEY);
 
                     runOnUiThread(new Runnable() {
@@ -508,7 +543,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                     if (tv_fobkey.getText().toString().equalsIgnoreCase("")) {
                         readFobKey();//Read FobKey
                     } else {
-                        t.cancel();
+                        CancelTimer();
                         System.out.println("Write command");
                     }
                 }
@@ -529,7 +564,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
 
-        t.cancel();
+        CancelTimer();
         unbindService(mServiceConnection);
         mBluetoothLeServicePin = null;
 
@@ -544,8 +579,16 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
 
         AppConstants.PinLocal_FOB_KEY = "";
         //  AppConstants.APDU_FOB_KEY = "";
-        t.cancel();//Stop timer FOB Key
+        CancelTimer();
         ScreenOutTime.cancel();//Stop screenout
+
+    }
+
+    private void CancelTimer(){
+
+        for (int i = 0; i < TimerList.size(); i++) {
+            TimerList.get(i).cancel();
+        }
 
     }
 
@@ -595,7 +638,15 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
             System.out.println("FOK_KEY Vehi " + Str_data);
             if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+"  Response LF: " + Str_data);
             String Str_check = Str_data.replace(" ", "");
-            if (!Str_check.equalsIgnoreCase("000000")) {
+
+            if (Str_data.contains("FFFFFFFFFFFFFFFFFFFF") || Str_data.contains("FF FF FF FF FF FF FF FF FF FF")){
+
+                if (mBluetoothLeServicePin != null) {
+                    mBluetoothLeServicePin.writeCustomCharacteristic(0x01, etInput.getText().toString().trim());
+                }
+                CommonUtils.AutoCloseCustomMessageDilaog(DeviceControlActivity_Pin.this, "Message", "Unable to read fob.  Please Try again..");
+
+            }else if (CommonUtils.ValidateFobkey(Str_check) && Str_check.length() > 4) {
 
                 if (Str_check.contains("\n")){
 
@@ -619,7 +670,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                         tv_fobkey.setText(Str_check.replace(" ", ""));
                     } catch (Exception ex) {
                         System.out.println(ex);
-                        if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+"  displayData plain --Exception " + ex);
+                        if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+"  displayData plain Fob_Key  --Exception " + ex);
                     }
                 }
 
@@ -633,7 +684,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                         mBluetoothLeServicePin.writeCustomCharacteristic(0x01, etInput.getText().toString().trim());
                     }
                     //On LF Fob read success
-                    etPersonnelPin.setText("");
+                    //etPersonnelPin.setText("");
                 }
 
 
@@ -682,6 +733,8 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                 try {
 
                     String fob = AppConstants.APDU_FOB_KEY.replace(":", "").trim();
+                    tv_fobkey.setText(fob);
+                    CommonUtils.PlayBeep(DeviceControlActivity_Pin.this);
 
                     if (cd.isConnectingToInternet())
                     {
@@ -700,7 +753,8 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                             String PinNumber = hmap.get("PinNumber");
                             etPersonnelPin.setText(PinNumber);
                         } else {
-                            AppConstants.colorToastBigFont(getApplicationContext(), AppConstants.OFF1, Color.RED);
+                            CommonUtils.AutoCloseCustomMessageDilaog(DeviceControlActivity_Pin.this, "Message", "Please check your Offline Access");
+                            //AppConstants.colorToastBigFont(getApplicationContext(), AppConstants.OFF1, Color.RED);
                         }
                     }
                     tv_fob_number.setText("Access Device No: " + test);
@@ -844,7 +898,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
         tv_fob_Reader.setVisibility(View.VISIBLE);
         Linear_layout_Save_back_buttons.setVisibility(View.VISIBLE);
         etPersonnelPin.setVisibility(View.VISIBLE);
-        // etPersonnelPin.setText("");
+
 
         int widthi = ActionBar.LayoutParams.WRAP_CONTENT;
         int heighti = 0;
@@ -1000,6 +1054,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
         }
 
 
+        @RequiresApi(api = Build.VERSION_CODES.N)
         @Override
         protected void onPostExecute(String serverRes) {
 
@@ -1053,11 +1108,13 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + " PIN rejected:" + etPersonnelPin.getText().toString().trim() + " Error:" + ResponceText);
 
-                        if (ValidationFailFor.equalsIgnoreCase("Pin")) {
+                        if (ValidationFailFor.equalsIgnoreCase("PinWithFob")){
 
-                            AppConstants.colorToastBigFont(DeviceControlActivity_Pin.this, ResponceText, Color.RED);
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(TAG + "  ValidateFor Pin" + ResponceText);
+                            IsBothFobAndPinRequired_flag = "yes";
+                            CommonUtils.AutoCloseCustomMessageDilaog(DeviceControlActivity_Pin.this, "Message", ResponceText);
+
+                        }else if (ValidationFailFor.equalsIgnoreCase("Pin")) {
+
                             //Clear Pin edit text
                             if (Constants.CurrentSelectedHose.equals("FS1")) {
                                 Constants.AccPersonnelPIN_FS1 = "";
@@ -1069,13 +1126,19 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                                 Constants.AccPersonnelPIN_FS4 = "";
                             }
 
-                            recreate();
+                            //AppConstants.colorToastBigFont(DeviceControlActivity_Pin.this, ResponceText, Color.RED);
+                            //CommonUtils.AlertDialogAutoClose(DeviceControlActivity_Pin.this, "Message", ResponceText);
+                            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  ValidateFor Pin" + ResponceText);
+
+
+                             DilaogRecreate(DeviceControlActivity_Pin.this,"Message",ResponceText);
+
 
                         } else if (ValidationFailFor.equalsIgnoreCase("Vehicle")) {
 
-                            AppConstants.colorToastBigFont(DeviceControlActivity_Pin.this, ResponceText, Color.RED);
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(TAG + "  ValidateFor Vehicle" + ResponceText);
+                            //AppConstants.colorToastBigFont(DeviceControlActivity_Pin.this, ResponceText, Color.RED);
+                            CommonUtils.AutoCloseCustomMessageDilaog(DeviceControlActivity_Pin.this, "Message", ResponceText);
+                            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  ValidateFor Vehicle" + ResponceText);
 
                             /*AppConstants.colorToastBigFont(this, "Some thing went wrong Please try again..\n"+ResponceText, Color.RED);
                              if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG+" Some thing went wrong Please try again..(~else if~)\n"+ResponceText);
@@ -1086,9 +1149,9 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
 
                         } else {
 
-                            AppConstants.colorToastBigFont(DeviceControlActivity_Pin.this, ResponceText, Color.RED);
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(TAG + "  ValidateFor Else" + ResponceText);
+                            //AppConstants.colorToastBigFont(DeviceControlActivity_Pin.this, ResponceText, Color.RED);
+                            CommonUtils.AutoCloseCustomMessageDilaog(DeviceControlActivity_Pin.this, "Message", ResponceText);
+                            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  ValidateFor Else" + ResponceText);
 
                             /*AppConstants.colorToastBigFont(this, "Some thing went wrong Please try again..\n"+ResponceText, Color.RED);
                              if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG+" Some thing went wrong Please try again..(~else~)\n"+ResponceText);
@@ -1102,6 +1165,9 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                 }catch (Exception e){
                     e.printStackTrace();
                 }
+            }else{
+                Log.i(TAG,"CallSaveButtonFunctionality Server Response Empty!");
+                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "CallSaveButtonFunctionality Server Response Empty!");
             }
 
         }
@@ -1132,6 +1198,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
             objEntityClass.PersonPIN = String.valueOf(etPersonnelPin.getText());
             objEntityClass.PersonFOBNumber = AppConstants.APDU_FOB_KEY;
             objEntityClass.FromNewFOBChange = "Y";
+            //objEntityClass.IsBothFobAndPinRequired = IsBothFobAndPinRequired_flag;
 
             System.out.println(TAG+"Personnel PIN: Read FOB:"+AppConstants.APDU_FOB_KEY+"  PIN Number: "+String.valueOf(etPersonnelPin.getText()));
             if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG+"Personnel PIN: Read FOB:"+AppConstants.APDU_FOB_KEY+"  PIN Number: "+String.valueOf(etPersonnelPin.getText()));
@@ -1197,6 +1264,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                     String PersonFOBNumber = jsonObject.getString("PersonFOBNumber");
                     String PersonPIN = jsonObject.getString("PersonPIN");
                     String IsNewFob = jsonObject.getString("IsNewFob");
+                    String IsBothFobAndPinRequired = jsonObject.getString("IsBothFobAndPinRequired");
 
                     if (ResponceMessage.equalsIgnoreCase("success")) {
 
@@ -1222,21 +1290,42 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                     } else {
 
                         if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG +" Pin Fob Fail: "+ResponceMessage);
-                        if (IsNewFob.equalsIgnoreCase("No")) {
+                        if (IsBothFobAndPinRequired.equalsIgnoreCase("yes")){
+
+                            IsBothFobAndPinRequired_flag = IsBothFobAndPinRequired;
+
+                            AcceptPinNumber();
+
+                            InputMethodManager inputMethodManager = (InputMethodManager) etPersonnelPin.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+                            etPersonnelPin.requestFocus();
+                            inputMethodManager.showSoftInput(etPersonnelPin, 0);
+
+                            if (IsPersonHasFob.equalsIgnoreCase("true")) {
+                                CommonUtils.SimpleMessageDilaog(DeviceControlActivity_Pin.this, "Message", ResponceMessage);
+                            }else{
+                                ResetTimeoutPinScreen();
+                                //CommonUtils.showCustomMessageDilaog(DeviceControlActivity_Pin.this, "Message", ResponceMessage);
+                                CommonUtils.AutoCloseCustomMessageDilaog(DeviceControlActivity_Pin.this, "Message", ResponceMessage);
+
+                            }
+
+
+                        }else if (IsNewFob.equalsIgnoreCase("No")) {
                             AppConstants.APDU_FOB_KEY = "";
                             onResume();
 
                             tv_fob_Reader.setVisibility(View.GONE);
 
-                            int width = ActionBar.LayoutParams.WRAP_CONTENT;
+                            /*int width = ActionBar.LayoutParams.WRAP_CONTENT;
                             int height = ActionBar.LayoutParams.WRAP_CONTENT;
                             LinearLayout.LayoutParams parms = new LinearLayout.LayoutParams(width, height);
                             parms.gravity = Gravity.CENTER;
                             tv_ok.setLayoutParams(parms);
                             tv_ok.setText("Invalid Access Device or Unassigned FOB");
-
+*/
                             ResetTimeoutPinScreen();
-                            CommonUtils.showCustomMessageDilaog(DeviceControlActivity_Pin.this, "Message", ResponceMessage);
+                            //CommonUtils.showCustomMessageDilaog(DeviceControlActivity_Pin.this, "Message", ResponceMessage);
+                            CommonUtils.AutoCloseCustomMessageDilaog(DeviceControlActivity_Pin.this, "Message", ResponceMessage);
 
                         }else{
 
@@ -1250,7 +1339,8 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                                 CommonUtils.SimpleMessageDilaog(DeviceControlActivity_Pin.this, "Message", ResponceMessage);
                             }else{
                                 ResetTimeoutPinScreen();
-                                CommonUtils.showCustomMessageDilaog(DeviceControlActivity_Pin.this, "Message", ResponceMessage);
+                                //CommonUtils.showCustomMessageDilaog(DeviceControlActivity_Pin.this, "Message", ResponceMessage);
+                                CommonUtils.AutoCloseCustomMessageDilaog(DeviceControlActivity_Pin.this, "Message", ResponceMessage);
                             }
                         }
 
@@ -1280,6 +1370,9 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                         etPersonnelPin.setText("");
                     }
 
+                }else{
+                    Log.i(TAG,"GetPinNuOnFobKeyDetection Server Response Empty!");
+                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "GetPinNuOnFobKeyDetection Server Response Empty!");
                 }
 
             }catch (Exception ex) {
@@ -1531,23 +1624,27 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                             Intent ii = new Intent(DeviceControlActivity_Pin.this, DisplayMeterActivity.class);
                             startActivity(ii);
                         } else {
-                            AppConstants.colorToastBigFont(getApplicationContext(), "Vehicle is not assigned for this PIN", Color.RED);
+                            CommonUtils.AutoCloseCustomMessageDilaog(DeviceControlActivity_Pin.this, "Message", "Vehicle is not assigned for this PIN");
+                            //AppConstants.colorToastBigFont(getApplicationContext(), "Vehicle is not assigned for this PIN", Color.RED);
                         }
 
 
                     } else {
-                        AppConstants.colorToastBigFont(getApplicationContext(), "Personnel is not allowed for selected Vehicle", Color.RED);
+                        CommonUtils.AutoCloseCustomMessageDilaog(DeviceControlActivity_Pin.this, "Message", "Personnel is not allowed for selected Vehicle");
+                        //AppConstants.colorToastBigFont(getApplicationContext(), "Personnel is not allowed for selected Vehicle", Color.RED);
                     }
 
 
                 } else {
-                    AppConstants.colorToastBigFont(getApplicationContext(), "Personnel is not allowed for selected Link", Color.RED);
+                    CommonUtils.AutoCloseCustomMessageDilaog(DeviceControlActivity_Pin.this, "Message", "Personnel is not allowed for selected Link");
+                    //AppConstants.colorToastBigFont(getApplicationContext(), "Personnel is not allowed for selected Link", Color.RED);
                 }
 
             }
 
         } else {
-            AppConstants.colorToastBigFont(getApplicationContext(), "Personnel is not found", Color.RED);
+            CommonUtils.AutoCloseCustomMessageDilaog(DeviceControlActivity_Pin.this, "Message", "Personnel is not found");
+            //AppConstants.colorToastBigFont(getApplicationContext(), "Personnel is not found", Color.RED);
             onResume();
         }
     }
@@ -1582,6 +1679,29 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
         Intent i = new Intent(DeviceControlActivity_Pin.this, WelcomeActivity.class);
         i.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         startActivity(i);
+
+    }
+
+    public void DilaogRecreate(final Activity context, final String title, final String message) {
+
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+
+                new AlertDialog.Builder(context)
+                        .setTitle(title)
+                        .setMessage(message)
+                        .setCancelable(false)
+                        .setPositiveButton("ok", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                // Whatever...
+                                recreate();
+                            }
+                        }).show();
+            }
+
+        });
 
     }
 

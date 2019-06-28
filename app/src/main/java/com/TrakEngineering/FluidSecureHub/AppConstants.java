@@ -18,6 +18,7 @@ import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Environment;
+import android.os.Handler;
 import android.support.v4.app.NotificationCompat;
 import android.support.v7.app.AlertDialog;
 import android.telephony.TelephonyManager;
@@ -125,6 +126,7 @@ public class AppConstants {
 
     public static String OFF1="Please check your Internet Data";
 
+    public static boolean NETWORK_STRENGTH;
     public static boolean IS_MOBILE_ON;
     public static boolean IS_MOBILE_MSG;
     public static boolean PRE_STATE_MOBILEDATA;
@@ -418,6 +420,7 @@ public class AppConstants {
 
         dialogObj.show();
     }
+
 
     public static void AlertDialogFinish(final Activity ctx, String message) {
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(ctx);

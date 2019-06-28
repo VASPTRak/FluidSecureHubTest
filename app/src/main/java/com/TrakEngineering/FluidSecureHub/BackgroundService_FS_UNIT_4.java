@@ -1618,6 +1618,8 @@ public class BackgroundService_FS_UNIT_4 extends Service {
                 obj_entity.TLDTemperature = Tem_data;
                 obj_entity.ReadingDateTime = CurrentDeviceDate;//PrintDate;
                 obj_entity.Response_code = Response_code;//Response_code;
+                obj_entity.Level = "";
+                obj_entity.FromDirectTLD = "n";
 
                 BackgroundService_FS_UNIT_4.SaveTankMonitorReadingy TestAsynTask = new BackgroundService_FS_UNIT_4.SaveTankMonitorReadingy(obj_entity);
                 TestAsynTask.execute();

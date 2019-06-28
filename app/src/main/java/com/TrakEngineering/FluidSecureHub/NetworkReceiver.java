@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.util.Log;
 
 import com.TrakEngineering.FluidSecureHub.offline.OffTranzSyncService;
 import com.TrakEngineering.FluidSecureHub.offline.StopRunningTransactionBackgroundService;
@@ -56,9 +57,11 @@ public class NetworkReceiver extends BroadcastReceiver {
             System.out.println("Network not switched");
         } else {
             //NetworkSwitched
-            System.out.println("Network Switched");
+            Log.i(TAG,"Network Switched");
+            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "Network Switched");
+            AppConstants.NETWORK_STRENGTH = true;
             AppConstants.PRE_STATE_MOBILEDATA = CurrentState;
-            AppConstants.colorToastBigFont(context, "Network Switched", Color.RED);
+            //AppConstants.colorToastBigFont(context, "Network Switched", Color.RED);
             //context.startService(new Intent(context, StopRunningTransactionBackgroundService.class));
         }
 

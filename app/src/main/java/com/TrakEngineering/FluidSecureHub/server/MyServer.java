@@ -19,6 +19,7 @@ import com.TrakEngineering.FluidSecureHub.Constants;
 import com.TrakEngineering.FluidSecureHub.ScreenReceiver;
 import com.TrakEngineering.FluidSecureHub.WelcomeActivity;
 import com.TrakEngineering.FluidSecureHub.enity.FsvmInfo;
+import com.TrakEngineering.FluidSecureHub.enity.TankMonitorEntity;
 import com.google.gson.Gson;
 import com.squareup.okhttp.Callback;
 import com.squareup.okhttp.RequestBody;
@@ -57,7 +58,7 @@ public class MyServer extends NanoHTTPD {
     public Response serve(IHTTPSession session) {
 
         String RequestFor = null;
-        String TldMacAddress = "", IsTLDFirmwareUpgrade = "N";
+        String TldMacAddress = "", IsTLDFirmwareUpgrade = "N", ScheduleTankReading="1";
         String FSTag = "", FirmwareVersion = "", fsvmData = "", RequestBody = "", ContentLength = "", host = "", ODOK = "", VIN = "";
         String ResMsg = "";
         // Accessfile from Internal storage
@@ -75,6 +76,8 @@ public class MyServer extends NanoHTTPD {
             if (RequestFor != null && RequestFor.equalsIgnoreCase("TLDUpgrade")) {
 
                 String ProbeAddrAsString = session.getHeaders().get("mac").replaceAll(":","");//
+                String Level = session.getHeaders().get("level").trim();
+
                 TldMacAddress = GetProbeOffByOne(ProbeAddrAsString);
 
                 Log.i(TAG, "Mac_AddressInHeader:"+ProbeAddrAsString+"\nMac_AddressAfterOff:"+TldMacAddress);
@@ -84,10 +87,11 @@ public class MyServer extends NanoHTTPD {
 
                     for (int i = 0; i < BackgroundServiceKeepDataTransferAlive.SSIDList.size(); i++) {
 
+                        String PROBEMacAddressWithColun = BackgroundServiceKeepDataTransferAlive.SSIDList.get(i).get("PROBEMacAddress");
                         String PROBEMacAddress = BackgroundServiceKeepDataTransferAlive.SSIDList.get(i).get("PROBEMacAddress").replaceAll(":","");
 
                         Log.i(TAG, "SSID list ProbeMacAddress:"+PROBEMacAddress);
-                        if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "SSID list ProbeMacAddress:"+PROBEMacAddress);
+                        if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "SSID list ProbeMacAddress:"+PROBEMacAddress+"  TldMacAddress:"+TldMacAddress);
 
                         if (TldMacAddress.equalsIgnoreCase(PROBEMacAddress)) {
 
@@ -102,7 +106,15 @@ public class MyServer extends NanoHTTPD {
                             String TLDFIrmwareVersion = BackgroundServiceKeepDataTransferAlive.SSIDList.get(i).get("TLDFIrmwareVersion");
                             String TLDFirmwareFilePath = BackgroundServiceKeepDataTransferAlive.SSIDList.get(i).get("TLDFirmwareFilePath");
                             IsTLDFirmwareUpgrade = BackgroundServiceKeepDataTransferAlive.SSIDList.get(i).get("IsTLDFirmwareUpgrade");
+                            try {
+                                ScheduleTankReading = BackgroundServiceKeepDataTransferAlive.SSIDList.get(i).get("ScheduleTankReading");
+                            }
+                            catch (Exception e)
+                            {
 
+                            }
+
+                            TldSaveFun(PROBEMacAddressWithColun,Level,selSiteId);//Save TLD data to server
 
                             if (IsTLDFirmwareUpgrade.equalsIgnoreCase("Y") && TLDFirmwareFilePath != null && !TLDFirmwareFilePath.isEmpty()) {
 
@@ -123,7 +135,9 @@ public class MyServer extends NanoHTTPD {
                 //------------------------------------------------------------------------------------------
 
 
-                ResMsg = "{\"TLD_update\":\"" + IsTLDFirmwareUpgrade + "\"}";
+                ResMsg = "{\"TLD_update\":\"" + IsTLDFirmwareUpgrade + "\", \"Schedule\":\""+ScheduleTankReading+"\" , \"current_time\":\""+AppConstants.currentDateFormat("HH:mm:ss")+"\"}";
+
+                System.out.println("TLD-"+ResMsg);
 
 
             } else if (RequestFor != null && RequestFor.equalsIgnoreCase("FSVMUpgrade")) {
@@ -376,5 +390,30 @@ public class MyServer extends NanoHTTPD {
         return FinalStr;
     }
 
+    private void TldSaveFun(String PROBEMacAddress, String level,String selSiteId){
+
+
+        String CurrentDeviceDate = CommonUtils.getTodaysDateInString();
+        TankMonitorEntity obj_entity = new TankMonitorEntity();
+        obj_entity.IMEI_UDID = AppConstants.getIMEI(ctx);
+        obj_entity.FromSiteId = Integer.parseInt(selSiteId);
+        obj_entity.TLD = PROBEMacAddress;
+        obj_entity.LSB = "";
+        obj_entity.MSB = "";
+        obj_entity.TLDTemperature = "";
+        obj_entity.ReadingDateTime = CurrentDeviceDate;//PrintDate;
+        obj_entity.Response_code = "";//Response_code;
+        obj_entity.Level = level;
+        obj_entity.FromDirectTLD = "y";
+
+        Gson gson = new Gson();
+        String jsonData = gson.toJson(obj_entity);
+
+        String userEmail = CommonUtils.getCustomerDetailsCC(ctx).PersonEmail;
+        String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(ctx) + ":" + userEmail + ":" + "SaveTankMonitorReading");
+
+        new BackgroundServiceDownloadFirmware.SaveTLDDataToServer().execute(jsonData, authString);
+
+    }
 
 }

@@ -571,7 +571,8 @@ public class AcceptServiceCall {
                     }
 
                 } else {
-                    CommonUtils.showNoInternetDialog(activity);
+                    Log.i(TAG,"ServerCall Server Response Empty!");
+                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "ServerCall Server Response Empty!");
                 }
 
                 pd.dismiss();

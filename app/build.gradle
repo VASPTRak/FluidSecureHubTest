@@ -11,10 +11,10 @@ android {
 
     defaultConfig {
         applicationId "com.TrakEngineering.FluidSecureHub"
-        minSdkVersion 21
+        minSdkVersion 25
         targetSdkVersion 27
         versionCode 48
-        versionName "0.38.17"
+        versionName "0.38.28"
         multiDexEnabled true
     }
     buildTypes {

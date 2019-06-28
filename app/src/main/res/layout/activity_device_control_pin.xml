@@ -130,7 +130,7 @@
 
                 <TextView
                     android:layout_width="match_parent"
-                    android:layout_height="60dp"
+                    android:layout_height="wrap_content"
                     android:id="@+id/tv_enter_pin_no"
                     android:layout_marginLeft="20dp"
                     android:gravity="center"
@@ -160,7 +160,7 @@
                     android:layout_gravity="center_horizontal"
                     android:imeOptions="actionDone"
                     android:inputType="number|text"
-                    android:maxLength="10"
+                    android:maxLength="20"
                     android:padding="5sp"
                     android:gravity="center"
                     android:textAppearance="?android:attr/textAppearanceLarge"

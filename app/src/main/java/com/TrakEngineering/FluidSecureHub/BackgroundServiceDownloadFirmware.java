@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
 
+import com.TrakEngineering.FluidSecureHub.server.ServerHandler;
 import com.squareup.okhttp.Callback;
 import com.squareup.okhttp.RequestBody;
 import com.squareup.okhttp.ResponseBody;
@@ -21,11 +22,13 @@ import java.io.OutputStream;
 import java.net.URL;
 import java.net.URLConnection;
 
+import static com.TrakEngineering.FluidSecureHub.server.MyServer.ctx;
 import static com.TrakEngineering.FluidSecureHub.server.ServerHandler.TEXT;
 
 public class BackgroundServiceDownloadFirmware extends BackgroundService {
 
     private static String TAG = "BS_DFirmware";
+    static ServerHandler serverHandler = new ServerHandler();
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -198,6 +201,43 @@ public class BackgroundServiceDownloadFirmware extends BackgroundService {
 
     }
 
+    public static class SaveTLDDataToServer extends AsyncTask<String, Void, String> {
 
+        String jsonData;
+        String authString;
+
+
+        @SuppressLint("LongLogTag")
+        @Override
+        protected String doInBackground(String... params) {
+
+            String response = "";
+            try {
+
+                jsonData = params[0];
+                authString = params[1];
+
+                response = serverHandler.PostTextData(ctx, AppConstants.webURL, jsonData, authString);
+
+
+            } catch (Exception e) {
+                Log.i(TAG, " SaveTLDDataToServer doInBackground " + e);
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + "  SaveTLDDataToServer doInBackground " + e);
+            }
+
+            return response;
+        }
+
+        @SuppressLint("LongLogTag")
+        @Override
+        protected void onPostExecute(String resp) {
+
+            Log.i(TAG, " SaveTLDDataToServer Response: " + resp);
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + " SaveTLDDataToServer Response: " + resp);
+
+        }
+    }
 
 }

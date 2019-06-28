@@ -1700,6 +1700,8 @@ public class BackgroundService_AP_PIPE extends Service {
                 obj_entity.TLDTemperature = Tem_data;
                 obj_entity.ReadingDateTime = CurrentDeviceDate;//PrintDate;
                 obj_entity.Response_code = Response_code;//Response_code;
+                obj_entity.Level = "";
+                obj_entity.FromDirectTLD = "n";
 
                 SaveTankMonitorReadingy TestAsynTask = new SaveTankMonitorReadingy(obj_entity);
                 TestAsynTask.execute();

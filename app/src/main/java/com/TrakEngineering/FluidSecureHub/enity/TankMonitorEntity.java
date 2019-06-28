@@ -13,6 +13,8 @@ public class TankMonitorEntity {
     public String LSB;
     public String MSB;
     public String FOBNumberPin;
+    public String Level;
+    public String FromDirectTLD;
 
 
 }

@@ -78,9 +78,16 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
             super.onStart(intent, startId);
             Log.e(TAG, "~~~~~start~~~~~");
             //if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "~~~~~start~~~~~");
-            ListConnectedHotspotIP_KDTA();
-            StartUpgradeProcess();
 
+            if (WelcomeActivity.OnWelcomeActivity && Constants.FS_1STATUS.equalsIgnoreCase("FREE") && Constants.FS_2STATUS.equalsIgnoreCase("FREE") && Constants.FS_3STATUS.equalsIgnoreCase("FREE") && Constants.FS_4STATUS.equalsIgnoreCase("FREE")) {
+
+                ListConnectedHotspotIP_KDTA();
+                StartUpgradeProcess();
+
+            } else {
+
+                Log.i(TAG, "Skip keepAlive not on Welcome activity or one of the transaction is running.");
+            }
             Log.e(TAG, "~~~~~stop~~~~~");
 
 
@@ -213,6 +220,7 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
                 }
 
                 // Log.e(TAG, "~~~~~Second for end~~~~~");
+
             } else {
                 Log.i(TAG, "SSID List Empty");
                 if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  SSID List Empty");

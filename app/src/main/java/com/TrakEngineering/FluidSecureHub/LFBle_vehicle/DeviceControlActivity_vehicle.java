@@ -3,6 +3,7 @@ package com.TrakEngineering.FluidSecureHub.LFBle_vehicle;
 import android.annotation.SuppressLint;
 import android.app.ActionBar;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
@@ -11,6 +12,7 @@ import android.bluetooth.BluetoothManager;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
@@ -96,6 +98,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
@@ -135,7 +138,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
     private EditText etInput;
     private Button btnWrite, btnRead;
     String LF_FobKey = "";
-    int Count = 1;
+    int Count = 1,LF_ReaderConnectionCount = 0;
     boolean IsNewFobVar = true;
     private Handler mHandler;
     private BluetoothAdapter mBluetoothAdapter;
@@ -168,9 +171,10 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
     int FobReadingCount = 0;
     int FobRetryCount = 0;
     long screenTimeOut;
-    Timer t, ScreenOutTimeVehicle;
-    TimerTask TOut;
+    private static Timer t, ScreenOutTimeVehicle;
     String FOLDER_PATH = Environment.getExternalStorageDirectory().getAbsolutePath() + "/FSBin/";
+    List<Timer> Timerlist = new ArrayList<Timer>();
+
 
     //-------------------------
     ConnectionDetector cd = new ConnectionDetector(DeviceControlActivity_vehicle.this);
@@ -230,9 +234,30 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
                 tv_enter_vehicle_no.setLayoutParams(parmsi);
 
             } else if (BluetoothLeService_vehicle.ACTION_GATT_DISCONNECTED.equals(action)) {
+
                 mConnected = false;
                 invalidateOptionsMenu();
-                clearUI();
+                if (LF_ReaderConnectionCount >= 1){
+                    AppConstants.colorToastBigFont(DeviceControlActivity_vehicle.this,"Fail to connect LF reader..",Color.RED);
+                    clearUI();
+                }else{
+
+                    //Retry #622 BLE Card Reader Attempts
+                    // retry connects to the device .
+                    LF_ReaderConnectionCount++;
+                    AppConstants.colorToastBigFont(DeviceControlActivity_vehicle.this,"Retrying to connect LF reader..",Color.RED);
+                    registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter());
+                    if (mBluetoothLeServiceVehicle != null) {
+
+                        if (mDeviceName != null && mDeviceAddress.contains(":")) {
+                            final boolean result = mBluetoothLeServiceVehicle.connect(mDeviceAddress);
+                            Log.d(TAG, "Connect request result=" + result);
+                        }
+
+                    }
+                }
+
+
             } else if (BluetoothLeService_vehicle.ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
                 // Show all the supported services and characteristics on the user interface.
                 // displayGattServices(mBluetoothLeServiceVehicle.getSupportedGattServices());
@@ -423,6 +448,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
         }
 
         Count = 1;
+        LF_ReaderConnectionCount = 0;
         AppConstants.VehicleLocal_FOB_KEY = "";
         AppConstants.APDU_FOB_KEY = "";
         Log.i(TAG, "Bacode value on resume" + Barcode_val);
@@ -476,13 +502,14 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
         tv_fob_number.setText("Access Device No: ");
         LF_FobKey = "";
         t = new Timer();
+        Timerlist.add(t);
         TimerTask tt = new TimerTask() {
             @Override
             public void run() {
                 //do something
                 if (!AppConstants.VehicleLocal_FOB_KEY.equalsIgnoreCase("")) {
 
-                    t.cancel();
+                    CancelTimer();
                     // AppConstants.VehicleLocal_FOB_KEY = AppConstants.APDU_FOB_KEY;
 
                     runOnUiThread(new Runnable() {
@@ -498,7 +525,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
                     if (tv_fobkey.getText().toString().equalsIgnoreCase("")) {
                         readFobKey();//Read FobKey
                     } else {
-                        t.cancel();
+                        CancelTimer();
                         System.out.println("Write command");
                     }
                 }
@@ -506,7 +533,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
             }
 
         };
-        t.schedule(tt, 2000, 2000);
+        t.schedule(tt, 1000, 1000);
 
     }
 
@@ -514,7 +541,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
     protected void onPause() {
         super.onPause();
         unregisterReceiver(mGattUpdateReceiver);
-        t.cancel();
+        CancelTimer();
         System.out.println("~~~~~~Onpause~~~~");
 
     }
@@ -523,7 +550,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
     protected void onDestroy() {
         super.onDestroy();
         System.out.println("~~~~~~OnDestroy~~~~");
-        t.cancel();
+        CancelTimer();
         unbindService(mServiceConnection);
         mBluetoothLeServiceVehicle = null;
 
@@ -538,8 +565,16 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
         System.out.println("~~~~~~OnStop~~~~");
         AppConstants.APDU_FOB_KEY = "";
         AppConstants.VehicleLocal_FOB_KEY = "";
-        t.cancel();
+        CancelTimer();
         ScreenOutTimeVehicle.cancel();//Stop screen out timer
+    }
+
+    private void CancelTimer(){
+
+        for (int i = 0; i < Timerlist.size(); i++) {
+            Timerlist.get(i).cancel();
+        }
+
     }
 
     @Override
@@ -595,7 +630,14 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
 
             String Str_check = Str_data.replace(" ", "");
 
-            if (!Str_check.equalsIgnoreCase("000000")) {
+            if (Str_data.contains("FFFFFFFFFFFFFFFFFFFF") || Str_data.contains("FF FF FF FF FF FF FF FF FF FF")){
+
+                if (mBluetoothLeServiceVehicle != null) {
+                    mBluetoothLeServiceVehicle.writeCustomCharacteristic(0x01, etInput.getText().toString().trim());
+                }
+                CommonUtils.AlertDialogAutoClose(DeviceControlActivity_vehicle.this, "Message", "Unable to read fob.  Please Try again");
+
+            }else if (CommonUtils.ValidateFobkey(Str_check) && Str_check.length() > 4) {
 
                 if (Str_check.contains("\n")){
 
@@ -646,18 +688,6 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
 
             }
 
-            if (Count < 3) {
-                // Toast.makeText(getApplicationContext(), "Attempt to read Characteristic: " + Count, Toast.LENGTH_LONG).show();
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "  Attempt to read Char: " + Count);
-                Count++;
-                if (mBluetoothLeServiceVehicle != null) {
-                    // mBluetoothLeServiceVehicle.readCharacteristic(characteristic);
-                    mBluetoothLeServiceVehicle.readCustomCharacteristic();
-                }
-            }
-
-
         }
     }
 
@@ -685,9 +715,8 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
         if (AppConstants.APDU_FOB_KEY != null) {
 
             String fob = AppConstants.APDU_FOB_KEY.replace(":", "");
-
-            HashMap<String, String> hmap = controller.getVehicleDetailsByFOBNumber(fob.trim());
-            offlineVehicleInitialization(hmap);
+            tv_fobkey.setText(fob);
+            CommonUtils.PlayBeep(this);
 
             if (cd.isConnectingToInternet()) {
                 if (!isFinishing()) {
@@ -695,6 +724,9 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
                 }
             } else {
                 ///offlline-------------------
+
+                HashMap<String, String> hmap = controller.getVehicleDetailsByFOBNumber(fob.trim());
+                offlineVehicleInitialization(hmap);
 
                 if (AppConstants.GenerateLogs)
                     AppConstants.WriteinFile("Offline Vehicle FOB: " + AppConstants.APDU_FOB_KEY);
@@ -1140,7 +1172,8 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
                     editVehicleNumber.setEnabled(true);
                     editVehicleNumber.setFocusable(true);
                     btnSave.setEnabled(true);
-                    CommonUtils.showNoInternetDialog(DeviceControlActivity_vehicle.this);
+                    Log.i(TAG,"ServerCallFirst Server Response Empty!");
+                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "ServerCallFirst Server Response Empty!");
                 }
 
                 pd.dismiss();
@@ -1235,23 +1268,6 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
                 String vehicleNumber = "";
                 String pinNumber = "";
 
-                if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS1")) {
-
-                    vehicleNumber = Constants.AccVehicleNumber_FS1;
-
-
-                } else if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS2")) {
-                    vehicleNumber = Constants.AccVehicleNumber;
-
-                } else if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS3")) {
-
-                    vehicleNumber = Constants.AccVehicleNumber_FS3;
-
-                } else {
-                    vehicleNumber = Constants.AccVehicleNumber_FS4;
-
-                }
-
                 VehicleRequireEntity objEntityClass = new VehicleRequireEntity();
                 objEntityClass.IMEIUDID = AppConstants.getIMEI(DeviceControlActivity_vehicle.this);
                 objEntityClass.VehicleNumber = vehicleNumber;
@@ -1326,12 +1342,14 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
                     if (ResponceMessage.equalsIgnoreCase("success")) {
 
                         IsOdoMeterRequire = jsonObject.getString("IsOdoMeterRequire");
-                        String IsHoursRequire = jsonObject.getString("IsHoursRequire");
+                        IsHoursRequire = jsonObject.getString("IsHoursRequire");
                         String VehicleNumber = jsonObject.getString("VehicleNumber");
                         String PreviousOdo = jsonObject.getString("PreviousOdo");
                         String OdoLimit = jsonObject.getString("OdoLimit");
                         String OdometerReasonabilityConditions = jsonObject.getString("OdometerReasonabilityConditions");
                         String CheckOdometerReasonable = jsonObject.getString("CheckOdometerReasonable");
+                        String PreviousHours = jsonObject.getString("PreviousHours");
+                        String HoursLimit = jsonObject.getString("HoursLimit");
 
                         SharedPreferences sharedPref = DeviceControlActivity_vehicle.this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
                         SharedPreferences.Editor editor = sharedPref.edit();
@@ -1341,6 +1359,12 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
                         editor.putString("OdoLimit", OdoLimit);
                         editor.putString("OdometerReasonabilityConditions", OdometerReasonabilityConditions);
                         editor.putString("CheckOdometerReasonable", CheckOdometerReasonable);
+                        editor.putString("PreviousOdo", PreviousOdo);
+                        editor.putString("OdoLimit", OdoLimit);
+                        editor.putString("OdometerReasonabilityConditions", OdometerReasonabilityConditions);
+                        editor.putString("CheckOdometerReasonable", CheckOdometerReasonable);
+                        editor.putString("PreviousHours", PreviousHours);
+                        editor.putString("HoursLimit", HoursLimit);
                         editor.commit();
 
                         editVehicleNumber.setText(VehicleNumber);
@@ -1378,40 +1402,56 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
                         new Handler().postDelayed(new Runnable() {
                             @Override
                             public void run() {
-                                CallSaveButtonFunctionality();//Press Enter fun
+
+                                NoServerCall();
+                                //CallSaveButtonFunctionality();//Press Enter fun
                             }
-                        }, 1000);
+                        }, 500);
 
 
                     } else {
 
                         String ResponceText = jsonObject.getString("ResponceText");
                         String ValidationFailFor = jsonObject.getString("ValidationFailFor");
+                        String IsNewFob = jsonObject.getString("IsNewFob");
 
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + " Vehcile Fob Read Fail: " + ResponceText);
 
-                        if (ResponceText.equalsIgnoreCase("New Barcode detected, please enter vehicle number.")) {
+                       /* if (ValidationFailFor.equalsIgnoreCase("Pin")) {
 
-                            /*if (cd.isConnectingToInternet()){
-                                if (!isFinishing()){new ServerCallFirst().execute();}
-                            }else{
-                                AppConstants.colorToastBigFont(getApplicationContext(), "Please check Internet connection", Color.RED);
-                            }*/
-
-                        } else if (ValidationFailFor.equalsIgnoreCase("Pin")) {
-
-                        /*AppConstants.colorToastBigFont(this, ResponceText, Color.RED);
-                        Intent i = new Intent(this, DeviceControlActivity_fsnp.class);
-                        startActivity(i);*/
+                            AppConstants.colorToastBigFont(DeviceControlActivity_vehicle.this, ResponceText, Color.RED);
+                            Intent i = new Intent(DeviceControlActivity_vehicle.this, WelcomeActivity.class);
+                            startActivity(i);
 
                         } else if (ValidationFailFor.equalsIgnoreCase("invalidfob")) {
 
-                            //AppConstants.colorToastBigFont(this, ResponceText, Color.RED);
-                            // RestTimeoutVehicleScreen();
-                            //CommonUtils.showCustomMessageDilaog(DeviceControlActivity_vehicle.this, "Message", ResponceText);
-//                        Intent i = new Intent(this, WelcomeActivity.class);
-//                        startActivity(i);
+                            AppConstants.colorToastBigFont(DeviceControlActivity_vehicle.this, ResponceText, Color.RED);
+                            CommonUtils.showCustomMessageDilaog(DeviceControlActivity_vehicle.this, "Message", ResponceText);
+                            Intent i = new Intent(DeviceControlActivity_vehicle.this, WelcomeActivity.class);
+                            startActivity(i);
+
+                        } else*/
+
+                        if (IsNewFob.equalsIgnoreCase("Yes")) {
+
+
+                            AcceptVehicleNumber();//Enable edittext field and Enter button
+                            IsNewFobVar = false;
+
+                            // AppConstants.APDU_FOB_KEY = "";
+                            AppConstants.VehicleLocal_FOB_KEY = "";
+                            tv_vehicle_no_below.setText("Enter Vehicle Number:");
+
+                            InputMethodManager inputMethodManager = (InputMethodManager) editVehicleNumber.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+                            editVehicleNumber.requestFocus();
+                            inputMethodManager.showSoftInput(editVehicleNumber, 0);
+
+                            if (IsVehicleHasFob.equalsIgnoreCase("true")) {
+                                CommonUtils.SimpleMessageDilaog(DeviceControlActivity_vehicle.this, "Message", ResponceText);
+                            } else {
+                                CommonUtils.showCustomMessageDilaog(DeviceControlActivity_vehicle.this, "Message", ResponceText);
+                            }
 
                         } else {
 
@@ -1421,7 +1461,7 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
                                 Istimeout_Sec = true;
                             }
                             TimeoutVehicleScreen();
-                            tv_enter_vehicle_no.setText("Invalid or Unassigned Access Device");
+                            tv_enter_vehicle_no.setText("Invalid FOB or Unassigned FOB");
                             int widthi = ActionBar.LayoutParams.WRAP_CONTENT;
                             int heighti = ActionBar.LayoutParams.WRAP_CONTENT;
                             LinearLayout.LayoutParams parmsi = new LinearLayout.LayoutParams(widthi, heighti);
@@ -1453,19 +1493,36 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
                             editVehicleNumber.setVisibility(View.VISIBLE);
                             Linear_layout_Save_back_buttons.setVisibility(View.VISIBLE);
                             // CommonUtils.showMessageDilaog(AcceptVehicleActivity.this, "Message", ResponceText);
+
+                            //Here Onresume and Appconstants.APDU_FOB_KEY uncomment
+                            IsNewFobVar = true;
+                            btnSave.setEnabled(true);
+                            AppConstants.APDU_FOB_KEY = "";
+                            onResume();
+                            //Empty Fob key & enable edit text and Enter button
+                            // AppConstants.FOB_KEY_VEHICLE = "";
+                            editVehicleNumber.setEnabled(true);
+                            editVehicleNumber.setFocusable(true);
+                            tv_vehicle_no_below.setText("Enter Vehicle Number:");
+                            CommonUtils.showCustomMessageDilaog(DeviceControlActivity_vehicle.this, "Message", ResponceText);
+
+
                         }
 
-                        new Handler().postDelayed(new Runnable() {
+
+                        /*new Handler().postDelayed(new Runnable() {
                             @Override
                             public void run() {
-                                CallSaveButtonFunctionality();//Press Enter fun
+                                //NoServerCall();
+                                // CallSaveButtonFunctionality();//Press Enter fun
                             }
-                        }, 1000);
+                        }, 1000);*/
 
                     }
 
                 } else {
-                    // CommonUtils.showNoInternetDialog(AcceptVehicleActivity.this);
+                    Log.i(TAG,"GetVehicleNuOnFobKeyDetection Server Response Empty!");
+                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "GetVehicleNuOnFobKeyDetection Server Response Empty!");
                 }
 
             } catch (Exception e) {
@@ -1926,6 +1983,9 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
                     e.printStackTrace();
                 }
 
+            }else{
+                Log.i(TAG,"GetVehicleByFSTagMacAddress Server Response Empty!");
+                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "GetVehicleByFSTagMacAddress Server Response Empty!");
             }
 
 
@@ -2359,5 +2419,121 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
 
         }
     }
+
+    public void NoServerCall(){
+
+        AppConstants.VehicleLocal_FOB_KEY = "";
+
+        try {
+
+            SharedPreferences sharedPrefODO = DeviceControlActivity_vehicle.this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
+
+            IsDepartmentRequire = sharedPrefODO.getString(AppConstants.IsDepartmentRequire, "");
+            IsPersonnelPINRequire = sharedPrefODO.getString(AppConstants.IsPersonnelPINRequire, "");
+            IsPersonnelPINRequireForHub = sharedPrefODO.getString(AppConstants.IsPersonnelPINRequireForHub, "");
+            IsOtherRequire = sharedPrefODO.getString(AppConstants.IsOtherRequire, "");
+            IsOdoMeterRequire = sharedPrefODO.getString(AppConstants.IsOdoMeterRequire, "");
+            IsHoursRequire = sharedPrefODO.getString(AppConstants.IsHoursRequire, "");
+
+            String V_Number = editVehicleNumber.getText().toString().trim();
+
+            if (!V_Number.isEmpty() || !AppConstants.APDU_FOB_KEY.isEmpty() || !Barcode_val.isEmpty()) {
+
+                if (cd.isConnectingToInternet())
+                {
+                    //Move to next screen
+                    if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS1")) {
+                        //pinNumber = Constants.AccPersonnelPIN_FS1;
+                        Constants.AccVehicleNumber_FS1 = V_Number;
+
+
+                    } else if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS2")) {
+                        //pinNumber = Constants.AccPersonnelPIN;
+                        Constants.AccVehicleNumber = V_Number;
+
+                    } else if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS3")) {
+                        //pinNumber = Constants.AccPersonnelPIN_FS3;
+                        Constants.AccVehicleNumber_FS3 = V_Number;
+
+                    } else {
+                        //pinNumber = Constants.AccPersonnelPIN_FS4;
+                        Constants.AccVehicleNumber_FS4 = V_Number;
+                    }
+
+                    if (IsOdoMeterRequire.equalsIgnoreCase("True") && !IsGateHub.equalsIgnoreCase("True")) {
+
+                        Intent intent = new Intent(DeviceControlActivity_vehicle.this, AcceptOdoActivity.class);//AcceptPinActivity
+                        startActivity(intent);
+
+                    } else if (IsHoursRequire.equalsIgnoreCase("True") && !IsGateHub.equalsIgnoreCase("True")) {
+
+                        Intent intent = new Intent(DeviceControlActivity_vehicle.this, AcceptHoursAcitvity.class);
+                        startActivity(intent);
+
+                    } else if (IsPersonnelPINRequireForHub.equalsIgnoreCase("True")) {
+
+                        Intent intent = new Intent(DeviceControlActivity_vehicle.this, DeviceControlActivity_Pin.class);//AcceptPinActivity
+                        startActivity(intent);
+
+                    } else if (IsDepartmentRequire.equalsIgnoreCase("True") && !IsGateHub.equalsIgnoreCase("True")) {
+
+
+                        Intent intent = new Intent(DeviceControlActivity_vehicle.this, AcceptDeptActivity.class);
+                        startActivity(intent);
+
+                    } else if (IsOtherRequire.equalsIgnoreCase("True") && !IsGateHub.equalsIgnoreCase("True")) {
+
+                        Intent intent = new Intent(DeviceControlActivity_vehicle.this, AcceptOtherActivity.class);
+                        startActivity(intent);
+
+                    } else {
+
+                        AcceptServiceCall asc = new AcceptServiceCall();
+                        asc.activity = DeviceControlActivity_vehicle.this;
+                        asc.checkAllFields();
+                    }
+
+
+
+
+                }else {
+                    //offline---------------
+                    HashMap<String, String> hmap = controller.getVehicleDetailsByVehicleNumber(V_Number);
+                    offlineVehicleInitialization(hmap);
+
+                    AppConstants.AUTH_CALL_SUCCESS = false;
+                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile("Offline Vehicle No.: " + V_Number);
+
+                    if (OfflineConstants.isOfflineAccess(DeviceControlActivity_vehicle.this)) {
+                        checkVehicleOFFLINEvalidation(hmap);
+                    } else {
+                        AppConstants.colorToastBigFont(getApplicationContext(), AppConstants.OFF1, Color.RED);
+                    }
+
+                }
+
+            } else {
+                //Empty Fob key & enable edit text and Enter button
+                // AppConstants.APDU_FOB_KEY = "";
+                AppConstants.VehicleLocal_FOB_KEY = "";
+                if (IsVehicleHasFob.equalsIgnoreCase("true")) {
+                    //editVehicleNumber.setEnabled(false);
+                } else {
+                    //editVehicleNumber.setEnabled(true);
+                }
+
+                btnSave.setEnabled(true);
+                CommonUtils.showMessageDilaog(DeviceControlActivity_vehicle.this, "Error Message", "Please enter vehicle number or use fob key.");
+            }
+
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + " NoServerCall Ex:" + ex);
+        }
+
+    }
+
 
 }

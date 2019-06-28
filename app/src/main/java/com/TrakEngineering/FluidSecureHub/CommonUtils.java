@@ -8,10 +8,15 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
+import android.media.Ringtone;
+import android.media.RingtoneManager;
 import android.net.ConnectivityManager;
+import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Build;
+import android.os.CountDownTimer;
 import android.os.Environment;
+import android.os.Handler;
 import android.os.PowerManager;
 import android.provider.SyncStateContract;
 import android.support.annotation.RequiresApi;
@@ -275,7 +280,94 @@ public class CommonUtils {
         }
     } // Create logger functionality
 
+    public static void AutoCloseCustomMessageDilaog(final Activity context, String title, String message) {
+
+        //Declare timer
+        CountDownTimer cTimer = null;
+        final Dialog dialogBus = new Dialog(context);
+        dialogBus.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialogBus.setCancelable(false);
+        dialogBus.setContentView(R.layout.custom_alertdialouge);
+        dialogBus.show();
+
+        String newString1 = message.replaceAll("PERSONNEL", "<font color='red'> " + "<U> PERSONNEL </U>" + " </font>");
+        String newString = newString1.replaceAll("VEHICLE", "<font color='red'> " + "<U> VEHICLE </U>" + " </font>");
+
+        TextView edt_message = (TextView) dialogBus.findViewById(R.id.edt_message);
+        Button btnAllow = (Button) dialogBus.findViewById(R.id.btnAllow);
+        edt_message.setText(Html.fromHtml(newString));
+
+        cTimer = new CountDownTimer(3000, 3000) {
+            public void onTick(long millisUntilFinished) {
+            }
+
+            public void onFinish() {
+
+                dialogBus.dismiss();
+                //editVehicleNumber.requestFocus();
+                InputMethodManager imm = (InputMethodManager) context.getSystemService(INPUT_METHOD_SERVICE);
+                imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, InputMethodManager.HIDE_IMPLICIT_ONLY);
+
+            }
+        };
+        cTimer.start();
+
+        CountDownTimer finalCTimer = cTimer;
+        btnAllow.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                dialogBus.dismiss();
+
+                if (finalCTimer != null) finalCTimer.cancel();
+                //editVehicleNumber.requestFocus();
+                InputMethodManager imm = (InputMethodManager) context.getSystemService(INPUT_METHOD_SERVICE);
+                imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, InputMethodManager.HIDE_IMPLICIT_ONLY);
+
+            }
+
+        });
+
+    }
+
+
     //----------------------------------------------------------------------------
+    public static void AlertDialogAutoClose(final Activity context, String title, String message) {
+
+        final android.app.AlertDialog.Builder dialog = new android.app.AlertDialog.Builder(context).setTitle(title).setMessage(message);
+        dialog.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int whichButton) {
+                /*if (alert.isShowing()) {
+                    alert.dismiss();
+                }*/
+            }
+        });
+
+        final android.app.AlertDialog alert = dialog.create();
+        alert.show();
+
+        // Hide after some seconds
+        final Handler handler = new Handler();
+        final Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                if (alert.isShowing()) {
+                    alert.dismiss();
+                }
+            }
+        };
+
+        alert.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialog) {
+                handler.removeCallbacks(runnable);
+            }
+        });
+
+        handler.postDelayed(runnable, 2000);
+
+    }
 
     @RequiresApi(api = Build.VERSION_CODES.N)
     public static void showCustomMessageDilaog(final Activity context, String title, String message) {
@@ -1171,5 +1263,40 @@ public class CommonUtils {
         return false;
     }
 
+    public static boolean ValidateFobkey(String s1) {
+
+        if (s1.equals(null) || s1.isEmpty())
+            return false;
+
+        int n = s1.length();
+
+        for (int i = 0; i < n; i++) {
+
+            if(s1.charAt(i) != '0')
+            {
+                return true;
+            }else{
+                //return false;
+            }
+
+        }
+
+        return false;
+    }
+
+    public static void PlayBeep(Context context) {
+
+//        ToneGenerator toneGen1 = new ToneGenerator(AudioManager.STREAM_MUSIC, 100000);
+//        toneGen1.startTone(ToneGenerator.TONE_CDMA_PIP, 200);
+
+        try {
+            Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+            Ringtone r = RingtoneManager.getRingtone(context, notification);
+            r.play();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
 
 }

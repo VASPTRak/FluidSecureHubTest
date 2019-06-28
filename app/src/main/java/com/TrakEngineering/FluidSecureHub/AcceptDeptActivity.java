@@ -1,13 +1,22 @@
 package com.TrakEngineering.FluidSecureHub;
 
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.graphics.Rect;
+import android.os.AsyncTask;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.InputType;
+import android.text.SpannableString;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.RelativeSizeSpan;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.MenuItem;
@@ -19,8 +28,21 @@ import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.TrakEngineering.FluidSecureHub.enity.DepartmentValidationEntity;
+import com.google.gson.Gson;
+import com.squareup.okhttp.OkHttpClient;
+import com.squareup.okhttp.Request;
+import com.squareup.okhttp.RequestBody;
+import com.squareup.okhttp.Response;
+
+import org.json.JSONObject;
+
+import java.net.SocketTimeoutException;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
+
+import static com.TrakEngineering.FluidSecureHub.server.ServerHandler.TEXT;
 
 public class AcceptDeptActivity extends AppCompatActivity {
 
@@ -32,6 +54,8 @@ public class AcceptDeptActivity extends AppCompatActivity {
     boolean Istimeout_Sec=true;
     RelativeLayout footer_keybord;
     Timer t, ScreenOutTime;
+
+    private static final String TAG = "AcceptDept";
 
     @Override
     protected void onResume() {
@@ -156,7 +180,8 @@ public class AcceptDeptActivity extends AppCompatActivity {
 
                 if (!etDeptNumber.getText().toString().trim().isEmpty()) {
 
-                    if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS1"))
+                    new CallSaveButtonValidation().execute();
+                   /* if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS1"))
                     {
                         Constants.AccDepartmentNumber_FS1 =  etDeptNumber.getText().toString().trim();
                     }else if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS2")){
@@ -179,7 +204,7 @@ public class AcceptDeptActivity extends AppCompatActivity {
                         asc.checkAllFields();
                     }
 
-                    /*
+                    *//*
                    if (IsOtherRequire.equalsIgnoreCase("True")) {
                         Intent intent = new Intent(AcceptDeptActivity.this, AcceptOtherActivity.class);
                         startActivity(intent);
@@ -328,4 +353,167 @@ public class AcceptDeptActivity extends AppCompatActivity {
         InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
         imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
     }
+
+    private class CallSaveButtonValidation extends AsyncTask<Void, Void, String> {
+
+        String deptNumber = etDeptNumber.getText().toString().trim();
+
+        ProgressDialog pd;
+
+        @Override
+        protected void onPreExecute() {
+
+            String s = "Please wait...";
+            SpannableString ss2 = new SpannableString(s);
+            ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
+            ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
+            pd = new ProgressDialog(AcceptDeptActivity.this);
+            pd.setMessage(ss2);
+            pd.setCancelable(true);
+            pd.show();
+
+        }
+
+        @Override
+        protected String doInBackground(Void... voids) {
+            String resp = "";
+            String pinNumber = "";
+            try {
+                if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS1")) {
+                    Constants.AccDepartmentNumber_FS1 = etDeptNumber.getText().toString().trim();
+                    pinNumber = Constants.AccPersonnelPIN_FS1;
+                } else if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS2")) {
+                    Constants.AccDepartmentNumber = etDeptNumber.getText().toString().trim();
+                    pinNumber = Constants.AccPersonnelPIN;
+                } else if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS3")) {
+                    Constants.AccDepartmentNumber_FS3 = etDeptNumber.getText().toString().trim();
+                    pinNumber = Constants.AccPersonnelPIN_FS3;
+                } else {
+                    Constants.AccDepartmentNumber_FS4 = etDeptNumber.getText().toString().trim();
+                    pinNumber = Constants.AccPersonnelPIN_FS4;
+                }
+
+                DepartmentValidationEntity objEntityClass = new DepartmentValidationEntity();
+                objEntityClass.IMEIUDID = AppConstants.getIMEI(AcceptDeptActivity.this);
+                objEntityClass.DepartmentNumber = deptNumber;
+                objEntityClass.PersonnelPIN = pinNumber;
+                objEntityClass.RequestFromAPP = "AP";
+
+                Gson gson = new Gson();
+                String jsonData = gson.toJson(objEntityClass);
+                String userEmail = CommonUtils.getCustomerDetails(AcceptDeptActivity.this).PersonEmail;
+
+                System.out.println("jsonDatajsonDatajsonData" + jsonData);
+                //----------------------------------------------------------------------------------
+                String authString = "Basic " + AppConstants.convertStingToBase64(objEntityClass.IMEIUDID + ":" + userEmail + ":" + "ValidateDepartmentNumber");
+
+                OkHttpClient client = new OkHttpClient();
+                client.setConnectTimeout(10, TimeUnit.SECONDS);
+                client.setReadTimeout(10, TimeUnit.SECONDS);
+                client.setWriteTimeout(10, TimeUnit.SECONDS);
+
+
+                RequestBody body = RequestBody.create(TEXT, jsonData);
+                Request request = new Request.Builder()
+                        .url(AppConstants.webURL)
+                        .post(body)
+                        .addHeader("Authorization", authString)
+                        .build();
+
+
+                Response response = null;
+                response = client.newCall(request).execute();
+                resp = response.body().string();
+                System.out.println("response-----" + resp);
+            } catch (SocketTimeoutException e) {
+                e.printStackTrace();
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " CallSaveButtonFunctionality  STE2 " + e);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return resp;
+        }
+
+        @Override
+        protected void onPostExecute(String serverRes) {
+
+            pd.dismiss();
+
+            if (serverRes != null) {
+
+                try {
+
+                    JSONObject jsonObject = new JSONObject(serverRes);
+
+                    String ResponceMessage = jsonObject.getString("ResponceMessage");
+
+                    System.out.println("ResponceMessage .." + ResponceMessage);
+
+
+                    if (ResponceMessage.equalsIgnoreCase("success")) {
+
+
+                        //if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG +" PIN Accepted:" + etPersonnelPin.getText().toString().trim());
+
+                        btnSave.setClickable(false);
+
+                        SharedPreferences sharedPrefODO = AcceptDeptActivity.this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
+
+                        String IsOtherRequire = sharedPrefODO.getString(AppConstants.IsOtherRequire, "");
+
+
+                        if (IsOtherRequire.equalsIgnoreCase("True")) {
+
+                            Intent intent = new Intent(AcceptDeptActivity.this, AcceptOtherActivity.class);
+                            startActivity(intent);
+
+                        } else {
+
+                            AcceptServiceCall asc = new AcceptServiceCall();
+                            asc.activity = AcceptDeptActivity.this;
+                            asc.checkAllFields();
+                        }
+                    } else {
+
+                        String ResponceText = jsonObject.getString("ResponceText");
+                        String ValidationFailFor = jsonObject.getString("ValidationFailFor");
+
+
+                        DilaogRecreate(AcceptDeptActivity.this, "Message", ResponceText);
+
+
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
+        }
+
+        public void DilaogRecreate(final Activity context, final String title, final String message) {
+
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+
+                    new AlertDialog.Builder(context)
+                            .setTitle(title)
+                            .setMessage(message)
+                            .setCancelable(false)
+                            .setPositiveButton("ok", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    // Whatever...
+                                    recreate();
+                                }
+                            }).show();
+                }
+
+            });
+
+        }
+    }
+
 }
