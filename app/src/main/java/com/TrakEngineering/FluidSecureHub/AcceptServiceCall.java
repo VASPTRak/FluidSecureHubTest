@@ -278,7 +278,7 @@ public class AcceptServiceCall {
             try {
 
 
-                if (serverRes != null) {
+                if (serverRes != null && !serverRes.isEmpty()) {
 
 
                     JSONObject jsonObject = new JSONObject(serverRes);
@@ -571,9 +571,13 @@ public class AcceptServiceCall {
                     }
 
                 } else {
+
+                    AppConstants.NETWORK_STRENGTH = false;
                     Log.i(TAG,"ServerCall Server Response Empty!");
-                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "ServerCall Server Response Empty!");
-                }
+                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "ServerCall  Server Response Empty!");
+                    Intent i = new Intent(activity, DisplayMeterActivity.class);
+                    activity.startActivity(i);
+                    }
 
                 pd.dismiss();
 

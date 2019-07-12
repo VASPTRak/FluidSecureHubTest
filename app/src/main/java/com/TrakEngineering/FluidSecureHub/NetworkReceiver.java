@@ -57,9 +57,11 @@ public class NetworkReceiver extends BroadcastReceiver {
             System.out.println("Network not switched");
         } else {
             //NetworkSwitched
+            //AppConstants.NETWORK_STRENGTH = true;
+            AppConstants.PRE_STATE_MOBILEDATA = CurrentState;
             Log.i(TAG,"Network Switched");
             if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "Network Switched");
-            AppConstants.NETWORK_STRENGTH = true;
+            //AppConstants.NETWORK_STRENGTH = true;
             AppConstants.PRE_STATE_MOBILEDATA = CurrentState;
             //AppConstants.colorToastBigFont(context, "Network Switched", Color.RED);
             //context.startService(new Intent(context, StopRunningTransactionBackgroundService.class));

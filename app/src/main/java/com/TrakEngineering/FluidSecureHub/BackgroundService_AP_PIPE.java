@@ -85,7 +85,7 @@ public class BackgroundService_AP_PIPE extends Service {
     ConnectionDetector cd = new ConnectionDetector(BackgroundService_AP_PIPE.this);
     private int AttemptCount = 0;
     private int RelayAttemptCount = 0;
-    private String CurrTxnMode = "online",OffLastTXNid = "";
+    private String CurrTxnMode = "online",OffLastTXNid = "0";
 
     //String HTTP_URL = "http://192.168.43.140:80/";//for pipe
     //String HTTP_URL = "http://192.168.43.5:80/";//Other FS
@@ -229,6 +229,12 @@ public class BackgroundService_AP_PIPE extends Service {
                 if (cd.isConnectingToInternet() && AppConstants.AUTH_CALL_SUCCESS ){
                     CurrTxnMode = "online";
                 }else{
+
+                    if (AppConstants.AUTH_CALL_SUCCESS){
+                        SharedPreferences sharedPref = this.getSharedPreferences(Constants.PREF_VehiFuel, Context.MODE_PRIVATE);
+                        TransactionId = sharedPref.getString("TransactionId_FS1", "");
+                        OffLastTXNid = TransactionId;//Set transaction id to offline
+                    }
                     CurrTxnMode = "offline";
                 }
 
@@ -285,7 +291,7 @@ public class BackgroundService_AP_PIPE extends Service {
 
                     //=====================UpgradeTransaction Status ==1================
                     cd = new ConnectionDetector(BackgroundService_AP_PIPE.this);
-                    if (cd.isConnectingToInternet()) {
+                    if (cd.isConnectingToInternet() && AppConstants.NETWORK_STRENGTH) {
                         try {
                             UpdateTransactionStatusClass authEntity = new UpdateTransactionStatusClass();
                             authEntity.TransactionId = TransactionId;
@@ -530,6 +536,7 @@ public class BackgroundService_AP_PIPE extends Service {
 
                 Request request = new Request.Builder()
                         .url(param[0])
+                        .header("Accept-Encoding", "identity")
                         .post(body)
                         .build();
 
@@ -587,8 +594,7 @@ public class BackgroundService_AP_PIPE extends Service {
 
             } catch (Exception e) {
                 Log.d("Ex", e.getMessage());
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "  CommandsGET doInBackground Execption " + e);
+                //if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  CommandsGET doInBackground Execption " + e);
                 stopSelf();
             }
 
@@ -612,6 +618,134 @@ public class BackgroundService_AP_PIPE extends Service {
             }
 
         }
+    }
+
+    public class TCPCommandsGET extends AsyncTask<String, Void, String> {
+
+        String response = "";
+
+        @SuppressLint("LongLogTag")
+        @Override
+        protected String doInBackground(String... param) {
+
+
+
+            // Log.e(TAG, "~~~~~TCP for strt~~~~~");
+            //http://192.168.43.67:80/tld?level=info
+            String Command = param[1];
+            String serverip1 = param[0].replace("http://","");
+            String SERVER_IP = serverip1.replace(":80/","").trim();
+            String strcmd = "GET /"+Command+" HTTP/1.1\r\nContent-Type: application/json; charset=utf-8\r\nContent-Length: \r\nHost: 192.168.4.1\r\nConnection: Keep-Alive\r\nAccept-Encoding: gzip\r\nUser-Agent: okhttp/3.6.0\r\n\r\n";
+
+
+            try {
+                String host = SERVER_IP;//"192.168.43.210";//url.getHost();
+                int port = 80;// SERVER_PORT;
+
+                // Open a TCP connection
+                Socket socket = new Socket(host, port);
+                // Send the request over the socket
+                PrintWriter writer = new PrintWriter(socket.getOutputStream());
+                writer.print(strcmd);
+                writer.flush();
+                // Read the response
+                BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                StringBuilder InfoRespo = new StringBuilder();
+                String next_record = null;
+                while ((next_record = reader.readLine()) != null) {
+                    System.out.println("next_record"+next_record);
+                    InfoRespo.append(next_record);
+
+                }
+                //Log.i(TAG, " InfoRespo: " + InfoRespo);
+                response = InfoRespo.toString();
+                socket.close();
+            } catch (MalformedURLException ex) {
+                ex.printStackTrace();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+            return response;
+        }
+
+
+
+        @SuppressLint("LongLogTag")
+        @Override
+        protected void onPostExecute(String res) {
+
+            //Log.e(TAG, "~~~~~TCP for end~~~~~");
+            Log.i(TAG, "Socket response" + res);
+            if (!res.contains("Version")){
+                //new UDPClientTask().execute(SERVER_IP);
+            }
+
+        }
+
+    }
+
+    public class TCPCommandsPOST extends AsyncTask<String, Void, String> {
+
+        String response = "";
+
+        @SuppressLint("LongLogTag")
+        @Override
+        protected String doInBackground(String... param) {
+
+
+
+            // Log.e(TAG, "~~~~~TCP for strt~~~~~");
+            //http://192.168.43.67:80/tld?level=info
+            String Command = param[1];
+            String serverip1 = param[0].replace("http://","");
+            String SERVER_IP = serverip1.replace(":80/","").trim();
+            String strcmd = "POST /"+Command+" HTTP/1.1\r\nContent-Type: application/json; charset=utf-8\r\nContent-Length: \r\nHost: 192.168.4.1\r\nConnection: Keep-Alive\r\nAccept-Encoding: gzip\r\nUser-Agent: okhttp/3.6.0\r\n\r\n";
+
+
+            try {
+                String host = SERVER_IP;//"192.168.43.210";//url.getHost();
+                int port = 80;// SERVER_PORT;
+
+                // Open a TCP connection
+                Socket socket = new Socket(host, port);
+                // Send the request over the socket
+                PrintWriter writer = new PrintWriter(socket.getOutputStream());
+                writer.print(strcmd);
+                writer.flush();
+                // Read the response
+                BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                StringBuilder InfoRespo = new StringBuilder();
+                String next_record = null;
+                while ((next_record = reader.readLine()) != null) {
+                    System.out.println("next_record"+next_record);
+                    InfoRespo.append(next_record);
+
+                }
+                //Log.i(TAG, " InfoRespo: " + InfoRespo);
+                response = InfoRespo.toString();
+                socket.close();
+            } catch (MalformedURLException ex) {
+                ex.printStackTrace();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            } catch (Exception ex){
+                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " TCPCommandsPOST DoInbackground"+ex.getMessage());
+            }
+            return response;
+        }
+
+
+
+        @SuppressLint("LongLogTag")
+        @Override
+        protected void onPostExecute(String res) {
+
+            //Log.e(TAG, "~~~~~TCP for end~~~~~");
+            Log.i(TAG, "Socket response" + res);
+
+
+        }
+
     }
 
     public void startQuantityInterval() {
@@ -846,10 +980,9 @@ public class BackgroundService_AP_PIPE extends Service {
 
                         IsFuelingStop = "1";
                         System.out.println("APFS_PIPE Auto Stop! Pulsar disconnected");
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "  Link:" + LinkName + " Auto Stop! Pulsar disconnected");
+                        if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  Link:" + LinkName + " Auto Stop! Pulsar disconnected");
                         // AppConstants.colorToastBigFont(this, AppConstants.FS1_CONNECTED_SSID+" Auto Stop!\n\nPulsar disconnected", Color.BLUE);
-                        stopButtonFunctionality();
+                        stopButtonFunctionality(); //temp on #574 Server Update
                     }
                 }
 
@@ -1084,12 +1217,11 @@ public class BackgroundService_AP_PIPE extends Service {
                 @Override
                 public void run() {
 
+//                    String command = "upgrade?command=start";
+//                    new TCPCommandsPOST().execute(HTTP_URL, command);
 
-                    String command = "upgrade?command=start";
-                    new TCPCommandsPOST().execute(HTTP_URL, command);
-
-                    //new CommandsPOST().execute(URL_UPGRADE_START, "");
-
+                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " URL_UPGRADE_START CMD");
+                    new CommandsPOST().execute(URL_UPGRADE_START, "");
 
                     //upgrade bin
                     String LocalPath = FOLDER_PATH + PATH_BIN_FILE1;
@@ -1324,8 +1456,7 @@ public class BackgroundService_AP_PIPE extends Service {
                 offcontroller.updateOfflinePulsesQuantity(sqlite_id + "", counts, fillqty + "",OffLastTXNid);
             }
 
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile("Offline  Link:" + LinkName + "  Pulses:" + Integer.parseInt(counts) + " Qty:" + fillqty);
+            if (AppConstants.GenerateLogs)AppConstants.WriteinFile("Offline  Link:" + LinkName + "  Pulses:" + Integer.parseInt(counts) + " Qty:" + fillqty);
 
         }
     }
@@ -1649,8 +1780,10 @@ public class BackgroundService_AP_PIPE extends Service {
 
             //Get TankMonitoring details from FluidSecure Link
             String response1 = new CommandsGET().execute(URL_TDL_info).get();
+
             //String response1 = "{  \"tld\":{ \"level\":\"180, 212, 11, 34, 110, 175, 1, 47, 231, 15, 78, 65\"  }  }";
-            //   if (AppConstants.GenerateLogs)AppConstants.WriteinFile("\n" + TAG + "Backgroundservice_AP_PIPE TankMonitorReading ~~~URL_TDL_info_Resp~~\n" + response1);
+            //if (AppConstants.GenerateLogs)AppConstants.WriteinFile("\n" + TAG + "Backgroundservice_AP_PIPE TankMonitorReading ~~~URL_TDL_info_Resp~~\n" + response1);
+
             if (response1.equalsIgnoreCase("")) {
                 System.out.println("TLD response empty");
             } else {
@@ -1821,6 +1954,7 @@ public class BackgroundService_AP_PIPE extends Service {
                 RequestBody body = RequestBody.create(contentype, readBytesFromFile(LocalPath));
                 Request request = new Request.Builder()
                         .url(HTTP_URL)//HTTP_URL  192.168.43.210
+                        .header("Accept-Encoding", "identity")
                         .post(body)
                         .build();
 
@@ -1832,6 +1966,7 @@ public class BackgroundService_AP_PIPE extends Service {
 
             } catch (Exception e) {
                 Log.d("Ex", e.getMessage());
+                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " OkHttpFileUpload"+e.getMessage());
             }
 
 
@@ -1850,11 +1985,11 @@ public class BackgroundService_AP_PIPE extends Service {
                     @Override
                     public void run() {
 
+//                        String command = "upgrade?command=reset";
+//                        new TCPCommandsPOST().execute(HTTP_URL, command);
 
-                        String command = "upgrade?command=reset";
-                        new TCPCommandsPOST().execute(HTTP_URL, command);
-
-                        //new CommandsPOST().execute(URL_RESET, "");
+                          if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " URL_RESET CMD");
+                          new CommandsPOST().execute(URL_RESET, "");
 
                         System.out.println("AFTER SECONDS 5");
                     }
@@ -1916,8 +2051,8 @@ public class BackgroundService_AP_PIPE extends Service {
 
 
             } catch (Exception e) {
-
                 System.out.println(e);
+                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " OkHttpFileUpload"+e.getMessage());
             }
 
         }
@@ -2272,70 +2407,5 @@ public class BackgroundService_AP_PIPE extends Service {
 
         stopAutoFuelSeconds = Long.parseLong(IntervalToStopFuel);
     }
-
-    public class TCPCommandsPOST extends AsyncTask<String, Void, String> {
-
-        String response = "";
-
-        @SuppressLint("LongLogTag")
-        @Override
-        protected String doInBackground(String... param) {
-
-
-
-            // Log.e(TAG, "~~~~~TCP for strt~~~~~");
-            //http://192.168.43.67:80/tld?level=info
-            String Command = param[1];
-            String serverip1 = param[0].replace("http://","");
-            String SERVER_IP = serverip1.replace(":80/","").trim();
-            String strcmd = "POST /"+Command+" HTTP/1.1\r\nContent-Type: application/json; charset=utf-8\r\nContent-Length: \r\nHost: 192.168.4.1\r\nConnection: Keep-Alive\r\nAccept-Encoding: gzip\r\nUser-Agent: okhttp/3.6.0\r\n\r\n";
-
-
-            try {
-                String host = SERVER_IP;//"192.168.43.210";//url.getHost();
-                int port = 80;// SERVER_PORT;
-
-                // Open a TCP connection
-                Socket socket = new Socket(host, port);
-                // Send the request over the socket
-                PrintWriter writer = new PrintWriter(socket.getOutputStream());
-                writer.print(strcmd);
-                writer.flush();
-                // Read the response
-                BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                StringBuilder InfoRespo = new StringBuilder();
-                String next_record = null;
-                while ((next_record = reader.readLine()) != null) {
-                    System.out.println("next_record"+next_record);
-                    InfoRespo.append(next_record);
-
-                }
-                //Log.i(TAG, " InfoRespo: " + InfoRespo);
-                response = InfoRespo.toString();
-                socket.close();
-            } catch (MalformedURLException ex) {
-                ex.printStackTrace();
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            } catch (Exception ex){
-                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " TCPCommandsPOST DoInbackground"+ex.getMessage());
-            }
-            return response;
-        }
-
-
-
-        @SuppressLint("LongLogTag")
-        @Override
-        protected void onPostExecute(String res) {
-
-            //Log.e(TAG, "~~~~~TCP for end~~~~~");
-            Log.i(TAG, "Socket response" + res);
-
-
-        }
-
-    }
-
 
 }

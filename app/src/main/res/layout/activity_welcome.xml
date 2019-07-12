@@ -1099,16 +1099,27 @@
             </LinearLayout>
 
             <LinearLayout
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
                 android:layout_gravity="center"
-                android:orientation="vertical">
+                android:orientation="vertical"
+                android:id="@+id/layout_support_info">
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="left"
+                    android:gravity="center"
+                    android:id="@+id/off_db_info"
+                    android:text=""
+                    android:enabled="false"
+                    android:textColor="#000"
+                    android:textSize="18sp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
                     android:text="@string/support_line"
                     android:textColor="#000"
                     android:textSize="18sp" />
@@ -1116,7 +1127,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="left"
+                    android:gravity="center"
                     android:id="@+id/support_email"
                     android:text="Email:    support@fluidsecure.com"
                     android:textColor="#000"
@@ -1125,7 +1136,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="left"
+                    android:gravity="center"
                     android:id="@+id/support_phone"
                     android:text="Or Call:  850-878-4585"
                     android:textColor="#000"

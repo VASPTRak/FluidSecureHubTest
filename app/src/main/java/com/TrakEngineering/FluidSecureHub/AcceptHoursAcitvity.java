@@ -254,7 +254,7 @@ public class AcceptHoursAcitvity extends AppCompatActivity {
 
                 OfflineConstants.storeCurrentTransaction(AcceptHoursAcitvity.this, "", "", "", "", etHours.getText().toString().trim(), "", "", "");
 
-                if (cd.isConnectingToInternet()) {
+                if (cd.isConnectingToInternet() && AppConstants.NETWORK_STRENGTH) {
                     if (CheckOdometerReasonable.trim().toLowerCase().equalsIgnoreCase("true")) {
 
                         if (OdometerReasonabilityConditions.trim().equalsIgnoreCase("1")) {
@@ -275,7 +275,8 @@ public class AcceptHoursAcitvity extends AppCompatActivity {
                                     if (AppConstants.GenerateLogs)
                                         AppConstants.WriteinFile(TAG + " Hours: Entered" + C_AccHours + " is not within the reasonability");
                                     etHours.setText("");
-                                    AppConstants.colorToastBigFont(getApplicationContext(), "The Hours entered is not within the reasonability your administrator has assigned, please contact your administrator.", Color.RED);//Bad odometer! Please try again.
+                                    //AppConstants.colorToastBigFont(getApplicationContext(), "The Hours entered is not within the reasonability your administrator has assigned, please contact your administrator.", Color.RED);//Bad odometer! Please try again.
+                                    CommonUtils.AlertDialogAutoClose(AcceptHoursAcitvity.this, "Message", "The Hours entered is not within the reasonability your administrator has assigned, please contact your administrator.");
                                     Istimeout_Sec = true;
                                     ResetTimeoutHoursScreen();
                                 }
@@ -291,9 +292,9 @@ public class AcceptHoursAcitvity extends AppCompatActivity {
                                 allValid();
                             } else {
                                 etHours.setText("");
-                                if (AppConstants.GenerateLogs)
-                                    AppConstants.WriteinFile(TAG + " Hours: Entered" + C_AccHours + " is not within the reasonability");
-                                AppConstants.colorToastBigFont(getApplicationContext(), "The Hours entered is not within the reasonability your administrator has assigned, please contact your administrator.", Color.RED);
+                                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " Hours: Entered" + C_AccHours + " is not within the reasonability");
+                                CommonUtils.AlertDialogAutoClose(AcceptHoursAcitvity.this, "Message", "The Hours entered is not within the reasonability your administrator has assigned, please contact your administrator.");
+                                //AppConstants.colorToastBigFont(getApplicationContext(), "The Hours entered is not within the reasonability your administrator has assigned, please contact your administrator.", Color.RED);
                                 Istimeout_Sec = true;
                                 ResetTimeoutHoursScreen();
                             }
@@ -308,6 +309,7 @@ public class AcceptHoursAcitvity extends AppCompatActivity {
 
                     }
                 } else {
+
                     //offline----------------------
 
                     AppConstants.WriteinFile("Offline Hours : " + etHours.getText().toString().trim());
@@ -329,7 +331,8 @@ public class AcceptHoursAcitvity extends AppCompatActivity {
                                 }
 
                             } else {
-                                AppConstants.colorToastBigFont(getApplicationContext(), "Entered hours is less than previous hours", Color.RED);
+                                CommonUtils.AlertDialogAutoClose(AcceptHoursAcitvity.this, "Message", "Entered hours is less than previous hours");
+                                //AppConstants.colorToastBigFont(getApplicationContext(), "Entered hours is less than previous hours", Color.RED);
                                 Istimeout_Sec = true;
                                 ResetTimeoutHoursScreen();
                             }
@@ -337,7 +340,8 @@ public class AcceptHoursAcitvity extends AppCompatActivity {
 
 
                     } else {
-                        AppConstants.colorToastBigFont(getApplicationContext(), AppConstants.OFF1, Color.RED);
+                        CommonUtils.AlertDialogAutoClose(AcceptHoursAcitvity.this, "Message", "Please check your Offline Access");
+                        //AppConstants.colorToastBigFont(getApplicationContext(), AppConstants.OFF1, Color.RED);
                         Istimeout_Sec = true;
                         ResetTimeoutHoursScreen();
                     }

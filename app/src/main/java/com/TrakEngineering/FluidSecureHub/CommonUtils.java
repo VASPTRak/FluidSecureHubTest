@@ -66,6 +66,7 @@ import static com.TrakEngineering.FluidSecureHub.AppConstants.FluidSecureSiteNam
 import static com.TrakEngineering.FluidSecureHub.AppConstants.ISVehicleHasFob;
 import static com.TrakEngineering.FluidSecureHub.AppConstants.IsPersonHasFob;
 import static com.TrakEngineering.FluidSecureHub.Constants.PREF_COLUMN_SITE;
+import static com.TrakEngineering.FluidSecureHub.Constants.PREF_OFF_DB_SIZE;
 import static com.TrakEngineering.FluidSecureHub.server.MyServer.ctx;
 import static com.google.android.gms.internal.zzid.runOnUiThread;
 
@@ -201,6 +202,13 @@ public class CommonUtils {
             return String.valueOf(Html.fromHtml(content));
         }
 
+    }
+
+    public static String getDateInString() {
+        Calendar c = Calendar.getInstance();
+        SimpleDateFormat df = new SimpleDateFormat("MM/dd/yyyy");
+        String CurrantDate = df.format(c.getTime());
+        return (CurrantDate);
     }
 
     public static String getTodaysDateInString() {
@@ -592,6 +600,15 @@ public class CommonUtils {
         SharedPreferences sharedPref = activity.getSharedPreferences(PREF_COLUMN_SITE, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPref.edit();
         editor.putString(valueType, data);
+        editor.commit();
+    }
+
+    public static void SaveOfflineDbSize(Context context, String size, String SaveDate) {
+
+        SharedPreferences sharedPref = context.getSharedPreferences(PREF_OFF_DB_SIZE, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putString(AppConstants.OfflineDataBaseSize, size);
+        editor.putString(AppConstants.DbUpdateTime, SaveDate);
         editor.commit();
     }
 

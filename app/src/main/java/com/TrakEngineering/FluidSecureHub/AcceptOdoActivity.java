@@ -232,7 +232,7 @@ public class AcceptOdoActivity extends AppCompatActivity {
     public void ResetTimeoutOdoScreen(){
 
         if(ScreenOutTime!=null)
-            ScreenOutTime.cancel();
+        ScreenOutTime.cancel();
 
 
         try {
@@ -302,7 +302,7 @@ public class AcceptOdoActivity extends AppCompatActivity {
 
                 OfflineConstants.storeCurrentTransaction(AcceptOdoActivity.this, "", "", "", editOdoTenths.getText().toString().trim(), "", "", "", "");
 
-                if (cd.isConnectingToInternet()) {
+                if (cd.isConnectingToInternet() && AppConstants.NETWORK_STRENGTH) {
                     int PO = Integer.parseInt(PreviousOdo.trim());
                     int OL = Integer.parseInt(OdoLimit.trim());
 
@@ -332,7 +332,8 @@ public class AcceptOdoActivity extends AppCompatActivity {
                                     if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " Odo Entered" + C_AccOdoMeter + " is not within the reasonability");
 
                                     editOdoTenths.setText("");
-                                    AppConstants.colorToastBigFont(getApplicationContext(), "The odo entered is not within the reasonability your administrator has assigned, please contact your administrator.", Color.RED);//Bad odometer! Please try again.
+                                    CommonUtils.AlertDialogAutoClose(AcceptOdoActivity.this, "Message", "The odo entered is not within the reasonability your administrator has assigned, please contact your administrator.");
+                                    //AppConstants.colorToastBigFont(getApplicationContext(), "The odo entered is not within the reasonability your administrator has assigned, please contact your administrator.", Color.RED);//Bad odometer! Please try again.
                                     Istimeout_Sec = true;
                                     ResetTimeoutOdoScreen();
 
@@ -355,7 +356,8 @@ public class AcceptOdoActivity extends AppCompatActivity {
                                 }
                                 Istimeout_Sec = true;
                                 ResetTimeoutOdoScreen();
-                                AppConstants.colorToastBigFont(getApplicationContext(), "The odometer entered is not within the reasonability", Color.RED);
+                                CommonUtils.AlertDialogAutoClose(AcceptOdoActivity.this, "Message", "The odo entered is not within the reasonability your administrator has assigned, please contact your administrator.");
+                                //AppConstants.colorToastBigFont(getApplicationContext(), "The odometer entered is not within the reasonability", Color.RED);
                             }
                         }
                     } else {
@@ -428,7 +430,8 @@ public class AcceptOdoActivity extends AppCompatActivity {
                                     } else {
                                         Istimeout_Sec = true;
                                         ResetTimeoutOdoScreen();
-                                        AppConstants.colorToastBigFont(getApplicationContext(),"Please enter Correct Odometer",Color.RED);
+                                        CommonUtils.AlertDialogAutoClose(AcceptOdoActivity.this, "Message", "Please enter Correct Odometer");
+                                        //AppConstants.colorToastBigFont(getApplicationContext(),"Please enter Correct Odometer",Color.RED);
                                     }
                                 }
 
@@ -445,7 +448,8 @@ public class AcceptOdoActivity extends AppCompatActivity {
                                 } else {
                                     Istimeout_Sec = true;
                                     ResetTimeoutOdoScreen();
-                                    AppConstants.colorToastBigFont(getApplicationContext(),"Please enter Correct Odometer",Color.RED);
+                                    CommonUtils.AlertDialogAutoClose(AcceptOdoActivity.this, "Message", "Please enter Correct Odometer");
+                                    //AppConstants.colorToastBigFont(getApplicationContext(),"Please enter Correct Odometer",Color.RED);
                                 }
 
                             }
@@ -457,7 +461,8 @@ public class AcceptOdoActivity extends AppCompatActivity {
                     } else {
                         Istimeout_Sec = true;
                         ResetTimeoutOdoScreen();
-                        AppConstants.colorToastBigFont(getApplicationContext(), AppConstants.OFF1, Color.RED);
+                        //AppConstants.colorToastBigFont(getApplicationContext(), AppConstants.OFF1, Color.RED);
+                        CommonUtils.AlertDialogAutoClose(AcceptOdoActivity.this, "Message", "Please check your Offline Access");
                     }
                 }
 

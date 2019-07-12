@@ -15,4 +15,5 @@ public class EntityOffTranz {
     public String Pulses;
     public String TransactionFrom;
     public String PersonPin;
+    public String OnlineTransactionId;
 }

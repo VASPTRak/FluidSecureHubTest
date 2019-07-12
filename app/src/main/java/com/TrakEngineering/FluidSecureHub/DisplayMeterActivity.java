@@ -237,7 +237,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
     protected void onResume() {
         super.onResume();
 
-        if (cd.isConnectingToInternet()){
+        if (cd.isConnectingToInternet() && AppConstants.NETWORK_STRENGTH){
             AppConstants.CURRENT_STATE_MOBILEDATA = true;
         }else{
             AppConstants.CURRENT_STATE_MOBILEDATA = false;
@@ -277,6 +277,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
         //offline-----------start
         EntityOffTranz authEntityClass = OfflineConstants.getCurrentTransaction(DisplayMeterActivity.this);
         authEntityClass.PersonPin = AppConstants.OFF_PERSON_PIN;
+        authEntityClass.OnlineTransactionId = "0";
 
         sqlite_id = offcontroller.insertOfflineTransactions(authEntityClass);
 
@@ -872,7 +873,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                 btnStart.setBackgroundColor(Color.parseColor("#F88800"));
                 boolean test = AppConstants.CURRENT_STATE_MOBILEDATA;
 
-                if (cd.isConnectingToInternet()) {
+                if (cd.isConnectingToInternet() && AppConstants.NETWORK_STRENGTH) {
                     StartbuttonFunctionality();
                 } else {
                     if (OfflineConstants.isOfflineAccess(DisplayMeterActivity.this)) {
@@ -980,7 +981,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
         objEntityClass.HoseId = hoseid;
         objEntityClass.Version = iot_version;
 
-        if (cd.isConnectingToInternet()) {
+        if (cd.isConnectingToInternet() && AppConstants.NETWORK_STRENGTH) {
             if (hoseid != null && !hoseid.trim().isEmpty()) {
                 new DisplayMeterActivity.UpgradeCurrentVersionWithUgradableVersion(objEntityClass).execute();
 
@@ -1016,7 +1017,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
         String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(DisplayMeterActivity.this) + ":" + userEmail + ":" + "IsUpgradeCurrentVersionWithUgradableVersion");
 
 
-        if (cd.isConnectingToInternet())
+        if (cd.isConnectingToInternet() && AppConstants.NETWORK_STRENGTH)
             new GetUpgrateFirmwareStatus().execute(FS_selected, jsonData, authString);
         else {
             AppConstants.colorToastBigFont(getApplicationContext(), "Please check Internet connection", Color.RED);
@@ -2744,7 +2745,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                     }
 
                     //Skip in offline mode
-                    if (cd.isConnectingToInternet() && AppConstants.AUTH_CALL_SUCCESS ){
+                    if (cd.isConnectingToInternet() && AppConstants.AUTH_CALL_SUCCESS && AppConstants.NETWORK_STRENGTH){
                         //Current transaction is online
                         GetLastTransaction();
                         //getCMDLast10Txn(); //temp comment
@@ -2755,7 +2756,6 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
                     new CommandsGET_RelayResp().execute(URL_RELAY);
 
-
                     //Info command else commented
                 } else {
 
@@ -2763,8 +2763,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
                     if (count_InfoCmd > 1) {
 
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "  Link is unavailable infoCmd");
+                        if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  Link is unavailable infoCmd");
                         AppConstants.colorToastBigFont(DisplayMeterActivity.this, " Link is unavailable", Color.RED);
                         Istimeout_Sec = true;
                         ResetTimeoutDisplayMeterScreen();

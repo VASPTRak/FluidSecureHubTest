@@ -57,6 +57,7 @@ public class Constants {
     public static final String SHARED_PREF_NAME = "UserInfo";
     public static final String PREF_COLUMN_USER = "UserData";
     public static final String PREF_COLUMN_SITE = "SiteData";
+    public static final String PREF_OFF_DB_SIZE = "OfflineDbSize";
     public static final String PREF_COLUMN_GATE_HUB = "GateHub";
     public static final String PREF_Log_Data = "LogData";
     public static final String PREF_FA_Data = "FAData";

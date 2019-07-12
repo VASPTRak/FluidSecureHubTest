@@ -58,7 +58,8 @@ public class BackgroundServiceDownloadFirmware extends BackgroundService {
             @Override
             public void onFailure(com.squareup.okhttp.Request request, IOException e) {
                 Log.e(TAG, "error in getting response using async okhttp call");
-                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  error in getting response using async okhttp call");
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + "  error in getting response using async okhttp call");
             }
 
             @SuppressLint("LongLogTag")
@@ -69,10 +70,10 @@ public class BackgroundServiceDownloadFirmware extends BackgroundService {
                 //if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  FsvmDataAsyncCall "+response);
                 if (!response.isSuccessful()) {
                     throw new IOException("Error response " + response);
-                }else {
+                } else {
 
                     String result = responseBody.string();
-                    Log.i(TAG," Result" + result);
+                    Log.i(TAG, " Result" + result);
 
                 }
 

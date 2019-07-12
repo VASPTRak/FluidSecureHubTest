@@ -146,7 +146,7 @@ public class OffTranzSyncService extends Service {
 
             try {
                 String off_json = controller.getAllOfflineTransactionJSON(OffTranzSyncService.this);
-                if (AppConstants.GenerateLogs)AppConstants.WriteinFile("Offline Transactioms: " + off_json);
+                if (AppConstants.GenerateLogs)AppConstants.WriteinFile("Offline off_json data " + off_json);
 
                 String api_token = controller.getOfflineToken(OffTranzSyncService.this);
 
@@ -181,7 +181,7 @@ public class OffTranzSyncService extends Service {
 
             System.out.println("result:" + result);
 
-            if (AppConstants.GenerateLogs)AppConstants.WriteinFile("Offline data sync-" + result);
+            if (AppConstants.GenerateLogs)AppConstants.WriteinFile("Offline data sync result" + result);
 
             if (result != null && !result.isEmpty()) {
 

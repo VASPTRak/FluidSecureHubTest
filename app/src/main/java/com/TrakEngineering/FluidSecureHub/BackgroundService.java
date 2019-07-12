@@ -319,7 +319,7 @@ public class BackgroundService extends Service {
                             String Notify = jsonData;
                             if (Notify.contains("IsFuelingStop\":\"1")) {
                                 //Notify only when IsFuelingStop = 1
-                                AppConstants.notificationAlert(BackgroundService.this);
+                                //AppConstants.notificationAlert(BackgroundService.this);
                             } else {
                                 //Skip notification
                             }
@@ -393,7 +393,7 @@ public class BackgroundService extends Service {
 
                 if (ResponceMessage.equalsIgnoreCase("success")) {
 
-                    AppConstants.notificationAlert(BackgroundService.this);
+                    //AppConstants.notificationAlert(BackgroundService.this);
 
                     controller.deleteTranStatus(Id);
 
@@ -536,7 +536,7 @@ public class BackgroundService extends Service {
                         String Notify = jsonData;
                         if (Notify.contains("IsFuelingStop\":\"1")) {
                             //Notify only when IsFuelingStop = 1
-                            AppConstants.notificationAlert(BackgroundService.this);
+                           // AppConstants.notificationAlert(BackgroundService.this);
                         } else {
                             //Skip notification
                         }
@@ -613,7 +613,7 @@ public class BackgroundService extends Service {
                 if (ResponceMessage.equalsIgnoreCase("success") || ResponceMessage.equalsIgnoreCase("fail")) {
 
                     if (ResponceMessage.equalsIgnoreCase("success")) {
-                        AppConstants.notificationAlert(BackgroundService.this);
+                        //AppConstants.notificationAlert(BackgroundService.this);
 
                         controller.deleteTranStatus(Id);
 

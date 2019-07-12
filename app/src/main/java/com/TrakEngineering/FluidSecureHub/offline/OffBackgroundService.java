@@ -20,6 +20,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
 import java.util.Date;
 
 public class OffBackgroundService extends Service {
@@ -552,6 +553,7 @@ public class OffBackgroundService extends Service {
                             Log.i(TAG ," Offline data downloaded Successfully");
                             if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " Offline data downloaded Successfully");
                             //AppConstants.colorToastBigFont(getApplicationContext(),"Offline data downloaded", Color.BLUE);
+                            GetOfflineDatabaseSize();
                         }
 
 
@@ -567,6 +569,30 @@ public class OffBackgroundService extends Service {
 
         }
 
+
+    }
+
+    private void  GetOfflineDatabaseSize(){
+
+        String SaveDate = CommonUtils.getDateInString();
+        String Size = "";
+
+        File f = OffBackgroundService.this.getDatabasePath("FSHubOffline.db");
+        // Get length of file in bytes
+        long fileSizeInBytes = f.length();
+        // Convert the bytes to Kilobytes (1 KB = 1024 Bytes)
+        long fileSizeInKB = fileSizeInBytes / 1024;
+        // Convert the KB to MegaBytes (1 MB = 1024 KBytes)
+        long fileSizeInMB = fileSizeInKB / 1024;
+
+        if (fileSizeInMB < 1){
+            Size = fileSizeInKB+"KB";
+        }else{
+            Size = fileSizeInMB+"MB";
+        }
+        Log.i(TAG, String.valueOf("SizeInBytes: "+fileSizeInBytes)+" SizeInMB: "+fileSizeInMB);
+
+        CommonUtils.SaveOfflineDbSize(getApplicationContext(),Size,SaveDate);
 
     }
 

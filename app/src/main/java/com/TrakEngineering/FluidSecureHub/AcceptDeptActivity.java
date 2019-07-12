@@ -176,12 +176,15 @@ public class AcceptDeptActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
+
+
                 Istimeout_Sec=false;
 
                 if (!etDeptNumber.getText().toString().trim().isEmpty()) {
 
                     new CallSaveButtonValidation().execute();
-                   /* if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS1"))
+
+                    /*if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS1"))
                     {
                         Constants.AccDepartmentNumber_FS1 =  etDeptNumber.getText().toString().trim();
                     }else if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS2")){
@@ -190,9 +193,11 @@ public class AcceptDeptActivity extends AppCompatActivity {
                         Constants.AccDepartmentNumber_FS3 =  etDeptNumber.getText().toString().trim();
                     }else{
                         Constants.AccDepartmentNumber_FS4 =  etDeptNumber.getText().toString().trim();
-                    }
+                    }*/
 
-                    if (IsOtherRequire.equalsIgnoreCase("True")) {
+
+
+                    /*if (IsOtherRequire.equalsIgnoreCase("True")) {
 
                         Intent intent = new Intent(AcceptDeptActivity.this, AcceptOtherActivity.class);
                         startActivity(intent);
@@ -202,9 +207,9 @@ public class AcceptDeptActivity extends AppCompatActivity {
                         AcceptServiceCall asc = new AcceptServiceCall();
                         asc.activity = AcceptDeptActivity.this;
                         asc.checkAllFields();
-                    }
+                    }*/
 
-                    *//*
+                    /*
                    if (IsOtherRequire.equalsIgnoreCase("True")) {
                         Intent intent = new Intent(AcceptDeptActivity.this, AcceptOtherActivity.class);
                         startActivity(intent);
@@ -363,8 +368,8 @@ public class AcceptDeptActivity extends AppCompatActivity {
         @Override
         protected void onPreExecute() {
 
-            String s = "Please wait...";
-            SpannableString ss2 = new SpannableString(s);
+            String s= "Please wait...";
+            SpannableString ss2=  new SpannableString(s);
             ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
             ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
             pd = new ProgressDialog(AcceptDeptActivity.this);
@@ -424,20 +429,19 @@ public class AcceptDeptActivity extends AppCompatActivity {
                 Response response = null;
                 response = client.newCall(request).execute();
                 resp = response.body().string();
-                System.out.println("response-----" + resp);
-            } catch (SocketTimeoutException e) {
+                System.out.println("response-----"+resp);
+            }catch (SocketTimeoutException e){
                 e.printStackTrace();
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + " CallSaveButtonFunctionality  STE2 " + e);
+                if (AppConstants.GenerateLogs) AppConstants.WriteinFile(TAG + " CallSaveButtonFunctionality  STE2 " + e);
 
-            } catch (Exception e) {
+            }catch (Exception e) {
                 e.printStackTrace();
             }
             return resp;
         }
 
         @Override
-        protected void onPostExecute(String serverRes) {
+        protected void onPostExecute(String serverRes){
 
             pd.dismiss();
 
@@ -447,7 +451,7 @@ public class AcceptDeptActivity extends AppCompatActivity {
 
                     JSONObject jsonObject = new JSONObject(serverRes);
 
-                    String ResponceMessage = jsonObject.getString("ResponceMessage");
+                    String ResponceMessage  = jsonObject.getString("ResponceMessage");
 
                     System.out.println("ResponceMessage .." + ResponceMessage);
 
@@ -481,13 +485,16 @@ public class AcceptDeptActivity extends AppCompatActivity {
                         String ValidationFailFor = jsonObject.getString("ValidationFailFor");
 
 
-                        DilaogRecreate(AcceptDeptActivity.this, "Message", ResponceText);
+                        DilaogRecreate(AcceptDeptActivity.this,"Message",ResponceText);
 
 
                     }
-                } catch (Exception e) {
+                }catch (Exception e){
                     e.printStackTrace();
                 }
+            }else{
+                Log.i(TAG,"CallSaveButtonValidation Server Response Empty!");
+                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "CallSaveButtonValidation  Server Response Empty!");
             }
 
         }
@@ -514,6 +521,6 @@ public class AcceptDeptActivity extends AppCompatActivity {
             });
 
         }
-    }
 
+    }
 }

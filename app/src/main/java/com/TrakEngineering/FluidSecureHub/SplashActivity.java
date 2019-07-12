@@ -489,8 +489,6 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
                     String HubId = jsonObject.getString("PersonId");
                     String IsPersonnelPINRequireForHub = jsonObject.getString("IsPersonnelPINRequireForHub");
                     String FluidSecureSiteName = jsonObject.getString("FluidSecureSiteName");
-                    String BluetoothCardReader = jsonObject.getString("BluetoothCardReader");
-                    String BluetoothCardReaderMacAddress = jsonObject.getString("BluetoothCardReaderMacAddress");
                     String IsVehicleHasFob = jsonObject.getString("IsVehicleHasFob");
                     String IsPersonHasFob = jsonObject.getString("IsPersonHasFob");
                     String LFBluetoothCardReader = jsonObject.getString("LFBluetoothCardReader");
@@ -507,14 +505,25 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
                     boolean UseBarcode = Boolean.parseBoolean(jsonObject.getString("UseBarcode"));
                     boolean fa_data = Boolean.parseBoolean(jsonObject.getString("EnbDisHubForFA"));
 
+                    String BluetoothCardReader = jsonObject.getString("BluetoothCardReader"); //ACR1255U-J1-006851
+                    String BluetoothCardReaderMacAddress = jsonObject.getString("BluetoothCardReaderMacAddress"); //88:4A:EA:85:85:FB
+                    String HFTrakCardReader = jsonObject.getString("BluetoothCardReader"); //"RFID_READER"; //
+                    String HFTrakCardReaderMacAddress = jsonObject.getString("BluetoothCardReaderMacAddress"); //"80:7D:3A:A2:3B:0E"; //
+                    boolean ACS_Reader;
 
+                    if (BluetoothCardReader != null && BluetoothCardReader.startsWith("ACR")){
+                         ACS_Reader = true;
+                    }else{
+                         ACS_Reader = false;
+                    }
+
+
+                    AppConstants.ACS_READER = ACS_Reader;
                     String IsOfflineAllow = jsonObject.getString("IsOfflineAllow");
-
                     OfflineConstants.storeOfflineAccess(SplashActivity.this, IsOfflineAllow);
-
                     CommonUtils.SaveLogFlagInPref(SplashActivity.this,IsLogging,CompanyBrandName,CompanyBrandLogoLink,SupportEmail,SupportPhonenumber);//Save logging to preferances
                     CommonUtils.FA_FlagSavePref(SplashActivity.this,fa_data,UseBarcode);
-                    storeBT_FOBDetails(BluetoothCardReader, BluetoothCardReaderMacAddress,LFBluetoothCardReader,LFBluetoothCardReaderMacAddress);
+                    storeBT_FOBDetails(BluetoothCardReader, BluetoothCardReaderMacAddress,LFBluetoothCardReader,LFBluetoothCardReaderMacAddress,HFTrakCardReader,HFTrakCardReaderMacAddress,ACS_Reader);
 
                     CommonUtils.SaveDataInPrefForGatehub (SplashActivity.this, IsGateHub, IsStayOpenGate);
 
@@ -830,7 +839,7 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
     }*/
 
 
-    public void storeBT_FOBDetails(String BluetoothCardReader, String BTMacAddress,String LFBluetoothCardReader, String LFBluetoothCardReaderMacAddress) {
+    public void storeBT_FOBDetails(String BluetoothCardReader, String BTMacAddress,String LFBluetoothCardReader, String LFBluetoothCardReaderMacAddress,String HFTrakCardReader,String HFTrakCardReaderMacAddress,boolean ACS_Reader) {
         SharedPreferences pref;
 
         SharedPreferences.Editor editor;
@@ -842,6 +851,9 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
         editor.putString("BTMacAddress", BTMacAddress);
         editor.putString("LFBluetoothCardReader", LFBluetoothCardReader);
         editor.putString("LFBluetoothCardReaderMacAddress", LFBluetoothCardReaderMacAddress);
+        editor.putString("HFTrakCardReader", HFTrakCardReader);
+        editor.putString("HFTrakCardReaderMacAddress", HFTrakCardReaderMacAddress);
+        editor.putBoolean("ACS_Reader",ACS_Reader);
 
         // commit changes
         editor.commit();

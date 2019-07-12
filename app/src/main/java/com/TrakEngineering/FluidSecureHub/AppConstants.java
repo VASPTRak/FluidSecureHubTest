@@ -81,6 +81,9 @@ public class AppConstants {
     public static final String IsGateHub= "IsGateHub";
     public static final String IsStayOpenGate = "IsStayOpenGate";
 
+    public static final String OfflineDataBaseSize = "OfflineDataBaseSize";
+    public static final String DbUpdateTime = "DbUpdateTime";
+
         public static final String FAData = "FAData";
         public static final String UseBarcode = "UseBarcode";
 
@@ -223,7 +226,7 @@ public class AppConstants {
     public static boolean NeedToRename;
     public static boolean BUSY_STATUS;
 
-
+    public static boolean ACS_READER;
     public static boolean IS_WIFI_ON;
     public static boolean IS_DATA_ON;
     public static boolean IS_HOTSPOT_ON;

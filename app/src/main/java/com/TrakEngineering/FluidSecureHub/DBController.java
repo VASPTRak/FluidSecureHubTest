@@ -14,7 +14,7 @@ public class DBController extends SQLiteOpenHelper {
     private static final String LOGCAT = null;
 
     public DBController(Context applicationcontext) {
-        super(applicationcontext, "FuelSecureTrak.db", null, 1);
+        super(applicationcontext, "FuelSecureTrak.db", null, 1);///mnt/sdcard/FuelSecureTrak.db
         Log.d(LOGCAT, "Created");
     }
 

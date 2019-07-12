@@ -100,10 +100,13 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
     private TextView tv_fobkey;
     private String mDeviceName;
     private String mDeviceAddress;
+    private String mDeviceName_hf_trak;
+    private String mDeviceAddress_hf_trak;
     private String HFDeviceName,IsBothFobAndPinRequired_flag = "no";
     private String HFDeviceAddress;
     private BluetoothLeService_Pin mBluetoothLeServicePin;
-    private boolean mConnected = false;
+    private LeService_HF_TrakReader_pin mBluetoothLeService_hf_trak;
+    private boolean LF_Connected = false, HF_Connected = false;
     private BluetoothGattCharacteristic mNotifyCharacteristic;
 
     private final String LIST_NAME = "NAME";
@@ -139,6 +142,8 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
     ConnectionDetector cd = new ConnectionDetector(DeviceControlActivity_Pin.this);
     List<Timer> TimerList = new ArrayList<Timer>();
 
+
+    HashMap<String, String> hmapSwitchOfflinepin = new HashMap<>();
 
     // Code to manage Service lifecycle.
     private final ServiceConnection mServiceConnection = new ServiceConnection() {
@@ -180,7 +185,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
         public void onReceive(Context context, Intent intent) {
             final String action = intent.getAction();
             if (BluetoothLeService_Pin.ACTION_GATT_CONNECTED.equals(action)) {
-                mConnected = true;
+                LF_Connected = true;
                 invalidateOptionsMenu();
                 //tv_enter_pin_no.setText("Present Fob key to reader");
                 int widthi = ActionBar.LayoutParams.WRAP_CONTENT;
@@ -189,7 +194,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                 tv_enter_pin_no.setLayoutParams(parmsi);
 
             } else if (BluetoothLeService_Pin.ACTION_GATT_DISCONNECTED.equals(action)) {
-                mConnected = false;
+                LF_Connected = false;
                 invalidateOptionsMenu();
 
                 if (LF_ReaderConnectionCountPin >= 1){
@@ -224,6 +229,71 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
         }
     };
 
+    //==========================================================================
+
+    // Code to manage Service lifecycle.
+    private final ServiceConnection mServiceConnection_hf_trak = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName componentName, IBinder service) {
+
+            mBluetoothLeService_hf_trak = ((LeService_HF_TrakReader_pin.LocalBinder) service).getService();
+            if (!mBluetoothLeService_hf_trak.initialize()) {
+                Log.e(TAG, "Unable to initialize Bluetooth");
+                finish();
+            }
+            // Automatically connects to the device upon successful start-up initialization.
+            if (mDeviceName_hf_trak != null && mDeviceAddress_hf_trak.contains(":")) {
+                final boolean result = mBluetoothLeService_hf_trak.connect(mDeviceAddress_hf_trak);
+                Log.d(TAG, "Connect request result=" + result);
+            } else {
+
+            }
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName componentName) {
+
+            mBluetoothLeService_hf_trak = null;
+
+        }
+    };
+
+
+
+    private final BroadcastReceiver mGattUpdateReceiver_hf_trak = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+
+            final String action = intent.getAction();
+            if (LeService_HF_TrakReader_pin.ACTION_GATT_CONNECTED.equals(action)) {
+
+                //Toast.makeText(getApplicationContext(),"HF Connected",Toast.LENGTH_LONG).show();
+                HF_Connected = true;
+                invalidateOptionsMenu();
+
+            } else if (LeService_HF_TrakReader_pin.ACTION_GATT_DISCONNECTED.equals(action)) {
+
+                //Toast.makeText(getApplicationContext(),"HF Disconnected",Toast.LENGTH_LONG).show();
+                HF_Connected = false;
+                invalidateOptionsMenu();
+                clearUI();
+            } else if (LeService_HF_TrakReader_pin.ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
+                // Toast.makeText(getApplicationContext(),"HF Discovered",Toast.LENGTH_LONG).show();
+                // Show all the supported services and characteristics on the user interface.
+                // displayGattServices(mBluetoothLeService_hf_trak.getSupportedGattServices());
+            } else if (LeService_HF_TrakReader_pin.ACTION_DATA_AVAILABLE.equals(action)) {
+
+                displayData_HF(intent.getStringExtra(LeService_HF_TrakReader_pin.EXTRA_DATA));
+
+            }
+        }
+    };
+
+    //==========================================================================
+
+
+
 
     private void clearUI() {
 
@@ -238,11 +308,20 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
         setContentView(R.layout.activity_device_control_pin);
 
         SharedPreferences sharedPre2 = DeviceControlActivity_Pin.this.getSharedPreferences("storeBT_FOBDetails", Context.MODE_PRIVATE);
-
         mDeviceName = sharedPre2.getString("LFBluetoothCardReader", "");
         mDeviceAddress = sharedPre2.getString("LFBluetoothCardReaderMacAddress", "");
         HFDeviceName = sharedPre2.getString("BluetoothCardReader", "");
         HFDeviceAddress = sharedPre2.getString("BTMacAddress", "");
+
+        mDeviceName_hf_trak = sharedPre2.getString("HFTrakCardReader", ""); //
+        mDeviceAddress_hf_trak = sharedPre2.getString("HFTrakCardReaderMacAddress", ""); //
+        AppConstants.ACS_READER = sharedPre2.getBoolean("ACS_Reader",false);
+
+        //Temp log
+        if (AppConstants.GenerateLogs)AppConstants.WriteinFile("BluetoothCardReader name: " + HFDeviceName+" BTMacAddress: "+HFDeviceAddress);
+        if (AppConstants.GenerateLogs)AppConstants.WriteinFile("LFBluetoothCardReader name: " + mDeviceName+" LFBluetoothCardReaderMacAddress: "+mDeviceAddress);
+        if (AppConstants.GenerateLogs)AppConstants.WriteinFile("HFTrakCardReader name: " + mDeviceName_hf_trak+" HFTrakCardReaderMacAddress: "+mDeviceAddress_hf_trak);
+        if (AppConstants.GenerateLogs)AppConstants.WriteinFile("ACS_READER STATUS: " + AppConstants.ACS_READER);
 
 
         SharedPreferences sharedPrefODO = DeviceControlActivity_Pin.this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
@@ -251,11 +330,9 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
         IsOtherRequire = sharedPrefODO.getString(AppConstants.IsOtherRequire, "");
         IsVehicleNumberRequire = sharedPrefODO.getString(AppConstants.IsVehicleNumberRequire, "");
 
-
         SharedPreferences sharedPrefGatehub = DeviceControlActivity_Pin.this.getSharedPreferences(Constants.PREF_COLUMN_GATE_HUB, Context.MODE_PRIVATE);
         IsGateHub = sharedPrefGatehub.getString(AppConstants.IsGateHub, "");
         IsStayOpenGate = sharedPrefGatehub.getString(AppConstants.IsStayOpenGate, "");
-
 
         /* site id is mismatching
         SharedPreferences sharedPref = DeviceControlActivity_Pin.this.getSharedPreferences(Constants.PREF_COLUMN_SITE, Context.MODE_PRIVATE);
@@ -272,8 +349,16 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
         getSupportActionBar().setTitle(AppConstants.BrandName);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
+
         Intent gattServiceIntent = new Intent(this, BluetoothLeService_Pin.class);
         bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE);
+
+        if (!AppConstants.ACS_READER){
+            //TRAK HF Reader Code
+            Intent gattServiceIntent1 = new Intent(this, LeService_HF_TrakReader_pin.class);
+            bindService(gattServiceIntent1, mServiceConnection_hf_trak, BIND_AUTO_CREATE);
+
+        }
 
 
         InItGUI();
@@ -346,19 +431,20 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
 
                 if (pin != null && !pin.trim().isEmpty()) {
                     hmap = controller.getPersonnelDetailsByPIN(pin);
+                    hmapSwitchOfflinepin = hmap;
                     offlinePersonInitialization(hmap);
 
                 } else if (FKey != null && !FKey.trim().isEmpty()) {
 
                     String fob = AppConstants.APDU_FOB_KEY.replace(":", "");
-
                     hmap = controller.getPersonnelDetailsByFOBnumber(fob);
+                    hmapSwitchOfflinepin = hmap;
                     offlinePersonInitialization(hmap);
 
                 }
                 ///////////////////////////////
 
-                if (cd.isConnectingToInternet()) {
+                if (cd.isConnectingToInternet() && AppConstants.NETWORK_STRENGTH) {
 
                     if (FKey.equalsIgnoreCase("")) {
                         if (cd.isConnectingToInternet())
@@ -401,6 +487,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
 
                     AppConstants.AUTH_CALL_SUCCESS = false;
                     if (AppConstants.GenerateLogs)AppConstants.WriteinFile("Offline Pin : " + pin);
+                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " Temporary loss of cell service ~Switching to offline mode!!");
 
                     if (OfflineConstants.isOfflineAccess(DeviceControlActivity_Pin.this)) {
                         //offline----------
@@ -484,21 +571,14 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
         }
 
         TimeoutPinScreen();
-        registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter());
-        if (mBluetoothLeServicePin != null) {
 
-            if (mDeviceName != null && mDeviceAddress.contains(":")) {
-                final boolean result = mBluetoothLeServicePin.connect(mDeviceAddress);
-                Log.d(TAG, "Connect request result=" + result);
-            } else {
-               /* if (!HFDeviceAddress.contains(":")) {
-                    tv_enter_pin_no.setText("");
-                } else {
-                    tv_enter_pin_no.setText("Present Fob key to reader");
-                }*/
-            }
 
+        if (!LF_Connected) {ConnectBLEDEvices();}
+
+        if (!HF_Connected && !AppConstants.ACS_READER) {
+            ConnectBLEDEvices_hf_trak();
         }
+
 
         tv_fobkey.setText("");
         LF_FobKey = "";
@@ -524,6 +604,13 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
         TimerTask tt = new TimerTask() {
             @Override
             public void run() {
+
+                if (!LF_Connected) {ConnectBLEDEvices();}
+
+                if (!HF_Connected && !AppConstants.ACS_READER) {
+                    ConnectBLEDEvices_hf_trak();
+                }
+
                 //do something
                 if (!AppConstants.PinLocal_FOB_KEY.equalsIgnoreCase("")) {
 
@@ -538,7 +625,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                         }
                     });
 
-                } else if (mConnected) {
+                } else if (LF_Connected || HF_Connected) {
 
                     if (tv_fobkey.getText().toString().equalsIgnoreCase("")) {
                         readFobKey();//Read FobKey
@@ -557,7 +644,16 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        unregisterReceiver(mGattUpdateReceiver);
+
+        try {
+            unregisterReceiver(mGattUpdateReceiver);
+
+            if (!AppConstants.ACS_READER)
+                unregisterReceiver(mGattUpdateReceiver_hf_trak);
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -567,6 +663,10 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
         CancelTimer();
         unbindService(mServiceConnection);
         mBluetoothLeServicePin = null;
+
+        if (!AppConstants.ACS_READER)
+            unbindService(mServiceConnection_hf_trak);
+        mBluetoothLeService_hf_trak = null;
 
         if (receiver != null) {
             this.unregisterReceiver(receiver);
@@ -595,7 +695,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.gatt_services, menu);
-        if (mConnected) {
+        if (LF_Connected) {
             menu.findItem(R.id.menu_connect).setVisible(false);
             menu.findItem(R.id.menu_disconnect).setVisible(true);
         } else {
@@ -633,9 +733,8 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
     private void displayData(String data) {
         if (data != null || !data.isEmpty()) {
 
-
             String Str_data = data.toString().trim();
-            System.out.println("FOK_KEY Vehi " + Str_data);
+            System.out.println("FOK_KEY Pin " + Str_data);
             if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+"  Response LF: " + Str_data);
             String Str_check = Str_data.replace(" ", "");
 
@@ -661,19 +760,17 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                         if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+"  displayData Split Fob_Key  --Exception " + ex);
                     }
 
-
                 }else{
 
                     try {
-
                         LF_FobKey = Str_check.replace(" ", "");//if no fob presented this value should be empty.
                         tv_fobkey.setText(Str_check.replace(" ", ""));
                     } catch (Exception ex) {
                         System.out.println(ex);
                         if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+"  displayData plain Fob_Key  --Exception " + ex);
                     }
-                }
 
+                }
 
                 if (!LF_FobKey.equalsIgnoreCase("" ) && LF_FobKey.length() > 5) {//
                     //tv_enter_pin_no.setText("Fob Read Successfully");
@@ -687,15 +784,64 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                     //etPersonnelPin.setText("");
                 }
 
+            }
+        }
+    }
 
-                if (Count < 3) {
-                    // Toast.makeText(getApplicationContext(),"Attempt to read Characteristic: "+Count, Toast.LENGTH_LONG).show();
-                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+"  Attempt to read Char: " + Count);
-                    Count++;
-                    if (mBluetoothLeServicePin != null) {
-                        // mBluetoothLeServiceVehicle.readCharacteristic(characteristic);
-                        mBluetoothLeServicePin.readCustomCharacteristic();
+    private void displayData_HF(String data) {
+
+        if (data != null && !data.isEmpty()) {
+
+
+            String Str_data = data.toString().trim();
+            System.out.println("FOK_KEY pIN " + Str_data);
+            if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+"  Response HF: " + Str_data);
+            String Str_check = Str_data.replace(" ", "");
+
+            if (Str_data.contains("FFFFFFFFFFFFFFFFFFFF") || Str_data.contains("FF FF FF FF FF FF FF FF FF FF")){
+
+                if (mBluetoothLeServicePin != null) {
+                    mBluetoothLeServicePin.writeCustomCharacteristic(0x01, etInput.getText().toString().trim());
+                }
+                CommonUtils.AutoCloseCustomMessageDilaog(DeviceControlActivity_Pin.this, "Message", "Unable to read fob.  Please Try again..");
+
+            }else if (CommonUtils.ValidateFobkey(Str_check) && Str_check.length() > 4) {
+
+                if (Str_check.contains("\n")){
+
+                    try {
+                        String[] Seperate = Str_data.split("\n");
+                        String Sep1 = Seperate[0];
+                        String Sep2 = Seperate[1];
+                        LF_FobKey = Sep2.replace(" ", "");//if no fob presented this value should be empty.
+                        tv_fobkey.setText(Sep2.replace(" ", ""));
+                    } catch (Exception ex) {
+                        System.out.println(ex);
+                        if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+"  displayData_HF Split Fob_Key  --Exception " + ex);
                     }
+
+                }else{
+
+                    try {
+                        LF_FobKey = Str_check.replace(" ", "");//if no fob presented this value should be empty.
+                        tv_fobkey.setText(Str_check.replace(" ", ""));
+                    } catch (Exception ex) {
+                        System.out.println(ex);
+                        if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+"  displayData_HF plain Fob_Key  --Exception " + ex);
+                    }
+
+                }
+
+                if (!LF_FobKey.equalsIgnoreCase("" ) && LF_FobKey.length() > 5) {//
+                    //tv_enter_pin_no.setText("Fob Read Successfully");
+                    tv_fob_number.setText("");//"Fob No: " + LF_FobKey
+                    AppConstants.PinLocal_FOB_KEY = LF_FobKey;
+                    AppConstants.APDU_FOB_KEY = LF_FobKey;
+                    if (mBluetoothLeServicePin != null) {
+                        mBluetoothLeServicePin.writeCustomCharacteristic(0x01, etInput.getText().toString().trim());
+                    }
+                    //On LF Fob read success
+                    //etPersonnelPin.setText("");
                 }
 
             }
@@ -711,20 +857,48 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
         return intentFilter;
     }
 
+
+    private static IntentFilter makeGattUpdateIntentFilter_hf_trak() {
+
+
+        final IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(LeService_HF_TrakReader_pin.ACTION_GATT_CONNECTED);
+        intentFilter.addAction(LeService_HF_TrakReader_pin.ACTION_GATT_DISCONNECTED);
+        intentFilter.addAction(LeService_HF_TrakReader_pin.ACTION_GATT_SERVICES_DISCOVERED);
+        intentFilter.addAction(LeService_HF_TrakReader_pin.ACTION_DATA_AVAILABLE);
+        return intentFilter;
+
+    }
+
     public void readFobKey() {
 
-        if (mBluetoothLeServicePin != null) {
-            // mBluetoothLeServicePin.readCharacteristic(characteristic);
-            mBluetoothLeServicePin.readCustomCharacteristic();
+        //HF Reader Code
+        if (HF_Connected && !AppConstants.ACS_READER) {
+
+            if (mBluetoothLeService_hf_trak != null) {
+                // mBluetoothLeService_hf_trak.readCharacteristic(characteristic);
+                mBluetoothLeService_hf_trak.readCustomCharacteristic();
+            }
+        }
+
+
+        //LF Reader Code
+        if (LF_Connected){
+
+            if (mBluetoothLeServicePin != null) {
+                // mBluetoothLeService_hf_trak.readCharacteristic(characteristic);
+                mBluetoothLeServicePin.readCustomCharacteristic();
+            }
         }
     }
 
     public void FobreadSuccess() {
 
         runOnUiThread(new Runnable() {
+            @RequiresApi(api = Build.VERSION_CODES.N)
             @Override
             public void run() {
-                etPersonnelPin.setText("");
+                //etPersonnelPin.setText("");
                 System.out.println("pin2 FOK_KEY" + AppConstants.APDU_FOB_KEY);
                 ScreenOutTime.cancel();//Stop screenout
                 String test = AppConstants.APDU_FOB_KEY;
@@ -733,20 +907,20 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                 try {
 
                     String fob = AppConstants.APDU_FOB_KEY.replace(":", "").trim();
+                    HashMap<String, String> hmap = controller.getPersonnelDetailsByFOBnumber(fob);
+                    hmapSwitchOfflinepin = hmap;
+                    offlinePersonInitialization(hmap);
+
                     tv_fobkey.setText(fob);
                     CommonUtils.PlayBeep(DeviceControlActivity_Pin.this);
-
-                    if (cd.isConnectingToInternet())
+                    if (cd.isConnectingToInternet() && AppConstants.NETWORK_STRENGTH)
                     {
                         if (!isFinishing()) {
+
                             new GetPinNuOnFobKeyDetection().execute();
                         }
                     }
                     else {
-
-
-                        HashMap<String, String> hmap = controller.getPersonnelDetailsByFOBnumber(fob);
-                        offlinePersonInitialization(hmap);
 
                         if (OfflineConstants.isOfflineAccess(DeviceControlActivity_Pin.this)) {
                             checkPINvalidation(hmap);
@@ -820,7 +994,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
 
     public void DisplayScreenInit() {
 
-        if (cd.isConnectingToInternet()) {
+        if (cd.isConnectingToInternet() && AppConstants.NETWORK_STRENGTH) {
             SharedPreferences sharedPrefODO = DeviceControlActivity_Pin.this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
             IsPersonHasFob = sharedPrefODO.getString(AppConstants.IsPersonHasFob, "false");
         } else {
@@ -1060,7 +1234,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
 
             pd.dismiss();
 
-            if (serverRes != null) {
+            if (serverRes != null && !serverRes.isEmpty()) {
 
                 try {
 
@@ -1131,7 +1305,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                             if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  ValidateFor Pin" + ResponceText);
 
 
-                             DilaogRecreate(DeviceControlActivity_Pin.this,"Message",ResponceText);
+                            DilaogRecreate(DeviceControlActivity_Pin.this,"Message",ResponceText);
 
 
                         } else if (ValidationFailFor.equalsIgnoreCase("Vehicle")) {
@@ -1166,8 +1340,18 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                     e.printStackTrace();
                 }
             }else{
-                Log.i(TAG,"CallSaveButtonFunctionality Server Response Empty!");
-                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "CallSaveButtonFunctionality Server Response Empty!");
+
+                AppConstants.NETWORK_STRENGTH = false;
+                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "CallSaveButtonFunctionality Temporary loss of cell service ~Switching to offline mode!!");
+                if (OfflineConstants.isOfflineAccess(DeviceControlActivity_Pin.this)) {
+                    //offline----------
+                    checkPINvalidation(hmapSwitchOfflinepin);
+
+                } else {
+                    CommonUtils.AutoCloseCustomMessageDilaog(DeviceControlActivity_Pin.this, "Message", "Please check your Offline Access");
+                    //AppConstants.colorToastBigFont(getApplicationContext(), AppConstants.OFF1, Color.RED);
+                }
+
             }
 
         }
@@ -1254,8 +1438,7 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
 
             try{
 
-                if (serverRes != null) {
-
+                if (serverRes != null && !serverRes.isEmpty()) {
 
                     JSONObject jsonObject = new JSONObject(serverRes);
 
@@ -1274,18 +1457,6 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                         etPersonnelPin.setText(PersonPIN);
                         InCaseOfGateHub();
 
-                    /*if (IsGateHub.equalsIgnoreCase("True")) {
-                        InCaseOfGateHub();//skip CallSaveButtonFunctionality server call if gate hub true
-
-                    }else{
-                        new Handler().postDelayed(new Runnable() {
-                            @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-                            @Override
-                            public void run() {
-                                CallSaveButtonFunctionality();//Press Enter fun
-                            }
-                        }, 1000);
-                    }*/
 
                     } else {
 
@@ -1371,8 +1542,17 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
                     }
 
                 }else{
-                    Log.i(TAG,"GetPinNuOnFobKeyDetection Server Response Empty!");
-                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "GetPinNuOnFobKeyDetection Server Response Empty!");
+
+                    AppConstants.NETWORK_STRENGTH = false;
+                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "GetPinNuOnFobKeyDetection Temporary loss of cell service ~Switching to offline mode!!");
+                    if (OfflineConstants.isOfflineAccess(DeviceControlActivity_Pin.this)) {
+                        //offline----------
+                         checkPINvalidation(hmapSwitchOfflinepin);
+
+                    } else {
+                        CommonUtils.AutoCloseCustomMessageDilaog(DeviceControlActivity_Pin.this, "Message", "Please check your Offline Access");
+                        //AppConstants.colorToastBigFont(getApplicationContext(), AppConstants.OFF1, Color.RED);
+                    }
                 }
 
             }catch (Exception ex) {
@@ -1704,5 +1884,39 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
         });
 
     }
+
+    public void ConnectBLEDEvices() {
+
+        try {
+            registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter());
+            if (mBluetoothLeServicePin != null) {
+
+                if (mDeviceName != null && mDeviceAddress.contains(":")) {
+                    final boolean result = mBluetoothLeServicePin.connect(mDeviceAddress);
+                    Log.d(TAG, "Connect request result=" + result);
+                }
+
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    public void ConnectBLEDEvices_hf_trak() {
+
+        registerReceiver(mGattUpdateReceiver_hf_trak, makeGattUpdateIntentFilter_hf_trak());
+        if (mBluetoothLeService_hf_trak != null) {
+
+            if (mDeviceName_hf_trak != null && mDeviceAddress_hf_trak.contains(":")) {
+                final boolean result = mBluetoothLeService_hf_trak.connect(mDeviceAddress_hf_trak);
+                Log.d(TAG, "Connect request result=" + result);
+            } else {
+
+                Log.d(TAG, "Plz chk Trak HF Reader DeviceName: "+ mDeviceName_hf_trak +"  DeviceAddress: "+mDeviceAddress_hf_trak);
+                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "Plz chk Trak HF Reader DeviceName: "+ mDeviceName_hf_trak +"  DeviceAddress: "+mDeviceAddress_hf_trak);
+
+
+            }
+        }}
 
 }
