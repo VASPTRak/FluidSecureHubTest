@@ -317,13 +317,6 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
         mDeviceAddress_hf_trak = sharedPre2.getString("HFTrakCardReaderMacAddress", ""); //
         AppConstants.ACS_READER = sharedPre2.getBoolean("ACS_Reader",false);
 
-        //Temp log
-        if (AppConstants.GenerateLogs)AppConstants.WriteinFile("BluetoothCardReader name: " + HFDeviceName+" BTMacAddress: "+HFDeviceAddress);
-        if (AppConstants.GenerateLogs)AppConstants.WriteinFile("LFBluetoothCardReader name: " + mDeviceName+" LFBluetoothCardReaderMacAddress: "+mDeviceAddress);
-        if (AppConstants.GenerateLogs)AppConstants.WriteinFile("HFTrakCardReader name: " + mDeviceName_hf_trak+" HFTrakCardReaderMacAddress: "+mDeviceAddress_hf_trak);
-        if (AppConstants.GenerateLogs)AppConstants.WriteinFile("ACS_READER STATUS: " + AppConstants.ACS_READER);
-
-
         SharedPreferences sharedPrefODO = DeviceControlActivity_Pin.this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
         IsDepartmentRequire = sharedPrefODO.getString(AppConstants.IsDepartmentRequire, "");
         IsPersonnelPINRequire = sharedPrefODO.getString(AppConstants.IsPersonnelPINRequire, "");
@@ -1120,6 +1113,9 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
         @Override
         protected void onPreExecute() {
 
+            if (AppConstants.ServerCallLogs)Log.w(TAG,"SC_Log CallSaveButtonFunctionality onPreExecute ");
+            if (AppConstants.ServerCallLogs)AppConstants.WriteinFile(TAG + "SC_Log CallSaveButtonFunctionality onPreExecute ");
+
             String s= "Please wait...";
             SpannableString ss2=  new SpannableString(s);
             ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
@@ -1135,6 +1131,8 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
 
             String resp = "";
             String vehicleNumber = "";
+            if (AppConstants.ServerCallLogs)Log.w(TAG,"SC_Log CallSaveButtonFunctionality doInBackground ");
+            if (AppConstants.ServerCallLogs)AppConstants.WriteinFile(TAG + "SC_Log CallSaveButtonFunctionality doInBackground ");
 
             try {
 
@@ -1238,8 +1236,10 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
 
                 try {
 
-                    JSONObject jsonObject = new JSONObject(serverRes);
+                    if (AppConstants.ServerCallLogs)Log.w(TAG,"SC_Log CallSaveButtonFunctionality onPostExecute ");
+                    if (AppConstants.ServerCallLogs)AppConstants.WriteinFile(TAG + "SC_Log CallSaveButtonFunctionality onPostExecute ");
 
+                    JSONObject jsonObject = new JSONObject(serverRes);
                     String ResponceMessage = jsonObject.getString("ResponceMessage");
 
                     System.out.println("ResponceMessage.." + ResponceMessage);
@@ -1365,6 +1365,8 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
         @Override
         protected void onPreExecute() {
 
+            if (AppConstants.ServerCallLogs)Log.w(TAG,"SC_Log GetPinNuOnFobKeyDetection onPreExecute ");
+            if (AppConstants.ServerCallLogs)AppConstants.WriteinFile(TAG + "SC_Log GetPinNuOnFobKeyDetection onPreExecute ");
 
             String text =  "Please wait..";
             SpannableStringBuilder biggerText = new SpannableStringBuilder(text);
@@ -1376,6 +1378,9 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
         protected String doInBackground(Void... arg0) {
 
             String resp = "";
+
+            if (AppConstants.ServerCallLogs)Log.w(TAG,"SC_Log GetPinNuOnFobKeyDetection doInBackground ");
+            if (AppConstants.ServerCallLogs)AppConstants.WriteinFile(TAG + "SC_Log GetPinNuOnFobKeyDetection doInBackground ");
 
             CheckPinFobEntity objEntityClass = new CheckPinFobEntity();
             objEntityClass.IMEIUDID = AppConstants.getIMEI(DeviceControlActivity_Pin.this);
@@ -1437,6 +1442,9 @@ public class DeviceControlActivity_Pin extends AppCompatActivity {
 
 
             try{
+                if (AppConstants.ServerCallLogs)Log.w(TAG,"SC_Log GetPinNuOnFobKeyDetection onPostExecute ");
+                if (AppConstants.ServerCallLogs)AppConstants.WriteinFile(TAG + "SC_Log GetPinNuOnFobKeyDetection onPostExecute ");
+
 
                 if (serverRes != null && !serverRes.isEmpty()) {
 

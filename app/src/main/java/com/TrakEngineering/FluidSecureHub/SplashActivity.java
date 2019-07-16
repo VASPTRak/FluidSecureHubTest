@@ -509,6 +509,8 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
                     String BluetoothCardReaderMacAddress = jsonObject.getString("BluetoothCardReaderMacAddress"); //88:4A:EA:85:85:FB
                     String HFTrakCardReader = jsonObject.getString("BluetoothCardReader"); //"RFID_READER"; //
                     String HFTrakCardReaderMacAddress = jsonObject.getString("BluetoothCardReaderMacAddress"); //"80:7D:3A:A2:3B:0E"; //
+                    boolean ColloectServerLog = jsonObject.getBoolean("ColloectServerLog");
+                    AppConstants.ServerCallLogs = ColloectServerLog;
                     boolean ACS_Reader;
 
                     if (BluetoothCardReader != null && BluetoothCardReader.startsWith("ACR")){

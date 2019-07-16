@@ -13,11 +13,24 @@
         android:title="DebugWindow"
         app:showAsAction="never" />
 
+    <item android:id="@+id/mofline"
+        android:orderInCategory="104"
+        android:icon="@drawable/img_offline"
+        android:title="Close"
+        app:showAsAction="always"/>
+
+    <item android:id="@+id/monline"
+        android:orderInCategory="104"
+        android:icon="@drawable/img_online"
+        android:title="Close"
+        app:showAsAction="always"/>
 
     <item android:id="@+id/mclose"
         android:orderInCategory="104"
         android:icon="@drawable/close"
         android:title="Close"
         app:showAsAction="always"/>
+
+
 
 </menu>

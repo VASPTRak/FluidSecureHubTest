@@ -94,6 +94,9 @@ public class AcceptServiceCall {
         @Override
         protected void onPreExecute() {
 
+            if (AppConstants.ServerCallLogs)Log.w(TAG,"SC_Log ServerCall onPreExecute ");
+            if (AppConstants.ServerCallLogs)AppConstants.WriteinFile(TAG + "SC_Log ServerCall onPreExecute ");
+
             String s= "Please wait...";
             SpannableString ss2=  new SpannableString(s);
             ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
@@ -108,6 +111,8 @@ public class AcceptServiceCall {
         protected String doInBackground(Void... arg0) {
 
             try {
+                if (AppConstants.ServerCallLogs)Log.w(TAG,"SC_Log ServerCall doInBackground ");
+                if (AppConstants.ServerCallLogs)AppConstants.WriteinFile(TAG + "SC_Log ServerCall doInBackground ");
 
                 SharedPreferences sharedPrefODO = activity.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
 
@@ -277,6 +282,8 @@ public class AcceptServiceCall {
 
             try {
 
+                if (AppConstants.ServerCallLogs)Log.w(TAG,"SC_Log ServerCall onPostExecute ");
+                if (AppConstants.ServerCallLogs)AppConstants.WriteinFile(TAG + "SC_Log ServerCall onPostExecute ");
 
                 if (serverRes != null && !serverRes.isEmpty()) {
 

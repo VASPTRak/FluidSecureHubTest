@@ -149,6 +149,8 @@ public class DeviceControlActivity_tld extends Service {
         registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter());
 
         if (mBluetoothLeService_tld != null) {
+
+            if (AppConstants.GenerateLogs)AppConstants.WriteinFile("ConfigureTLD " + "MacAddress:"+mDeviceAddress);
             final boolean result = mBluetoothLeService_tld.connect(mDeviceAddress);
             Log.d(TAG, "Connect request result=" + result);
         }

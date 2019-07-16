@@ -1256,6 +1256,12 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
     public void selectHoseAction(View v) {
 
+        if (cd.isConnectingToInternet()){
+            AppConstants.NETWORK_STRENGTH = true;
+        }else{
+            AppConstants.NETWORK_STRENGTH = false;
+        }
+
         //SyncServerData();//Check for pending SQLite data
         SyncSqliteData();
 
@@ -2067,6 +2073,9 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         @Override
         protected void onPreExecute() {
 
+            if (AppConstants.ServerCallLogs)Log.w(TAG,"SC_Log SSID onPreExecute ");
+            if (AppConstants.ServerCallLogs)AppConstants.WriteinFile(TAG + "SC_Log SSID onPreExecute ");
+
             String s= "Please wait..";
             SpannableString ss2=  new SpannableString(s);
             ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
@@ -2085,6 +2094,9 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             String resp = "";
 
             try {
+
+                if (AppConstants.ServerCallLogs)Log.w(TAG,"SC_Log SSID doInBackground ");
+                if (AppConstants.ServerCallLogs)AppConstants.WriteinFile(TAG + "SC_Log SSID doInBackground ");
 
                 UserInfoEntity userInfoEntity = CommonUtils.getCustomerDetails(WelcomeActivity.this);
 
@@ -2134,6 +2146,10 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         protected void onPostExecute(String result) {
 
             pd.dismiss();
+
+            if (AppConstants.ServerCallLogs)Log.w(TAG,"SC_Log SSID onPostExecute ");
+            if (AppConstants.ServerCallLogs)AppConstants.WriteinFile(TAG + "SC_Log SSID onPostExecute ");
+
             linearHose.setClickable(true);//Enable hose Selection
             tvLatLng.setText("Current Location :" + Constants.Latitude + "," + Constants.Longitude);
             System.out.println("GetSSIDUsingLocation...." + result);
@@ -5345,8 +5361,37 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     }
 
     @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        if(Build.VERSION.SDK_INT > 11) {
+            invalidateOptionsMenu();
+            //getMenuInflater().inflate(R.menu.reader, menu);
+            if (cd.isConnectingToInternet() && AppConstants.NETWORK_STRENGTH){
+
+                menu.findItem(R.id.monline).setVisible(true);
+                menu.findItem(R.id.mofline).setVisible(false);
+
+            }else{
+                menu.findItem(R.id.monline).setVisible(false);
+                menu.findItem(R.id.mofline).setVisible(true);
+            }
+        }
+        return super.onPrepareOptionsMenu(menu);
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.reader, menu);
+
+        if (cd.isConnectingToInternet() && AppConstants.NETWORK_STRENGTH){
+
+            menu.findItem(R.id.monline).setVisible(true);
+            menu.findItem(R.id.mofline).setVisible(false);
+
+        }else{
+            menu.findItem(R.id.monline).setVisible(false);
+            menu.findItem(R.id.mofline).setVisible(true);
+        }
+
         return true;
     }
 
@@ -5362,6 +5407,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             case R.id.mconfigure_tld:
                 //TLD Service
                 ConfigureTld();
+
                 break;
             case R.id.enable_debug_window:
 
@@ -6762,6 +6808,9 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         @Override
         protected void onPreExecute() {
 
+            if (AppConstants.ServerCallLogs)Log.w(TAG,"SC_Log GetSSIDUsingLocationOnResume OnPreExecute ");
+            if (AppConstants.ServerCallLogs)AppConstants.WriteinFile(TAG + "  SC_Log GetSSIDUsingLocationOnResume OnPreExecute ");
+
             String s= "Please wait...";
             SpannableString ss2=  new SpannableString(s);
             ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
@@ -6778,6 +6827,9 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             String resp = "";
 
             try {
+                if (AppConstants.ServerCallLogs)Log.w(TAG,"SC_Log GetSSIDUsingLocationOnResume doInBackground ");
+                if (AppConstants.ServerCallLogs)AppConstants.WriteinFile(TAG + " SC_Log GetSSIDUsingLocationOnResume doInBackground ");
+
 
                 UserInfoEntity userInfoEntity = CommonUtils.getCustomerDetails(WelcomeActivity.this);
 
@@ -6815,8 +6867,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             } catch (Exception e) {
                 pd.dismiss();
                 System.out.println("Ex" + e.getMessage());
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "  GetSSIDUsingLocation onPostExecute --Exception " + e);
+                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  GetSSIDUsingLocation onPostExecute --Exception " + e);
             }
 
             return resp;
@@ -6826,12 +6877,15 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         @Override
         protected void onPostExecute(String result) {
 
-            pd.dismiss();
-            tvLatLng.setText("Current Location :" + Constants.Latitude + "," + Constants.Longitude);
-
-            System.out.println("GetSSIDUsingLocation...." + result);
-
             try {
+
+                pd.dismiss();
+                if (AppConstants.ServerCallLogs)Log.w(TAG,"SC_Log GetSSIDUsingLocationOnResume onPostExecute ");
+                if (AppConstants.ServerCallLogs)AppConstants.WriteinFile(TAG + " SC_Log GetSSIDUsingLocationOnResume onPostExecute ");
+
+                tvLatLng.setText("Current Location :" + Constants.Latitude + "," + Constants.Longitude);
+                System.out.println("GetSSIDUsingLocation...." + result);
+
 
                 serverSSIDList.clear();
                 // BackgroundServiceKeepDataTransferAlive.SSIDList.clear();//clear SSIDList
@@ -7205,13 +7259,17 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         @Override
         protected void onPreExecute() {
 
-
+            if (AppConstants.ServerCallLogs)Log.w(TAG,"SC_Log SSIDGateHub onPostExecute ");
+            if (AppConstants.ServerCallLogs)AppConstants.WriteinFile(TAG + "SC_Log SSIDGateHub onPostExecute ");
         }
 
         protected String doInBackground(Void... arg0) {
             String resp = "";
 
             try {
+
+                if (AppConstants.ServerCallLogs)Log.w(TAG,"SC_Log SSIDGateHub doInBackground ");
+                if (AppConstants.ServerCallLogs)AppConstants.WriteinFile(TAG + "SC_Log SSIDGateHub doInBackground ");
 
                 UserInfoEntity userInfoEntity = CommonUtils.getCustomerDetails(WelcomeActivity.this);
 
@@ -7260,8 +7318,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         @Override
         protected void onPostExecute(String result) {
 
-
-            System.out.println("GetSSIDUsingLocation...." + result);
+            if (AppConstants.ServerCallLogs)Log.w(TAG,"SC_Log SSIDGateHub onPostExecute ");
+            if (AppConstants.ServerCallLogs)AppConstants.WriteinFile(TAG + "SC_Log SSIDGateHub onPostExecute ");
 
             try {
 

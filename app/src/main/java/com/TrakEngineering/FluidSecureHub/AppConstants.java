@@ -125,6 +125,7 @@ public class AppConstants {
     public static String ESP32_update = "NO";
     public static String PIC_update = "NO";
     public static boolean GenerateLogs;
+    public static boolean ServerCallLogs;
     public static boolean EnableFA;
 
     public static String OFF1="Please check your Internet Data";

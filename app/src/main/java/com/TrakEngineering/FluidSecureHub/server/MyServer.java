@@ -75,9 +75,21 @@ public class MyServer extends NanoHTTPD {
 
             if (RequestFor != null && RequestFor.equalsIgnoreCase("TLDUpgrade")) {
 
-                String ProbeAddrAsString = session.getHeaders().get("mac").replaceAll(":","");//
-                String Level = session.getHeaders().get("level").trim();
+                String ProbeAddrAsString ="",Level ="",TLDFirmwareVersion = "";
 
+                try {
+
+                    ProbeAddrAsString = session.getHeaders().get("mac").replaceAll(":", "");//
+                    Level = session.getHeaders().get("level");
+                    TLDFirmwareVersion = session.getHeaders().get("firmware version");
+
+
+                }catch (Exception e){
+                    e.printStackTrace();
+                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile("Exception in RequestFor:"+e);
+                }
+
+                if (AppConstants.GenerateLogs)AppConstants.WriteinFile("TLD_REQ_To_http_server: ProbeAddr: "+ProbeAddrAsString+" Level:"+Level+" TLDFirmwareVersion:"+TLDFirmwareVersion);
                 TldMacAddress = GetProbeOffByOne(ProbeAddrAsString);
 
                 Log.i(TAG, "Mac_AddressInHeader:"+ProbeAddrAsString+"\nMac_AddressAfterOff:"+TldMacAddress);
@@ -136,6 +148,7 @@ public class MyServer extends NanoHTTPD {
 
 
                 ResMsg = "{\"TLD_update\":\"" + IsTLDFirmwareUpgrade + "\", \"Schedule\":\""+ScheduleTankReading+"\" , \"current_time\":\""+AppConstants.currentDateFormat("HH:mm:ss")+"\"}";
+                if (AppConstants.GenerateLogs)AppConstants.WriteinFile("TLD_RES_Frm_http_server"+ResMsg);
 
                 System.out.println("TLD-"+ResMsg);
 
@@ -415,5 +428,6 @@ public class MyServer extends NanoHTTPD {
         new BackgroundServiceDownloadFirmware.SaveTLDDataToServer().execute(jsonData, authString);
 
     }
+
 
 }

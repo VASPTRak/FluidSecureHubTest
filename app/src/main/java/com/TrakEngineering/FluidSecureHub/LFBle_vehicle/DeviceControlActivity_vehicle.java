@@ -1040,6 +1040,8 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
         protected void onPreExecute() {
 
             try {
+                if (AppConstants.ServerCallLogs)Log.w(TAG,"SC_Log ServerCallFirst onPreExecute ");
+                if (AppConstants.ServerCallLogs)AppConstants.WriteinFile(TAG + "SC_Log ServerCallFirst onPreExecute ");
 
                 String s= "Please wait...";
                 SpannableString ss2=  new SpannableString(s);
@@ -1061,6 +1063,8 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
             AppConstants.VehicleLocal_FOB_KEY = "";
 
             try {
+                if (AppConstants.ServerCallLogs)Log.w(TAG,"SC_Log ServerCallFirst doInBackground ");
+                if (AppConstants.ServerCallLogs)AppConstants.WriteinFile(TAG + "SC_Log ServerCallFirst doInBackground ");
 
                 String V_Number = editVehicleNumber.getText().toString().trim();
 
@@ -1167,6 +1171,9 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
         protected void onPostExecute(String serverRes) {
 
             String VehicleNumber = "";
+            if (AppConstants.ServerCallLogs)Log.w(TAG,"SC_Log ServerCallFirst onPostExecute ");
+            if (AppConstants.ServerCallLogs)AppConstants.WriteinFile(TAG + "SC_Log ServerCallFirst onPostExecute ");
+
             try {
 
                 if (serverRes != null && !serverRes.equals("")) {
@@ -1557,10 +1564,10 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
 
         @Override
         protected void onPreExecute() {
-            /*pd = new ProgressDialog(DeviceControlActivity_vehicle.this);
-            pd.setMessage("Please wait...");
-            pd.setCancelable(true);
-            pd.show();*/
+
+            if (AppConstants.ServerCallLogs)Log.w(TAG,"SC_Log GetVehicleNuOnFobKeyDetection onPreExecute ");
+            if (AppConstants.ServerCallLogs)AppConstants.WriteinFile(TAG + "SC_Log GetVehicleNuOnFobKeyDetection onPreExecute ");
+
             String text =  "Please wait..";
             SpannableStringBuilder biggerText = new SpannableStringBuilder(text);
             biggerText.setSpan(new RelativeSizeSpan(2.00f), 0, text.length(), 0);
@@ -1571,6 +1578,9 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
         protected String doInBackground(Void... arg0) {
 
             try {
+                if (AppConstants.ServerCallLogs)Log.w(TAG,"SC_Log GetVehicleNuOnFobKeyDetection doInBackground ");
+                if (AppConstants.ServerCallLogs)AppConstants.WriteinFile(TAG + "SC_Log GetVehicleNuOnFobKeyDetection doInBackground ");
+
                 String vehicleNumber = "";
                 String pinNumber = "";
 
@@ -1634,6 +1644,8 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
 
             //pd.dismiss();
             try {
+                if (AppConstants.ServerCallLogs)Log.w(TAG,"SC_Log GetVehicleNuOnFobKeyDetection onPostExecute ");
+                if (AppConstants.ServerCallLogs)AppConstants.WriteinFile(TAG + "SC_Log GetVehicleNuOnFobKeyDetection onPostExecute ");
 
 
                 if (serverRes != null && !serverRes.isEmpty()) {
@@ -2173,6 +2185,8 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
         @Override
         protected void onPreExecute() {
 
+            if (AppConstants.ServerCallLogs)Log.w(TAG,"SC_Log GetVehicleByFSTagMacAddress onPreExecute ");
+            if (AppConstants.ServerCallLogs)AppConstants.WriteinFile(TAG + "SC_Log GetVehicleByFSTagMacAddress onPreExecute ");
 
             String s= "Please wait...";
             SpannableString ss2=  new SpannableString(s);
@@ -2191,6 +2205,8 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
 
 
             try {
+                if (AppConstants.ServerCallLogs)Log.w(TAG,"SC_Log GetVehicleByFSTagMacAddress doInBackground ");
+                if (AppConstants.ServerCallLogs)AppConstants.WriteinFile(TAG + "SC_Log GetVehicleByFSTagMacAddress doInBackground ");
 
 
                 final UpgradeVersionEntity objEntityClass = new UpgradeVersionEntity();
@@ -2243,7 +2259,9 @@ public class DeviceControlActivity_vehicle extends AppCompatActivity implements 
         protected void onPostExecute(String result) {
 
             pd.dismiss();
-            System.out.println("GetVehicleByFSTagMacAddress...." + result);
+            if (AppConstants.ServerCallLogs)Log.w(TAG,"SC_Log GetVehicleByFSTagMacAddress onPostExecute ");
+            if (AppConstants.ServerCallLogs)AppConstants.WriteinFile(TAG + "SC_Log GetVehicleByFSTagMacAddress onPostExecute ");
+
             System.out.println("GetVehicleByFSTagMacAddress...." + result);
             if (result != null && !result.isEmpty()) {
 

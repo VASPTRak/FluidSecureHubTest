@@ -368,6 +368,9 @@ public class AcceptDeptActivity extends AppCompatActivity {
         @Override
         protected void onPreExecute() {
 
+            if (AppConstants.ServerCallLogs)Log.w(TAG,"SC_Log CallSaveButtonValidation onPreExecute ");
+            if (AppConstants.ServerCallLogs)AppConstants.WriteinFile(TAG + "SC_Log CallSaveButtonValidation onPreExecute ");
+
             String s= "Please wait...";
             SpannableString ss2=  new SpannableString(s);
             ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
@@ -384,6 +387,10 @@ public class AcceptDeptActivity extends AppCompatActivity {
             String resp = "";
             String pinNumber = "";
             try {
+
+                if (AppConstants.ServerCallLogs)Log.w(TAG,"SC_Log CallSaveButtonValidation doInBackground ");
+                if (AppConstants.ServerCallLogs)AppConstants.WriteinFile(TAG + "SC_Log CallSaveButtonValidation doInBackground ");
+
                 if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS1")) {
                     Constants.AccDepartmentNumber_FS1 = etDeptNumber.getText().toString().trim();
                     pinNumber = Constants.AccPersonnelPIN_FS1;
@@ -444,6 +451,10 @@ public class AcceptDeptActivity extends AppCompatActivity {
         protected void onPostExecute(String serverRes){
 
             pd.dismiss();
+
+            if (AppConstants.ServerCallLogs)Log.w(TAG,"SC_Log CallSaveButtonValidation onPostExecute ");
+            if (AppConstants.ServerCallLogs)AppConstants.WriteinFile(TAG + "SC_Log CallSaveButtonValidation onPostExecute ");
+
 
             if (serverRes != null) {
 
