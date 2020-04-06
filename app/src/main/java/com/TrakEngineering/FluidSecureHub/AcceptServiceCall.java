@@ -13,11 +13,8 @@ import android.text.style.ForegroundColorSpan;
 import android.text.style.RelativeSizeSpan;
 import android.util.Log;
 
-import com.TrakEngineering.FluidSecureHub.LFBle_vehicle.DeviceControlActivity_vehicle;
 import com.TrakEngineering.FluidSecureHub.enity.AuthEntityClass;
-import com.TrakEngineering.FluidSecureHub.enity.StatusForUpgradeVersionEntity;
 import com.TrakEngineering.FluidSecureHub.enity.TrazComp;
-import com.TrakEngineering.FluidSecureHub.enity.UpgradeVersionEntity;
 import com.TrakEngineering.FluidSecureHub.server.ServerHandler;
 import com.google.gson.Gson;
 import com.squareup.okhttp.MediaType;
@@ -30,10 +27,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.nio.file.FileAlreadyExistsException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import static com.TrakEngineering.FluidSecureHub.server.ServerHandler.TEXT;
@@ -87,6 +82,7 @@ public class AcceptServiceCall {
         String vehicleNumber = "";
         String DeptNumber = "";
         String accOther = "";
+        String accVehOther = "";
         String CONNECTED_SSID = "";
         int accOdoMeter;
         int accHours;
@@ -178,11 +174,11 @@ public class AcceptServiceCall {
                 }
 
 
-
                 if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS1")) {
                     pinNumber = Constants.AccPersonnelPIN_FS1;
                     vehicleNumber = Constants.AccVehicleNumber_FS1;
                     DeptNumber = Constants.AccDepartmentNumber_FS1;
+                    accVehOther = Constants.AccVehicleOther_FS1;
                     accOther = Constants.AccOther_FS1;
                     accOdoMeter = Constants.AccOdoMeter_FS1;
                     accHours = Constants.AccHours_FS1;
@@ -192,6 +188,7 @@ public class AcceptServiceCall {
                     pinNumber = Constants.AccPersonnelPIN;
                     vehicleNumber = Constants.AccVehicleNumber;
                     DeptNumber = Constants.AccDepartmentNumber;
+                    accVehOther = Constants.AccVehicleOther;
                     accOther = Constants.AccOther;
                     accOdoMeter = Constants.AccOdoMeter;
                     accHours = Constants.AccHours;
@@ -200,6 +197,7 @@ public class AcceptServiceCall {
                     pinNumber = Constants.AccPersonnelPIN_FS3;
                     vehicleNumber = Constants.AccVehicleNumber_FS3;
                     DeptNumber = Constants.AccDepartmentNumber_FS3;
+                    accVehOther = Constants.AccVehicleOther_FS3;
                     accOther = Constants.AccOther_FS3;
                     accOdoMeter = Constants.AccOdoMeter_FS3;
                     accHours = Constants.AccHours_FS3;
@@ -209,6 +207,7 @@ public class AcceptServiceCall {
                     pinNumber = Constants.AccPersonnelPIN_FS4;
                     vehicleNumber = Constants.AccVehicleNumber_FS4;
                     DeptNumber = Constants.AccDepartmentNumber_FS4;
+                    accVehOther = Constants.AccVehicleOther_FS4;
                     accOther = Constants.AccOther_FS4;
                     accOdoMeter = Constants.AccOdoMeter_FS4;
                     accHours = Constants.AccHours_FS4;
@@ -230,6 +229,7 @@ public class AcceptServiceCall {
                 authEntityClass.DepartmentNumber = DeptNumber;
                 authEntityClass.PersonnelPIN = pinNumber; //Constants.AccPersonnelPIN //Check which Fs is selected
                 authEntityClass.Other = accOther;
+                authEntityClass.VehicleExtraOther = accVehOther;
                 authEntityClass.RequestFrom = "A";
                 authEntityClass.RequestFromAPP = "AP";
                 authEntityClass.HubId = AppConstants.HUB_ID;
@@ -250,9 +250,9 @@ public class AcceptServiceCall {
                 String authString = "Basic " + AppConstants.convertStingToBase64(authEntityClass.IMEIUDID + ":" + CommonUtils.getCustomerDetails(activity).Email + ":" + "AuthorizationSequence");
 
                 OkHttpClient client = new OkHttpClient();
-                client.setConnectTimeout(10, TimeUnit.SECONDS);
-                client.setReadTimeout(10, TimeUnit.SECONDS);
-                client.setWriteTimeout(10, TimeUnit.SECONDS);
+                client.setConnectTimeout(4, TimeUnit.SECONDS);
+                client.setReadTimeout(4, TimeUnit.SECONDS);
+                client.setWriteTimeout(4, TimeUnit.SECONDS);
 
 
                 RequestBody body = RequestBody.create(TEXT, jsonData);
@@ -313,6 +313,7 @@ public class AcceptServiceCall {
                             String ServerDate_FS1 = jsonObjectRD.getString("ServerDate");
                             String IsTLDCall_FS1 = jsonObjectRD.getString("IsTLDCall");
                             String IntervalToStopFuel_FS1 = jsonObjectRD.getString("PumpOffTime");
+                            String PumpOnTime_FS1 = jsonObjectRD.getString("PumpOnTime");
                             String PrintDate_FS1 = CommonUtils.getTodaysDateInStringPrint(ServerDate_FS1);
 
                             String Company_FS1 = jsonObjectRD.getString("Company");
@@ -322,6 +323,8 @@ public class AcceptServiceCall {
                             String PrinterMacAddress_FS1 = jsonObjectRD.getString("PrinterMacAddress");
                             String PrinterName_FS1 = jsonObjectRD.getString("PrinterName");
                             String EnablePrinter_FS1 = jsonObjectRD.getString("EnablePrinter");
+                            String OdoMeter_FS1 = jsonObjectRD.getString("OdoMeter");
+                            String Hours_FS1 = jsonObjectRD.getString("Hours");
                             AppConstants.PrinterMacAddress = PrinterMacAddress_FS1;
                             AppConstants.BLUETOOTH_PRINTER_NAME = PrinterName_FS1;
 
@@ -337,7 +340,7 @@ public class AcceptServiceCall {
                             String ProductPrice_FS1 = jsonObjectRD.getString("ProductPrice");
 
 
-                            CommonUtils.SaveVehiFuelInPref_FS1(activity, TransactionId_FS1, VehicleId_FS1, PhoneNumber_FS1, PersonId_FS1, PulseRatio_FS1, MinLimit_FS1, FuelTypeId_FS1, ServerDate_FS1, IntervalToStopFuel_FS1, PrintDate_FS1, Company_FS1, Location_FS1, PersonName_FS1, PrinterMacAddress_FS1, PrinterName_FS1, vehicleNumber, accOther, VehicleSum_FS1, DeptSum_FS1, VehPercentage_FS1, DeptPercentage_FS1, SurchargeType_FS1, ProductPrice_FS1, IsTLDCall_FS1,EnablePrinter_FS1);
+                            CommonUtils.SaveVehiFuelInPref_FS1(activity, TransactionId_FS1, VehicleId_FS1, PhoneNumber_FS1, PersonId_FS1, PulseRatio_FS1, MinLimit_FS1, FuelTypeId_FS1, ServerDate_FS1, IntervalToStopFuel_FS1, PrintDate_FS1, Company_FS1, Location_FS1, PersonName_FS1, PrinterMacAddress_FS1, PrinterName_FS1, vehicleNumber, accOther, VehicleSum_FS1, DeptSum_FS1, VehPercentage_FS1, DeptPercentage_FS1, SurchargeType_FS1, ProductPrice_FS1, IsTLDCall_FS1,EnablePrinter_FS1,OdoMeter_FS1,Hours_FS1,PumpOnTime_FS1);
 
 
                             if (IsGateHub.equalsIgnoreCase("True")) {
@@ -399,6 +402,7 @@ public class AcceptServiceCall {
                             String FuelTypeId = jsonObjectRD.getString("FuelTypeId");
                             String ServerDate = jsonObjectRD.getString("ServerDate");
                             String IntervalToStopFuel = jsonObjectRD.getString("PumpOffTime");
+                            String PumpOnTime = jsonObjectRD.getString("PumpOnTime");
                             String IsTLDCall1 = jsonObjectRD.getString("IsTLDCall");
                             String PrintDate = CommonUtils.getTodaysDateInStringPrint(ServerDate);
                             String Company = jsonObjectRD.getString("Company");
@@ -408,6 +412,8 @@ public class AcceptServiceCall {
                             String PrinterMacAddress = jsonObjectRD.getString("PrinterMacAddress");
                             String PrinterName = jsonObjectRD.getString("PrinterName");
                             String EnablePrinter = jsonObjectRD.getString("EnablePrinter");
+                            String OdoMeter = jsonObjectRD.getString("OdoMeter");
+                            String Hours = jsonObjectRD.getString("Hours");
                             AppConstants.BLUETOOTH_PRINTER_NAME = PrinterName;
                             AppConstants.PrinterMacAddress = PrinterMacAddress;
                             System.out.println("iiiiii" + IntervalToStopFuel);
@@ -420,7 +426,7 @@ public class AcceptServiceCall {
                             String SurchargeType = jsonObjectRD.getString("SurchargeType");
                             String ProductPrice = jsonObjectRD.getString("ProductPrice");
 
-                            CommonUtils.SaveVehiFuelInPref(activity, TransactionId, VehicleId, PhoneNumber, PersonId, PulseRatio, MinLimit, FuelTypeId, ServerDate, IntervalToStopFuel, PrintDate, Company, Location, PersonName, PrinterMacAddress, PrinterName, vehicleNumber, accOther, VehicleSum, DeptSum, VehPercentage, DeptPercentage, SurchargeType, ProductPrice, IsTLDCall1,EnablePrinter);
+                            CommonUtils.SaveVehiFuelInPref(activity, TransactionId, VehicleId, PhoneNumber, PersonId, PulseRatio, MinLimit, FuelTypeId, ServerDate, IntervalToStopFuel, PrintDate, Company, Location, PersonName, PrinterMacAddress, PrinterName, vehicleNumber, accOther, VehicleSum, DeptSum, VehPercentage, DeptPercentage, SurchargeType, ProductPrice, IsTLDCall1,EnablePrinter,OdoMeter,Hours,PumpOnTime);
 
                             Intent intent = new Intent(activity, DisplayMeterActivity.class);
                             intent.putExtra(Constants.VEHICLE_NUMBER, Constants.AccVehicleNumber);
@@ -448,6 +454,7 @@ public class AcceptServiceCall {
                             String FuelTypeId_FS3 = jsonObjectRD.getString("FuelTypeId");
                             String ServerDate_FS3 = jsonObjectRD.getString("ServerDate");
                             String IntervalToStopFuel_FS3 = jsonObjectRD.getString("PumpOffTime");
+                            String PumpOnTime_FS3 = jsonObjectRD.getString("PumpOnTime");
                             String IsTLDCall_FS3 = jsonObjectRD.getString("IsTLDCall");
                             String PrintDate_FS3 = CommonUtils.getTodaysDateInStringPrint(ServerDate_FS3);
                             String Company_FS3 = jsonObjectRD.getString("Company");
@@ -457,6 +464,8 @@ public class AcceptServiceCall {
                             String PrinterMacAddress_FS3 = jsonObjectRD.getString("PrinterMacAddress");
                             String PrinterName_FS3 = jsonObjectRD.getString("PrinterName");
                             String EnablePrinter_FS3 = jsonObjectRD.getString("EnablePrinter");
+                            String OdoMeter_FS3 = jsonObjectRD.getString("OdoMeter");
+                            String Hours_FS3 = jsonObjectRD.getString("Hours");
                             AppConstants.PrinterMacAddress = PrinterMacAddress_FS3;
                             AppConstants.BLUETOOTH_PRINTER_NAME = PrinterName_FS3;
                             System.out.println("iiiiii" + IntervalToStopFuel_FS3);
@@ -469,7 +478,7 @@ public class AcceptServiceCall {
                             String SurchargeType_FS3 = jsonObjectRD.getString("SurchargeType");
                             String ProductPrice_FS3 = jsonObjectRD.getString("ProductPrice");
 
-                            CommonUtils.SaveVehiFuelInPref_FS3(activity, TransactionId_FS3, VehicleId_FS3, PhoneNumber_FS3, PersonId_FS3, PulseRatio_FS3, MinLimit_FS3, FuelTypeId_FS3, ServerDate_FS3, IntervalToStopFuel_FS3, PrintDate_FS3, Company_FS3, Location_FS3, PersonName_FS3, PrinterMacAddress_FS3, PrinterName_FS3, vehicleNumber, accOther, VehicleSum_FS3, DeptSum_FS3, VehPercentage_FS3, DeptPercentage_FS3, SurchargeType_FS3, ProductPrice_FS3, IsTLDCall_FS3,EnablePrinter_FS3);
+                            CommonUtils.SaveVehiFuelInPref_FS3(activity, TransactionId_FS3, VehicleId_FS3, PhoneNumber_FS3, PersonId_FS3, PulseRatio_FS3, MinLimit_FS3, FuelTypeId_FS3, ServerDate_FS3, IntervalToStopFuel_FS3, PrintDate_FS3, Company_FS3, Location_FS3, PersonName_FS3, PrinterMacAddress_FS3, PrinterName_FS3, vehicleNumber, accOther, VehicleSum_FS3, DeptSum_FS3, VehPercentage_FS3, DeptPercentage_FS3, SurchargeType_FS3, ProductPrice_FS3, IsTLDCall_FS3,EnablePrinter_FS3,OdoMeter_FS3,Hours_FS3,PumpOnTime_FS3);
 
 
                             Intent intent = new Intent(activity, DisplayMeterActivity.class);
@@ -498,6 +507,7 @@ public class AcceptServiceCall {
                             String FuelTypeId_FS4 = jsonObjectRD.getString("FuelTypeId");
                             String ServerDate_FS4 = jsonObjectRD.getString("ServerDate");
                             String IntervalToStopFuel_FS4 = jsonObjectRD.getString("PumpOffTime");
+                            String PumpOnTime_FS4 = jsonObjectRD.getString("PumpOnTime");
                             String IsTLDCall_FS4 = jsonObjectRD.getString("IsTLDCall");
                             String PrintDate_FS4 = CommonUtils.getTodaysDateInStringPrint(ServerDate_FS4);
                             String Company_FS4 = jsonObjectRD.getString("Company");
@@ -507,6 +517,8 @@ public class AcceptServiceCall {
                             String PrinterMacAddress_FS4 = jsonObjectRD.getString("PrinterMacAddress");
                             String PrinterName_FS4 = jsonObjectRD.getString("PrinterName");
                             String EnablePrinter_FS4 = jsonObjectRD.getString("EnablePrinter");
+                            String OdoMeter_FS4 = jsonObjectRD.getString("OdoMeter");
+                            String Hours_FS4 = jsonObjectRD.getString("Hours");
                             AppConstants.PrinterMacAddress = PrinterMacAddress_FS4;
                             AppConstants.BLUETOOTH_PRINTER_NAME = PrinterName_FS4;
                             System.out.println("iiiiii" + IntervalToStopFuel_FS4);
@@ -520,7 +532,7 @@ public class AcceptServiceCall {
                             String ProductPrice_FS4 = jsonObjectRD.getString("ProductPrice");
 
 
-                            CommonUtils.SaveVehiFuelInPref_FS4(activity, TransactionId_FS4, VehicleId_FS4, PhoneNumber_FS4, PersonId_FS4, PulseRatio_FS4, MinLimit_FS4, FuelTypeId_FS4, ServerDate_FS4, IntervalToStopFuel_FS4, PrintDate_FS4, Company_FS4, Location_FS4, PersonName_FS4, PrinterMacAddress_FS4, PrinterName_FS4, vehicleNumber, accOther, VehicleSum_FS4, DeptSum_FS4, VehPercentage_FS4, DeptPercentage_FS4, SurchargeType_FS4, ProductPrice_FS4, IsTLDCall_FS4,EnablePrinter_FS4);
+                            CommonUtils.SaveVehiFuelInPref_FS4(activity, TransactionId_FS4, VehicleId_FS4, PhoneNumber_FS4, PersonId_FS4, PulseRatio_FS4, MinLimit_FS4, FuelTypeId_FS4, ServerDate_FS4, IntervalToStopFuel_FS4, PrintDate_FS4, Company_FS4, Location_FS4, PersonName_FS4, PrinterMacAddress_FS4, PrinterName_FS4, vehicleNumber, accOther, VehicleSum_FS4, DeptSum_FS4, VehPercentage_FS4, DeptPercentage_FS4, SurchargeType_FS4, ProductPrice_FS4, IsTLDCall_FS4,EnablePrinter_FS4,OdoMeter_FS4,Hours_FS4,PumpOnTime_FS4);
 
 
                             Intent intent = new Intent(activity, DisplayMeterActivity.class);
@@ -590,6 +602,9 @@ public class AcceptServiceCall {
 
             }catch (Exception e){
                 e.printStackTrace();
+                AppConstants.NETWORK_STRENGTH = false;
+                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " NETWORK_STRENGTH set to false.");
+
             }
 
         }

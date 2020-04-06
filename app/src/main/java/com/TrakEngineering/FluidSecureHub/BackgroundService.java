@@ -58,7 +58,7 @@ public class BackgroundService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
 
         Log.i(TAG, "BackgroundService is on....");
-
+       // Log.e("Totaloffline_check","Online data BackgroundService");
         //If all hoses are free cleare
         if (Constants.FS_1STATUS.equalsIgnoreCase("FREE") && Constants.FS_2STATUS.equalsIgnoreCase("FREE") && Constants.FS_3STATUS.equalsIgnoreCase("FREE") && Constants.FS_4STATUS.equalsIgnoreCase("FREE")) {
             AppConstants.ListOfRunningTransactiins.clear();
@@ -158,6 +158,7 @@ public class BackgroundService extends Service {
 
         return super.onStartCommand(intent, flags, startId);
     }
+
 
 
     public class SetHoseNameReplacedFlag extends AsyncTask<String, Void, String> {

@@ -16,6 +16,7 @@ public class AuthEntityClass {
     public String DepartmentNumber;
     public String PersonnelPIN;
     public String Other;
+    public String VehicleExtraOther;
     public String RequestFrom;
     public String CurrentLat;
     public String CurrentLng;

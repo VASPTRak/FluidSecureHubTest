@@ -10,4 +10,8 @@ public class CheckPinFobEntity {
     public String PersonPIN;
     public String PersonFOBNumber;
     public String FromNewFOBChange;
+    public String MagneticCardNumber;
+
+    public String HFVersion;
+    public String LFVersion;
 }

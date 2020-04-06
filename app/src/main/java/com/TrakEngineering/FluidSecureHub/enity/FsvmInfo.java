@@ -1,8 +1,11 @@
 package com.TrakEngineering.FluidSecureHub.enity;
 
+import java.util.ArrayList;
+
 public class FsvmInfo {
 
-
+    public ArrayList< Object > upgrade = new ArrayList < Object > ();
+    public String device;
     public String Email;
     public String IMEIUDID;
     public String transactionDate;
@@ -19,7 +22,7 @@ public class FsvmInfo {
 
 
 
-    public String VIN;
-    public String ODOK;
+
+    public String FSVMMacAddress;
 
 }

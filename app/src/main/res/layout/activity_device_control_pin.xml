@@ -16,6 +16,72 @@
             android:layout_height="match_parent"
             android:orientation="vertical">
 
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_margin="10dp"
+                android:layout_gravity="center"
+                android:id="@+id/layout_reader_status"
+                >
+
+                <TextView
+                    android:id="@+id/tv_reader_status"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginRight="10dp"
+                    android:layout_gravity="center"
+                    android:gravity="center"
+                    android:text=""
+                    android:textAllCaps="false"
+                    android:textAppearance="?android:attr/textAppearanceLarge"
+                    android:textColor="@color/Red"
+                    android:textSize="18dp" />
+
+                <TextView
+                    android:id="@+id/tv_hf_status"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginRight="10dp"
+                    android:layout_gravity="center"
+                    android:gravity="center"
+                    android:text=""
+                    android:textAllCaps="false"
+                    android:textAppearance="?android:attr/textAppearanceLarge"
+                    android:textColor="@color/Red"
+                    android:textSize="18dp" />
+
+                <TextView
+                    android:id="@+id/tv_lf_status"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginRight="10dp"
+                    android:layout_gravity="center"
+                    android:gravity="center"
+                    android:text=""
+                    android:textAllCaps="false"
+                    android:textAppearance="?android:attr/textAppearanceLarge"
+                    android:textColor="@color/Red"
+                    android:textSize="18dp" />
+
+                <TextView
+                    android:id="@+id/tv_mag_status"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginRight="10dp"
+                    android:layout_gravity="center"
+                    android:gravity="center"
+                    android:text=""
+                    android:textAllCaps="false"
+                    android:textAppearance="?android:attr/textAppearanceLarge"
+                    android:textColor="@color/Red"
+                    android:textSize="18dp" />
+
+
+
+            </LinearLayout>
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

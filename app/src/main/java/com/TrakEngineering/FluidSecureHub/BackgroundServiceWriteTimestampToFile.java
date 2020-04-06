@@ -5,7 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 
-import static com.TrakEngineering.FluidSecureHub.WelcomeActivity.wifiApManager;
+
 
 /**
  * Created by root on 4/9/18.

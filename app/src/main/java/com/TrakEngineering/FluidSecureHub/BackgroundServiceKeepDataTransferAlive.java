@@ -14,12 +14,15 @@ import android.widget.Toast;
 
 import com.TrakEngineering.FluidSecureHub.enity.StatusForUpgradeVersionEntity;
 import com.TrakEngineering.FluidSecureHub.enity.UpgradeVersionEntity;
+import com.TrakEngineering.FluidSecureHub.enity.UserInfoEntity;
 import com.google.gson.Gson;
+import com.squareup.okhttp.Callback;
 import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.RequestBody;
 import com.squareup.okhttp.Response;
+import com.squareup.okhttp.ResponseBody;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -50,6 +53,7 @@ import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
 import static com.TrakEngineering.FluidSecureHub.WelcomeActivity.wifiApManager;
+import static com.TrakEngineering.FluidSecureHub.server.ServerHandler.TEXT;
 
 public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
 
@@ -60,8 +64,9 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
     String URL_RESET = HTTP_URL + "upgrade?command=reset";
     String URL_INFO = HTTP_URL + "client?command=info";
     private static final String TAG = "BS_KAL";
-    public static ArrayList<HashMap<String, String>> SSIDList = new ArrayList<>();
+    public static ArrayList<HashMap<String, String>> SSIDList= new ArrayList<>();
     public static ArrayList<HashMap<String, String>> DetailslistOfConnectedIP_KDTA = new ArrayList<>();
+    public static ArrayList<HashMap<String, String>> DefectiveLinks = new ArrayList<>();
     public ArrayList<String> listOfConnectedMacAddress_KDTA = new ArrayList<String>();
 
     private static int SERVER_PORT = 80;
@@ -76,7 +81,7 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
 
         try {
             super.onStart(intent, startId);
-            Log.e(TAG, "~~~~~start~~~~~");
+            //Log.e(TAG, "~~~~~start~~~~~");
             //if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "~~~~~start~~~~~");
 
             if (WelcomeActivity.OnWelcomeActivity && Constants.FS_1STATUS.equalsIgnoreCase("FREE") && Constants.FS_2STATUS.equalsIgnoreCase("FREE") && Constants.FS_3STATUS.equalsIgnoreCase("FREE") && Constants.FS_4STATUS.equalsIgnoreCase("FREE")) {
@@ -88,8 +93,8 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
 
                 Log.i(TAG, "Skip keepAlive not on Welcome activity or one of the transaction is running.");
             }
-            Log.e(TAG, "~~~~~stop~~~~~");
 
+           //Log.e(TAG, "~~~~~stop~~~~~");
 
         } catch (NullPointerException e) {
             if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  onStartCommand Execption " + e);
@@ -106,6 +111,7 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
 
         try {
 
+            DefectiveLinks.clear();
             //Log.e(TAG, "~~~~~Second for strt~~~~~");
             if (SSIDList != null && SSIDList.size() > 0) {
 
@@ -120,6 +126,9 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
                     String selSiteId = SSIDList.get(i).get("SiteId");
                     String hoseID = SSIDList.get(i).get("HoseId");
                     String IsUpgrade = SSIDList.get(i).get("IsUpgrade"); //"Y";//
+
+                    boolean IsConnectedToHotspot = false;
+                    boolean IsinfoCmdSuccess = false;
 
 
                     if (!IsFsConnected(selMacAddress)){
@@ -136,8 +145,24 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
                         //also include upgrate link firmware code
                         if (IsHoseBusy && selMacAddress.equalsIgnoreCase(Mac_Addr)) {
 
+                            IsConnectedToHotspot = true;
+                            if (i == 0) {
+                                SaveDefectiveLinkDateTimeSharedPref(BackgroundServiceKeepDataTransferAlive.this,"hotspotConnDT0");
+                                //hotspotConnDT0 = CommonUtils.getTodaysDateTemp();//Link at 0th position
+                            } else if (i == 1) {
+                                SaveDefectiveLinkDateTimeSharedPref(BackgroundServiceKeepDataTransferAlive.this,"hotspotConnDT1");
+                                //hotspotConnDT1 = CommonUtils.getTodaysDateTemp();//Link at 1th position
+                            } else if (i == 2) {
+                                SaveDefectiveLinkDateTimeSharedPref(BackgroundServiceKeepDataTransferAlive.this,"hotspotConnDT2");
+                                //hotspotConnDT2 = CommonUtils.getTodaysDateTemp();//Link at 2th position
+                            } else if (i == 3) {
+                                SaveDefectiveLinkDateTimeSharedPref(BackgroundServiceKeepDataTransferAlive.this,"hotspotConnDT3");
+                                //hotspotConnDT3 = CommonUtils.getTodaysDateTemp();//Link at 3th position
+                            }
+
+
                             try {
-                                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  Mac:"+Mac_Addr);
+
                                 SERVER_IP = AppConstants.DetailsListOfConnectedDevices.get(k).get("ipAddress");
                                 if (!SERVER_IP.equalsIgnoreCase("")){
                                     //new TCPClientTask().execute(SERVER_IP);
@@ -147,6 +172,28 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
                                     HTTP_URL = "http://"+SERVER_IP+":80/";
                                     URL_INFO = HTTP_URL + "client?command=info";
                                     String FSStatus = new CommandsGET().execute(URL_INFO).get();//Info command
+                                    Log.i(TAG, "Info cmd Status:" + FSStatus);
+
+                                    if (FSStatus.contains("Version")) {
+
+                                        IsinfoCmdSuccess = true;
+                                        if (i == 0) {
+                                            SaveDefectiveLinkDateTimeSharedPref(BackgroundServiceKeepDataTransferAlive.this,"InfoCmdConnDT0");
+                                            //InfoCmdConnDT0 = CommonUtils.getTodaysDateTemp();//Link at 0th position
+                                        } else if (i == 1) {
+                                            SaveDefectiveLinkDateTimeSharedPref(BackgroundServiceKeepDataTransferAlive.this,"InfoCmdConnDT1");
+                                            //InfoCmdConnDT1 = CommonUtils.getTodaysDateTemp();//Link at 1th position
+                                        } else if (i == 2) {
+                                            SaveDefectiveLinkDateTimeSharedPref(BackgroundServiceKeepDataTransferAlive.this,"InfoCmdConnDT2");
+                                            //InfoCmdConnDT2 = CommonUtils.getTodaysDateTemp();//Link at 2th position
+                                        } else if (i == 3) {
+                                            SaveDefectiveLinkDateTimeSharedPref(BackgroundServiceKeepDataTransferAlive.this,"InfoCmdConnDT3");
+                                            //InfoCmdConnDT3 = CommonUtils.getTodaysDateTemp();//Link at 3th position
+                                        }
+
+                                    } else {
+                                        IsinfoCmdSuccess = false;
+                                    }
 
                                 }
 
@@ -217,6 +264,11 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
                         }
                     }
 
+                    //CheckFor #728  Inability to Connect to Links
+                    if (IsHoseBusy) {
+                        CheckInabilityToConnectLinks(i, selSSID, IsConnectedToHotspot, IsinfoCmdSuccess);
+                    }
+
                 }
 
                 // Log.e(TAG, "~~~~~Second for end~~~~~");
@@ -224,6 +276,33 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
             } else {
                 Log.i(TAG, "SSID List Empty");
                 if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  SSID List Empty");
+            }
+            if (IsHoseBusyCheckLocally()) {
+                int s = DefectiveLinks.size();
+                System.out.println("S" + s);
+
+                if (DefectiveLinks != null && DefectiveLinks.size() > 0) {
+
+                    for (int p = 0; p < DefectiveLinks.size(); p++) {
+
+                        String link_name = DefectiveLinks.get(p).get("Selected_SSID");
+                        int Differance = Integer.parseInt(DefectiveLinks.get(p).get("diff_min"));
+                        String Message = DefectiveLinks.get(p).get("Message");
+
+                        if (Differance > 60){
+
+                           boolean Sendmail = checkSharedPrefDefectiveLink(BackgroundServiceKeepDataTransferAlive.this,link_name);
+                           if (Sendmail){
+                               setSharedPrefDefectiveLink(BackgroundServiceKeepDataTransferAlive.this,link_name);
+                               Log.i(TAG, "Defective links email sent to: "+link_name+" Message: "+Message+" TDifferance: "+Differance);
+                               if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "Defective links email sent to: "+link_name+" Message: "+Message+" TDifferance: "+Differance);
+                               SendDefectiveLinkInfoEmailAsyncCall(link_name);
+                           }
+                        }
+
+                    }
+                }
+
             }
 
         } catch (Exception e) {
@@ -237,15 +316,19 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
         String CurrDate = CommonUtils.getTodaysDateTemp();
         int diff = getDate(CurrDate);
 
-        if (IsHoseBusy && WelcomeActivity.OnWelcomeActivity && IstoggleRequired_DA){
+        if (IsHoseBusy && WelcomeActivity.OnWelcomeActivity && IstoggleRequired_DA) {
             //Toggle required by Display meater activity
             //Log.i(TAG,"Toggle ~~ Display MeterActivity");
-            ToggleHotspot();
-        }else if (IsHoseBusy && WelcomeActivity.OnWelcomeActivity && IstoggleRequired_KDTA && diff > 60){
+            if (AppConstants.DisableAllRebootOptions.equalsIgnoreCase("N")) {
+                ToggleHotspot();
+            }
+        } else if (IsHoseBusy && WelcomeActivity.OnWelcomeActivity && IstoggleRequired_KDTA && diff > 60) {
             //Toggle required by KeepDataAlive background service activity
             //Log.i(TAG,"Toggle ~~ KeepDataAlive BS");
-            ToggleHotspot();
-        }else{
+            if (AppConstants.DisableAllRebootOptions.equalsIgnoreCase("N")) {
+                ToggleHotspot();
+            }
+        } else {
             //Log.i(TAG,"Toggle ~~ No Need to toggle");
         }
 
@@ -312,8 +395,8 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
             try {
 
                 OkHttpClient client = new OkHttpClient();
-                client.setConnectTimeout(10, TimeUnit.SECONDS);
-                client.setReadTimeout(10, TimeUnit.SECONDS);
+                client.setConnectTimeout(4, TimeUnit.SECONDS);
+                client.setReadTimeout(4, TimeUnit.SECONDS);
 
                 Request request = new Request.Builder()
                         .url(param[0])
@@ -995,13 +1078,253 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
             //System.out.println("~~~Difference~~~" + minutes);
 
         } catch (ParseException e) {
-            if (ToggleExeTime.equalsIgnoreCase("")) { ToggleExeTime = CommonUtils.getTodaysDateTemp();}
+            if (ToggleExeTime.equalsIgnoreCase("")) {
+                ToggleExeTime = CommonUtils.getTodaysDateTemp();
+            }
             e.printStackTrace();
         } catch (NullPointerException n) {
             n.printStackTrace();
         }
 
         return DiffTime;
+    }
+
+
+    void CheckIfLinkNeedsRename(String URL_WIFI) {
+
+        String LinkInfo = "";
+        try {
+            Log.i(TAG, "Info cmd LinkInfo:" + LinkInfo);
+            LinkInfo = new CommandsGET().execute(URL_WIFI).get();//Info command
+
+            JSONObject jsonObj0 = new JSONObject(LinkInfo);
+            JSONObject jsonObj1 = new JSONObject(String.valueOf(jsonObj0.get("Response")));
+            JSONObject jsonObj2 = new JSONObject(String.valueOf(jsonObj1.get("Softap")));
+            JSONObject jsonObj3 = new JSONObject(String.valueOf(jsonObj2.get("Connect_Softap")));
+            String ssid = jsonObj3.getString("ssid");
+            String password = jsonObj3.getString("password");
+            String channel = jsonObj3.getString("channel");
+
+
+                String jsonRename = "{\"Request\":{\"SoftAP\":{\"Connect_SoftAP\":{\"authmode\":\"WPAPSK/WPA2PSK\",\"channel\":\"" + channel + "\",\"ssid\":\"" + ssid + "\",\"password\":\"123456789\"}}}}";
+                new CommandsPOST().execute(URL_WIFI, jsonRename);
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            Log.i(TAG, "Info cmd LinkInfo:" + LinkInfo);
+        }
+
+    }
+
+    private void CheckInabilityToConnectLinks(int position, String Selected_SSID, boolean IsConnectedToHotspot, boolean IsinfoCmdSuccess) {
+
+        try {
+            Log.i(TAG, "CheckDetails \n------------------------------\nSelected SSID:" + Selected_SSID + "\nIsConnectedToHotspot:" + IsConnectedToHotspot + "\nIsinfoCmdSuccess:" + IsinfoCmdSuccess + "\n------------------------");
+
+            String CurrDate = CommonUtils.getTodaysDateTemp();
+            String Message = "";
+            String InfoCmdConnDT = "";
+            String hotspotConnDT = "";
+            int diff_min = 0;
+
+            if (position == 0) {
+                InfoCmdConnDT = GetDefectiveLinkDateTimeSharedPref(BackgroundServiceKeepDataTransferAlive.this,"InfoCmdConnDT0");
+                hotspotConnDT = GetDefectiveLinkDateTimeSharedPref(BackgroundServiceKeepDataTransferAlive.this,"hotspotConnDT0");
+            } else if (position == 1) {
+                InfoCmdConnDT = GetDefectiveLinkDateTimeSharedPref(BackgroundServiceKeepDataTransferAlive.this,"InfoCmdConnDT1");
+                hotspotConnDT = GetDefectiveLinkDateTimeSharedPref(BackgroundServiceKeepDataTransferAlive.this,"hotspotConnDT1");
+            } else if (position == 2) {
+                InfoCmdConnDT = GetDefectiveLinkDateTimeSharedPref(BackgroundServiceKeepDataTransferAlive.this,"InfoCmdConnDT2");
+                hotspotConnDT = GetDefectiveLinkDateTimeSharedPref(BackgroundServiceKeepDataTransferAlive.this,"hotspotConnDT2");
+            } else if (position == 3) {
+                InfoCmdConnDT = GetDefectiveLinkDateTimeSharedPref(BackgroundServiceKeepDataTransferAlive.this,"InfoCmdConnDT3");
+                hotspotConnDT = GetDefectiveLinkDateTimeSharedPref(BackgroundServiceKeepDataTransferAlive.this,"hotspotConnDT3");
+            }
+
+            if (IsConnectedToHotspot) {
+
+                if (IsinfoCmdSuccess) {
+                    //InfoCommand Fail from diff_minutes
+                    diff_min = getDiffinMinutes(CurrDate, InfoCmdConnDT);
+                    Message = "Link working fine";
+                } else {
+
+                    //InfoCommand Fail from diff_minutes
+                    diff_min = getDiffinMinutes(CurrDate, InfoCmdConnDT);
+                    Message = "Fail at info command";
+
+                }
+
+            } else {
+
+                if (hotspotConnDT.equals("") || InfoCmdConnDT.equals("")) {
+
+                    //link never connected.
+                    Message = "Link not connected yet";
+
+                } else {
+
+                    //link not connected to hotspot from diff_minutes
+                    diff_min = getDiffinMinutes(CurrDate, hotspotConnDT);
+                    Message = "Link not connected to hotspot";
+
+                }
+
+            }
+
+            HashMap<String, String> map = new HashMap<>();
+            map.put("Selected_SSID", Selected_SSID);
+            map.put("diff_min", String.valueOf(diff_min));
+            map.put("Message", Message);
+
+            DefectiveLinks.add(map);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + "CheckInabilityToConnectLinks Exception:" + e);
+        }
+
+    }
+
+    private int getDiffinMinutes(String CurrentTime, String SuccessTime) {
+
+        int DiffTime = 0;
+        try {
+
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            date1 = sdf.parse(CurrentTime);
+            date2 = sdf.parse(SuccessTime);
+
+            long diff = date1.getTime() - date2.getTime();
+            long seconds = diff / 1000;
+            long minutes = seconds / 60;
+            long hours = minutes / 60;
+            long days = hours / 24;
+
+            DiffTime = (int) minutes;
+            //System.out.println("~~~Difference~~~" + minutes);
+
+        } catch (ParseException e) {
+            e.printStackTrace();
+        } catch (NullPointerException n) {
+            n.printStackTrace();
+        }
+
+        return DiffTime;
+    }
+
+    private void setSharedPrefDefectiveLink(Context myctx, String ssid) {
+
+        String key = "last_date"+ssid;
+        SharedPreferences sharedPref = myctx.getSharedPreferences("DefectiveLink", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putString(key, AppConstants.currentDateFormat("dd/MM/yyyy"));
+        editor.apply();
+
+    }
+
+    private boolean checkSharedPrefDefectiveLink(Context myctx, String ssid) {
+
+        String key = "last_date"+ssid;
+        SharedPreferences sharedPrefODO = myctx.getSharedPreferences("DefectiveLink", Context.MODE_PRIVATE);
+        String last_date = sharedPrefODO.getString(key, "");
+        String curr_date = AppConstants.currentDateFormat("dd/MM/yyyy");
+
+        if (curr_date.trim().equalsIgnoreCase(last_date.trim())) {
+            return false;
+        } else {
+            return true;
+        }
+
+    }
+
+    private void SaveDefectiveLinkDateTimeSharedPref(Context myctx, String linkposition) {
+
+        SharedPreferences sharedPref = myctx.getSharedPreferences("DefectiveLinkDateTime", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putString(linkposition, CommonUtils.getTodaysDateTemp());
+        editor.apply();
+
+    }
+
+    private String GetDefectiveLinkDateTimeSharedPref(Context myctx, String linkposition) {
+
+        SharedPreferences sharedPrefODO = myctx.getSharedPreferences("DefectiveLinkDateTime", Context.MODE_PRIVATE);
+        String last_date = sharedPrefODO.getString(linkposition, "");
+
+          return last_date;
+    }
+
+    public void SendDefectiveLinkInfoEmailAsyncCall(String linkName) {
+
+        UserInfoEntity userInfoEntity = CommonUtils.getCustomerDetails_KdtAlive(BackgroundServiceKeepDataTransferAlive.this);
+
+        StatusForUpgradeVersionEntity objEntityClass2 = new StatusForUpgradeVersionEntity();
+        //objEntityClass2.IMEIUDID = AppConstants.getIMEI(BackgroundServiceKeepDataTransferAlive.this);
+        //objEntityClass2.Email = CommonUtils.getCustomerDetails(WelcomeActivity.this).PersonEmail;
+        objEntityClass2.HubName = userInfoEntity.PersonName;
+        objEntityClass2.SiteName = userInfoEntity.FluidSecureSiteName;
+        objEntityClass2.LinkName = linkName;
+
+        Gson gson = new Gson();
+        String parm2 = gson.toJson(objEntityClass2);
+
+        String userEmail = CommonUtils.getCustomerDetails_KdtAlive(BackgroundServiceKeepDataTransferAlive.this).PersonEmail;
+        //----------------------------------------------------------------------------------
+        String parm1 = AppConstants.getIMEI(BackgroundServiceKeepDataTransferAlive.this) + ":" + userEmail + ":" + "DefectiveLinkInfoEmail";
+        String authString = "Basic " + AppConstants.convertStingToBase64(parm1);
+
+
+        RequestBody body = RequestBody.create(TEXT, parm2);
+        OkHttpClient httpClient = new OkHttpClient();
+        Request request = new Request.Builder()
+                .url(AppConstants.webURL)
+                .post(body)
+                .addHeader("Authorization", authString)
+                .build();
+
+        httpClient.newCall(request).enqueue(new Callback() {
+            @SuppressLint("LongLogTag")
+            @Override
+            public void onFailure(Request request, IOException e) {
+                Log.e(TAG, "error in getting response");
+            }
+
+            @SuppressLint("LongLogTag")
+            @Override
+            public void onResponse(Response response) throws IOException {
+
+                ResponseBody responseBody = response.body();
+                if (!response.isSuccessful()) {
+                    throw new IOException("Error response " + response);
+                } else {
+
+                    String result = responseBody.string();
+                    System.out.println("Result" + result);
+                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " SendDefectiveLinkInfoEmailAsyncCall ~Result\n" + result);
+
+                    try {
+
+                        JSONObject jsonObjectSite = null;
+                        jsonObjectSite = new JSONObject(result);
+
+                        String ResponseMessageSite = jsonObjectSite.getString(AppConstants.RES_MESSAGE);
+
+                        if (ResponseMessageSite.equalsIgnoreCase("success")) {
+                            //if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " SendEmailReaderNotConnectedAsyncCall ~success");
+                            System.out.println("SendDefectiveLinkInfoEmail send successfully ");
+                        }
+
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+            }
+
+        });
     }
 
 }

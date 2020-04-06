@@ -15,6 +15,7 @@ public class TankMonitorEntity {
     public String FOBNumberPin;
     public String Level;
     public String FromDirectTLD;
+    public String CurrentTLDVersion;
 
 
 }

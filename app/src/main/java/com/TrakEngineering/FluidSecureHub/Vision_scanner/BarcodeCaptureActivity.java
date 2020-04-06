@@ -41,7 +41,6 @@ import android.view.ScaleGestureDetector;
 import android.view.View;
 import android.widget.Toast;
 
-import com.TrakEngineering.FluidSecureHub.LFBle_vehicle.DeviceControlActivity_vehicle;
 import com.TrakEngineering.FluidSecureHub.R;
 import com.TrakEngineering.FluidSecureHub.Vision_scanner.camera.CameraSource;
 import com.TrakEngineering.FluidSecureHub.Vision_scanner.camera.CameraSourcePreview;
@@ -192,7 +191,7 @@ public final class BarcodeCaptureActivity extends AppCompatActivity implements B
                 }
 
 
-                /*Intent intent = new Intent(BarcodeCaptureActivity.this, DeviceControlActivity_vehicle.class);
+                /*Intent intent = new Intent(BarcodeCaptureActivity.this, AcceptVehicleActivity_new.class);
                 intent.putExtra("barcode", item.rawValue);
                 startActivity(intent);*/
             }

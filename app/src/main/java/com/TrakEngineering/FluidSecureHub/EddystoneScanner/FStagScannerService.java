@@ -16,7 +16,7 @@ import android.os.Looper;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
 
-import com.TrakEngineering.FluidSecureHub.LFBle_vehicle.DeviceControlActivity_vehicle;
+import com.TrakEngineering.FluidSecureHub.AcceptVehicleActivity_new;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -91,7 +91,7 @@ public class FStagScannerService extends Service {
         filters.add(beaconFilter);
 
         ScanSettings settings = new ScanSettings.Builder()
-                .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
+                .setScanMode(ScanSettings.SCAN_MODE_BALANCED)
                 .build();
 
         mBluetoothLeScanner.startScan(filters, settings, mScanCallback);
@@ -183,11 +183,11 @@ public class FStagScannerService extends Service {
 
                     //  Log.i(TAG, "Ble device name: ~~FSTag~~" + device.getName());
 
-                    if (DeviceControlActivity_vehicle.ListOfBleDevices.size() != 0) {
+                    if (AcceptVehicleActivity_new.ListOfBleDevices.size() != 0) {
 
-                        for (int p = 0; p < DeviceControlActivity_vehicle.ListOfBleDevices.size(); p++) {
+                        for (int p = 0; p < AcceptVehicleActivity_new.ListOfBleDevices.size(); p++) {
 
-                            String BleMacAddr = DeviceControlActivity_vehicle.ListOfBleDevices.get(p).get("BleMacAddress");
+                            String BleMacAddr = AcceptVehicleActivity_new.ListOfBleDevices.get(p).get("BleMacAddress");
                             if (result.getDevice().getAddress().equalsIgnoreCase(BleMacAddr)) {
                                 AlreadyPresent = false;
                             }
@@ -199,7 +199,7 @@ public class FStagScannerService extends Service {
 
 
                     if (AlreadyPresent) {
-                        DeviceControlActivity_vehicle.ListOfBleDevices.add(map);
+                        AcceptVehicleActivity_new.ListOfBleDevices.add(map);
                     }
 
                 } else {
@@ -223,7 +223,7 @@ public class FStagScannerService extends Service {
         String rssi_id = "test_rssi";
         String FSTagMacAddress = "";
 
-        if (DeviceControlActivity_vehicle.ListOfBleDevices != null || DeviceControlActivity_vehicle.ListOfBleDevices.size() != 0){
+        if (AcceptVehicleActivity_new.ListOfBleDevices != null || AcceptVehicleActivity_new.ListOfBleDevices.size() != 0){
 
             FSTagMacAddress = GetClosestBleDevice();
 
@@ -249,16 +249,16 @@ public class FStagScannerService extends Service {
         String BleName = "", BleMacAddress = "";
         Integer BleRssi = null;
 
-        if (DeviceControlActivity_vehicle.ListOfBleDevices.size() != 0) {
+        if (AcceptVehicleActivity_new.ListOfBleDevices.size() != 0) {
 
-            for (int i = 0; i < DeviceControlActivity_vehicle.ListOfBleDevices.size(); i++) {
+            for (int i = 0; i < AcceptVehicleActivity_new.ListOfBleDevices.size(); i++) {
 
-                Integer bleValue = Integer.valueOf(DeviceControlActivity_vehicle.ListOfBleDevices.get(i).get("BleRssi"));
+                Integer bleValue = Integer.valueOf(AcceptVehicleActivity_new.ListOfBleDevices.get(i).get("BleRssi"));
 
                 if (BleRssi == null || BleRssi < bleValue) {
                     BleRssi = bleValue;
-                    BleName = DeviceControlActivity_vehicle.ListOfBleDevices.get(i).get("BleName");
-                    BleMacAddress = DeviceControlActivity_vehicle.ListOfBleDevices.get(i).get("BleMacAddress");
+                    BleName = AcceptVehicleActivity_new.ListOfBleDevices.get(i).get("BleName");
+                    BleMacAddress = AcceptVehicleActivity_new.ListOfBleDevices.get(i).get("BleMacAddress");
                 }
 
             }

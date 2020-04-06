@@ -63,7 +63,6 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
 
     private static final String TAG = "SplashAct ";
     private static final int REQUEST_LOCATION = 2;
-    private ConnectionDetector cd;
     private double latitude;
     private double longitude;
     private GPSTracker gps;
@@ -78,7 +77,7 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
     private static final int ADMIN_INTENT = 1;
     private DevicePolicyManager mDevicePolicyManager;
     private ComponentName mComponentName;
-
+    private ConnectionDetector cd = new ConnectionDetector(SplashActivity.this);
 
     protected static final int REQUEST_CHECK_SETTINGS = 0x1;
 
@@ -93,6 +92,8 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
         setContentView(R.layout.activity_splash);
 
         getSupportActionBar().setTitle("Hub Application");
+
+
         CommonUtils.LogMessage(TAG, "SplashActivity", null);
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addApi(LocationServices.API)
@@ -121,9 +122,8 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
             }
         }
 
-
-        if (!AppConstants.isMobileDataAvailable(SplashActivity.this)) {
-            AppConstants.colorToastBigFont(getApplicationContext(), "OFFLINE MODE", Color.BLUE);
+        if (!cd.isConnecting() && OfflineConstants.isOfflineAccess(SplashActivity.this)) {
+            // AppConstants.colorToastBigFont(getApplicationContext(), "OFFLINE MODE", Color.BLUE);
 
             try {
                 checkPermissionTask checkPermissionTask = new checkPermissionTask();
@@ -140,18 +140,7 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
                 Log.e(TAG, ex.getMessage());
             }
 
-        }/*else if (!CommonUtils.isHotspotEnabled(SplashActivity.this)) {
-           // AppConstants.AlertDialogFinish(SplashActivity.this, "Please enable hotspot of your device");
-
-        }*/ else {
-
-           /* if (CommonUtils.isWiFiEnabled(SplashActivity.this)) {
-                System.out.println("WiFiWiFiEnabled.....");
-                AppConstants.IS_WIFI_ON = true;
-            } else {
-                System.out.println("WiFiOffff.....");
-                AppConstants.IS_WIFI_ON = false;
-            }*/
+        }else {
 
             //Enable hotspot
             wifiApManager.setWifiApEnabled(null, true);
@@ -178,6 +167,8 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
 
                     if (checkPermissionTask.isValue) {
 
+                        Log.i(TAG ,"SplashActivity executeTask OnCreate");
+                        AppConstants.WriteinFile(TAG + "SplashActivity executeTask OnCreate");
 
                         executeTask();
                     }
@@ -271,6 +262,10 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
                             checkPermissionTask.get();
 
                             if (checkPermissionTask.isValue) {
+
+                                Log.i(TAG ,"SplashActivity executeTask L1");
+                                AppConstants.WriteinFile(TAG + "SplashActivity executeTask L1");
+
                                 executeTask();
                             }
                         } catch (Exception ex) {
@@ -291,6 +286,10 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
                             checkPermissionTask.get();
 
                             if (checkPermissionTask.isValue) {
+
+                                Log.i(TAG ,"SplashActivity executeTask L2");
+                                AppConstants.WriteinFile(TAG + "SplashActivity executeTask L2");
+
                                 executeTask();
                             }
                         } catch (Exception ex) {
@@ -385,24 +384,25 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
             @Override
             public void run() {
 
-                ConnectionDetector cd = new ConnectionDetector(SplashActivity.this);
-                if (cd.isConnectingToInternet()) {
+                 if (cd.isConnecting()) {
 
                     try {
 
                         // new CallAppTxt().execute();
                         //setUrlFromSharedPref(SplashActivity.this);
-
                         new CheckApproved().execute();
 
                     } catch (Exception e) {
-
                         System.out.println(e);
-
                     }
 
 
-                } else {
+                } else if (!cd.isConnectingToInternet() && OfflineConstants.isOfflineAccess(SplashActivity.this)){
+
+                        startActivity(new Intent(SplashActivity.this, WelcomeActivity.class));
+                        finish();
+
+                } else{
                     CommonUtils.showNoInternetDialog(SplashActivity.this);
                 }
             }
@@ -479,7 +479,10 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
                     String userEmail = jsonObject.getString("Email");
                     String IsApproved = jsonObject.getString("IsApproved");
                     String IMEI_UDID = jsonObject.getString("IMEI_UDID");
+                    String AccessCode = jsonObject.getString("AccessCode");
+                    String DisableAllReboots = jsonObject.getString("DisableAllReboots");
 
+                    AppConstants.AccessCode = AccessCode;
                     String IsLoginRequire = jsonObject.getString("IsLoginRequire");
                     String IsDepartmentRequire = jsonObject.getString("IsDepartmentRequire");
                     String IsPersonnelPINRequire = jsonObject.getString("IsPersonnelPINRequire");
@@ -504,28 +507,92 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
                     int WifiChannelToUse = jsonObject.getInt("WifiChannelToUse");
                     boolean UseBarcode = Boolean.parseBoolean(jsonObject.getString("UseBarcode"));
                     boolean fa_data = Boolean.parseBoolean(jsonObject.getString("EnbDisHubForFA"));
+                    boolean EnableServerForTLD = Boolean.parseBoolean(jsonObject.getString("IsEnableServerForTLD"));
+                    //boolean IsRefreshHotspot = Boolean.parseBoolean(jsonObject.getString("IsRefreshHotspot"));
+                    //int RefreshHotspotTime = jsonObject.getInt("RefreshHotspotTime");
+                    String KeyboardTypeVehicle = "",KeyboardTypePerson = "",KeyboardTypeDepartment = "",KeyboardTypeOther = "";
 
+                    String ScreenNameForVehicle = jsonObject.getString("ScreenNameForVehicle");
+                    String ScreenNameForPersonnel = jsonObject.getString("ScreenNameForPersonnel");
+                    String ScreenNameForOdometer = jsonObject.getString("ScreenNameForOdometer");
+                    String ScreenNameForHours = jsonObject.getString("ScreenNameForHours");
+
+
+                    String StrKeyboardType = jsonObject.getString("KeyboardTypeObj");
+                    JSONArray jsonArray = new JSONArray(StrKeyboardType);
+
+                    for (int i=0; i<jsonArray.length(); i++) {
+                        JSONObject actor = jsonArray.getJSONObject(i);
+                        String KeyboardName = actor.getString("KeyboardName");
+                        String KeyboardValue = actor.getString("KeyboardValue");
+
+                        if (KeyboardName.equalsIgnoreCase("Vehicle")){
+                            KeyboardTypeVehicle = KeyboardValue;
+                        }else if (KeyboardName.equalsIgnoreCase("Person")){
+                            KeyboardTypePerson = KeyboardValue;
+                        } else if (KeyboardName.equalsIgnoreCase("Department")){
+                            KeyboardTypeDepartment = KeyboardValue;
+                        }else if (KeyboardName.equalsIgnoreCase("Other")){
+                            KeyboardTypeOther = KeyboardValue;
+                        }
+                    }
+
+                    SharedPreferences prefkb = SplashActivity.this.getSharedPreferences(AppConstants.sharedPref_KeyboardType, Context.MODE_PRIVATE);
+                    SharedPreferences.Editor editorkb = prefkb.edit();
+                    editorkb.putString("KeyboardTypeVehicle", KeyboardTypeVehicle);
+                    editorkb.putString("KeyboardTypePerson", KeyboardTypePerson);
+                    editorkb.putString("KeyboardTypeDepartment", KeyboardTypeDepartment);
+                    editorkb.putString("KeyboardTypeOther", KeyboardTypeOther);
+                    editorkb.putString("ScreenNameForVehicle", ScreenNameForVehicle);
+                    editorkb.putString("ScreenNameForPersonnel", ScreenNameForPersonnel);
+                    editorkb.putString("ScreenNameForOdometer", ScreenNameForOdometer);
+                    editorkb.putString("ScreenNameForHours", ScreenNameForHours);
+                    editorkb.commit();
+
+                    String DisableFOBReadingForPin = jsonObject.getString("DisableFOBReading"); //DisableFOBReadingForPin
+                    String DisableFOBReadingForVehicle = jsonObject.getString("DisableFOBReadingForVehicle");
                     String BluetoothCardReader = jsonObject.getString("BluetoothCardReader"); //ACR1255U-J1-006851
                     String BluetoothCardReaderMacAddress = jsonObject.getString("BluetoothCardReaderMacAddress"); //88:4A:EA:85:85:FB
                     String HFTrakCardReader = jsonObject.getString("BluetoothCardReader"); //"RFID_READER"; //
                     String HFTrakCardReaderMacAddress = jsonObject.getString("BluetoothCardReaderMacAddress"); //"80:7D:3A:A2:3B:0E"; //
+                    String MagneticCardReader = jsonObject.getString("MagneticCardReader");//"TRAK_LF_READER";//
+                    String MagneticCardReaderMacAddress = jsonObject.getString("MagneticCardReaderMacAddress");//"30:AE:A4:24:D1:4E";
                     boolean ColloectServerLog = jsonObject.getBoolean("ColloectServerLog");
                     AppConstants.ServerCallLogs = ColloectServerLog;
                     boolean ACS_Reader;
 
-                    if (BluetoothCardReader != null && BluetoothCardReader.startsWith("ACR")){
+                    if (BluetoothCardReader != null && BluetoothCardReader.startsWith("ACR") && (DisableFOBReadingForPin.equalsIgnoreCase("N") || DisableFOBReadingForVehicle.equalsIgnoreCase("N"))){
                          ACS_Reader = true;
                     }else{
                          ACS_Reader = false;
                     }
 
 
+                    String QueueName = jsonObject.getString("QueueName");
+                    String QueueNameForTLD = jsonObject.getString("QueueNameForTLD");
+                    String QueueConnectionStringValue = jsonObject.getString("QueueConnectionStringValue");
+
+                    SharedPreferences pref = SplashActivity.this.getSharedPreferences(AppConstants.sharedPref_AzureQueueDetails, Context.MODE_PRIVATE);
+                    SharedPreferences.Editor editor = pref.edit();
+                    editor.putString("QueueName", QueueName);
+                    editor.putString("QueueNameForTLD", QueueNameForTLD);
+                    editor.putString("QueueConnectionStringValue", QueueConnectionStringValue);
+                    editor.commit();
+
+
+
                     AppConstants.ACS_READER = ACS_Reader;
                     String IsOfflineAllow = jsonObject.getString("IsOfflineAllow");
-                    OfflineConstants.storeOfflineAccess(SplashActivity.this, IsOfflineAllow);
+                    String IsTotalOffline = jsonObject.getString("IsPermanentOffline");
+                    String OFFLineDataDwnldFreq = jsonObject.getString("OFFLineDataDwnldFreq");
+                    int OfflineDataDownloadDay = jsonObject.getInt("OfflineDataDownloadDay");
+                    int OfflineDataDownloadTimeInHrs = jsonObject.getInt("OfflineDataDownloadTimeInHrs");
+                    int OfflineDataDownloadTimeInMin = jsonObject.getInt("OfflineDataDownloadTimeInMin");
+                    OfflineConstants.storeOfflineAccess(SplashActivity.this, IsTotalOffline,IsOfflineAllow,OFFLineDataDwnldFreq,OfflineDataDownloadDay,OfflineDataDownloadTimeInHrs,OfflineDataDownloadTimeInMin);
+
                     CommonUtils.SaveLogFlagInPref(SplashActivity.this,IsLogging,CompanyBrandName,CompanyBrandLogoLink,SupportEmail,SupportPhonenumber);//Save logging to preferances
-                    CommonUtils.FA_FlagSavePref(SplashActivity.this,fa_data,UseBarcode);
-                    storeBT_FOBDetails(BluetoothCardReader, BluetoothCardReaderMacAddress,LFBluetoothCardReader,LFBluetoothCardReaderMacAddress,HFTrakCardReader,HFTrakCardReaderMacAddress,ACS_Reader);
+                    CommonUtils.FA_FlagSavePref(SplashActivity.this,fa_data,UseBarcode,EnableServerForTLD);
+                    storeBT_FOBDetails(BluetoothCardReader, BluetoothCardReaderMacAddress,LFBluetoothCardReader,LFBluetoothCardReaderMacAddress,HFTrakCardReader,HFTrakCardReaderMacAddress,ACS_Reader,MagneticCardReader,MagneticCardReaderMacAddress,DisableFOBReadingForPin,DisableFOBReadingForVehicle,DisableAllReboots);
 
                     CommonUtils.SaveDataInPrefForGatehub (SplashActivity.this, IsGateHub, IsStayOpenGate);
 
@@ -548,6 +615,7 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
 
                             } else {
 
+
                                 startActivity(new Intent(SplashActivity.this, WelcomeActivity.class));//
                                 finish();
 
@@ -561,6 +629,7 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
 
 
                 } catch (Exception ex) {
+                    AppConstants.WriteinFile(TAG + " Handle user Data: "+ex);
                     CommonUtils.LogMessage(TAG, "Handle user Data", ex);
                 }
 
@@ -613,9 +682,9 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
                 MediaType TEXT = MediaType.parse("application/x-www-form-urlencoded");
 
                 OkHttpClient client = new OkHttpClient();
-                client.setConnectTimeout(10, TimeUnit.SECONDS);
-                client.setReadTimeout(10, TimeUnit.SECONDS);
-                client.setWriteTimeout(10, TimeUnit.SECONDS);
+                client.setConnectTimeout(4, TimeUnit.SECONDS);
+                client.setReadTimeout(4, TimeUnit.SECONDS);
+                client.setWriteTimeout(4, TimeUnit.SECONDS);
 
                 String imieNumber = AppConstants.getIMEI(SplashActivity.this);
                 RequestBody body = RequestBody.create(TEXT, "Authenticate:A");
@@ -629,9 +698,9 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
                 resp = response.body().string();
 
             } catch (SocketTimeoutException e) {
-
+                e.printStackTrace();
             } catch (Exception e) {
-
+                e.printStackTrace();
             }
 
 
@@ -641,10 +710,29 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
         @Override
         protected void onPostExecute(String response) {
 
+
             if (response != null && response.startsWith("{"))
+            {
                 actionOnResult(response);
-            else
-                RetryAlertDialogButtonClicked("Server connection problem...Please try it again");
+            }else{
+
+                if (OfflineConstants.isOfflineAccess(SplashActivity.this)) {
+                    AppConstants.NETWORK_STRENGTH = false;
+                    if (AppConstants.GenerateLogs) AppConstants.WriteinFile(TAG + "  Server response null ~Switching to offline mode!!");
+                    startActivity(new Intent(SplashActivity.this, WelcomeActivity.class));
+                    finish();
+                }else{
+
+                    if (!CommonUtils.isHotspotEnabled(SplashActivity.this) && Constants.hotspotstayOn){
+                        CommonUtils.enableMobileHotspotmanuallyStartTimer(SplashActivity.this);
+                    }else{
+                        RetryAlertDialogButtonClicked("Server connection problem...Please try it again");
+                    }
+
+                }
+
+            }
+
         }
     }
 
@@ -841,7 +929,7 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
     }*/
 
 
-    public void storeBT_FOBDetails(String BluetoothCardReader, String BTMacAddress,String LFBluetoothCardReader, String LFBluetoothCardReaderMacAddress,String HFTrakCardReader,String HFTrakCardReaderMacAddress,boolean ACS_Reader) {
+    public void storeBT_FOBDetails(String BluetoothCardReader, String BTMacAddress,String LFBluetoothCardReader, String LFBluetoothCardReaderMacAddress,String HFTrakCardReader,String HFTrakCardReaderMacAddress,boolean ACS_Reader,String MagneticCardReader,String MagneticCardReaderMacAddress,String DisableFOBReadingForPin,String DisableFOBReadingForVehicle,String DisableAllReboots) {
         SharedPreferences pref;
 
         SharedPreferences.Editor editor;
@@ -856,6 +944,11 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
         editor.putString("HFTrakCardReader", HFTrakCardReader);
         editor.putString("HFTrakCardReaderMacAddress", HFTrakCardReaderMacAddress);
         editor.putBoolean("ACS_Reader",ACS_Reader);
+        editor.putString("MagneticCardReader",MagneticCardReader);
+        editor.putString("MagneticCardReaderMacAddress",MagneticCardReaderMacAddress);
+        editor.putString("DisableFOBReadingForPin",DisableFOBReadingForPin);
+        editor.putString("DisableFOBReadingForVehicle",DisableFOBReadingForVehicle);
+        editor.putString("DisableAllReboots",DisableAllReboots);
 
         // commit changes
         editor.commit();
@@ -944,5 +1037,6 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
 
         }
     }
+
 }
 

@@ -4,6 +4,7 @@ import android.app.Service;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.IBinder;
+import android.util.Log;
 
 import com.TrakEngineering.FluidSecureHub.AppConstants;
 import com.TrakEngineering.FluidSecureHub.CommonUtils;
@@ -14,6 +15,7 @@ import com.squareup.okhttp.Request;
 import com.squareup.okhttp.RequestBody;
 import com.squareup.okhttp.Response;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -41,15 +43,131 @@ public class OffTranzSyncService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
 
         System.out.println("OffTranzSyncService started " + new Date());
-        if (AppConstants.GenerateLogs)AppConstants.WriteinFile("OffTranzSyncService started " + new Date());
+        if (AppConstants.GenerateLogs)
+            AppConstants.WriteinFile("OffTranzSyncService started " + new Date());
 
 
-        if (cd.isConnectingToInternet())
-            new GetAPIToken().execute();
+        //if (cd.isConnectingToInternet())
+        //    new GetAPIToken().execute();
+
+        azureQueueLogic();
+
+
+        tldQueueLogic();
 
 
         return super.onStartCommand(intent, flags, startId);
     }
+
+    public void azureQueueLogic() {
+        if (cd.isConnecting()) {
+
+            //Log.e("Totaloffline_check","Offline data Sync AzureCall");
+            try {
+                String off_json_10_trans = controller.getTop10OfflineTransactionJSON(OffTranzSyncService.this);
+
+                JSONObject jobj = new JSONObject(off_json_10_trans);
+                String offtransactionArray = jobj.getString("TransactionsModelsObj");
+                JSONArray jarrsy = new JSONArray(offtransactionArray);
+
+                if (jarrsy.length() > 0) {
+                    new AzureCall().execute(off_json_10_trans, "OFF");
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void tldQueueLogic() {
+        if (cd.isConnecting()) {
+
+
+            try {
+                String off_json = controller.getTLDOfflineTransactionJSON(OffTranzSyncService.this);
+
+                if (off_json!=null && !off_json.equalsIgnoreCase("[]")) {
+                    new AzureCall().execute(off_json, "TLD");
+                }else {
+                    System.out.println("TLD json is empty");
+                }
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public class AzureCall extends AsyncTask<String, Void, String> {
+        String responseStr = "";
+        String sentJson = "";
+        String queType = "";
+
+        @Override
+        protected String doInBackground(String... param) {
+            try {
+                sentJson = param[0];
+                queType = param[1];
+
+                QueueBasics basicSamples = new QueueBasics();
+                basicSamples.addMessageOnQueue(OffTranzSyncService.this, sentJson, queType);
+                responseStr = "success";
+
+            } catch (Exception e) {
+                System.out.println("Azure--" + e.getMessage());
+            }
+            return responseStr;
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+
+            if (s.equalsIgnoreCase("success")) {
+
+                if (queType.equalsIgnoreCase("TLD")) {
+                    controller.deleteTableData(OffDBController.TBL_OFF_TLD);
+
+                } else {
+                    //get IDs from json
+                    try {
+                        JSONObject jobj = new JSONObject(sentJson);
+                        String offtransactionArray = jobj.getString("TransactionsModelsObj");
+                        JSONArray jarrsy = new JSONArray(offtransactionArray);
+
+                        String idsList = "";
+                        for (int i = 0; i < jarrsy.length(); i++) {
+                            JSONObject jo = jarrsy.getJSONObject(i);
+                            String Id = jo.getString("Id");
+                            idsList += Id + ",";
+                        }
+
+                        idsList = removeLastChar(idsList);
+
+                        System.out.println("offline Ids to delete-" + idsList);
+                        controller.deleteTransactionsByIDs(idsList);
+
+
+                        //delete empty transactions
+                        controller.deleteLastTransactionIfNotEmpty();
+
+                        // call again for remaining transactions
+                        azureQueueLogic();
+
+                    } catch (Exception e) {
+                        System.out.println("deleteTransactionsByIDs---" + e.getMessage());
+                    }
+                }
+            }
+        }
+    }
+
+    public String removeLastChar(String str) {
+        if (str != null && str.length() > 0 && str.charAt(str.length() - 1) == ',') {
+            str = str.substring(0, str.length() - 1);
+        }
+        return str;
+    }
+
 
     public class GetAPIToken extends AsyncTask<String, Void, String> {
 
@@ -99,7 +217,6 @@ public class OffTranzSyncService extends Service {
         @Override
         protected void onPostExecute(String result) {
 
-
             System.out.println("result:" + result);
 
             if (result != null && !result.isEmpty()) {
@@ -119,10 +236,20 @@ public class OffTranzSyncService extends Service {
                     controller.storeOfflineToken(OffTranzSyncService.this, access_token, token_type, expires_in, refresh_token);
 
 
-                    if (cd.isConnectingToInternet()) {
-                        //offline transaction upload
-                        new SendOfflineTransactions().execute();
+                    if (cd.isConnecting()) {
+
+                        String off_json = controller.getAllOfflineTransactionJSON(OffTranzSyncService.this);
+                        JSONObject jobj = new JSONObject(off_json);
+                        String offtransactionArray = jobj.getString("TransactionsModelsObj");
+                        JSONArray jarrsy = new JSONArray(offtransactionArray);
+
+                        if (jarrsy.length() > 0) {
+                            //offline transaction upload
+                            //new SendOfflineTransactions().execute(off_json);
+                        }
+
                     }
+
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -136,7 +263,6 @@ public class OffTranzSyncService extends Service {
     }
 
 
-
     public class SendOfflineTransactions extends AsyncTask<String, Void, String> {
 
 
@@ -145,13 +271,14 @@ public class OffTranzSyncService extends Service {
 
 
             try {
-                String off_json = controller.getAllOfflineTransactionJSON(OffTranzSyncService.this);
-                if (AppConstants.GenerateLogs)AppConstants.WriteinFile("Offline off_json data " + off_json);
 
+                System.out.println("Offline off_json data:" + param[0]);
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile("Offline Transactioms: " + param[0]);
                 String api_token = controller.getOfflineToken(OffTranzSyncService.this);
 
                 OkHttpClient client = new OkHttpClient();
-                RequestBody body = RequestBody.create(JSON, off_json);
+                RequestBody body = RequestBody.create(JSON, param[0]);
                 Request request = new Request.Builder()
                         .url(AppConstants.API_URL_SYNC_TRANS)
                         .addHeader("Authorization", "bearer " + api_token)
@@ -166,7 +293,8 @@ public class OffTranzSyncService extends Service {
             } catch (Exception e) {
 
                 System.out.println("SendOfflineTransactions" + e.getMessage());
-                if (AppConstants.GenerateLogs)AppConstants.WriteinFile("SendOfflineTransactions: " + e.getMessage());
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile("SendOfflineTransactions: " + e.getMessage());
 
             }
 
@@ -179,9 +307,9 @@ public class OffTranzSyncService extends Service {
         protected void onPostExecute(String result) {
 
 
-            System.out.println("result:" + result);
+            System.out.println(" Offline data sync result:" + result);
 
-            if (AppConstants.GenerateLogs)AppConstants.WriteinFile("Offline data sync result" + result);
+            if (AppConstants.GenerateLogs) AppConstants.WriteinFile("Offline data sync-" + result);
 
             if (result != null && !result.isEmpty()) {
 
@@ -200,7 +328,7 @@ public class OffTranzSyncService extends Service {
                         controller.deleteTransactionIfNotEmpty();
 
                         //eXCEPT RECENT 8 EMPTY TRANSACTION DELET REMANING EMPTY TRANSACTION
-                        controller.deleteLast4TransactionIfNotEmpty();
+                        controller.deleteLastTransactionIfNotEmpty();
 
                     } else
                         System.out.println("OFFline json synced FAILEDDDD");

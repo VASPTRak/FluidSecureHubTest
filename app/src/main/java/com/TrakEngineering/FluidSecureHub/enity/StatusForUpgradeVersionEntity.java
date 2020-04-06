@@ -9,6 +9,7 @@ public class StatusForUpgradeVersionEntity {
 
     public String HubName;
     public String SiteName;
+    public String LinkName;
 
 
 }

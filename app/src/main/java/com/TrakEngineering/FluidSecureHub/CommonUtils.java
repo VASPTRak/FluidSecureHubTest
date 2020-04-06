@@ -1,24 +1,26 @@
 package com.TrakEngineering.FluidSecureHub;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
+import android.graphics.Color;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.CountDownTimer;
 import android.os.Environment;
 import android.os.Handler;
-import android.os.PowerManager;
-import android.provider.SyncStateContract;
 import android.support.annotation.RequiresApi;
 import android.text.Editable;
 import android.text.Html;
@@ -26,7 +28,6 @@ import android.text.format.Time;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
-import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
@@ -34,17 +35,29 @@ import android.widget.TextView;
 
 import com.TrakEngineering.FluidSecureHub.BackgroundServiceNew.MyService_FSNP;
 import com.TrakEngineering.FluidSecureHub.EddystoneScanner.EddystoneScannerService;
-import com.TrakEngineering.FluidSecureHub.LFBle_vehicle.DeviceControlActivity_vehicle;
 import com.TrakEngineering.FluidSecureHub.enity.AuthEntityClass;
+import com.TrakEngineering.FluidSecureHub.enity.StatusForUpgradeVersionEntity;
+import com.TrakEngineering.FluidSecureHub.enity.UpdateTransactionStatusClass;
 import com.TrakEngineering.FluidSecureHub.enity.UserInfoEntity;
+import com.TrakEngineering.FluidSecureHub.retrofit.BusProvider;
+import com.TrakEngineering.FluidSecureHub.retrofit.ErrorEvent;
+import com.TrakEngineering.FluidSecureHub.retrofit.Interface;
+import com.TrakEngineering.FluidSecureHub.retrofit.ServerEvent;
+import com.TrakEngineering.FluidSecureHub.retrofit.ServerResponse;
 import com.google.gson.Gson;
+import com.squareup.okhttp.OkHttpClient;
+import com.squareup.okhttp.Request;
+import com.squareup.okhttp.RequestBody;
+import com.squareup.okhttp.ResponseBody;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -58,16 +71,22 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.Stack;
 
+import okhttp3.logging.HttpLoggingInterceptor;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
+import retrofit2.converter.scalars.ScalarsConverterFactory;
+
 import static android.content.Context.ACTIVITY_SERVICE;
 import static android.content.Context.INPUT_METHOD_SERVICE;
-import static android.content.Context.POWER_SERVICE;
 import static android.content.Context.WIFI_SERVICE;
 import static com.TrakEngineering.FluidSecureHub.AppConstants.FluidSecureSiteName;
 import static com.TrakEngineering.FluidSecureHub.AppConstants.ISVehicleHasFob;
 import static com.TrakEngineering.FluidSecureHub.AppConstants.IsPersonHasFob;
 import static com.TrakEngineering.FluidSecureHub.Constants.PREF_COLUMN_SITE;
 import static com.TrakEngineering.FluidSecureHub.Constants.PREF_OFF_DB_SIZE;
-import static com.TrakEngineering.FluidSecureHub.server.MyServer.ctx;
+import static com.TrakEngineering.FluidSecureHub.server.ServerHandler.TEXT;
 import static com.google.android.gms.internal.zzid.runOnUiThread;
 
 /**
@@ -112,13 +131,15 @@ public class CommonUtils {
     }
 
 
-    public static String GetPrintReciptForOther(String CompanyName,String PrintDate,String LinkName,String Location,String VehicleNumber,String PersonName,String OtherLabel,String OtherName,String Qty,String PrintCost){
+    public static String GetPrintReciptNew(String IsOtherRequire,String CompanyName, String PrintDate, String LinkName, String Location, String VehicleNumber, String PersonName, String Qty, String PrintCost, String OtherLabel, String OtherName, String Odometer, String Hours) {
 
-        String content = "<h1>------FluidSecure Receipt------</h1>\n\n\n" +
+        String content = "";
+
+        String content_start = "<h1>------FluidSecure Receipt------</h1>\n\n\n" +
                 "        <p><u>\n</u><br/>" +//empty line
                 "        <p><u>Company :</u><br/>" +
                 "        <p><u>\n</u><br/>" +//empty line
-                "        <p>"+CompanyName+"<br/>" +
+                "        <p>" + CompanyName + "<br/>" +
                 "        <p><u>\n</u><br/>" +//empty line
                 "        <p><b>Time/Date :</b><br/>" +
                 "        <p><u>\n</u><br/>" +//empty line
@@ -126,75 +147,53 @@ public class CommonUtils {
                 "        <p><u>\n</u><br/>" +//empty line
                 "        <p><b>Location  :</b><br/>" +
                 "        <p><u>\n</u><br/>" +//empty line
-                "        <p>"+LinkName+", "+Location+"<br/>" +
+                "        <p>" + LinkName + ", " + Location + "<br/>" +
                 "        <p><u>\n</u><br/>" +//empty line
-                "        <p><b>Vehicle    :</b> "+VehicleNumber+"<br/>" +
+                "        <p><b>Vehicle    :</b> " + VehicleNumber + "<br/>" +
                 "        <p><u>\n</u><br/>" +//empty line
-                "        <p><b>Personnel   :</b> "+PersonName+"<br/>" +
+                "        <p><b>Personnel   :</b> " + PersonName + "<br/>" +
                 "        <p><u>\n</u><br/>" +//empty line
-                "        <p><b>Quantity    :</b> "+Qty+"<br/>" +
+                "        <p><b>Quantity    :</b> " + Qty + "<br/>" +
                 "        <p><u>\n</u><br/>" +//empty line
-                "        <p><b>Cost ($)    :</b> "+PrintCost+"<br/>" +
-                "        <p><u>\n</u><br/>" +//empty line
-                "        <p>"+OtherLabel+": \n\n\n\n" +
-                "        <p><u>\n</u><br/>" +//empty line
-                "        <p><b>"+OtherName+" </b><br/>" +
-                "        <p><u>\n</u><br/>" +//empty line
-                "        <h2>      ---------Thank You---------</h2>\n\n"+
-                "        <p><u>\n</u><br/>" +//blank spase to cut paper
-                "        <p><u>\n</u><br/>" +//blank spase to cut paper
-                "        <p><u>\n</u><br/>" +//blank spase to cut paper
-                "        <p><u>\n</u><br/>" +//blank spase to cut paper
-                "        <p><u>\n</u><br/>" +//blank spase to cut paper
-                "        <p><u>\n</u><br/>" +//blank spase to cut paper
-                "        <p><u>\n</u><br/>" +//blank spase to cut paper
-                "        <p><u>\n</u><br/>" +//blank spase to cut paper
-                "        <p><u>\n</u><br/>" ;//blank spase to cut paper
+                "        <p><b>Cost ($)    :</b> " + PrintCost + "<br/>" +
+                "        <p><u>\n</u><br/>";//empty line
 
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            return String.valueOf(Html.fromHtml(content, Html.FROM_HTML_MODE_LEGACY));
-        } else {
-            return String.valueOf(Html.fromHtml(content));
+        String con_Odo = "        <p><b>Odometer    :</b> " + Odometer + "<br/>" +
+                "        <p><u>\n</u><br/>";//empty line
+
+        String con_hours = "       <p><b>Hours       :</b> " + Hours + "<br/>" +
+                "        <p><u>\n</u><br/>";//empty line
+
+        String con_other = "<p>" + OtherLabel + ": \n\n\n\n" +
+                "        <p><u>\n</u><br/>" +//empty line
+                "        <p><b>" + OtherName + " </b><br/>" +
+                "        <p><u>\n</u><br/>";//empty line
+
+
+        String con_end = "        <h2>      ---------Thank You---------</h2>\n\n" +
+                "        <p><u>\n</u><br/>" +//blank spase to cut paper
+                "        <p><u>\n</u><br/>" +//blank spase to cut paper
+                "        <p><u>\n</u><br/>" +//blank spase to cut paper
+                "        <p><u>\n</u><br/>" +//blank spase to cut paper
+                "        <p><u>\n</u><br/>" +//blank spase to cut paper
+                "        <p><u>\n</u><br/>" +//blank spase to cut paper
+                "        <p><u>\n</u><br/>" +//blank spase to cut paper
+                "        <p><u>\n</u><br/>" +//blank spase to cut paper
+                "        <p><u>\n</u><br/>";//blank spase to cut paper
+
+
+        content = content_start;
+        if (IsOtherRequire.equalsIgnoreCase("true")) {
+            content = content + con_other;
         }
-
-    }
-
-    public static String GetPrintRecipt(String CompanyName,String PrintDate,String LinkName,String Location,String VehicleNumber,String PersonName,String Qty,String PrintCost){
-
-        String content = "<h1>------FluidSecure Receipt------</h1>\n\n\n" +
-                "        <p><u>\n</u><br/>" +//empty line
-                "        <p><b>Company :</b><br/>" +
-                "        <p><u>\n</u><br/>" +//empty line
-                "        <p>"+CompanyName+"<br/>" +
-                "        <p><u>\n</u><br/>" +//empty line
-                "        <p><b>Time/Date :</b><br/>" +
-                "        <p><u>\n</u><br/>" +//empty line
-                "        <p>" + PrintDate + "<br/>" +
-                "        <p><u>\n</u><br/>" +//empty line
-                "        <p><b>Location  :</b><br/>" +
-                "        <p><u>\n</u><br/>" +//empty line
-                "        <p>"+LinkName+", "+Location+"<br/>" +
-                "        <p><u>\n</u><br/>" +//empty line
-                "        <p><b>Vehicle    :</b> "+VehicleNumber+"<br/>" +
-                "        <p><u>\n</u><br/>" +//empty line
-                "        <p><b>Personnel   :</b> "+PersonName+"\n\n\n\n" +
-                "        <p><u>\n</u><br/>" +//empty line
-                "        <p><b>Quantity    :</b> "+Qty+"<br/>" +
-                "        <p><u>\n</u><br/>" +//empty line
-                "        <p><b>Cost ($)   :</b> "+PrintCost+"<br/>" +
-                "        <p><u>\n</u><br/>" +//empty line
-                "        <h2>      ---------Thank You---------</h2>\n\n"+
-                "        <p><u>\n</u><br/>" +//blank spase to cut paper
-                "        <p><u>\n</u><br/>" +//blank spase to cut paper
-                "        <p><u>\n</u><br/>" +//blank spase to cut paper
-                "        <p><u>\n</u><br/>" +//blank spase to cut paper
-                "        <p><u>\n</u><br/>" +//blank spase to cut paper
-                "        <p><u>\n</u><br/>" +//blank spase to cut paper
-                "        <p><u>\n</u><br/>" +//blank spase to cut paper
-                "        <p><u>\n</u><br/>" +//blank spase to cut paper
-                "        <p><u>\n</u><br/>" ;//blank spase to cut paper
-
+       /* if (!Hours.equals("") && !Hours.equals("0")) {
+            content = content + con_hours;
+        }
+        if (!Odometer.equalsIgnoreCase("") && !Odometer.equalsIgnoreCase("0")) {
+            content = content + con_Odo;
+        }*/
+        content = content + con_end;
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             return String.valueOf(Html.fromHtml(content, Html.FROM_HTML_MODE_LEGACY));
@@ -261,7 +260,7 @@ public class CommonUtils {
                 else {
 
                     Calendar time = Calendar.getInstance();
-                    time.add(Calendar.DAY_OF_YEAR, -30);
+                    time.add(Calendar.DAY_OF_YEAR, -60);
                     //I store the required attributes here and delete them
                     Date lastModified = new Date(aFileList.lastModified());
                     if (lastModified.before(time.getTime())) {
@@ -305,7 +304,7 @@ public class CommonUtils {
         Button btnAllow = (Button) dialogBus.findViewById(R.id.btnAllow);
         edt_message.setText(Html.fromHtml(newString));
 
-        cTimer = new CountDownTimer(3000, 3000) {
+        cTimer = new CountDownTimer(4000, 4000) {
             public void onTick(long millisUntilFinished) {
             }
 
@@ -373,7 +372,7 @@ public class CommonUtils {
             }
         });
 
-        handler.postDelayed(runnable, 2000);
+        handler.postDelayed(runnable, 4000);
 
     }
 
@@ -473,7 +472,7 @@ public class CommonUtils {
     public static void showNoInternetDialog(final Activity context) {
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(context);
         // set title
-        alertDialogBuilder.setTitle("No Internet");
+        alertDialogBuilder.setTitle("Check Internet");
         alertDialogBuilder
                 .setMessage(Html.fromHtml(context.getResources().getString(R.string.no_internet)))
                 .setCancelable(false)
@@ -575,12 +574,13 @@ public class CommonUtils {
 
     }
 
-    public static void FA_FlagSavePref(Activity activity,boolean data, boolean barcodedata){
+    public static void FA_FlagSavePref(Activity activity, boolean data,boolean barcodedata,boolean IsEnableServerForTLD) {
 
         SharedPreferences pref = activity.getSharedPreferences(Constants.PREF_FA_Data, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = pref.edit();
-        editor.putBoolean(AppConstants.FAData,data);
-        editor.putBoolean(AppConstants.UseBarcode,barcodedata);
+        editor.putBoolean(AppConstants.FAData, data);
+        editor.putBoolean(AppConstants.IsEnableServerForTLD, IsEnableServerForTLD);
+        editor.putBoolean(AppConstants.UseBarcode, barcodedata);
         editor.commit();
 
 
@@ -603,11 +603,10 @@ public class CommonUtils {
         editor.commit();
     }
 
-    public static void SaveOfflineDbSize(Context context, String size, String SaveDate) {
+    public static void SaveOfflineDbSizeDateTime(Context context, String SaveDate) {
 
         SharedPreferences sharedPref = context.getSharedPreferences(PREF_OFF_DB_SIZE, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPref.edit();
-        editor.putString(AppConstants.OfflineDataBaseSize, size);
         editor.putString(AppConstants.DbUpdateTime, SaveDate);
         editor.commit();
     }
@@ -638,7 +637,8 @@ public class CommonUtils {
 
         editor.commit();
     }
-    public static void SaveTldDetailsInPref(Context activity,String IsTLDCall,String IsTLDFirmwareUpgrade,String TLDFirmwareFilePath,String TLDFIrmwareVersion,String PROBEMacAddress,String selMacAddress) {
+
+    public static void SaveTldDetailsInPref(Context activity, String IsTLDCall, String IsTLDFirmwareUpgrade, String TLDFirmwareFilePath, String TLDFIrmwareVersion, String PROBEMacAddress, String selMacAddress) {
 
         SharedPreferences sharedPref = activity.getSharedPreferences(Constants.PREF_TldDetails, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPref.edit();
@@ -653,7 +653,7 @@ public class CommonUtils {
     }
 
 
-    public static void SaveVehiFuelInPref_FS1(Context activity, String TransactionId_FS1,String VehicleId_FS1, String PhoneNumber_FS1, String PersonId_FS1, String PulseRatio_FS1, String MinLimit_FS1, String FuelTypeId_FS1, String ServerDate_FS1, String IntervalToStopFuel_FS1,String PrintDate_FS1,String Company_FS1,String Location_FS1,String PersonName_FS1,String PrinterMacAddress_FS1,String PrinterName_FS1,String vehicleNumber_FS1,String accOther_FS1,String VehicleSum_FS1,String DeptSum_FS1,String VehPercentage_FS1,String DeptPercentage_FS1,String SurchargeType_FS1,String ProductPrice_FS1,String IsTLDCall_FS1,String EnablePrinter_FS1) {
+    public static void SaveVehiFuelInPref_FS1(Context activity, String TransactionId_FS1, String VehicleId_FS1, String PhoneNumber_FS1, String PersonId_FS1, String PulseRatio_FS1, String MinLimit_FS1, String FuelTypeId_FS1, String ServerDate_FS1, String IntervalToStopFuel_FS1, String PrintDate_FS1, String Company_FS1, String Location_FS1, String PersonName_FS1, String PrinterMacAddress_FS1, String PrinterName_FS1, String vehicleNumber_FS1, String accOther_FS1, String VehicleSum_FS1, String DeptSum_FS1, String VehPercentage_FS1, String DeptPercentage_FS1, String SurchargeType_FS1, String ProductPrice_FS1, String IsTLDCall_FS1, String EnablePrinter_FS1, String OdoMeter_FS1, String Hours_FS1, String PumpOnTime_FS1) {
 
         SharedPreferences sharedPref = activity.getSharedPreferences(Constants.PREF_VehiFuel, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPref.edit();
@@ -668,6 +668,7 @@ public class CommonUtils {
         editor.putString("FuelTypeId_FS1", FuelTypeId_FS1);
         editor.putString("ServerDate_FS1", ServerDate_FS1);
         editor.putString("IntervalToStopFuel_FS1", IntervalToStopFuel_FS1);
+        editor.putString("PumpOnTime_FS1", PumpOnTime_FS1);
         editor.putString("PrintDate_FS1", PrintDate_FS1);
         editor.putString("Company_FS1", Company_FS1);
         editor.putString("Location_FS1", Location_FS1);
@@ -684,12 +685,14 @@ public class CommonUtils {
         editor.putString("ProductPrice_FS1", ProductPrice_FS1);
         editor.putString("IsTLDCall_FS1", IsTLDCall_FS1);
         editor.putString("EnablePrinter_FS1", EnablePrinter_FS1);
+        editor.putString("OdoMeter_FS1", OdoMeter_FS1);
+        editor.putString("Hours_FS1", Hours_FS1);
 
 
         editor.commit();
     }
 
-    public static void SaveVehiFuelInPref(Context activity, String TransactionId,String VehicleId, String PhoneNumber, String PersonId, String PulseRatio, String MinLimit, String FuelTypeId, String ServerDate, String IntervalToStopFuel,String PrintDate,String Company,String Location,String PersonName,String PrinterMacAddress,String PrinterName,String vehicleNumber,String accOther,String VehicleSum,String DeptSum,String VehPercentage,String DeptPercentage,String SurchargeType,String ProductPrice,String IsTLDCall1,String EnablePrinter) {
+    public static void SaveVehiFuelInPref(Context activity, String TransactionId, String VehicleId, String PhoneNumber, String PersonId, String PulseRatio, String MinLimit, String FuelTypeId, String ServerDate, String IntervalToStopFuel, String PrintDate, String Company, String Location, String PersonName, String PrinterMacAddress, String PrinterName, String vehicleNumber, String accOther, String VehicleSum, String DeptSum, String VehPercentage, String DeptPercentage, String SurchargeType, String ProductPrice, String IsTLDCall1, String EnablePrinter, String OdoMeter, String Hours, String PumpOnTime) {
 
         SharedPreferences sharedPref = activity.getSharedPreferences(Constants.PREF_VehiFuel, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPref.edit();
@@ -703,6 +706,7 @@ public class CommonUtils {
         editor.putString("FuelTypeId", FuelTypeId);
         editor.putString("ServerDate", ServerDate);
         editor.putString("IntervalToStopFuel", IntervalToStopFuel);
+        editor.putString("PumpOnTime", PumpOnTime);
         editor.putString("PrintDate", PrintDate);
         editor.putString("Company", Company);
         editor.putString("Location", Location);
@@ -719,12 +723,14 @@ public class CommonUtils {
         editor.putString("ProductPrice", ProductPrice);
         editor.putString("IsTLDCall", IsTLDCall1);
         editor.putString("EnablePrinter", EnablePrinter);
+        editor.putString("OdoMeter", OdoMeter);
+        editor.putString("Hours", Hours);
 
 
         editor.commit();
     }
 
-    public static void SaveVehiFuelInPref_FS3(Context activity, String TransactionId_FS3,String VehicleId_FS3, String PhoneNumber_FS3, String PersonId_FS3, String PulseRatio_FS3, String MinLimit_FS3, String FuelTypeId_FS3, String ServerDate_FS3, String IntervalToStopFuel_FS3,String PrintDate_FS3,String Company_FS3,String Location_FS3,String PersonName_FS3,String PrinterMacAddress_FS3,String PrinterName_FS3,String vehicleNumber_FS3,String accOther_FS3,String VehicleSum_FS3,String DeptSum_FS3,String VehPercentage_FS3,String DeptPercentage_FS3,String SurchargeType_FS3,String ProductPrice_FS3,String IsTLDCall_FS3,String EnablePrinter_FS3) {
+    public static void SaveVehiFuelInPref_FS3(Context activity, String TransactionId_FS3, String VehicleId_FS3, String PhoneNumber_FS3, String PersonId_FS3, String PulseRatio_FS3, String MinLimit_FS3, String FuelTypeId_FS3, String ServerDate_FS3, String IntervalToStopFuel_FS3, String PrintDate_FS3, String Company_FS3, String Location_FS3, String PersonName_FS3, String PrinterMacAddress_FS3, String PrinterName_FS3, String vehicleNumber_FS3, String accOther_FS3, String VehicleSum_FS3, String DeptSum_FS3, String VehPercentage_FS3, String DeptPercentage_FS3, String SurchargeType_FS3, String ProductPrice_FS3, String IsTLDCall_FS3, String EnablePrinter_FS3, String OdoMeter_FS3, String Hours_FS3, String PumpOnTime_FS3) {
 
         SharedPreferences sharedPref = activity.getSharedPreferences(Constants.PREF_VehiFuel, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPref.edit();
@@ -739,6 +745,7 @@ public class CommonUtils {
         editor.putString("FuelTypeId_FS3", FuelTypeId_FS3);
         editor.putString("ServerDate_FS3", ServerDate_FS3);
         editor.putString("IntervalToStopFuel_FS3", IntervalToStopFuel_FS3);
+        editor.putString("PumpOnTime_FS3", PumpOnTime_FS3);
         editor.putString("PrintDate_FS3", PrintDate_FS3);
         editor.putString("Company_FS3", Company_FS3);
         editor.putString("Location_FS3", Location_FS3);
@@ -755,11 +762,13 @@ public class CommonUtils {
         editor.putString("ProductPrice_FS3", ProductPrice_FS3);
         editor.putString("IsTLDCall_FS3", IsTLDCall_FS3);
         editor.putString("EnablePrinter_FS3", EnablePrinter_FS3);
+        editor.putString("OdoMeter_FS3", OdoMeter_FS3);
+        editor.putString("Hours_FS3", Hours_FS3);
 
         editor.commit();
     }
 
-    public static void SaveVehiFuelInPref_FS4(Context activity, String TransactionId_FS4,String VehicleId_FS4, String PhoneNumber_FS4, String PersonId_FS4, String PulseRatio_FS4, String MinLimit_FS4, String FuelTypeId_FS4, String ServerDate_FS4, String IntervalToStopFuel_FS4,String PrintDate_FS4,String Company_FS4,String Location_FS4,String PersonName_FS4,String PrinterMacAddress_FS4,String PrinterName_FS4,String vehicleNumber_FS4,String accOther_FS4,String VehicleSum_FS4,String DeptSum_FS4,String VehPercentage_FS4,String DeptPercentage_FS4,String SurchargeType_FS4,String ProductPrice_FS4,String IsTLDCall_FS4,String EnablePrinter_FS4) {
+    public static void SaveVehiFuelInPref_FS4(Context activity, String TransactionId_FS4, String VehicleId_FS4, String PhoneNumber_FS4, String PersonId_FS4, String PulseRatio_FS4, String MinLimit_FS4, String FuelTypeId_FS4, String ServerDate_FS4, String IntervalToStopFuel_FS4, String PrintDate_FS4, String Company_FS4, String Location_FS4, String PersonName_FS4, String PrinterMacAddress_FS4, String PrinterName_FS4, String vehicleNumber_FS4, String accOther_FS4, String VehicleSum_FS4, String DeptSum_FS4, String VehPercentage_FS4, String DeptPercentage_FS4, String SurchargeType_FS4, String ProductPrice_FS4, String IsTLDCall_FS4, String EnablePrinter_FS4, String OdoMeter_FS4, String Hours_FS4, String PumpOnTime_FS4) {
 
         SharedPreferences sharedPref = activity.getSharedPreferences(Constants.PREF_VehiFuel, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPref.edit();
@@ -774,6 +783,7 @@ public class CommonUtils {
         editor.putString("FuelTypeId_FS4", FuelTypeId_FS4);
         editor.putString("ServerDate_FS4", ServerDate_FS4);
         editor.putString("IntervalToStopFuel_FS4", IntervalToStopFuel_FS4);
+        editor.putString("PumpOnTime_FS4", PumpOnTime_FS4);
         editor.putString("PrintDate_FS4", PrintDate_FS4);
         editor.putString("Company_FS4", Company_FS4);
         editor.putString("Location_FS4", Location_FS4);
@@ -790,6 +800,9 @@ public class CommonUtils {
         editor.putString("ProductPrice_FS4", ProductPrice_FS4);
         editor.putString("IsTLDCall_FS4", IsTLDCall_FS4);
         editor.putString("EnablePrinter_FS4", EnablePrinter_FS4);
+        editor.putString("OdoMeter_FS4", OdoMeter_FS4);
+        editor.putString("Hours_FS4", Hours_FS4);
+
 
         editor.commit();
     }
@@ -1314,6 +1327,259 @@ public class CommonUtils {
             e.printStackTrace();
         }
 
+    }
+
+    public static void LogReaderDetails(Context context) {
+
+        SharedPreferences sharedPre2 = context.getSharedPreferences("storeBT_FOBDetails", Context.MODE_PRIVATE);
+
+        String mDeviceName = sharedPre2.getString("LFBluetoothCardReader", "");
+        String mDeviceAddress = sharedPre2.getString("LFBluetoothCardReaderMacAddress", "");
+        String HFDeviceName = sharedPre2.getString("BluetoothCardReader", "");
+        String HFDeviceAddress = sharedPre2.getString("BTMacAddress", "");
+        String mDeviceName_hf_trak = sharedPre2.getString("HFTrakCardReader", ""); //
+        String mDeviceAddress_hf_trak = sharedPre2.getString("HFTrakCardReaderMacAddress", ""); //
+        AppConstants.ACS_READER = sharedPre2.getBoolean("ACS_Reader", false);
+        String mMagCardDeviceName = sharedPre2.getString("MagneticCardReader", ""); //
+        String mMagCardDeviceAddress = sharedPre2.getString("MagneticCardReaderMacAddress", ""); //
+
+        //Temp log
+        if (AppConstants.GenerateLogs)
+            AppConstants.WriteinFile("-----------------");
+        if (AppConstants.GenerateLogs)
+            AppConstants.WriteinFile("BluetoothCardReader name: " + HFDeviceName + " BTMacAddress: " + HFDeviceAddress);
+        if (AppConstants.GenerateLogs)
+            AppConstants.WriteinFile("LFBluetoothCardReader name: " + mDeviceName + " LFBluetoothCardReaderMacAddress: " + mDeviceAddress);
+        if (AppConstants.GenerateLogs)
+            AppConstants.WriteinFile("HFTrakCardReader name: " + mDeviceName_hf_trak + " HFTrakCardReaderMacAddress: " + mDeviceAddress_hf_trak);
+        if (AppConstants.GenerateLogs)
+            AppConstants.WriteinFile("MagCardDeviceName name: " + mMagCardDeviceName + " MagCardDeviceAddress: " + mMagCardDeviceAddress);
+        if (AppConstants.GenerateLogs)
+            AppConstants.WriteinFile("ACS_READER STATUS: " + AppConstants.ACS_READER);
+        if (AppConstants.GenerateLogs)
+            AppConstants.WriteinFile("-----------------");
+
+    }
+
+
+    public static void UpgradeTransactionStatusRetroFit(String TransactionId, String status, Context ctx) {
+
+        UpdateTransactionStatusClass authEntity = new UpdateTransactionStatusClass();
+        authEntity.TransactionId = TransactionId;
+        authEntity.Status = status;
+        authEntity.IMEIUDID = AppConstants.getIMEI(ctx);
+
+        //get user details
+        SharedPreferences sharedPref = ctx.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
+        String userName = sharedPref.getString(AppConstants.USER_NAME, "");
+        String userMobile = sharedPref.getString(AppConstants.USER_MOBILE, "");
+        String userEmail = sharedPref.getString(AppConstants.USER_EMAIL, "");
+
+        //creath auth string
+        Gson gson = new Gson();
+        String jsonData = gson.toJson(authEntity);
+        String authString = "Basic " + AppConstants.convertStingToBase64(authEntity.IMEIUDID + ":" + userEmail + ":" + "UpgradeTransactionStatus");
+
+        //Here a logging interceptor is created
+        HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
+        logging.setLevel(HttpLoggingInterceptor.Level.BODY);
+
+        //The logging interceptor will be added to the http client
+        okhttp3.OkHttpClient.Builder httpClient = new okhttp3.OkHttpClient.Builder();
+        httpClient.addInterceptor(logging);
+
+        //The Retrofit builder will have the client attached, in order to get connection logs
+        Retrofit retrofit = new Retrofit.Builder()
+                .client(httpClient.build())
+                .addConverterFactory(GsonConverterFactory.create())
+                .addConverterFactory(ScalarsConverterFactory.create())
+                .baseUrl(AppConstants.webIP)
+                .build();
+        Interface service = retrofit.create(Interface.class);
+
+
+        Call<ServerResponse> call = service.postttt(authString, jsonData);
+
+        call.enqueue(new Callback<ServerResponse>() {
+            @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+            @Override
+            public void onResponse(Call<ServerResponse> call, retrofit2.Response<ServerResponse> response) {
+                BusProvider.getInstance().post(new ServerEvent(response.body()));
+
+                String ResponceMessage = response.body().getResponceMessage();
+                String ResponceText = response.body().getResponceText();
+
+                //System.out.println("resp..." + response.body().toString());
+                Log.i(TAG, "UploadTaskRetroFit ResponceMessage:" + ResponceMessage + " ResponceText:" + ResponceText);
+
+                try {
+
+                    if (ResponceMessage.equalsIgnoreCase("success")) {
+
+                        if (ResponceMessage.equalsIgnoreCase("success")) {
+                            //success
+                            Log.i(TAG, "UpgradeTransactionStatusRetroFit success");
+                        } else if (ResponceMessage.equalsIgnoreCase("fail")) {
+                            //Fail
+                            Log.i(TAG, "UpgradeTransactionStatusRetroFit fail");
+                            if (AppConstants.GenerateLogs)
+                                AppConstants.WriteinFile(TAG + "UpgradeTransactionStatusRetroFit fail TransactionId:" + TransactionId + " status" + status);
+
+                        }
+                    }
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+            }
+
+            @Override
+            public void onFailure(Call<ServerResponse> call, Throwable t) {
+                // handle execution failures like no internet connectivity
+                BusProvider.getInstance().post(new ErrorEvent(-2, t.getMessage()));
+                Log.i(TAG, "Something went wrong in UpgradeTransactionStatusRetroFit call No internet connectivity or server connection fail.");
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + "Something went wrong in UpgradeTransactionStatusRetroFit call No internet connectivity or server connection fail");
+
+            }
+        });
+
+    }
+
+    public static void enableMobileHotspotmanuallyStartTimer(final Context context) {
+
+        final boolean[] sendEmail = {true};
+        //AppConstants.colorToastHotspotOn(context, "Enable Mobile Hotspot Manually..", Color.RED);
+        Intent tetherSettings = new Intent();
+        tetherSettings.setClassName("com.android.settings", "com.android.settings.TetherSettings");
+        context.startActivity(tetherSettings);
+
+        new CountDownTimer(15000, 1000) {
+
+            public void onTick(long millisUntilFinished) {
+
+                Log.i(TAG, "Waiting to connect hotspot remaining seconds: " + millisUntilFinished / 1000);
+                if (CommonUtils.isHotspotEnabled(context)) {
+                    Log.i(TAG, "Hotspot detected disable timer..");
+                    cancel();
+                    //BackTo Welcome Activity
+                    Intent i = new Intent(context, WelcomeActivity.class);
+                    i.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                    context.startActivity(i);
+
+                }else{
+                    if (millisUntilFinished / 1000 <= 13)
+                    AppConstants.colorToastHotspotOn(context, "Enable Mobile Hotspot Manually..\nWaiting seconds... " + millisUntilFinished / 1000, Color.RED);
+                }
+            }
+
+            public void onFinish() {
+
+                if (CommonUtils.isHotspotEnabled(context)) {
+                    Log.i(TAG, "Hotspot detected disable timer..");
+
+                } else {
+                    Log.i(TAG, "Hotspot disable timer finish.. send email.");
+                    //Email functionality
+                    boolean check_mail = sendEmail[0];
+                    if (isConnecting(context) && check_mail) {
+                        sendEmail[0] = false;
+                        SendEmailMobileHotspotErrorEmail(context);
+                    }
+
+                }
+
+                //BackTo Welcome Activity
+                Intent i = new Intent(context, WelcomeActivity.class);
+                i.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                context.startActivity(i);
+
+            }
+
+        }.start();
+
+    }
+
+    public static void SendEmailMobileHotspotErrorEmail(Context context) {
+
+
+        Log.i(TAG, "Email  call..");
+        UserInfoEntity userInfoEntity = CommonUtils.getCustomerDetailsCC(context);
+
+        StatusForUpgradeVersionEntity objEntityClass2 = new StatusForUpgradeVersionEntity();
+        objEntityClass2.IMEIUDID = AppConstants.getIMEI(context);
+        objEntityClass2.HubName = userInfoEntity.PersonName;
+        objEntityClass2.SiteName = userInfoEntity.FluidSecureSiteName;
+
+        Gson gson = new Gson();
+        String parm2 = gson.toJson(objEntityClass2);
+
+        String userEmail = CommonUtils.getCustomerDetailsCC(context).PersonEmail;
+        //----------------------------------------------------------------------------------
+        String parm1 = AppConstants.getIMEI(context) + ":" + userEmail + ":" + "MobileHotspotErrorEmail";
+        String authString = "Basic " + AppConstants.convertStingToBase64(parm1);
+
+
+        RequestBody body = RequestBody.create(TEXT, parm2);
+        OkHttpClient httpClient = new OkHttpClient();
+        Request request = new Request.Builder()
+                .url(AppConstants.webURL)
+                .post(body)
+                .addHeader("Authorization", authString)
+                .build();
+
+        httpClient.newCall(request).enqueue(new com.squareup.okhttp.Callback() {
+            @SuppressLint("LongLogTag")
+            @Override
+            public void onFailure(Request request, IOException e) {
+                Log.e(TAG, "error in getting response");
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " MobileHotspotErrorEmail Hotspot error in getting response");
+            }
+
+            @SuppressLint("LongLogTag")
+            @Override
+            public void onResponse(com.squareup.okhttp.Response response) throws IOException {
+
+                ResponseBody responseBody = response.body();
+                if (!response.isSuccessful()) {
+                    throw new IOException("Error response " + response);
+                } else {
+
+                    String result = responseBody.string();
+                    Log.e(TAG, "HOTSPOT-" + result);
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + " MobileHotspotErrorEmail ~Result\n" + result);
+
+                    try {
+
+                        JSONObject jsonObjectSite = null;
+                        jsonObjectSite = new JSONObject(result);
+
+                        String ResponseMessageSite = jsonObjectSite.getString(AppConstants.RES_MESSAGE);
+
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+            }
+
+        });
+    }
+
+    public static boolean isConnecting(Context context){
+        boolean isConnected=false;
+
+        ConnectivityManager connectivity = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (connectivity != null)
+        {
+
+            NetworkInfo activeNetwork = connectivity.getActiveNetworkInfo();
+            isConnected = activeNetwork != null &&	activeNetwork.isConnectedOrConnecting();
+        }
+        return isConnected;
     }
 
 }

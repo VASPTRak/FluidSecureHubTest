@@ -29,10 +29,12 @@ public class NetworkReceiver extends BroadcastReceiver {
             CurrentState = true;
             AppConstants.IS_MOBILE_MSG = false;
 
+
+
             if (WelcomeActivity.OnWelcomeActivity && Constants.FS_1STATUS.equalsIgnoreCase("FREE") && Constants.FS_2STATUS.equalsIgnoreCase("FREE") && Constants.FS_3STATUS.equalsIgnoreCase("FREE") && Constants.FS_4STATUS.equalsIgnoreCase("FREE")) {
 
                 //sync offline transactions
-                context.startService(new Intent(context, OffTranzSyncService.class));
+                //context.startService(new Intent(context, OffTranzSyncService.class));
                 //sync online transactions
                 //context.startService(new Intent(context, BackgroundService.class));
             }
@@ -59,10 +61,8 @@ public class NetworkReceiver extends BroadcastReceiver {
             //NetworkSwitched
             //AppConstants.NETWORK_STRENGTH = true;
             AppConstants.PRE_STATE_MOBILEDATA = CurrentState;
-            Log.i(TAG,"Network Switched");
-            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "Network Switched");
-            //AppConstants.NETWORK_STRENGTH = true;
-            AppConstants.PRE_STATE_MOBILEDATA = CurrentState;
+            Log.i(TAG,"Network Switched:"+AppConstants.IS_MOBILE_ON+" CurrentNetworkType: "+Constants.CurrentNetworkType+"~~~"+ Constants.CurrentSignalStrength);
+            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "Network Switched:"+AppConstants.IS_MOBILE_ON+" CurrentNetworkType: "+Constants.CurrentNetworkType+"~~~"+ Constants.CurrentSignalStrength);
             //AppConstants.colorToastBigFont(context, "Network Switched", Color.RED);
             //context.startService(new Intent(context, StopRunningTransactionBackgroundService.class));
         }

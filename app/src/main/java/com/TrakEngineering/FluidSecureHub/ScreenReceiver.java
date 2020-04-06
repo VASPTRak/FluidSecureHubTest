@@ -47,9 +47,11 @@ public class ScreenReceiver extends BroadcastReceiver {
 
         }
 
-        Intent i = new Intent(context, BackgroundServiceHotspotCheck.class);
-        i.putExtra("screen_state", screenOff);
-        context.startService(i);
+        if (AppConstants.DisableAllRebootOptions.equalsIgnoreCase("N")) {
+            Intent i = new Intent(context, BackgroundServiceHotspotCheck.class);
+            i.putExtra("screen_state", screenOff);
+            context.startService(i);
+        }
 
     }
 

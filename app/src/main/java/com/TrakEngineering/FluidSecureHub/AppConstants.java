@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.app.Notification;
 import android.app.NotificationManager;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -15,16 +14,13 @@ import android.net.ConnectivityManager;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Environment;
-import android.os.Handler;
 import android.support.v4.app.NotificationCompat;
 import android.support.v7.app.AlertDialog;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.Base64;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -34,17 +30,13 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Method;
-import java.net.InetAddress;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -58,6 +50,16 @@ import static com.TrakEngineering.FluidSecureHub.CommonUtils.GetDateString;
  */
 public class AppConstants {
 
+    public static int CONNECTION_TIMEOUT_SEC = 2;
+    public static int READ_TIMEOUT_SEC = 2;
+    public static int WRITE_TIMEOUT_SEC = 2;
+
+
+    public static int COUNT_HOTSPOT_MAIL;
+    public static String sharedPref_AzureQueueDetails = "AzureQueueDetails";
+    public static String sharedPref_KeyboardType = "KeyboardType";
+    public static String sharedPref_HotSpotEmail = "HotSpotEmail";
+    public static String sharedPref_OfflineAzureSync = "OfflineAzureSync";
 
     public static final String DEVICE_TYPE = "A";
     public static final String USER_NAME = "userName";
@@ -72,27 +74,34 @@ public class AppConstants {
     public static final String IsPersonHasFob = "IsPersonHasFob";
     public static final String IsOtherRequire = "IsOtherRequire";
     public static final String IsHoursRequire = "IsHoursRequire";
+    public static final String ExtraOtherLabel = "ExtraOtherLabel";
+    public static final String IsExtraOther = "IsExtraOther";
     public static final String OtherLabel = "OtherLabel";
     public static final String TimeOut = "TimeOut";
     public static final String HubId = "HubId";
     public static final String IsVehicleNumberRequire = "IsVehicleNumberRequire";
     public static final String WifiChannelToUse = "0";
 
-    public static final String IsGateHub= "IsGateHub";
+    public static final String IsGateHub = "IsGateHub";
     public static final String IsStayOpenGate = "IsStayOpenGate";
+
+    public static String FOLDER_PATH = Environment.getExternalStorageDirectory().getAbsolutePath() + "/FSBin/";
+    public static String UP_Upgrade_File_name = "user1.2048.new.5.bin";
+
 
     public static final String OfflineDataBaseSize = "OfflineDataBaseSize";
     public static final String DbUpdateTime = "DbUpdateTime";
 
-        public static final String FAData = "FAData";
-        public static final String UseBarcode = "UseBarcode";
+    public static final String IsEnableServerForTLD = "IsEnableServerForTLD";
+    public static final String FAData = "FAData";
+    public static final String UseBarcode = "UseBarcode";
 
-        public static final String LogRequiredFlag = "LogRequiredFlag";
-        public static final String CompanyBrandName = "CompanyBrandName";
-        public static final String CompanyBrandLogoLink = "CompanyBrandLogoLink";
-        public static final String SupportEmail = "SupportEmail";
-        public static final String SupportPhonenumber = "SupportPhonenumber";
-        public static String BrandName = "FluidSecure";
+    public static final String LogRequiredFlag = "LogRequiredFlag";
+    public static final String CompanyBrandName = "CompanyBrandName";
+    public static final String CompanyBrandLogoLink = "CompanyBrandLogoLink";
+    public static final String SupportEmail = "SupportEmail";
+    public static final String SupportPhonenumber = "SupportPhonenumber";
+    public static String BrandName = "FluidSecure";
 
     public static final String PACKAGE_BACKGROUND_SERVICE = "com.TrakEngineering.FluidSecureHubTest.BackgroundService";
 
@@ -101,7 +110,6 @@ public class AppConstants {
     public static String webIP = "https://www.fluidsecure.net/"; // = "http://103.8.126.241:89/";//test
     public static String webURL = webIP + "HandlerTrak.ashx";
     public static String LoginURL = webIP + "LoginHandler.ashx";
-
 
     public static String API_URL_TOKEN = webIP + "token";
     public static String API_URL_HUB = webIP + "api/Offline/GetHub";
@@ -120,6 +128,7 @@ public class AppConstants {
     public static String OFF_ODO_Reasonable;
     public static String OFF_ODO_Conditions;
     public static String OFF_ODO_Limit;
+    public static String OFF_HRS_Limit;
 
 
     public static String ESP32_update = "NO";
@@ -127,8 +136,10 @@ public class AppConstants {
     public static boolean GenerateLogs;
     public static boolean ServerCallLogs;
     public static boolean EnableFA;
+    public static boolean EnableServerForTLD;
+    public static boolean RebootHF_reader = false;
 
-    public static String OFF1="Please check your Internet Data";
+    public static String OFF1 = "Please check your Internet Data";
 
     public static boolean NETWORK_STRENGTH;
     public static boolean IS_MOBILE_ON;
@@ -178,6 +189,8 @@ public class AppConstants {
     public static String HubGeneratedpassword;
     public static String Login_Email;
     public static String Login_IMEI;
+    public static String AccessCode = "2901";
+    public static String DisableAllRebootOptions = "";
 
     public static String RES_MESSAGE = "ResponceMessage";
     public static String RES_DATA = "ResponceData";
@@ -207,6 +220,9 @@ public class AppConstants {
     public static boolean NeedToRenameFS3;
     public static boolean NeedToRenameFS4;
 
+    public static String DownloadFileHttpServer = "";
+    public static boolean ManuallReconfigure;
+    public static String SELECTED_SSID_FOR_MANUALL;
 
     public static String REPLACEBLE_WIFI_NAME;
     public static String LAST_CONNECTED_SSID;
@@ -446,7 +462,8 @@ public class AppConstants {
         alertDialog.show();
     }
 
-    public static void AlertDialogFinishWithTitle(final Activity ctx, String title,String message
+
+    public static void AlertDialogFinishWithTitle(final Activity ctx, String title, String message
     ) {
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(ctx);
         alertDialogBuilder.setTitle(title);
@@ -480,11 +497,22 @@ public class AppConstants {
     public static void colorToastBigFont(Context ctx, String msg, int colr) {
         Toast toast = Toast.makeText(ctx, " " + msg + " ", Toast.LENGTH_LONG);
         toast.getView().setBackgroundColor(colr);
-        toast.setGravity(Gravity.TOP|Gravity.CENTER, 0, 280);
+        toast.setGravity(Gravity.TOP | Gravity.CENTER, 0, 280);
         ViewGroup group = (ViewGroup) toast.getView();
         TextView messageTextView = (TextView) group.getChildAt(0);
         messageTextView.setTextSize(25);
         toast.show();
+
+    }
+
+        public static void colorToastHotspotOn(Context ctx, String msg, int colr) {
+            Toast toast = Toast.makeText(ctx, " " + msg + " ", Toast.LENGTH_LONG);
+            toast.getView().setBackgroundColor(colr);
+            toast.setGravity(Gravity.TOP|Gravity.CENTER, 0, 280);
+            ViewGroup group = (ViewGroup) toast.getView();
+            TextView messageTextView = (TextView) group.getChildAt(0);
+            messageTextView.setTextSize(40);
+            toast.show();
 
     }
 
@@ -596,6 +624,12 @@ public class AppConstants {
 
     public static void WriteinFile(String str) {
         try {
+
+            if (str.contains("Responce"))
+                str = str.replace("Responce", "Response");
+
+            System.out.println(str);
+
             File file = new File(Environment.getExternalStorageDirectory() + "/FSLog");
 
             if (!file.exists()) {
@@ -607,18 +641,18 @@ public class AppConstants {
             }
 
             String dt = GetDateString(System.currentTimeMillis());
-            File gpxfile = new File(file + "/Log_"+dt+".txt");
+            File gpxfile = new File(file + "/Log_" + dt + ".txt");
             if (!gpxfile.exists()) {
                 gpxfile.createNewFile();
             }
 
             Calendar cal = Calendar.getInstance();
-            SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd hh:mm:ss");
+            SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd HH:mm:ss");
             String UseDate = dateFormat.format(cal.getTime());
 
             FileWriter fileWritter = new FileWriter(gpxfile, true);
             BufferedWriter bufferWritter = new BufferedWriter(fileWritter);
-            bufferWritter.write("\n"+UseDate + "--" + str + " ");
+            bufferWritter.write("\n" + UseDate + "--" + str + " ");
             bufferWritter.close();
 
         } catch (IOException e) {
@@ -642,23 +676,21 @@ public class AppConstants {
 
             File[] fileList = dirCurrent.listFiles();
             for (File aFileList : fileList) {
-                if (aFileList.isDirectory())
-                {
+                if (aFileList.isDirectory()) {
                     dirlist.push(aFileList);
-                }else{
+                } else {
                     //files.add(aFileList);
-                    if(aFileList.exists()){
+                    if (aFileList.exists()) {
                         Calendar time = Calendar.getInstance();
-                        time.add(Calendar.DAY_OF_YEAR,-30);
+                        time.add(Calendar.DAY_OF_YEAR, -30);
                         //I store the required attributes here and delete them
                         Date lastModified = new Date(aFileList.lastModified());
-                        if(lastModified.before(time.getTime()))
-                        {
+                        if (lastModified.before(time.getTime())) {
                             //file is older than a week
                             aFileList.delete();
                         }
 
-                    }else{
+                    } else {
                         files.add(aFileList);
                     }
 
@@ -686,6 +718,7 @@ public class AppConstants {
             Constants.AccDepartmentNumber_FS1 = "";
             Constants.AccPersonnelPIN_FS1 = "";
             Constants.AccOther_FS1 = "";
+            Constants.AccVehicleOther_FS1 = "";
             Constants.AccHours_FS1 = 0;
 
         } else if (Constants.CurrentSelectedHose.equals("FS2")) {
@@ -695,6 +728,7 @@ public class AppConstants {
             Constants.AccDepartmentNumber = "";
             Constants.AccPersonnelPIN = "";
             Constants.AccOther = "";
+            Constants.AccVehicleOther = "";
             Constants.AccHours = 0;
 
         } else if (Constants.CurrentSelectedHose.equals("FS3")) {
@@ -703,8 +737,8 @@ public class AppConstants {
             Constants.AccOdoMeter_FS3 = 0;
             Constants.AccDepartmentNumber_FS3 = "";
             Constants.AccPersonnelPIN_FS3 = "";
-            Constants.AccOther_FS3 = "";
-            Constants.AccHours_FS3 = 0 ;
+            Constants.AccVehicleOther_FS3 = "";
+            Constants.AccHours_FS3 = 0;
 
         } else {
 
@@ -713,7 +747,8 @@ public class AppConstants {
             Constants.AccDepartmentNumber_FS4 = "";
             Constants.AccPersonnelPIN_FS4 = "";
             Constants.AccOther_FS4 = "";
-            Constants.AccHours_FS4 = 0 ;
+            Constants.AccVehicleOther_FS4 = "";
+            Constants.AccHours_FS4 = 0;
 
         }
     }
@@ -771,17 +806,16 @@ public class AppConstants {
 
     }
 
-    public  static void clearSharedPrefByName(Context ctx, String spName){
+    public static void clearSharedPrefByName(Context ctx, String spName) {
         SharedPreferences preferences = ctx.getSharedPreferences(spName, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = preferences.edit();
         editor.clear();
         editor.commit();
     }
 
-    public static String currentDateFormat(String formatpattern)
-    {
-        SimpleDateFormat sdf=new SimpleDateFormat(formatpattern);
-        String dateString=sdf.format(new Date());
+    public static String currentDateFormat(String formatpattern) {
+        SimpleDateFormat sdf = new SimpleDateFormat(formatpattern);
+        String dateString = sdf.format(new Date());
         return dateString;
     }
 }

@@ -152,7 +152,7 @@
     <string name="about">About BTDemo</string>
     <string name="version">Version</string>
     <string name="unknown_version">Unknown version</string>
-    <string name="ok">OK</string>
+    <string name="ok">Ok</string>
 
     <!-- Activity -->
     <string name="apdu_command">APDU command</string>
@@ -221,7 +221,6 @@
     <!-- Menu items -->
     <string name="menu_connect">Connect</string>
     <string name="menu_disconnect">Disconnect</string>
-
 
 
     <!-- For wifi hotspot -->

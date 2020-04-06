@@ -120,9 +120,9 @@ public class BatteryBackgroundService extends Service {
                 String authString = "Basic " + AppConstants.convertStingToBase64(parm1);
 
                 OkHttpClient client = new OkHttpClient();
-                client.setConnectTimeout(10, TimeUnit.SECONDS);
-                client.setReadTimeout(10, TimeUnit.SECONDS);
-                client.setWriteTimeout(10, TimeUnit.SECONDS);
+                client.setConnectTimeout(4, TimeUnit.SECONDS);
+                client.setReadTimeout(4, TimeUnit.SECONDS);
+                client.setWriteTimeout(4, TimeUnit.SECONDS);
 
 
                 Request request = new Request.Builder()

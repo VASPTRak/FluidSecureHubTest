@@ -47,11 +47,22 @@ public class SampleBeacon {
 
         //UID packets are always 18 bytes in length
         //Parse out the last 6 bytes for the id
+        /*
         int packetLength = 18;
         int offset = packetLength - 6;
         for (int i=offset; i < packetLength; i++) {
             sb.append(Integer.toHexString(data[i] & 0xFF));
+        }*/
+        //00 is became 0 in byte to hex conversion
+
+
+        int packetLength = 18;
+        int offset = packetLength - 6;
+        for (int i = offset; i < packetLength; i++) {
+            sb.append(String.format("%02x", data[i]));
+
         }
+
 
         return sb.toString();
     }
@@ -78,7 +89,7 @@ public class SampleBeacon {
             return -1;
         }
 
-        if (data[4] == (byte)0x80 && data[5] == (byte)0x00) {
+        if (data[4] == (byte) 0x80 && data[5] == (byte) 0x00) {
             Log.w(TAG, "Temperature not supported");
             return -1;
         }

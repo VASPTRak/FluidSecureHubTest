@@ -31,6 +31,21 @@
         android:title="Close"
         app:showAsAction="always"/>
 
+    <item
+        android:id="@+id/mconfigure_fsnp"
+        android:orderInCategory="100"
+        android:title="fsnp upgrade"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/mreconnect_ble_readers"
+        android:orderInCategory="100"
+        android:title="Reconnect BLE Readers"
+        app:showAsAction="never" />
 
+    <item
+        android:id="@+id/mreboot_reader"
+        android:orderInCategory="100"
+        android:title="Reboot reader"
+        app:showAsAction="never" />
 
 </menu>

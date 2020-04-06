@@ -16,6 +16,9 @@ public class VehicleRequireEntity {
     public String FromNewFOBChange;
     public String IsVehicleNumberRequire;
     public String Barcode;
+    public String MagneticCardNumber;
 
+    public String HFVersion;
+    public String LFVersion;
 
 }

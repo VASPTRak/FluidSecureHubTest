@@ -22,6 +22,7 @@ public class DownloadFileHttp extends NanoHTTPD {
     public DownloadFileHttp() throws IOException {
         super(PORT);
         start();
+        AppConstants.DownloadFileHttpServer = "Started";
 
     }
 

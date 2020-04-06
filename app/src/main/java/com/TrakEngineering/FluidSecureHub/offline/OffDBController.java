@@ -11,6 +11,7 @@ import android.util.Log;
 
 import com.TrakEngineering.FluidSecureHub.AppConstants;
 import com.TrakEngineering.FluidSecureHub.CommonUtils;
+import com.TrakEngineering.FluidSecureHub.enity.TankMonitorEntity;
 import com.google.gson.Gson;
 
 import java.util.ArrayList;
@@ -24,22 +25,23 @@ public class OffDBController extends SQLiteOpenHelper {
     public static String TBL_VEHICLE = "tbl_off_vehicle";
     public static String TBL_PERSONNEL = "tbl_off_personnel";
     public static String TBL_TRANSACTION = "tbl_off_transaction";
+    public static String TBL_OFF_TLD = "tbl_off_tld";
 
     public OffDBController(Context applicationcontext) {
-        super(applicationcontext, "FSHubOffline.db", null, 1);
+        super(applicationcontext, "FSHubOffline.db", null, 2);
         Log.d(LOGCAT, "Created");
     }
 
     @Override
     public void onCreate(SQLiteDatabase database) {
 
-        String query2 = "CREATE TABLE " + TBL_LINK + " ( Id INTEGER PRIMARY KEY, SiteId INTEGER, WifiSSId TEXT, PumpOnTime TEXT, PumpOffTime TEXT, AuthorizedFuelingDays TEXT, Pulserratio TEXT, MacAddress TEXT)";
+        String query2 = "CREATE TABLE " + TBL_LINK + " ( Id INTEGER PRIMARY KEY, SiteId INTEGER, WifiSSId TEXT, PumpOnTime TEXT, PumpOffTime TEXT, AuthorizedFuelingDays TEXT, Pulserratio TEXT, MacAddress TEXT, IsTLDCall TEXT)";
         database.execSQL(query2);
 
         String query21 = "CREATE TABLE " + TBL_FUEL_TIMING + " ( Id INTEGER PRIMARY KEY, SiteId INTEGER, PersonId INTEGER, FromTime TEXT, ToTime TEXT)";
         database.execSQL(query21);
 
-        String query3 = "CREATE TABLE " + TBL_VEHICLE + " ( Id INTEGER PRIMARY KEY, VehicleId INTEGER, VehicleNumber TEXT,CurrentOdometer TEXT,CurrentHours TEXT,RequireOdometerEntry TEXT,RequireHours TEXT,FuelLimitPerTxn TEXT,FuelLimitPerDay TEXT,FOBNumber TEXT,AllowedLinks TEXT,Active TEXT, CheckOdometerReasonable TEXT,OdometerReasonabilityConditions TEXT,OdoLimit TEXT,HoursLimit TEXT,BarcodeNumber TEXT)";
+        String query3 = "CREATE TABLE " + TBL_VEHICLE + " ( Id INTEGER PRIMARY KEY, VehicleId INTEGER, VehicleNumber TEXT,CurrentOdometer TEXT,CurrentHours TEXT,RequireOdometerEntry TEXT,RequireHours TEXT,FuelLimitPerTxn TEXT,FuelLimitPerDay TEXT,FOBNumber TEXT,AllowedLinks TEXT,Active TEXT, CheckOdometerReasonable TEXT,OdometerReasonabilityConditions TEXT,OdoLimit TEXT,HoursLimit TEXT,BarcodeNumber TEXT,IsExtraOther TEXT,ExtraOtherLabel TEXT)";
         database.execSQL(query3);
 
         String query4 = "CREATE TABLE " + TBL_PERSONNEL + " ( Id INTEGER PRIMARY KEY, PersonId INTEGER, PinNumber TEXT, FuelLimitPerTxn TEXT,FuelLimitPerDay TEXT,FOBNumber TEXT,Authorizedlinks TEXT,AssignedVehicles TEXT)";
@@ -48,14 +50,24 @@ public class OffDBController extends SQLiteOpenHelper {
         String query5 = "CREATE TABLE " + TBL_TRANSACTION + " ( Id INTEGER PRIMARY KEY, HubId TEXT, SiteId TEXT, VehicleId INTEGER, CurrentOdometer TEXT, CurrentHours TEXT, PersonId TEXT, PersonPin TEXT, FuelQuantity TEXT, Pulses TEXT,TransactionDateTime TEXT,OfflineFakeTransactionId TEXT)";
         database.execSQL(query5);
 
+        String query6 = "CREATE TABLE " + TBL_OFF_TLD + " ( Id INTEGER PRIMARY KEY, PROBEMacAddress TEXT, Level TEXT, selSiteId INTEGER, TLDFirmwareVersion TEXT, IMEI_UDID TEXT, LSB TEXT, MSB TEXT, TLDTemperature TEXT, ReadingDateTime TEXT, Response_code TEXT, FromDirectTLD TEXT)";
+        database.execSQL(query6);
+
+
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase database, int version_old, int current_version) {
-        String query;
-        query = "DROP TABLE IF EXISTS tbl_off_token";
-        database.execSQL(query);
-        onCreate(database);
+
+        // If you need to add a column
+        if (current_version > version_old) {
+            database.execSQL("ALTER TABLE " + TBL_VEHICLE + " ADD COLUMN IsExtraOther TEXT");
+            database.execSQL("ALTER TABLE " + TBL_VEHICLE + " ADD COLUMN ExtraOtherLabel TEXT");
+
+            ////
+            String query6 = "CREATE TABLE IF NOT EXISTS " + TBL_OFF_TLD + " ( Id INTEGER PRIMARY KEY, PROBEMacAddress TEXT, Level TEXT, selSiteId INTEGER, TLDFirmwareVersion TEXT, IMEI_UDID TEXT, LSB TEXT, MSB TEXT, TLDTemperature TEXT, ReadingDateTime TEXT, Response_code TEXT, FromDirectTLD TEXT)";
+            database.execSQL(query6);
+        }
 
 
     }
@@ -86,7 +98,7 @@ public class OffDBController extends SQLiteOpenHelper {
 
     public void storeOfflineHubDetails(Context ctx, String HubId, String AllowedLinks, String PersonnelPINNumberRequired, String VehicleNumberRequired, String PersonhasFOB, String VehiclehasFOB, String WiFiChannel,
                                        String BluetoothCardReader, String BluetoothCardReaderMacAddress, String LFBluetoothCardReader, String LFBluetoothCardReaderMacAddress,
-                                       String PrinterMacAddress, String PrinterName, String EnablePrinter) {
+                                       String PrinterMacAddress, String PrinterName, String EnablePrinter, String VehicleDataFilePath, String PersonnelDataFilePath, String LinkDataFilePath) {
 
         SharedPreferences pref = ctx.getSharedPreferences("storeOfflineHubDetails", 0);
         SharedPreferences.Editor editor = pref.edit();
@@ -106,6 +118,9 @@ public class OffDBController extends SQLiteOpenHelper {
         editor.putString("PrinterMacAddress", PrinterMacAddress);
         editor.putString("PrinterName", PrinterName);
         editor.putString("EnablePrinter", EnablePrinter);
+        editor.putString("VehicleDataFilePath", VehicleDataFilePath);
+        editor.putString("PersonnelDataFilePath", PersonnelDataFilePath);
+        editor.putString("LinkDataFilePath", LinkDataFilePath);
 
         // commit changes
         editor.apply();
@@ -130,12 +145,41 @@ public class OffDBController extends SQLiteOpenHelper {
         hub.PrinterName = sharedPref.getString("PrinterName", "");
         hub.EnablePrinter = sharedPref.getString("EnablePrinter", "");
 
+        hub.VehicleDataFilePath = sharedPref.getString("VehicleDataFilePath", "");
+        hub.PersonnelDataFilePath = sharedPref.getString("PersonnelDataFilePath", "");
+        hub.LinkDataFilePath = sharedPref.getString("LinkDataFilePath", "");
+
         return hub;
 
     }
 
+    public long insertTLDReadings(String PROBEMacAddress, String Level, String selSiteId, String TLDFirmwareVersion,
+                                  String IMEI_UDID, String LSB, String MSB, String TLDTemperature, String ReadingDateTime, String Response_code, String FromDirectTLD
+    ) {
 
-    public long insertLinkDetails(String SiteId, String WifiSSId, String PumpOnTime, String PumpOffTime, String AuthorizedFuelingDays, String Pulserratio, String MacAddress) {
+
+        SQLiteDatabase database = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("PROBEMacAddress", PROBEMacAddress);
+        values.put("Level", Level);
+        values.put("selSiteId", selSiteId);
+        values.put("TLDFirmwareVersion", TLDFirmwareVersion);
+        values.put("IMEI_UDID", IMEI_UDID);
+        values.put("LSB", LSB);
+        values.put("MSB", MSB);
+        values.put("TLDTemperature", TLDTemperature);
+        values.put("ReadingDateTime", ReadingDateTime);
+        values.put("Response_code", Response_code);
+        values.put("FromDirectTLD", FromDirectTLD);
+
+
+        long insertedID = database.insert(TBL_OFF_TLD, null, values);
+        database.close();
+
+        return insertedID;
+    }
+
+    public long insertLinkDetails(String SiteId, String WifiSSId, String PumpOnTime, String PumpOffTime, String AuthorizedFuelingDays, String Pulserratio, String MacAddress, String IsTLDCall) {
 
         SQLiteDatabase database = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -146,6 +190,7 @@ public class OffDBController extends SQLiteOpenHelper {
         values.put("AuthorizedFuelingDays", AuthorizedFuelingDays);
         values.put("Pulserratio", Pulserratio);
         values.put("MacAddress", MacAddress);
+        values.put("IsTLDCall", IsTLDCall);
 
         long insertedID = database.insert(TBL_LINK, null, values);
         database.close();
@@ -153,8 +198,9 @@ public class OffDBController extends SQLiteOpenHelper {
         return insertedID;
     }
 
+
     public long insertVehicleDetails(String VehicleId, String VehicleNumber, String CurrentOdometer, String CurrentHours, String RequireOdometerEntry, String RequireHours, String FuelLimitPerTxn, String FuelLimitPerDay, String FOBNumber, String AllowedLinks, String Active,
-                                     String CheckOdometerReasonable,String OdometerReasonabilityConditions,String OdoLimit,String HoursLimit,String BarcodeNumber) {
+                                     String CheckOdometerReasonable, String OdometerReasonabilityConditions, String OdoLimit, String HoursLimit, String BarcodeNumber, String IsExtraOther, String ExtraOtherLabel) {
 
         SQLiteDatabase database = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -222,6 +268,7 @@ public class OffDBController extends SQLiteOpenHelper {
         SQLiteDatabase database = this.getWritableDatabase();
         ContentValues values = new ContentValues();
 
+
         values.put("HubId", eot.HubId);
         values.put("SiteId", eot.SiteId);
         values.put("VehicleId", eot.VehicleId);
@@ -241,7 +288,7 @@ public class OffDBController extends SQLiteOpenHelper {
     }
 
 
-    public int updateOfflinePulsesQuantity(String sqlite_id, String Pulses, String Quantity,String OfflineFakeTransactionId) {
+    public int updateOfflinePulsesQuantity(String sqlite_id, String Pulses, String Quantity, String OfflineFakeTransactionId) {
         SQLiteDatabase database = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put("Pulses", Pulses);
@@ -268,11 +315,28 @@ public class OffDBController extends SQLiteOpenHelper {
         database.execSQL(deleteQuery);
     }
 
+    public void deleteTransactionsByIDs(String Ids) {
+        Log.d(LOGCAT, "delete");
+        SQLiteDatabase database = this.getWritableDatabase();
+        String deleteQuery = "DELETE FROM  " + TBL_TRANSACTION + " where Id IN (" + Ids + ")";
+        Log.d("query", deleteQuery);
+        database.execSQL(deleteQuery);
+    }
+
+    public void deleteLastTransactionIfNotEmpty() {
+        Log.d(LOGCAT, "delete");
+        SQLiteDatabase database = this.getWritableDatabase();
+        String delete1 = "SELECT  id  FROM " + TBL_TRANSACTION + " where FuelQuantity == '' ORDER BY ID  DESC LIMIT 8";
+        String deleteQuery = "DELETE FROM  " + TBL_TRANSACTION + " where FuelQuantity == '' AND id  NOT IN (" + delete1 + ")";
+        Log.d("query", deleteQuery);
+        database.execSQL(deleteQuery);
+    }
+
     public void deleteLast4TransactionIfNotEmpty() {
         Log.d(LOGCAT, "delete");
         SQLiteDatabase database = this.getWritableDatabase();
         String delete1 = "SELECT  id  FROM " + TBL_TRANSACTION + " where FuelQuantity == '' ORDER BY ID  DESC LIMIT 8";
-        String deleteQuery = "DELETE FROM  " + TBL_TRANSACTION + " where FuelQuantity == '' AND id  NOT IN ("+delete1+")";
+        String deleteQuery = "DELETE FROM  " + TBL_TRANSACTION + " where FuelQuantity == '' AND id  NOT IN (" + delete1 + ")";
         Log.d("query", deleteQuery);
         database.execSQL(deleteQuery);
     }
@@ -281,7 +345,7 @@ public class OffDBController extends SQLiteOpenHelper {
 
         ArrayList<HashMap<String, String>> wordList;
         wordList = new ArrayList<HashMap<String, String>>();
-        String a="4";
+        String a = "4";
         String selectQuery = "SELECT  id  FROM " + TBL_TRANSACTION + " where FuelQuantity == '' ORDER BY ID DESC";
 
 
@@ -290,7 +354,6 @@ public class OffDBController extends SQLiteOpenHelper {
         if (cursor.moveToFirst()) {
             do {
                 System.out.println("OOO***" + cursor.getString(0));
-
 
 
             } while (cursor.moveToNext());
@@ -318,6 +381,7 @@ public class OffDBController extends SQLiteOpenHelper {
                 map.put("AuthorizedFuelingDays", cursor.getString(5));
                 map.put("Pulserratio", cursor.getString(6));
                 map.put("MacAddress", cursor.getString(7));
+                map.put("IsTLDCall", cursor.getString(8));
 
                 System.out.println("***" + cursor.getString(2));
 
@@ -348,6 +412,7 @@ public class OffDBController extends SQLiteOpenHelper {
             hmObj.put("AuthorizedFuelingDays", cursor.getString(5));
             hmObj.put("Pulserratio", cursor.getString(6));
             hmObj.put("MacAddress", cursor.getString(7));
+            hmObj.put("IsTLDCall", cursor.getString(8));
 
         }
         return hmObj;
@@ -358,7 +423,7 @@ public class OffDBController extends SQLiteOpenHelper {
 
         HashMap<String, String> hmObj = new HashMap<String, String>();
 
-        String selectQuery = "SELECT * FROM " + TBL_LINK ;
+        String selectQuery = "SELECT * FROM " + TBL_LINK;
         SQLiteDatabase database = this.getWritableDatabase();
         Cursor cursor = database.rawQuery(selectQuery, null);
         if (cursor.moveToFirst()) {
@@ -372,15 +437,15 @@ public class OffDBController extends SQLiteOpenHelper {
             hmObj.put("AuthorizedFuelingDays", cursor.getString(5));
             hmObj.put("Pulserratio", cursor.getString(6));
             hmObj.put("MacAddress", cursor.getString(7));
+            hmObj.put("IsTLDCall", cursor.getString(8));
 
-            System.out.println("wwwwww"+cursor.getString(1));
+            System.out.println("wwwwww" + cursor.getString(1));
 
         }
         return hmObj;
     }
 
     public EntityOffTranz getTransactionDetailsBySqliteId(long SqliteId) {
-
 
 
         EntityOffTranz hmObj = new EntityOffTranz();
@@ -452,14 +517,117 @@ public class OffDBController extends SQLiteOpenHelper {
         Gson gson = new Gson();
         apiJSON = gson.toJson(ets);
 
-        System.out.println("OfflineJSON-"+apiJSON);
+        System.out.println("OfflineJSON-" + apiJSON);
 
         return apiJSON;
     }
 
-    public String isNULL(String val)
-    {
-        if(val==null)
+
+    public String getTop10OfflineTransactionJSON(Context ctx) {
+
+        String apiJSON = "";
+
+        ArrayList<EntityOffTranz> allData = new ArrayList<>();
+
+        String selectQuery = "SELECT * FROM " + TBL_TRANSACTION;
+
+        SQLiteDatabase database = this.getWritableDatabase();
+        Cursor cursor = database.rawQuery(selectQuery, null);
+        int counter = 0;
+        if (cursor.moveToFirst()) {
+
+            do {
+                EntityOffTranz hmObj = new EntityOffTranz();
+                hmObj.Id = isNULL(cursor.getString(0));
+                hmObj.HubId = isNULL(cursor.getString(1));
+                hmObj.SiteId = isNULL(cursor.getString(2));
+                hmObj.VehicleId = isNULL(cursor.getString(3));
+                hmObj.CurrentOdometer = isNULL(cursor.getString(4));
+                hmObj.CurrentHours = isNULL(cursor.getString(5));
+                hmObj.PersonId = isNULL(cursor.getString(6));
+                hmObj.PersonPin = isNULL(cursor.getString(7));
+                hmObj.FuelQuantity = isNULL(cursor.getString(8));
+                hmObj.Pulses = isNULL(cursor.getString(9));
+                hmObj.TransactionDateTime = isNULL(cursor.getString(10));
+                hmObj.TransactionFrom = "AP";
+                hmObj.AppInfo = " Version:" + CommonUtils.getVersionCode(ctx) + " " + AppConstants.getDeviceName() + " Android " + Build.VERSION.RELEASE + " ";
+                hmObj.OnlineTransactionId = isNULL(cursor.getString(11));
+
+                String pu = isNULL(cursor.getString(9));
+
+                //To get only nonempty transactions
+                if (!pu.trim().isEmpty() && Integer.parseInt(pu) > 0) {
+                    counter++;
+                    allData.add(hmObj);
+                }
+
+                System.out.println("Counter of azure queue msg-" + counter);
+
+                if (counter >= 10) {
+                    System.out.println("Size of azure queue msg-" + allData.size());
+                    break;
+                }
+
+            } while (cursor.moveToNext());
+
+        }
+
+
+        EnityTranzSync ets = new EnityTranzSync();
+        ets.TransactionsModelsObj = allData;
+        Gson gson = new Gson();
+        apiJSON = gson.toJson(ets);
+
+        System.out.println("OfflineJSON-" + apiJSON);
+
+        return apiJSON;
+    }
+
+
+    public String getTLDOfflineTransactionJSON(Context ctx) {
+
+        String apiJSON = "";
+
+        ArrayList<TankMonitorEntity> allData = new ArrayList<>();
+
+        String selectQuery = "SELECT * FROM " + TBL_OFF_TLD;
+
+        SQLiteDatabase database = this.getWritableDatabase();
+        Cursor cursor = database.rawQuery(selectQuery, null);
+        int counter = 0;
+        if (cursor.moveToFirst()) {
+
+            do {
+
+                TankMonitorEntity obj_entity = new TankMonitorEntity();
+                obj_entity.TLD = isNULL(cursor.getString(1));
+                obj_entity.Level = isNULL(cursor.getString(2));
+                obj_entity.FromSiteId = Integer.parseInt(isNULL(cursor.getString(3)));
+                obj_entity.CurrentTLDVersion = isNULL(cursor.getString(4));
+                obj_entity.IMEI_UDID = isNULL(cursor.getString(5));
+                obj_entity.LSB = isNULL(cursor.getString(6));
+                obj_entity.MSB = isNULL(cursor.getString(7));
+                obj_entity.TLDTemperature = isNULL(cursor.getString(8));
+                obj_entity.ReadingDateTime = isNULL(cursor.getString(9));
+                obj_entity.Response_code = isNULL(cursor.getString(10));
+                obj_entity.FromDirectTLD = isNULL(cursor.getString(11));
+
+                allData.add(obj_entity);
+
+            } while (cursor.moveToNext());
+
+        }
+
+        Gson gson = new Gson();
+        apiJSON = gson.toJson(allData);
+
+        System.out.println("TLD-OfflineJSON-" + apiJSON);
+
+        return apiJSON;
+    }
+
+    public String isNULL(String val) {
+        if (val == null)
             return "";
         else
             return val;
@@ -507,7 +675,8 @@ public class OffDBController extends SQLiteOpenHelper {
 
         HashMap<String, String> wordList = new HashMap<String, String>();
 
-        String selectQuery = "SELECT * FROM " + TBL_VEHICLE + " WHERE VehicleNumber='" + VehicleNumber.trim() + "'";
+        String selectQuery = "SELECT * FROM " + TBL_VEHICLE + " WHERE VehicleNumber COLLATE NOCASE='" + VehicleNumber.trim() + "'";
+
         SQLiteDatabase database = this.getWritableDatabase();
         Cursor cursor = database.rawQuery(selectQuery, null);
         if (cursor.moveToFirst()) {
@@ -544,9 +713,16 @@ public class OffDBController extends SQLiteOpenHelper {
 
         HashMap<String, String> wordList = new HashMap<String, String>();
 
-        String selectQuery = "SELECT * FROM " + TBL_VEHICLE + " WHERE lower(FOBNumber)='" + FOBNumber.toLowerCase().trim() + "'";
+        String dummyFOB = FOBNumber;
+        String asd = dummyFOB.substring(dummyFOB.length() - 4, dummyFOB.length());
+        if (asd.equalsIgnoreCase("9000")) {
+            dummyFOB = dummyFOB.substring(0, dummyFOB.length() - 4);
+        }
 
-        AppConstants.WriteinFile("Offline Vehicle : " + selectQuery);
+        String selectQuery = "SELECT * FROM tbl_off_vehicle WHERE FOBNumber <> ''  AND LOWER( " +
+                " case when substr(FOBNumber, length(FOBNumber)-3, length(FOBNumber)) = '9000' then substr(FOBNumber, 0, length(FOBNumber)-3) " +
+                " else FOBNumber end " +
+                ")='" + dummyFOB.toLowerCase() + "'";
 
         SQLiteDatabase database = this.getWritableDatabase();
         Cursor cursor = database.rawQuery(selectQuery, null);
@@ -587,7 +763,8 @@ public class OffDBController extends SQLiteOpenHelper {
         HashMap<String, String> wordList = new HashMap<String, String>();
 
 
-        String selectQuery = "SELECT * FROM " + TBL_PERSONNEL + " WHERE PinNumber='" + PIN.trim() + "'";
+        String selectQuery = "SELECT * FROM " + TBL_PERSONNEL + " WHERE PinNumber COLLATE NOCASE='" + PIN.trim() + "'";
+
         SQLiteDatabase database = this.getWritableDatabase();
         Cursor cursor = database.rawQuery(selectQuery, null);
         if (cursor.moveToFirst()) {
@@ -616,9 +793,18 @@ public class OffDBController extends SQLiteOpenHelper {
     public HashMap<String, String> getPersonnelDetailsByFOBnumber(String FOB) {
 
         HashMap<String, String> wordList = new HashMap<String, String>();
-        String selectQuery = "SELECT * FROM " + TBL_PERSONNEL + " WHERE   lower(FOBNumber)='" + FOB.toLowerCase().trim() + "'";
 
-        AppConstants.WriteinFile("Offline Personnel : " + selectQuery);
+        String dummyFOB = FOB;
+        String asd = dummyFOB.substring(dummyFOB.length() - 4, dummyFOB.length());
+        if (asd.equalsIgnoreCase("9000")) {
+            dummyFOB = dummyFOB.substring(0, dummyFOB.length() - 4);
+        }
+
+        String selectQuery = "SELECT * FROM " + TBL_PERSONNEL + " WHERE FOBNumber <> ''  AND LOWER( " +
+                " case when substr(FOBNumber, length(FOBNumber)-3, length(FOBNumber)) = '9000' then substr(FOBNumber, 0, length(FOBNumber)-3) " +
+                " else FOBNumber end " +
+                ")='" + dummyFOB.toLowerCase() + "'";
+
 
         SQLiteDatabase database = this.getWritableDatabase();
         Cursor cursor = database.rawQuery(selectQuery, null);
@@ -648,7 +834,7 @@ public class OffDBController extends SQLiteOpenHelper {
         HashMap<String, String> wordList = new HashMap<String, String>();
 
 
-        String selectQuery = "SELECT * FROM " + TBL_PERSONNEL ;
+        String selectQuery = "SELECT * FROM " + TBL_PERSONNEL;
         SQLiteDatabase database = this.getWritableDatabase();
         Cursor cursor = database.rawQuery(selectQuery, null);
         if (cursor.moveToFirst()) {
@@ -729,6 +915,55 @@ public class OffDBController extends SQLiteOpenHelper {
             } while (cursor.moveToNext());
         }
         return wordList;
+    }
+
+    public String selectRowCountOfDatabase() {
+
+        String rowDetails = "";
+
+        SQLiteDatabase database = this.getWritableDatabase();
+
+        String selectQuery = "SELECT COUNT(*) FROM " + TBL_LINK;
+        Cursor cursor = database.rawQuery(selectQuery, null);
+        if (cursor.moveToFirst()) {
+            String rowCount = cursor.getString(0);
+            rowDetails+="Links:"+rowCount+" ";
+        }
+
+        String selectQuery2 = "SELECT COUNT(*) FROM " + TBL_VEHICLE;
+        Cursor cursor2 = database.rawQuery(selectQuery2, null);
+        if (cursor2.moveToFirst()) {
+            String rowCount = cursor2.getString(0);
+            rowDetails+="Vehicle:"+rowCount+" ";
+        }
+
+        String selectQuery3 = "SELECT COUNT(*) FROM " + TBL_PERSONNEL;
+        Cursor cursor3 = database.rawQuery(selectQuery3, null);
+        if (cursor3.moveToFirst()) {
+            String rowCount = cursor3.getString(0);
+            rowDetails+="Personnel:"+rowCount+" ";
+        }
+
+
+        return rowDetails;
+    }
+
+    public int updateOdometerByVehicleId(String VehicleId, String CurrentOdometer) {
+        SQLiteDatabase database = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+
+        values.put("CurrentOdometer", CurrentOdometer);
+
+        return database.update(TBL_VEHICLE, values, "VehicleId" + " = ?", new String[]{VehicleId});
+    }
+
+    public int updateHoursByVehicleId(String VehicleId, String CurrentHours) {
+        SQLiteDatabase database = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+
+        values.put("CurrentHours", CurrentHours);
+
+        return database.update(TBL_VEHICLE, values, "VehicleId" + " = ?", new String[]{VehicleId});
     }
 
 

@@ -28,6 +28,7 @@ import com.TrakEngineering.FluidSecureHub.enity.UpdateTransactionStatusClass;
 import com.TrakEngineering.FluidSecureHub.enity.UpgradeVersionEntity;
 import com.TrakEngineering.FluidSecureHub.offline.EntityOffTranz;
 import com.TrakEngineering.FluidSecureHub.offline.OffDBController;
+import com.TrakEngineering.FluidSecureHub.offline.OffTranzSyncService;
 import com.TrakEngineering.FluidSecureHub.offline.OfflineConstants;
 import com.TrakEngineering.FluidSecureHub.server.ServerHandler;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -40,6 +41,7 @@ import com.squareup.okhttp.RequestBody;
 import com.squareup.okhttp.Response;
 import com.squareup.okhttp.ResponseBody;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -48,11 +50,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.net.InetAddress;
-import java.net.MalformedURLException;
-import java.net.Socket;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -66,8 +64,6 @@ import java.util.TimerTask;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-import static com.TrakEngineering.FluidSecureHub.CommonUtils.GetPrintRecipt;
-import static com.TrakEngineering.FluidSecureHub.CommonUtils.GetPrintReciptForOther;
 import static com.google.android.gms.internal.zzid.runOnUiThread;
 
 /**
@@ -122,11 +118,7 @@ public class BackgroundService_FS_UNIT_4 extends Service {
     SimpleDateFormat sdformat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
 
     private String vehicleNumber, odometerTenths = "0", dNumber = "", pNumber = "", oText = "", hNumber = "";
-    String LinkName, OtherName, IsOtherRequire, OtherLabel, VehicleNumber, PrintDate, CompanyName, Location, PersonName, PrinterMacAddress, PrinterName, TransactionId, VehicleId, PhoneNumber, PersonId, PulseRatio, MinLimit, FuelTypeId, ServerDate, IntervalToStopFuel, IsTLDCall, EnablePrinter;
-
-    public static String FOLDER_PATH = Environment.getExternalStorageDirectory().getAbsolutePath() + "/FSBin/";
-    public static String PATH_BIN_FILE1 = "user1.2048.new.5.bin";
-
+    String LinkName = "", OtherName, IsOtherRequire, OtherLabel, VehicleNumber, PrintDate, CompanyName, Location, PersonName, PrinterMacAddress, PrinterName, TransactionId, VehicleId, PhoneNumber, PersonId, PulseRatio, MinLimit, FuelTypeId, ServerDate, IntervalToStopFuel, IsTLDCall, EnablePrinter, _OdoMeter,_Hours,PumpOnTime;
 
     int timeFirst = 60;
     Timer tFirst;
@@ -139,6 +131,7 @@ public class BackgroundService_FS_UNIT_4 extends Service {
     GoogleApiClient mGoogleApiClient;
     long stopAutoFuelSeconds = 0;
     boolean isTransactionComp = false;
+    boolean ongoingStatusSend = true;
     double fillqty = 0;
     double Lastfillqty = 0;
     int CNT_LAST = 0;
@@ -162,6 +155,21 @@ public class BackgroundService_FS_UNIT_4 extends Service {
 
         try {
             super.onStart(intent, startId);
+
+           // LinkName = AppConstants.CURRENT_SELECTED_SSID;
+
+            if (LinkName == null || LinkName.isEmpty()) {
+                try {
+                    LinkName = AppConstants.DetailsServerSSIDList.get(3).get("WifiSSId");
+                } catch (Exception e) {
+                    if (AppConstants.GenerateLogs) AppConstants.WriteinFile(TAG+ "Something went wrong please check Link name Ex:"+e.toString());
+                    e.printStackTrace();
+                }
+            }else {
+                if (AppConstants.GenerateLogs) AppConstants.WriteinFile(TAG+ "Please check Link name:"+LinkName);
+            }
+
+
             Bundle extras = intent.getExtras();
             if (extras == null) {
                 Log.d("Service", "null");
@@ -230,22 +238,25 @@ public class BackgroundService_FS_UNIT_4 extends Service {
                     CurrTxnMode = "offline";
                 }
 
+
+                SharedPreferences sharedPref = this.getSharedPreferences(Constants.PREF_VehiFuel, Context.MODE_PRIVATE);
+                TransactionId = sharedPref.getString("TransactionId_FS4", "");
+                VehicleId = sharedPref.getString("VehicleId_FS4", "");
+                PhoneNumber = sharedPref.getString("PhoneNumber_FS4", "");
+                PersonId = sharedPref.getString("PersonId_FS4", "");
+                PulseRatio = sharedPref.getString("PulseRatio_FS4", "1");
+                MinLimit = sharedPref.getString("MinLimit_FS4", "0");
+                FuelTypeId = sharedPref.getString("FuelTypeId_FS4", "");
+                ServerDate = sharedPref.getString("ServerDate_FS4", "");
+                IntervalToStopFuel = sharedPref.getString("IntervalToStopFuel_FS4", "0");
+                IsTLDCall = sharedPref.getString("IsTLDCall_FS4", "False");
+                EnablePrinter = sharedPref.getString("EnablePrinter_FS4", "False");
+                PumpOnTime = sharedPref.getString("PumpOnTime_FS4", "0");
+
+
                 if (cd.isConnectingToInternet() && CurrTxnMode.equalsIgnoreCase("online")) {
 
-                    SharedPreferences sharedPref = this.getSharedPreferences(Constants.PREF_VehiFuel, Context.MODE_PRIVATE);
-                    TransactionId = sharedPref.getString("TransactionId_FS4", "");
-                    VehicleId = sharedPref.getString("VehicleId_FS4", "");
-                    PhoneNumber = sharedPref.getString("PhoneNumber_FS4", "");
-                    PersonId = sharedPref.getString("PersonId_FS4", "");
-                    PulseRatio = sharedPref.getString("PulseRatio_FS4", "1");
-                    MinLimit = sharedPref.getString("MinLimit_FS4", "0");
-                    FuelTypeId = sharedPref.getString("FuelTypeId_FS4", "");
-                    ServerDate = sharedPref.getString("ServerDate_FS4", "");
-                    IntervalToStopFuel = sharedPref.getString("IntervalToStopFuel_FS4", "0");
-                    IsTLDCall = sharedPref.getString("IsTLDCall_FS4", "False");
-                    EnablePrinter = sharedPref.getString("EnablePrinter_FS4", "False");
 
-                    LinkName = AppConstants.CURRENT_SELECTED_SSID;
 
                     listOfConnectedIP_FS_UNIT_4.clear();
                     ListConnectedHotspotIP_FS_UNIT_4AsyncCall();
@@ -284,7 +295,8 @@ public class BackgroundService_FS_UNIT_4 extends Service {
                     cd = new ConnectionDetector(BackgroundService_FS_UNIT_4.this);
                     if (cd.isConnectingToInternet() && AppConstants.NETWORK_STRENGTH) {
                         try {
-                            UpdateTransactionStatusClass authEntity = new UpdateTransactionStatusClass();
+
+                            /*UpdateTransactionStatusClass authEntity = new UpdateTransactionStatusClass();
                             authEntity.TransactionId = TransactionId;
                             authEntity.Status = "1";
                             authEntity.IMEIUDID = AppConstants.getIMEI(BackgroundService_FS_UNIT_4.this);
@@ -296,13 +308,15 @@ public class BackgroundService_FS_UNIT_4 extends Service {
                             String serverRes = authTestAsynTask.response;
 
                             if (serverRes != null) {
-                            }
+                            }*/
+                            if (cd.isConnectingToInternet() && AppConstants.NETWORK_STRENGTH)
+                            CommonUtils.UpgradeTransactionStatusRetroFit(TransactionId,"1",BackgroundService_FS_UNIT_4.this);
 
-                        } catch (InterruptedException e) {
+                        } catch (Exception e) {
                             e.printStackTrace();
-                        } catch (ExecutionException e) {
-                            e.printStackTrace();
+                            if (AppConstants.GenerateLogs) AppConstants.WriteinFile(TAG+ " UpgradeTransactionStatusRetroFit Ex:"+e.toString());
                         }
+
                     } else {
 
                         AppConstants.colorToast(BackgroundService_FS_UNIT_4.this, "Please check Internet Connection.", Color.RED);
@@ -336,6 +350,10 @@ public class BackgroundService_FS_UNIT_4 extends Service {
                     numPulseRatio = Double.parseDouble(PulseRatio);
 
                     stopAutoFuelSeconds = Long.parseLong(IntervalToStopFuel);
+
+                    if (AppConstants.EnableFA) {
+                        stopAutoFuelSeconds=stopAutoFuelSeconds*3;
+                    }
 
                 } else {
 
@@ -570,7 +588,7 @@ public class BackgroundService_FS_UNIT_4 extends Service {
 
             } catch (Exception e) {
                 Log.d("Ex", e.getMessage());
-                if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+"  CommandsGET doInBackground Execption " + e);
+                // if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+"  CommandsGET doInBackground Execption " + e);
                 stopSelf();
             }
 
@@ -731,6 +749,10 @@ public class BackgroundService_FS_UNIT_4 extends Service {
 
     public void GETPulsarQuantityAsyncCall(String URL_GET_PULSAR) {
         OkHttpClient httpClient = new OkHttpClient();
+        httpClient.setConnectTimeout(AppConstants.CONNECTION_TIMEOUT_SEC, TimeUnit.SECONDS);
+        httpClient.setReadTimeout(AppConstants.READ_TIMEOUT_SEC, TimeUnit.SECONDS);
+        httpClient.setWriteTimeout(AppConstants.WRITE_TIMEOUT_SEC, TimeUnit.SECONDS);
+
         Request request = new Request.Builder()
                 .url(URL_GET_PULSAR)
                 .build();
@@ -838,6 +860,13 @@ public class BackgroundService_FS_UNIT_4 extends Service {
 
                 //To avoid accepting Lower Quantity
                 int CNT_current = Integer.parseInt(counts);
+
+                //in progress (transaction recently started, no new information): Transaction ongoing = 8  --non zero qty
+                if (CNT_current > 0 && ongoingStatusSend){
+                    ongoingStatusSend = false;
+                    if (cd.isConnectingToInternet() && AppConstants.NETWORK_STRENGTH)
+                    CommonUtils.UpgradeTransactionStatusRetroFit(TransactionId,"8",BackgroundService_FS_UNIT_4.this);
+                }
 
                 if (CNT_LAST <= CNT_current) {
                     CNT_LAST = CNT_current;
@@ -1058,7 +1087,7 @@ public class BackgroundService_FS_UNIT_4 extends Service {
                     new BackgroundService_FS_UNIT_4.CommandsPOST().execute(URL_UPGRADE_START, "");
 
                     //upgrade bin
-                    String LocalPath = FOLDER_PATH + PATH_BIN_FILE1;
+                    String LocalPath = AppConstants.FOLDER_PATH + AppConstants.UP_Upgrade_File_name;
 
                     File f = new File(LocalPath);
 
@@ -1157,38 +1186,84 @@ public class BackgroundService_FS_UNIT_4 extends Service {
                 long seconds = (nowDT.getTime() - d2.getTime()) / 1000;
 
 
-                if (stopAutoFuelSeconds > 0) {
+                if (Pulses <= 0) {
 
-                    if (seconds >= stopAutoFuelSeconds) {
 
-                        if (qtyFrequencyCount()) {
+                    try {
 
-                            IsFuelingStop = "1";
-                            //qty is same for some time
-                            System.out.println("APFS_4 Auto Stop!Quantity is same for last");
-                            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  Link:" + LinkName + " Auto Stop!Quantity is same for last");
-                            //AppConstants.colorToastBigFont(this, "Auto Stop!\n\nQuantity is same for last " + stopAutoFuelSeconds + " seconds.", Color.BLUE);
-                            stopButtonFunctionality();
-                            stopTimer = false;
-                            this.stopSelf();
-                            Constants.FS_4STATUS = "FREE";
-                            clearEditTextFields();
-                            if (!Constants.BusyVehicleNumberList.equals(null)) {
-                                Constants.BusyVehicleNumberList.remove(Constants.AccVehicleNumber_FS4);
+                        int pont = Integer.parseInt(PumpOnTime);
+                        //temp log below
+                        Log.w(TAG, "Temp log PumpOnTime:"+PumpOnTime);
+                        if (AppConstants.ServerCallLogs)AppConstants.WriteinFile(TAG + "Temp log PumpOnTime:"+PumpOnTime);
+
+                        if (seconds >= pont) {
+                            //Timed out (Start was pressed, and pump on timer hit): Pump Time On limit reached* = 4
+                            if (cd.isConnectingToInternet() && AppConstants.NETWORK_STRENGTH)
+                            CommonUtils.UpgradeTransactionStatusRetroFit(TransactionId,"4",BackgroundService_FS_UNIT_4.this);
+
+                            commonForAutoStopQtySameForSeconds();
+                        }
+                    } catch (Exception e) {
+                        AppConstants.WriteinFile(TAG + "Exception  :" + LinkName + " PumpOnTime -" + PumpOnTime + "-" + e.getMessage());
+                    }
+
+
+                } else {
+
+                    if (stopAutoFuelSeconds > 0) {
+
+                        if (seconds >= stopAutoFuelSeconds) {
+
+                            if (qtyFrequencyCount()) {
+
+                                IsFuelingStop = "1";
+                                //qty is same for some time
+                                System.out.println("APFS_4 Auto Stop!Quantity is same for last");
+                                if (AppConstants.GenerateLogs)
+                                    AppConstants.WriteinFile(TAG + "  Link:" + LinkName + " Auto Stop!Quantity is same for last");
+                                //AppConstants.colorToastBigFont(this, "Auto Stop!\n\nQuantity is same for last " + stopAutoFuelSeconds + " seconds.", Color.BLUE);
+                                stopButtonFunctionality();
+                                stopTimer = false;
+                                this.stopSelf();
+                                Constants.FS_4STATUS = "FREE";
+                                clearEditTextFields();
+                                if (!Constants.BusyVehicleNumberList.equals(null)) {
+                                    Constants.BusyVehicleNumberList.remove(Constants.AccVehicleNumber_FS4);
+                                }
+
+
+                            } else {
+                                quantityRecords.remove(0);
+                                System.out.println("0 th pos deleted");
+                                System.out.println("seconds--" + seconds);
+                                commonForAutoStopQtySameForSeconds();
                             }
-
-
-                        } else {
-                            quantityRecords.remove(0);
-                            System.out.println("0 th pos deleted");
-                            System.out.println("seconds--" + seconds);
                         }
                     }
                 }
-
             }
         } catch (Exception e) {
             if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+"  secondsTimeLogic Execption " + e);
+        }
+    }
+
+    public void commonForAutoStopQtySameForSeconds() {
+        if (qtyFrequencyCount()) {
+
+            IsFuelingStop = "1";
+            stopButtonFunctionality();
+            stopTimer = false;
+            this.stopSelf();
+            Constants.FS_4STATUS = "FREE";
+            clearEditTextFields();
+            if (!Constants.BusyVehicleNumberList.equals(null)) {
+                Constants.BusyVehicleNumberList.remove(Constants.AccVehicleNumber_FS4);
+            }
+
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + "  Link:" + LinkName + " Auto Stop!Quantity is same for last");
+        } else {
+            quantityRecords.remove(0);
         }
     }
 
@@ -1337,14 +1412,23 @@ public class BackgroundService_FS_UNIT_4 extends Service {
         PrinterName = sharedPref.getString("PrinterName_FS4", "");
         VehicleNumber = sharedPref.getString("vehicleNumber_FS4", "");
         OtherName = sharedPref.getString("accOther_FS4", "");
+        _OdoMeter = sharedPref.getString("OdoMeter_FS4", "");
+        _Hours = sharedPref.getString("Hours_FS4", "");
+
+
+        EntityOffTranz tzc = offcontroller.getTransactionDetailsBySqliteId(sqlite_id);
+        String siteid = tzc.SiteId;
+        String IsTLDCallOffline = null;
+        if (siteid != null && !siteid.equalsIgnoreCase("")) {
+            HashMap<String, String> linkmap = offcontroller.getLinksDetailsBySiteId(siteid);
+             IsTLDCallOffline = linkmap.get("IsTLDCall");
+        }
+        if (IsTLDCall.equalsIgnoreCase("True") || (IsTLDCallOffline != null && IsTLDCallOffline.equalsIgnoreCase("True"))) {
+            TankMonitorReading(); //Get Tank Monitor Reading and save it to server
+        }
 
 
         if (cd.isConnectingToInternet()) {
-
-            if (IsTLDCall.equalsIgnoreCase("True")) {
-                TankMonitorReading(); //Get Tank Monitor Reading and save it to server
-            }
-
             ////////////////////--UpgradeCurrentVersion to server--///////////////////////////////////////////////////////
 
             SharedPreferences myPrefUP = this.getSharedPreferences(Constants.PREF_FS_UPGRADE, 0);
@@ -1391,7 +1475,7 @@ public class BackgroundService_FS_UNIT_4 extends Service {
 
                 // ------------------------------------Printer Stop Multiple transactions issue--------------------------------------------------------------------------------
 
-                LinkName = AppConstants.FS4_CONNECTED_SSID;//AppConstants.CURRENT_SELECTED_SSID;
+
 
                 //Print Transaction Receipt
                 DecimalFormat precision = new DecimalFormat("0.00");
@@ -1403,16 +1487,7 @@ public class BackgroundService_FS_UNIT_4 extends Service {
                 DecimalFormat precision_cost = new DecimalFormat("0.00");
                 String PrintCost = (precision_cost.format(Double.parseDouble(InitPrintCost)));
 
-
-                if (IsOtherRequire.equalsIgnoreCase("true")) {
-
-                    printReceipt = GetPrintReciptForOther(CompanyName, PrintDate, LinkName, Location, VehicleNumber, PersonName, OtherLabel, OtherName, Qty, PrintCost);
-                    // printReceipt = " \n\n------FluidSecure Receipt------ \n\nCompany   : " + CompanyName +"\n\nTime/Date : "+PrintDate+"\n\nLocation  : "+LinkName+","+Location+","+"\n\nVehicle # : "+VehicleNumber+"\n\nPersonnel : "+PersonName+" \n\nQty       : " + Qty + "\n\n"+OtherLabel+":"+OtherName+ "\n\n ---------Thank You---------"+"\n\n\n\n\n\n\n\n\n\n\n\n";
-                } else {
-                    printReceipt = GetPrintRecipt(CompanyName, PrintDate, LinkName, Location, VehicleNumber, PersonName, Qty, PrintCost);
-                    // printReceipt = " \n\n------FluidSecure Receipt------ \n\nCompany   : " + CompanyName +"\n\nTime/Date : "+PrintDate+"\n\nLocation  : "+LinkName+","+Location+"\n\nVehicle # : "+VehicleNumber+"\n\nPersonnel : "+PersonName+" \n\nQty       : " + Qty + "\n\n ---------Thank You---------"+"\n\n\n\n\n\n\n\n\n\n\n\n";
-                }
-
+                printReceipt = CommonUtils.GetPrintReciptNew(IsOtherRequire,CompanyName, PrintDate, LinkName, Location, VehicleNumber, PersonName, Qty, PrintCost,OtherLabel, OtherName,_OdoMeter,_Hours);
 
                 if (EnablePrinter.equalsIgnoreCase("True")) {
                     //Start background Service to print recipt
@@ -1531,10 +1606,9 @@ public class BackgroundService_FS_UNIT_4 extends Service {
 
                 String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(this) + ":" + userEmail + ":" + "TransactionComplete");
 
-
-
                 clearEditTextFields();
 
+                SyncOfflineData();
 
             } catch (Exception ex) {
 
@@ -1626,19 +1700,26 @@ public class BackgroundService_FS_UNIT_4 extends Service {
                 obj_entity.Level = "";
                 obj_entity.FromDirectTLD = "n";
 
-                BackgroundService_FS_UNIT_4.SaveTankMonitorReadingy TestAsynTask = new BackgroundService_FS_UNIT_4.SaveTankMonitorReadingy(obj_entity);
-                TestAsynTask.execute();
-                TestAsynTask.get();
 
-                String serverRes = TestAsynTask.response;
+                if (cd.isConnectingToInternet()) {
+                    BackgroundService_FS_UNIT_4.SaveTankMonitorReadingy TestAsynTask = new BackgroundService_FS_UNIT_4.SaveTankMonitorReadingy(obj_entity);
+                    TestAsynTask.execute();
+                    TestAsynTask.get();
 
-                //if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+"  TankMonitorReading ~~~serverRes~~" + serverRes);
+                    String serverRes = TestAsynTask.response;
+
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + "  TankMonitorReading ~~~serverRes~~" + serverRes);
+                } else {
+                    offcontroller.insertTLDReadings(mac_address, "", AppConstants.SITE_ID, "", AppConstants.getIMEI(BackgroundService_FS_UNIT_4.this), LSB, MSB, Tem_data, CurrentDeviceDate, Response_code, "n");
+                }
 
             }
 
         } catch (Exception e) {
             e.printStackTrace();
-            if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+"  TankMonitorReading ~~~Execption~~" + e);
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + "  TankMonitorReading ~~~Execption~~" + e);
         }
 
 
@@ -1706,6 +1787,7 @@ public class BackgroundService_FS_UNIT_4 extends Service {
         Constants.AccDepartmentNumber_FS4 = "";
         Constants.AccPersonnelPIN_FS4 = "";
         Constants.AccOther_FS4 = "";
+        Constants.AccVehicleOther_FS4 = "";
         Constants.AccHours_FS4 = 0;
 
     }
@@ -1755,6 +1837,7 @@ public class BackgroundService_FS_UNIT_4 extends Service {
 
             } catch (Exception e) {
                 Log.d("Ex", e.getMessage());
+                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " OkHttpFileUpload -InBackground"+e.getMessage());
             }
 
 
@@ -1836,8 +1919,8 @@ public class BackgroundService_FS_UNIT_4 extends Service {
 
 
             } catch (Exception e) {
-
                 System.out.println(e);
+                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " OkHttpFileUpload OnPost"+e.getMessage());
             }
 
         }
@@ -2137,13 +2220,14 @@ public class BackgroundService_FS_UNIT_4 extends Service {
     }
 
     public void offlineLogic4() {
-        TransactionId = "0";
-        PhoneNumber = "0";
-        FuelTypeId = "0";
-        ServerDate = "0";
-        IsTLDCall = "0";
+        try {
+            TransactionId = "0";
+            PhoneNumber = "0";
+            FuelTypeId = "0";
+            ServerDate = "0";
+            //IsTLDCall = "0";
 
-        //settransactionID to FSUNIT
+            //settransactionID to FSUNIT
         /*new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -2159,28 +2243,57 @@ public class BackgroundService_FS_UNIT_4 extends Service {
             }
         }, 1500);*/
 
-        EntityOffTranz tzc = offcontroller.getTransactionDetailsBySqliteId(sqlite_id);
+            EntityOffTranz tzc = offcontroller.getTransactionDetailsBySqliteId(sqlite_id);
 
-        VehicleId = tzc.VehicleId;
-        PersonId = tzc.PersonId;
-        String siteid = tzc.SiteId;
+            VehicleId = tzc.VehicleId;
+            PersonId = tzc.PersonId;
+            String siteid = tzc.SiteId;
 
-        HashMap<String, String> linkmap = offcontroller.getLinksDetailsBySiteId(siteid);
-        IntervalToStopFuel = linkmap.get("PumpOffTime");
-        PulseRatio = linkmap.get("Pulserratio");
+            HashMap<String, String> linkmap = offcontroller.getLinksDetailsBySiteId(siteid);
+            IntervalToStopFuel = linkmap.get("PumpOffTime");
+            PumpOnTime = linkmap.get("PumpOnTime");
+            PulseRatio = linkmap.get("Pulserratio");
 
-        EnablePrinter = offcontroller.getOfflineHubDetails(BackgroundService_FS_UNIT_4.this).EnablePrinter;
+            EnablePrinter = offcontroller.getOfflineHubDetails(BackgroundService_FS_UNIT_4.this).EnablePrinter;
 
-        LinkName = AppConstants.CURRENT_SELECTED_SSID;
+            listOfConnectedIP_FS_UNIT_4.clear();
+            ListConnectedHotspotIP_FS_UNIT_4AsyncCall();
 
-        listOfConnectedIP_FS_UNIT_4.clear();
-        ListConnectedHotspotIP_FS_UNIT_4AsyncCall();
+            minFuelLimit = OfflineConstants.getFuelLimit(BackgroundService_FS_UNIT_4.this);
 
-        minFuelLimit = OfflineConstants.getFuelLimit(BackgroundService_FS_UNIT_4.this);
+            numPulseRatio = Double.parseDouble(PulseRatio);
 
-        numPulseRatio = Double.parseDouble(PulseRatio);
+            stopAutoFuelSeconds = Long.parseLong(IntervalToStopFuel);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
 
-        stopAutoFuelSeconds = Long.parseLong(IntervalToStopFuel);
+    private void SyncOfflineData(){
+
+        if (WelcomeActivity.OnWelcomeActivity && Constants.FS_1STATUS.equalsIgnoreCase("FREE") && Constants.FS_2STATUS.equalsIgnoreCase("FREE") && Constants.FS_3STATUS.equalsIgnoreCase("FREE") && Constants.FS_4STATUS.equalsIgnoreCase("FREE")) {
+
+            if (cd.isConnecting()) {
+
+
+                try {
+                    //sync offline transactions
+                    String off_json = offcontroller.getAllOfflineTransactionJSON(BackgroundService_FS_UNIT_4.this);
+                    JSONObject jobj = new JSONObject(off_json);
+                    String offtransactionArray = jobj.getString("TransactionsModelsObj");
+                    JSONArray jarrsy = new JSONArray(offtransactionArray);
+
+                    if (jarrsy.length() > 0) {
+                        startService(new Intent(BackgroundService_FS_UNIT_4.this, OffTranzSyncService.class));
+                    }
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
 
     }
 

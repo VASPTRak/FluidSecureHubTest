@@ -111,7 +111,8 @@ public class ServerResponse implements Serializable {
     @SerializedName("IsTLDCall")
     private String IsTLDCall;
 
-
+    @SerializedName("EnterVehicleNumber")
+    private String EnterVehicleNumber;
 
     //--------------------------
 
@@ -130,6 +131,7 @@ public class ServerResponse implements Serializable {
         this.ResponceMessage = ResponceMessage;
         this.ResponceText = ResponceText;
         this.VehicleId = VehicleId;
+        this.EnterVehicleNumber = EnterVehicleNumber;
         this.MinLimit = MinLimit;
         this.SiteId = SiteId;
         this.PulseRatio = PulseRatio;
@@ -169,6 +171,13 @@ public class ServerResponse implements Serializable {
 
     }
 
+    public String getEnterVehicleNumber() {
+        return EnterVehicleNumber;
+    }
+
+    public void setEnterVehicleNumber(String enterVehicleNumber) {
+        EnterVehicleNumber = enterVehicleNumber;
+    }
 
     public String getVehicleId() {
         return VehicleId;

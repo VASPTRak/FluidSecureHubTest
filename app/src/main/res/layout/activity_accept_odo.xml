@@ -5,8 +5,7 @@
     android:layout_height="match_parent"
     android:background="@color/white"
     android:orientation="vertical"
-    android:padding="@dimen/main_outer_padding"
-    tools:context="com.TrakEngineering.FluidSecureHubTest.AcceptVehicleActivity">
+    tools:context="com.TrakEngineering.FluidSecureHub.AcceptVehicleActivity">
 
     <ScrollView
         android:layout_width="match_parent"
@@ -35,6 +34,7 @@
                     android:visibility="gone" />
 
                 <TextView
+                    android:id="@+id/tv_odo"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="25dp"
@@ -61,7 +61,7 @@
                 android:textColor="@color/white"
                 android:hint="Enter Odometer No Tenths"
                 android:inputType="number|text"
-                android:maxLength="7"
+                android:maxLength="8"
                 android:padding="5sp"
                 android:singleLine="true"
                 android:textAppearance="?android:attr/textAppearanceLarge"
@@ -105,5 +105,14 @@
                     android:textSize="@dimen/go_button_text" />
             </LinearLayout>
         </LinearLayout>
+
     </ScrollView>
+
+    <!-- menu bar -->
+    <include
+        layout="@layout/activity_footer_keybord"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
+
 </RelativeLayout>

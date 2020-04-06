@@ -1,20 +1,4 @@
-/*
- * Copyright (C) 2013 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-package com.TrakEngineering.FluidSecureHub.LFBle_vehicle;
+package com.TrakEngineering.FluidSecureHub.LFCardGAtt;
 
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
@@ -22,7 +6,6 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
 import android.bluetooth.BluetoothGattCharacteristic;
-import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
@@ -38,22 +21,17 @@ import com.TrakEngineering.FluidSecureHub.AppConstants;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * Service for managing connection and data communication with a GATT server hosted on a
- * given Bluetooth LE device.
- */
-public class BluetoothLeService_vehicle extends Service {
-    private final static String TAG = BluetoothLeService_vehicle.class.getSimpleName();
-
+public class LeServiceLFCard extends Service {
+    private final static String TAG = LeServiceLFCard.class.getSimpleName();
     public int cnt123 = 0;
-
-//     private String bolong_UUID_service="0000180a-0000-1000-8000-00805f9b34fb"; //ACS_UUID_char
-//     private String bolong_UUID_char="00002a23-0000-1000-8000-00805f9b34fb"; //ACS_UUID_char
 
     private String bolong_UUID_service = "000000ff-0000-1000-8000-00805f9b34fb"; //bolong_UUID_service
     private String bolong_UUID_char = "0000ff01-0000-1000-8000-00805f9b34fb"; //bolong_UUID_char
 
-    private BluetoothLeService_vehicle mBluetoothLeServiceVehicle;
+    private String BLE_Service = "000000ee-0000-1000-8000-00805f9b34fb";
+    private String BLE_char = "0000ee01-0000-1000-8000-00805f9b34fb";
+
+    private LeServiceLFCard mBluetoothLeServiceRfidPin;
     private BluetoothManager mBluetoothManager;
     private BluetoothAdapter mBluetoothAdapter;
     private String mBluetoothDeviceAddress;
@@ -64,19 +42,17 @@ public class BluetoothLeService_vehicle extends Service {
     private static final int STATE_CONNECTING = 1;
     private static final int STATE_CONNECTED = 2;
 
-    public final static String ACTION_GATT_CONNECTED =
-            "com.example.bluetooth.le.ACTION_GATT_CONNECTED";
-    public final static String ACTION_GATT_DISCONNECTED =
-            "com.example.bluetooth.le.ACTION_GATT_DISCONNECTED";
-    public final static String ACTION_GATT_SERVICES_DISCOVERED =
-            "com.example.bluetooth.le.ACTION_GATT_SERVICES_DISCOVERED";
-    public final static String ACTION_DATA_AVAILABLE =
-            "com.example.bluetooth.le.ACTION_DATA_AVAILABLE";
-    public final static String EXTRA_DATA =
-            "com.example.bluetooth.le.EXTRA_DATA";
 
-    public final static UUID UUID_HEART_RATE_MEASUREMENT =
-            UUID.fromString(SampleGattAttributes_vehicle.HEART_RATE_MEASUREMENT);
+    public final static String ACTION_GATT_CONNECTED =
+            "com.TrakEngineering.FluidSecureHubTest.LFLe.ACTION_GATT_CONNECTED";
+    public final static String ACTION_GATT_DISCONNECTED =
+            "com.TrakEngineering.FluidSecureHubTest.LFLe.ACTION_GATT_DISCONNECTED";
+    public final static String ACTION_GATT_SERVICES_DISCOVERED =
+            "com.TrakEngineering.FluidSecureHubTest.LFLe.ACTION_GATT_SERVICES_DISCOVERED";
+    public final static String ACTION_DATA_AVAILABLE =
+            "com.TrakEngineering.FluidSecureHubTest.LFLe.ACTION_DATA_AVAILABLE";
+    public final static String EXTRA_DATA =
+            "com.TrakEngineering.FluidSecureHubTest.LFLe.EXTRA_DATA";
 
     // Implements callback methods for GATT events that the app cares about.  For example,
     // connection change and services discovered.
@@ -85,13 +61,13 @@ public class BluetoothLeService_vehicle extends Service {
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
             String intentAction;
             if (newState == BluetoothProfile.STATE_CONNECTED) {
+                gatt.requestMtu(512);
                 intentAction = ACTION_GATT_CONNECTED;
                 mConnectionState = STATE_CONNECTED;
                 broadcastUpdate(intentAction);
                 Log.i(TAG, "Connected to GATT server.");
                 // Attempts to discover services after successful connection.
-                Log.i(TAG, "Attempting to start service discovery:" +
-                        mBluetoothGatt.discoverServices());
+
 
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                 intentAction = ACTION_GATT_DISCONNECTED;
@@ -124,6 +100,14 @@ public class BluetoothLeService_vehicle extends Service {
                                             BluetoothGattCharacteristic characteristic) {
             broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
         }
+
+        @Override
+        public void onMtuChanged(BluetoothGatt gatt, int mtu, int status) {
+            super.onMtuChanged(gatt, mtu, status);
+            Log.i(TAG, "New MTU is " + mtu);
+            Log.i(TAG, "Attempting to start service discovery:" +
+                    mBluetoothGatt.discoverServices());
+        }
     };
 
     private void broadcastUpdate(final String action) {
@@ -135,38 +119,40 @@ public class BluetoothLeService_vehicle extends Service {
                                  final BluetoothGattCharacteristic characteristic) {
         final Intent intent = new Intent(action);
 
-        // This is special handling for the Heart Rate Measurement profile.  Data parsing is
-        // carried out as per profile specifications:
-        // http://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.heart_rate_measurement.xml
-        if (UUID_HEART_RATE_MEASUREMENT.equals(characteristic.getUuid())) {
-            int flag = characteristic.getProperties();
-            int format = -1;
-            if ((flag & 0x01) != 0) {
-                format = BluetoothGattCharacteristic.FORMAT_UINT16;
-                Log.d(TAG, "Heart rate format UINT16.");
-            } else {
-                format = BluetoothGattCharacteristic.FORMAT_UINT8;
-                Log.d(TAG, "Heart rate format UINT8.");
-            }
-            final int heartRate = characteristic.getIntValue(format, 1);
-            Log.d(TAG, String.format("Received heart rate: %d", heartRate));
-            intent.putExtra(EXTRA_DATA, String.valueOf(heartRate));
-        } else {
-            // For all other profiles, writes the data formatted in HEX.
-            final byte[] data = characteristic.getValue();
-            if (data != null && data.length > 0) {
-                final StringBuilder stringBuilder = new StringBuilder(data.length);
-                for (byte byteChar : data)
-                    stringBuilder.append(String.format("%02X ", byteChar));
-                intent.putExtra(EXTRA_DATA, new String(data) + "\n" + stringBuilder.toString());
-            }
+        // all other profiles, writes the data formatted in HEX.
+        final byte[] data = characteristic.getValue();
+
+        String str1 = bytesToHex(data);
+
+
+        if (data != null && data.length > 0) {
+            final StringBuilder stringBuilder = new StringBuilder(data.length);
+
+            for (byte byteChar : data)
+                stringBuilder.append(String.format("%02X ", byteChar));
+
+
+            intent.putExtra(EXTRA_DATA, new String(data) + "\n" + stringBuilder.toString());
         }
+
         sendBroadcast(intent);
     }
 
+    private final static char[] hexArray = "0123456789ABCDEF".toCharArray();
+
+    public static String bytesToHex(byte[] bytes) {
+        char[] hexChars = new char[bytes.length * 2];
+        for (int j = 0; j < bytes.length; j++) {
+            int v = bytes[j] & 0xFF;
+            hexChars[j * 2] = hexArray[v >>> 4];
+            hexChars[j * 2 + 1] = hexArray[v & 0x0F];
+        }
+        return new String(hexChars);
+    }
+
     public class LocalBinder extends Binder {
-        BluetoothLeService_vehicle getService() {
-            return BluetoothLeService_vehicle.this;
+        public LeServiceLFCard getService() {
+            return LeServiceLFCard.this;
         }
     }
 
@@ -184,7 +170,7 @@ public class BluetoothLeService_vehicle extends Service {
         return super.onUnbind(intent);
     }
 
-    private final IBinder mBinder = new LocalBinder();
+    private final IBinder mBinder = new LeServiceLFCard.LocalBinder();
 
     /**
      * Initializes a reference to the local Bluetooth adapter.
@@ -221,34 +207,45 @@ public class BluetoothLeService_vehicle extends Service {
      * callback.
      */
     public boolean connect(final String address) {
-        if (mBluetoothAdapter == null || address == null) {
-            Log.w(TAG, "BluetoothAdapter not initialized or unspecified address.");
-            return false;
-        }
 
-        // Previously connected device.  Try to reconnect.
-        if (mBluetoothDeviceAddress != null && address.equals(mBluetoothDeviceAddress)
-                && mBluetoothGatt != null) {
-            Log.d(TAG, "Trying to use an existing mBluetoothGatt for connection.");
-            if (mBluetoothGatt.connect()) {
-                mConnectionState = STATE_CONNECTING;
-                return true;
-            } else {
+        try {
+            if (mBluetoothAdapter == null || address == null) {
+                Log.w(TAG, "BluetoothAdapter not initialized or unspecified address.");
                 return false;
             }
+
+            // Previously connected device.  Try to reconnect.
+            if (mBluetoothDeviceAddress != null && address.equals(mBluetoothDeviceAddress)
+                    && mBluetoothGatt != null) {
+                Log.d(TAG, "Trying to use an existing mBluetoothGatt for connection.");
+                if (mBluetoothGatt.connect()) {
+                    mConnectionState = STATE_CONNECTING;
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+
+            final BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(address);
+            if (device == null) {
+                Log.w(TAG, "Device not found.  Unable to connect.");
+                return false;
+            }
+            // We want to directly connect to the device, so we are setting the autoConnect
+            // parameter to false.
+            mBluetoothGatt = device.connectGatt(this, false, mGattCallback);
+            Log.d(TAG, "Trying to create a new connection.");
+            mBluetoothDeviceAddress = address;
+            mConnectionState = STATE_CONNECTING;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + " Exception:" + e.toString());
+            return false;
+
         }
 
-        final BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(address);
-        if (device == null) {
-            Log.w(TAG, "Device not found.  Unable to connect.");
-            return false;
-        }
-        // We want to directly connect to the device, so we are setting the autoConnect
-        // parameter to false.
-        mBluetoothGatt = device.connectGatt(this, false, mGattCallback);
-        Log.d(TAG, "Trying to create a new connection.");
-        mBluetoothDeviceAddress = address;
-        mConnectionState = STATE_CONNECTING;
         return true;
     }
 
@@ -307,13 +304,6 @@ public class BluetoothLeService_vehicle extends Service {
         }
         mBluetoothGatt.setCharacteristicNotification(characteristic, enabled);
 
-        // This is specific to Heart Rate Measurement.
-        if (UUID_HEART_RATE_MEASUREMENT.equals(characteristic.getUuid())) {
-            BluetoothGattDescriptor descriptor = characteristic.getDescriptor(
-                    UUID.fromString(SampleGattAttributes_vehicle.CLIENT_CHARACTERISTIC_CONFIG));
-            descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
-            mBluetoothGatt.writeDescriptor(descriptor);
-        }
     }
 
     /**
@@ -329,74 +319,138 @@ public class BluetoothLeService_vehicle extends Service {
     }
 
 
-    public void readCustomCharacteristic() {
+    public void readCustomCharacteristic(boolean bleLFUpdateFlag) {
         try {
 
             if (mBluetoothAdapter == null || mBluetoothGatt == null) {
                 Log.w(TAG, "BluetoothAdapter not initialized");
                 return;
             }
+            BluetoothGattService mCustomService;
             /*check if the service is available on the device*/
-            BluetoothGattService mCustomService = mBluetoothGatt.getService(UUID.fromString(bolong_UUID_service));
+            if (!bleLFUpdateFlag)
+                mCustomService = mBluetoothGatt.getService(UUID.fromString(bolong_UUID_service));
+            else {
+                System.out.println("BLE_Service:" + BLE_Service);
+                mCustomService = mBluetoothGatt.getService(UUID.fromString(BLE_Service));
+            }
             if (mCustomService == null) {
                 Log.w(TAG, "Custom BLE Service not found");
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile("BluetoothLeService_Pin ~~~~~~~~~" + "readCustomCharacteristic Custom BLE Service not found");
+                //if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "readCustomCharacteristic Custom BLE Service not found bleLFUpdateFlag"+bleLFUpdateFlag);
                 //  Toast.makeText(getApplicationContext(),"Not found: "+bolong_UUID_char, Toast.LENGTH_LONG).show();
                 return;
             }
             /*get the read characteristic from the service*/
-            BluetoothGattCharacteristic mReadCharacteristic = mCustomService.getCharacteristic(UUID.fromString(bolong_UUID_char));
+            BluetoothGattCharacteristic mReadCharacteristic = null;
+            if (!bleLFUpdateFlag)
+                mReadCharacteristic = mCustomService.getCharacteristic(UUID.fromString(bolong_UUID_char));
+            else
+                mReadCharacteristic = mCustomService.getCharacteristic(UUID.fromString(BLE_char));
             if (mBluetoothGatt.readCharacteristic(mReadCharacteristic) == false) {
                 Log.w(TAG, "Failed to read characteristic");
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile("BluetoothLeService_Pin ~~~~~~~~~" + "readCustomCharacteristic Failed to read characteristic");
+                //if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "readCustomCharacteristic Failed to read characteristic");
                 // Toast.makeText(getApplicationContext(),"Failed to Read Characteristics: ", Toast.LENGTH_LONG).show();
 
 
             } else {
                 Log.w(TAG, "Read Characteristics successfully");
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile("BluetoothLeService_Pin ~~~~~~~~~" + "Read Characteristics successfully");
+                //if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "Read Characteristics successfully");
                 //  Toast.makeText(getApplicationContext(),"Read Characteristics successfully!", Toast.LENGTH_LONG).show();
             }
 
         } catch (Exception e) {
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile("BluetoothLeService_Vehicle ~~~~~~~~~" + "Read Characteristics Ex-" + e.getMessage());
+                AppConstants.WriteinFile(TAG + "Read Characteristics Ex-" + e.getMessage());
 
         }
     }
 
-    public void writeCustomCharacteristic(int value, String bleCommand) {
+    public void writeCustomCharacteristic(int value, String bleCommand, boolean bleLFUpdateFlag) {
         if (mBluetoothAdapter == null || mBluetoothGatt == null) {
             Log.w(TAG, "BluetoothAdapter not initialized");
             return;
         }
         /*check if the service is available on the device*/
-        BluetoothGattService mCustomService = mBluetoothGatt.getService(UUID.fromString(bolong_UUID_service));//"00001110-0000-1000-8000-00805f9b34fb"
+        BluetoothGattService mCustomService = null;
+        if (!bleLFUpdateFlag)
+            mCustomService = mBluetoothGatt.getService(UUID.fromString(bolong_UUID_service));//"00001110-0000-1000-8000-00805f9b34fb"
+        else
+            mCustomService = mBluetoothGatt.getService(UUID.fromString(BLE_Service));
         if (mCustomService == null) {
-            Toast.makeText(getApplicationContext(), "Not found: " + bolong_UUID_char, Toast.LENGTH_LONG).show();
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile("BluetoothLeService_Pin ~~~~~~~~~" + "writeCustomCharacteristic Char Not found:" + bolong_UUID_char);
+            //Toast.makeText(getApplicationContext(), "Not found: " + bolong_UUID_char, Toast.LENGTH_LONG).show();
+           //if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "writeCustomCharacteristic Char Not found:" + bolong_UUID_char);
             return;
         }
 
-        BluetoothGattCharacteristic mWriteCharacteristic = mCustomService.getCharacteristic(UUID.fromString(bolong_UUID_char));
-        mWriteCharacteristic.setValue(value, android.bluetooth.BluetoothGattCharacteristic.FORMAT_UINT8, 0);
-
+        BluetoothGattCharacteristic mWriteCharacteristic = null;
+        if (!bleLFUpdateFlag) {
+            mWriteCharacteristic = mCustomService.getCharacteristic(UUID.fromString(bolong_UUID_char));
+            mWriteCharacteristic.setValue(value, BluetoothGattCharacteristic.FORMAT_UINT8, 0);
+        } else {
+            mWriteCharacteristic = mCustomService.getCharacteristic(UUID.fromString(BLE_char));
+            //mWriteCharacteristic.setValue("0x610x62");
+            /*String stringAB = "ab";
+            byte[] byteAB = stringAB.getBytes();*/
+            mWriteCharacteristic.setValue("0x610x62");
+        }
         //byte bleBytes[]=bleCommand.getBytes();
         //BluetoothGattCharacteristic mWriteCharacteristic = mCustomService.getCharacteristic(UUID.fromString("000000ff-0000-1000-8000-00805f9b34fb"));
         //mWriteCharacteristic.setValue(bleBytes);
 
         if (mBluetoothGatt.writeCharacteristic(mWriteCharacteristic)) {
             // Toast.makeText(getApplicationContext(),"Write Characteristics successfully!", Toast.LENGTH_LONG).show();
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile("BluetoothLeService_Pin ~~~~~~~~~" + "Write Characteristics successfully!");
+            //if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "Write Characteristics successfully!");
         } else {
             // Toast.makeText(getApplicationContext(),"Failed to write Characteristics", Toast.LENGTH_LONG).show();
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile("BluetoothLeService_Pin ~~~~~~~~~" + "Failed to write Characteristics");
+            //if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "Failed to write Characteristics");
         }
     }
+
+    public void writeRebootCharacteristic() {
+
+        byte value[] = {0x72, 0x62};
+
+        if (mBluetoothAdapter == null || mBluetoothGatt == null) {
+            Log.w(TAG, "BluetoothAdapter not initialized");
+            return;
+        }
+        /*check if the service is available on the device*/
+        BluetoothGattService mCustomService = null;
+
+        mCustomService = mBluetoothGatt.getService(UUID.fromString(BLE_Service));
+
+        if (mCustomService == null) {
+            Toast.makeText(getApplicationContext(), "Not found: " + BLE_Service, Toast.LENGTH_LONG).show();
+            return;
+        }
+
+
+        BluetoothGattCharacteristic mWriteCharacteristic = mCustomService.getCharacteristic(UUID.fromString(BLE_char));
+        //mWriteCharacteristic.setValue("rb");
+        mWriteCharacteristic.setValue(value);
+
+
+        if (mBluetoothGatt.writeCharacteristic(mWriteCharacteristic)) {
+            // Toast.makeText(getApplicationContext(),"Write Characteristics successfully!", Toast.LENGTH_LONG).show();
+            //if (AppConstants.GenerateLogs)AppConstants.WriteinFile("LeServiceLFCard ~~~~~~~~~" + "Write Characteristics successfully!");
+            //Toast.makeText(getApplicationContext(), "Reboot success", Toast.LENGTH_SHORT).show();
+
+
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            //Restart lf Reader service
+            if (!mBluetoothDeviceAddress.isEmpty() && !AppConstants.ACS_READER)
+                connect(mBluetoothDeviceAddress);
+
+        } else {
+            // Toast.makeText(getApplicationContext(),"Failed to write Characteristics", Toast.LENGTH_LONG).show();
+            //if (AppConstants.GenerateLogs)AppConstants.WriteinFile("LeServiceLFCard ~~~~~~~~~" + "Failed to write Characteristics");
+            //Toast.makeText(getApplicationContext(), "Reboot fail", Toast.LENGTH_SHORT).show();
+        }
+    }
+
 }

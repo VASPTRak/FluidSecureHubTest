@@ -180,6 +180,11 @@ public class AcceptManualOdoActivityFA extends AppCompatActivity {
 
     public void allValid(){
 
+        if (EddystoneScannerService.CalledOnce != null) {
+            EddystoneScannerService.CalledOnce.clear();
+        }
+
+
         //Server call
         FsnpInfo objEntityClass = new FsnpInfo();
         objEntityClass.IMEI_UDID = AppConstants.getIMEI(AcceptManualOdoActivityFA.this);

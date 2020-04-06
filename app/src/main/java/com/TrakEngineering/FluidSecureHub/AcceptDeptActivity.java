@@ -19,6 +19,7 @@ import android.text.style.ForegroundColorSpan;
 import android.text.style.RelativeSizeSpan;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewTreeObserver;
@@ -38,6 +39,8 @@ import com.squareup.okhttp.Response;
 import org.json.JSONObject;
 
 import java.net.SocketTimeoutException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
@@ -54,14 +57,19 @@ public class AcceptDeptActivity extends AppCompatActivity {
     boolean Istimeout_Sec=true;
     RelativeLayout footer_keybord;
     Timer t, ScreenOutTime;
+    List<Timer> DeptScreenTimerlist = new ArrayList<Timer>();
+    ConnectionDetector cd = new ConnectionDetector(AcceptDeptActivity.this);
 
     private static final String TAG = "AcceptDept";
 
     @Override
     protected void onResume() {
         super.onResume();
+
+        invalidateOptionsMenu();
         //Set/Reset EnterPin text
-        if (Constants.CurrentSelectedHose.equals("FS1")) {
+        etDeptNumber.setText("");
+        /*if (Constants.CurrentSelectedHose.equals("FS1")) {
             etDeptNumber.setText(Constants.AccDepartmentNumber_FS1);
         } else if (Constants.CurrentSelectedHose.equals("FS2")) {
             etDeptNumber.setText(Constants.AccDepartmentNumber);
@@ -69,11 +77,11 @@ public class AcceptDeptActivity extends AppCompatActivity {
             etDeptNumber.setText(Constants.AccDepartmentNumber_FS3);
         } else if (Constants.CurrentSelectedHose.equals("FS4")) {
             etDeptNumber.setText(Constants.AccDepartmentNumber_FS4);
-        }
+        }*/
 
-        if (ScreenOutTime == null) {
-            TimeoutDeptScreen();
-        }
+        Istimeout_Sec = true;
+        TimeoutDeptScreen();
+
 
     }
 
@@ -228,11 +236,22 @@ public class AcceptDeptActivity extends AppCompatActivity {
             }
         });
 
+        SharedPreferences myPrefkb = this.getSharedPreferences(AppConstants.sharedPref_KeyboardType, 0);
+        String KeyboardType = myPrefkb.getString("KeyboardTypeDepartment", "2");
+
+        try {
+            etDeptNumber.setInputType(Integer.parseInt(KeyboardType));
+        }catch (Exception e)
+        {
+            System.out.println("keyboard exception");
+            etDeptNumber.setInputType(InputType.TYPE_CLASS_TEXT);
+        }
+
         tv_swipekeybord.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 int InputTyp = etDeptNumber.getInputType();
-                if (InputTyp == 3) {
+                if (InputTyp == 2) {
                     etDeptNumber.setInputType(InputType.TYPE_CLASS_TEXT);
                     tv_swipekeybord.setText("Press for 123");
                 } else {
@@ -252,7 +271,31 @@ public class AcceptDeptActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.reader, menu);
+
+        menu.findItem(R.id.mconfigure_tld).setVisible(false);
+        menu.findItem(R.id.enable_debug_window).setVisible(false);
+        menu.findItem(R.id.mclose).setVisible(false);
+        menu.findItem(R.id.mconfigure_fsnp).setVisible(false);
+        menu.findItem(R.id.mreconnect_ble_readers).setVisible(false);
+        menu.findItem(R.id.mreboot_reader).setVisible(false);
+
+        if (cd.isConnectingToInternet() && AppConstants.NETWORK_STRENGTH){
+
+            menu.findItem(R.id.monline).setVisible(true);
+            menu.findItem(R.id.mofline).setVisible(false);
+
+        }else{
+            menu.findItem(R.id.monline).setVisible(false);
+            menu.findItem(R.id.mofline).setVisible(true);
+        }
+        return true;
+    }
+
     private void TimeoutDeptScreen() {
+
         SharedPreferences sharedPrefODO = AcceptDeptActivity.this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
         IsOdoMeterRequire = sharedPrefODO.getString(AppConstants.IsOdoMeterRequire, "");
         IsDepartmentRequire = sharedPrefODO.getString(AppConstants.IsDepartmentRequire, "");
@@ -264,9 +307,11 @@ public class AcceptDeptActivity extends AppCompatActivity {
         long screenTimeOut = Integer.parseInt(TimeOutinMinute) * 60000;
 
         ScreenOutTime = new Timer();
+        DeptScreenTimerlist.add(ScreenOutTime);
         TimerTask ttt = new TimerTask() {
             @Override
             public void run() {
+
                 //do something
                 if (Istimeout_Sec) {
 
@@ -304,9 +349,7 @@ public class AcceptDeptActivity extends AppCompatActivity {
     public void ResetTimeoutDeptScreen(){
 
 
-        if (ScreenOutTime != null) {
-            ScreenOutTime.cancel();
-        }
+        CancelTimerScreenOut();
 
         try {
             Thread.sleep(500);
@@ -351,6 +394,18 @@ public class AcceptDeptActivity extends AppCompatActivity {
         // ActivityHandler.removeActivity(4);
         Istimeout_Sec=false;
         finish();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        CancelTimerScreenOut();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        CancelTimerScreenOut();
     }
 
     public void hideKeybord() {
@@ -420,9 +475,9 @@ public class AcceptDeptActivity extends AppCompatActivity {
                 String authString = "Basic " + AppConstants.convertStingToBase64(objEntityClass.IMEIUDID + ":" + userEmail + ":" + "ValidateDepartmentNumber");
 
                 OkHttpClient client = new OkHttpClient();
-                client.setConnectTimeout(10, TimeUnit.SECONDS);
-                client.setReadTimeout(10, TimeUnit.SECONDS);
-                client.setWriteTimeout(10, TimeUnit.SECONDS);
+                client.setConnectTimeout(4, TimeUnit.SECONDS);
+                client.setReadTimeout(4, TimeUnit.SECONDS);
+                client.setWriteTimeout(4, TimeUnit.SECONDS);
 
 
                 RequestBody body = RequestBody.create(TEXT, jsonData);
@@ -531,6 +586,14 @@ public class AcceptDeptActivity extends AppCompatActivity {
 
             });
 
+        }
+
+    }
+
+    private void CancelTimerScreenOut(){
+
+        for (int i = 0; i < DeptScreenTimerlist.size(); i++) {
+            DeptScreenTimerlist.get(i).cancel();
         }
 
     }

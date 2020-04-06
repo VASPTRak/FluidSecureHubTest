@@ -647,9 +647,9 @@ public class SelectFSActivity extends AppCompatActivity implements GoogleApiClie
                 //resp = serverHandler.PostTextData(WelcomeActivity.this, AppConstants.webURL, parm2, authString);
                 //----------------------------------------------------------------------------------
                 OkHttpClient client = new OkHttpClient();
-                client.setConnectTimeout(10, TimeUnit.SECONDS);
-                client.setReadTimeout(10, TimeUnit.SECONDS);
-                client.setWriteTimeout(10, TimeUnit.SECONDS);
+                client.setConnectTimeout(4, TimeUnit.SECONDS);
+                client.setReadTimeout(4, TimeUnit.SECONDS);
+                client.setWriteTimeout(4, TimeUnit.SECONDS);
 
                 RequestBody body = RequestBody.create(ServerHandler.TEXT, parm2);
                 Request request = new Request.Builder()

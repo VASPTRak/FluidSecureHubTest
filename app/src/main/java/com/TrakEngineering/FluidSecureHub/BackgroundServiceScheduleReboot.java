@@ -19,7 +19,7 @@ import java.util.GregorianCalendar;
 import java.util.concurrent.TimeUnit;
 
 public class BackgroundServiceScheduleReboot extends Service {
-    String TAG = "BatteryBackgroundService";
+    String TAG = "BackgroundServiceScheduleReboot";
     @Override
     public IBinder onBind(Intent intent) {
         // TODO: Return the communication channel to the service.
@@ -48,7 +48,7 @@ public class BackgroundServiceScheduleReboot extends Service {
                 cal.set(Calendar.DATE, cur_cal.get(Calendar.DATE));
                 cal.set(Calendar.MONTH, cur_cal.get(Calendar.MONTH));
                 Intent name = new Intent(BackgroundServiceScheduleReboot.this, BackgroundServiceScheduleReboot.class);
-                PendingIntent pintent = PendingIntent.getService(getApplicationContext(), 0, name, 0);
+                PendingIntent pintent = PendingIntent.getService(getApplicationContext(), WelcomeActivity.REBOOT_INTENT_ID, name, 0);
                 AlarmManager alarm = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
                 alarm.setExact(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), pintent);
             }
@@ -92,9 +92,9 @@ public class BackgroundServiceScheduleReboot extends Service {
                 String authString = "Basic " + AppConstants.convertStingToBase64(parm1);
 
                 OkHttpClient client = new OkHttpClient();
-                client.setConnectTimeout(10, TimeUnit.SECONDS);
-                client.setReadTimeout(10, TimeUnit.SECONDS);
-                client.setWriteTimeout(10, TimeUnit.SECONDS);
+                client.setConnectTimeout(4, TimeUnit.SECONDS);
+                client.setReadTimeout(4, TimeUnit.SECONDS);
+                client.setWriteTimeout(4, TimeUnit.SECONDS);
 
 
                 Request request = new Request.Builder()

@@ -270,6 +270,7 @@ public class AcceptPinActivity extends AppCompatActivity {
 
         // ActivityHandler.removeActivity(3);
         Istimeout_Sec = false;
+        ScreenOutTime.cancel();//Stop screenout
         //AppConstants.ClearEdittextFielsOnBack(AcceptPinActivity.this); //Clear EditText on move to welcome activity.
         finish();
     }

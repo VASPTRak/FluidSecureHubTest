@@ -218,10 +218,12 @@ public class AcceptFieldActivity extends AppCompatActivity {
                                         String ProductPrice_FS1 = "";
                                         String IsTLDCall_FS1 = "";
                                         String EnablePrinter_FS1 = "";
+                                        String OdoMeter_FS1 = "";
+                                        String Hours_FS1 = "";
+                                        String PumpOnTime_FS1 = "";
 
 
-
-                                        CommonUtils.SaveVehiFuelInPref_FS1(AcceptFieldActivity.this, TransactionId_FS1,VehicleId_FS1, PhoneNumber_FS1, PersonId_FS1, PulseRatio_FS1, MinLimit_FS1, FuelTypeId_FS1, ServerDate_FS1, IntervalToStopFuel_FS1,PrintDate_FS1,Company_FS1,Location_FS1,PersonName_FS1,BluetoothCardReader_FS1,PrinterName_FS1,vehicleNumber,accOther,VehicleSum_FS1,DeptSum_FS1,VehPercentage_FS1,DeptPercentage_FS1,SurchargeType_FS1,ProductPrice_FS1,IsTLDCall_FS1,EnablePrinter_FS1);
+                                        CommonUtils.SaveVehiFuelInPref_FS1(AcceptFieldActivity.this, TransactionId_FS1,VehicleId_FS1, PhoneNumber_FS1, PersonId_FS1, PulseRatio_FS1, MinLimit_FS1, FuelTypeId_FS1, ServerDate_FS1, IntervalToStopFuel_FS1,PrintDate_FS1,Company_FS1,Location_FS1,PersonName_FS1,BluetoothCardReader_FS1,PrinterName_FS1,vehicleNumber,accOther,VehicleSum_FS1,DeptSum_FS1,VehPercentage_FS1,DeptPercentage_FS1,SurchargeType_FS1,ProductPrice_FS1,IsTLDCall_FS1,EnablePrinter_FS1,OdoMeter_FS1,Hours_FS1,PumpOnTime_FS1);
 
 
                                         Intent intent = new Intent(AcceptFieldActivity.this, DisplayMeterActivity.class);
@@ -269,8 +271,11 @@ public class AcceptFieldActivity extends AppCompatActivity {
                                         String ProductPrice = "";
                                         String IsTLDCall = "";
                                         String EnablePrinter = "";
+                                        String OdoMeter = "";
+                                        String Hours = "";
+                                        String PumpOnTime = "";
 
-                                        CommonUtils.SaveVehiFuelInPref(AcceptFieldActivity.this, TransactionId,VehicleId, PhoneNumber, PersonId, PulseRatio, MinLimit, FuelTypeId, ServerDate, IntervalToStopFuel,PrintDate,Company,Location,PersonName,BluetoothCardReader,PrinterName,vehicleNumber,accOther,VehicleSum,DeptSum,VehPercentage,DeptPercentage,SurchargeType,ProductPrice,IsTLDCall,EnablePrinter);
+                                        CommonUtils.SaveVehiFuelInPref(AcceptFieldActivity.this, TransactionId,VehicleId, PhoneNumber, PersonId, PulseRatio, MinLimit, FuelTypeId, ServerDate, IntervalToStopFuel,PrintDate,Company,Location,PersonName,BluetoothCardReader,PrinterName,vehicleNumber,accOther,VehicleSum,DeptSum,VehPercentage,DeptPercentage,SurchargeType,ProductPrice,IsTLDCall,EnablePrinter,OdoMeter,Hours,PumpOnTime);
 
 
                                         Intent intent = new Intent(AcceptFieldActivity.this, DisplayMeterActivity.class);

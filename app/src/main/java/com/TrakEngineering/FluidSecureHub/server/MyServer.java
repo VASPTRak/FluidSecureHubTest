@@ -1,37 +1,28 @@
 package com.TrakEngineering.FluidSecureHub.server;
 
 import android.annotation.SuppressLint;
-import android.content.Context;
-import android.content.SharedPreferences;
-import android.hardware.display.DisplayManager;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Environment;
-import android.os.PowerManager;
+import android.os.Handler;
 import android.util.Log;
-import android.view.Display;
 
 import com.TrakEngineering.FluidSecureHub.AppConstants;
 import com.TrakEngineering.FluidSecureHub.BackgroundServiceDownloadFirmware;
-import com.TrakEngineering.FluidSecureHub.BackgroundServiceKeepDataTransferAlive;
 import com.TrakEngineering.FluidSecureHub.CommonUtils;
+import com.TrakEngineering.FluidSecureHub.ConnectionDetector;
 import com.TrakEngineering.FluidSecureHub.Constants;
-import com.TrakEngineering.FluidSecureHub.ScreenReceiver;
 import com.TrakEngineering.FluidSecureHub.WelcomeActivity;
+import com.TrakEngineering.FluidSecureHub.enity.FsvmChipInfo;
 import com.TrakEngineering.FluidSecureHub.enity.FsvmInfo;
 import com.TrakEngineering.FluidSecureHub.enity.TankMonitorEntity;
+import com.TrakEngineering.FluidSecureHub.offline.OffDBController;
 import com.google.gson.Gson;
-import com.squareup.okhttp.Callback;
-import com.squareup.okhttp.RequestBody;
-import com.squareup.okhttp.ResponseBody;
 
 import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
-
-import static com.TrakEngineering.FluidSecureHub.server.ServerHandler.TEXT;
 
 /**
  * Created by andrei on 7/30/15.
@@ -45,20 +36,27 @@ public class MyServer extends NanoHTTPD {
     String UpdatePIC_update = "NO";
     String TLD_update = "N";
     boolean isScreenOn = true;
+    ConnectionDetector cd;
+    OffDBController controller;
 
     public MyServer() throws IOException {
         super(PORT);
         start();
         Log.i(TAG, " \nRunning! Point your browers to http://localhost:8085/ \n");
         AppConstants.Server_mesage = "Server Running..!!!";
+        if (AppConstants.GenerateLogs)
+            AppConstants.WriteinFile(TAG + " http server up and running");
 
     }
 
     @Override
     public Response serve(IHTTPSession session) {
 
+        cd = new ConnectionDetector(ctx);
+        controller = new OffDBController(ctx);
+
         String RequestFor = null;
-        String TldMacAddress = "", IsTLDFirmwareUpgrade = "N", ScheduleTankReading="1";
+        String TldMacAddress = "", IsTLDFirmwareUpgrade = "N", ScheduleTankReading = "4";
         String FSTag = "", FirmwareVersion = "", fsvmData = "", RequestBody = "", ContentLength = "", host = "", ODOK = "", VIN = "";
         String ResMsg = "";
         // Accessfile from Internal storage
@@ -72,90 +70,107 @@ public class MyServer extends NanoHTTPD {
 
         try {
 
-
             if (RequestFor != null && RequestFor.equalsIgnoreCase("TLDUpgrade")) {
 
-                String ProbeAddrAsString ="",Level ="",TLDFirmwareVersion = "";
+                String ProbeAddrAsString = "", Level = "0", TLDFirmwareVersionSave = "";
 
                 try {
 
                     ProbeAddrAsString = session.getHeaders().get("mac").replaceAll(":", "");//
                     Level = session.getHeaders().get("level");
-                    TLDFirmwareVersion = session.getHeaders().get("firmware version");
+                    TLDFirmwareVersionSave = session.getHeaders().get("firmware version");
+
+                    if (TLDFirmwareVersionSave == null)
+                        TLDFirmwareVersionSave = "";
 
 
-                }catch (Exception e){
-                    e.printStackTrace();
-                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile("Exception in RequestFor:"+e);
+                } catch (Exception e) {
+
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile("Exception in RequestFor:" + e);
                 }
 
-                if (AppConstants.GenerateLogs)AppConstants.WriteinFile("TLD_REQ_To_http_server: ProbeAddr: "+ProbeAddrAsString+" Level:"+Level+" TLDFirmwareVersion:"+TLDFirmwareVersion);
-                TldMacAddress = GetProbeOffByOne(ProbeAddrAsString);
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile("TLD_REQ_To_http_server: ProbeAddr: " + ProbeAddrAsString + " Level:" + Level + " TLDFirmwareVersion:" + TLDFirmwareVersionSave);
 
-                Log.i(TAG, "Mac_AddressInHeader:"+ProbeAddrAsString+"\nMac_AddressAfterOff:"+TldMacAddress);
-                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "Mac_AddressInHeader:"+ProbeAddrAsString+"\nMac_AddressAfterOff:"+TldMacAddress);
 
-                if (BackgroundServiceKeepDataTransferAlive.SSIDList != null && BackgroundServiceKeepDataTransferAlive.SSIDList.size() > 0) {
+                TldMacAddress = GetProbeOffByOne(ProbeAddrAsString);//add 1 hex in tlc prob mac
 
-                    for (int i = 0; i < BackgroundServiceKeepDataTransferAlive.SSIDList.size(); i++) {
 
-                        String PROBEMacAddressWithColun = BackgroundServiceKeepDataTransferAlive.SSIDList.get(i).get("PROBEMacAddress");
-                        String PROBEMacAddress = BackgroundServiceKeepDataTransferAlive.SSIDList.get(i).get("PROBEMacAddress").replaceAll(":","");
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + "Mac_AddressInHeader:" + ProbeAddrAsString + "\nMac_AddressAfterOff:" + TldMacAddress);
 
-                        Log.i(TAG, "SSID list ProbeMacAddress:"+PROBEMacAddress);
-                        if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "SSID list ProbeMacAddress:"+PROBEMacAddress+"  TldMacAddress:"+TldMacAddress);
+                try {
 
-                        if (TldMacAddress.equalsIgnoreCase(PROBEMacAddress)) {
+                    controller.insertTLDReadings(convertStringToMacAddress(TldMacAddress), Level, "0", TLDFirmwareVersionSave, AppConstants.getIMEI(ctx), "", "", "", CommonUtils.getTodaysDateInString(), "", "y");
 
-                            String ReconfigureLink = BackgroundServiceKeepDataTransferAlive.SSIDList.get(i).get("ReconfigureLink");
-                            String selSSID = BackgroundServiceKeepDataTransferAlive.SSIDList.get(i).get("WifiSSId");
-                            String IsBusy = BackgroundServiceKeepDataTransferAlive.SSIDList.get(i).get("IsBusy");
-                            String selMacAddress = BackgroundServiceKeepDataTransferAlive.SSIDList.get(i).get("MacAddress");
-                            String selSiteId = BackgroundServiceKeepDataTransferAlive.SSIDList.get(i).get("SiteId");
-                            String hoseID = BackgroundServiceKeepDataTransferAlive.SSIDList.get(i).get("HoseId");
-                            String IsUpgrade = BackgroundServiceKeepDataTransferAlive.SSIDList.get(i).get("IsUpgrade");
 
-                            String TLDFIrmwareVersion = BackgroundServiceKeepDataTransferAlive.SSIDList.get(i).get("TLDFIrmwareVersion");
-                            String TLDFirmwareFilePath = BackgroundServiceKeepDataTransferAlive.SSIDList.get(i).get("TLDFirmwareFilePath");
-                            IsTLDFirmwareUpgrade = BackgroundServiceKeepDataTransferAlive.SSIDList.get(i).get("IsTLDFirmwareUpgrade");
-                            try {
-                                ScheduleTankReading = BackgroundServiceKeepDataTransferAlive.SSIDList.get(i).get("ScheduleTankReading");
+                    if (AppConstants.DetailsServerSSIDList != null && AppConstants.DetailsServerSSIDList.size() > 0) {
+
+                        for (int i = 0; i < AppConstants.DetailsServerSSIDList.size(); i++) {
+
+                            String PROBEMacAddressWithColun = AppConstants.DetailsServerSSIDList.get(i).get("PROBEMacAddress");
+                            String PROBEMacAddress = AppConstants.DetailsServerSSIDList.get(i).get("PROBEMacAddress").replaceAll(":", "");
+
+
+                            if (AppConstants.GenerateLogs)
+                                AppConstants.WriteinFile(TAG + "SSID list ProbeMacAddress:" + PROBEMacAddress + "  TldMacAddress:" + TldMacAddress);
+
+                            if (TldMacAddress.equalsIgnoreCase(PROBEMacAddress)) {
+
+
+                                String selSiteId = AppConstants.DetailsServerSSIDList.get(i).get("SiteId");
+
+                                String TLDFirmwareFilePath = AppConstants.DetailsServerSSIDList.get(i).get("TLDFirmwareFilePath");
+
+                                IsTLDFirmwareUpgrade = AppConstants.DetailsServerSSIDList.get(i).get("IsTLDFirmwareUpgrade");
+                                try {
+                                    ScheduleTankReading = AppConstants.DetailsServerSSIDList.get(i).get("ScheduleTankReading");
+                                } catch (Exception e) {
+                                    if (AppConstants.GenerateLogs)
+                                        AppConstants.WriteinFile(TAG + "Exception ScheduleTankReading");
+                                }
+
+                                if (cd.isConnecting()) {
+                                    TldSaveFun(PROBEMacAddressWithColun, Level, selSiteId, TLDFirmwareVersionSave);//Save TLD data to server
+                                }
+
+
+                                if (IsTLDFirmwareUpgrade.equalsIgnoreCase("Y") && TLDFirmwareFilePath != null && !TLDFirmwareFilePath.isEmpty()) {
+
+                                    String[] parts = TLDFirmwareFilePath.split("/");
+                                    String FileName = parts[5].toLowerCase(); // FSVM.bin
+                                    new BackgroundServiceDownloadFirmware.DownloadTLDFileFromURL().execute(TLDFirmwareFilePath, FileName);
+                                }
+
+                                break;
                             }
-                            catch (Exception e)
-                            {
-
-                            }
-
-                            TldSaveFun(PROBEMacAddressWithColun,Level,selSiteId);//Save TLD data to server
-
-                            if (IsTLDFirmwareUpgrade.equalsIgnoreCase("Y") && TLDFirmwareFilePath != null && !TLDFirmwareFilePath.isEmpty()) {
-
-                                String[] parts = TLDFirmwareFilePath.split("/");
-                                String FileName = parts[5].toLowerCase(); // FSVM.bin
-                                new BackgroundServiceDownloadFirmware.DownloadTLDFileFromURL().execute(TLDFirmwareFilePath, FileName);
-                            }
-
-                            break;
                         }
+
+                    } else {
+
+
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + " TLDUpgrade SSID List Empty not able to upgrade");
                     }
 
-                } else {
-                    Log.i(TAG, "TLDUpgrade SSID List Empty not able to upgrade");
-                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " TLDUpgrade SSID List Empty not able to upgrade");
+                } catch (Exception e) {
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + "Exception TLDUpgrade AppConstants.DetailsServerSSIDList");
+                }
+
+
+                if (ScheduleTankReading == null || ScheduleTankReading.isEmpty()) {
+                    ScheduleTankReading = "4";
                 }
 
                 //------------------------------------------------------------------------------------------
 
+                ResMsg = "{\"TLD_update\":\"" + IsTLDFirmwareUpgrade + "\", \"Schedule\":\"" + ScheduleTankReading + "\" , \"current_time\":\"" + AppConstants.currentDateFormat("HH:mm:ss") + "\"}";
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile("TLD_RES_Frm_http_server" + ResMsg);
 
-                ResMsg = "{\"TLD_update\":\"" + IsTLDFirmwareUpgrade + "\", \"Schedule\":\""+ScheduleTankReading+"\" , \"current_time\":\""+AppConstants.currentDateFormat("HH:mm:ss")+"\"}";
-                if (AppConstants.GenerateLogs)AppConstants.WriteinFile("TLD_RES_Frm_http_server"+ResMsg);
-
-                System.out.println("TLD-"+ResMsg);
-
-
-            } else if (RequestFor != null && RequestFor.equalsIgnoreCase("FSVMUpgrade")) {
-
-                //FSVM File Download
+                System.out.println("TLD-" + ResMsg);
 
 
             } else {
@@ -173,52 +188,66 @@ public class MyServer extends NanoHTTPD {
                     AppConstants.WriteinFile(TAG + " http server fsvmData: " + fsvmData);
 
                 Map<String, String> param = session.getParms();
-                String B = param.get("data");
+                //String B = param.get("data");
                 String A = param.get("vehicle");
 
                 String Uri = session.getUri();
                 String QueryParameter = session.getQueryParameterString();
                 String Post = Uri + QueryParameter;
 
-                String httpclientip = session.getHeaders().get("http-client-iptttt");
+
                 FirmwareVersion = session.getHeaders().get("firmware version");
                 ContentLength = session.getHeaders().get("content-length");
                 host = session.getHeaders().get("host");
                 FSTag = session.getHeaders().get("fstag");
-                VIN = session.getHeaders().get("vin");
-                ODOK = session.getHeaders().get("odok");
-                if (ODOK != null) {
-                    ODOK = ODOK.substring(0, Math.min(ODOK.length(), 6));
-                }
-
-                FSTag = FSTag.replaceAll(":", "").toLowerCase().trim();
-
-                //String protocallVersion =  ;
-                //AppConstants.Header_data = "POST: " + Post + "\nHost: " + host + "\nFSTag: " + FSTag + "\nFirmware version: " + FirmwareVersion + "\nContentLength: " + ContentLength+"\nVIN: "+VIN+"\nODOK: "+ODOK;
+                String remote_addr = session.getHeaders().get("remote-addr");
+                String httpclientip = session.getHeaders().get("http-client-ip");
+                String fsvm_station = session.getHeaders().get("fsvm_station");
+                String fstag_ble = session.getHeaders().get("fstag_ble");
 
 
-                if (fsvmData != null && fsvmData.contains("VIN=")) {
+                AppConstants.Header_data = "POST: " + Post + "\nHost: " + host + "\nFirmware version: " + FirmwareVersion + "\nContentLength: " + ContentLength + "\nremote_addr:" + remote_addr + "\nhttpclientip" + httpclientip + "\nfsvm_station:" + fsvm_station + "\nfstag_ble:" + fstag_ble;
 
-                    String str1[] = fsvmData.split(",");
-                    String _4 = str1[3];
-                    VIN = "";//_4.replace("VIN=","").trim();
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + "  HttpServer Header_data " + AppConstants.Header_data);
+
+                AppConstants.Server_Request = "FsvmData:" + fsvmData + "\nData in param:  " + A;
+
+                if (FSTag != null)
+                    FSTag = FSTag.replaceAll(":", "").toLowerCase().trim();
+
+
+                if (fsvmData != null && fsvmData.contains("VIN")) {
+
+                    try {
+
+                        JSONObject jo = new JSONObject(fsvmData);
+                        String Protocol = jo.getString("Protocol");
+
+                        JSONObject formatJo = jo.getJSONObject("format");
+                        String pic_version = formatJo.getString("pic_version");
+                        String Battery_voltage = formatJo.getString("Battery_voltage");
+                        VIN = formatJo.getString("VIN");
+                        ODOK = formatJo.getString("Odometer");
+
+
+                    } catch (Exception e) {
+                        System.out.println("FSVM--" + e.getMessage());
+                    }
+
 
                 }
 
                 AppConstants.Server_Request = "FsvmData:" + fsvmData + "\nData in param:  " + A;
-                //if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  HttpServer Server_Reques " + AppConstants.Server_Request);
-
-                AppConstants.Header_data = "POST: " + Post + "\nHost: " + host + "\nVIN: " + VIN + "\nODOK: " + ODOK + "\nFSTag: " + FSTag + "\nFirmware version: " + FirmwareVersion + "\nContentLength: " + ContentLength;
-                //if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  HttpServer Header_data " + AppConstants.Header_data);
 
 
-                //---------------
+                AppConstants.Header_data = "POST: " + Post + "\nHost: " + host + "\nFirmware version: " + FirmwareVersion + "\nContentLength: " + ContentLength + "\nremote_addr:" + remote_addr + "\nhttpclientip" + httpclientip + "\nfsvm_station:" + fsvm_station + "\nfstag_ble:" + fstag_ble;
+
 
                 try {
 
-                    String xyz = "+{FSVMOBD2.asm082318a,BV=BB,PE=1376/1375,OBD=4,VIN=,RPM=0B,SPD=00,ODOK=001376,HRS=000010,MIL=0,PC=06,C31=1376,C05=7E,C10=0000002E00000000000000000000005FC0000ED90064BB004BAA00000000000000000000011F1F40199CC0289516F424502490B3C600002040100?\"}}";
-
                     Log.i(TAG, " FsvmData:" + fsvmData);
+                    Log.i(TAG, " Header_data:" + AppConstants.Header_data);
                     FsvmInfo objEntityClass = new FsvmInfo();
                     objEntityClass.IMEIUDID = AppConstants.getIMEI(ctx);
                     objEntityClass.Email = CommonUtils.getCustomerDetailsCC(ctx).PersonEmail;
@@ -227,10 +256,9 @@ public class MyServer extends NanoHTTPD {
                     objEntityClass.CurrentLat = String.valueOf(Constants.Latitude);
                     objEntityClass.CurrentLng = String.valueOf(Constants.Longitude);
                     objEntityClass.VehicleRecurringMSG = fsvmData; //xyz;//
-                    objEntityClass.FSTagMacAddress = FSTag;//"3C:A5:39:9A:B6:24";//
+                    objEntityClass.FSTagMacAddress = fstag_ble;//"3C:A5:39:9A:B6:24";//
                     objEntityClass.CurrentFSVMFirmwareVersion = FirmwareVersion;//"3C:A5:39:9A:B6:24";//
-                    objEntityClass.VIN = VIN;
-                    objEntityClass.ODOK = ODOK;
+                    objEntityClass.FSVMMacAddress = fsvm_station;
 
                     Gson gson = new Gson();
                     String jsonData = gson.toJson(objEntityClass);
@@ -257,33 +285,59 @@ public class MyServer extends NanoHTTPD {
                             String ResponceText = jsonObject.getString("ResponceText");
                             String IsFSVMUpgradable = jsonObject.getString("IsFSVMUpgradable");
                             String VehicleId = jsonObject.getString("VehicleId");
+                            String VehicleNumber = jsonObject.getString("VehicleNumber");
                             String FSVMFirmwareVersion = jsonObject.getString("FSVMFirmwareVersion");
                             String FilePath = jsonObject.getString("FilePath"); //http://103.8.126.241:89/FSVMFirmwares/ESP32/0.051/FSVM.bin";
                             String PIC = jsonObject.getString("PIC");
                             String ESP32 = jsonObject.getString("ESP32");
 
+                            if (WelcomeActivity.countFSVMUpgrade <= 2) {
 
-                            if (IsFSVMUpgradable.equalsIgnoreCase("Y") && FilePath != null) {
+                                if (IsFSVMUpgradable.equalsIgnoreCase("Y") && FilePath != null) {
 
-                                String[] parts = FilePath.split("/");
-                                String FileName = parts[6]; // FSVM.bin
-                                new BackgroundServiceDownloadFirmware.DownloadFileFromURL().execute(FilePath, FileName);
+                                    WelcomeActivity.countFSVMUpgrade = WelcomeActivity.countFSVMUpgrade + 1;
 
-                                if (ESP32.equalsIgnoreCase("Y")) {
-                                    UpdateESP32_update = "YES";
-                                    UpdatePIC_update = "NO";
-                                } else if (PIC.equalsIgnoreCase("Y")) {
-                                    UpdatePIC_update = "YES";
+                                    if (WelcomeActivity.countFSVMUpgrade >= 2) {
+                                        new Handler().postDelayed(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                WelcomeActivity.countFSVMUpgrade=0;
+                                            }
+                                        },900000);//15 min
+                                    }
+
+
+                                    String[] parts = FilePath.split("/");
+                                    String FileName = parts[6]; // FSVM.bin
+                                    new BackgroundServiceDownloadFirmware.DownloadFileFromURL().execute(FilePath, FileName);
+
+                                    if (ESP32.equalsIgnoreCase("Y")) {
+                                        AppConstants.ESP32_update = "yes";
+                                        AppConstants.PIC_update = "no";
+
+                                        UpdateESP32_update = "YES";
+                                        UpdatePIC_update = "NO";
+                                    } else if (PIC.equalsIgnoreCase("Y")) {
+                                        AppConstants.ESP32_update = "no";
+                                        AppConstants.PIC_update = "yes";
+
+
+                                        UpdatePIC_update = "YES";
+                                        UpdateESP32_update = "NO";
+                                    }
+
+                                    ResMsg = jsonForFSVMClient(FirmwareVersion, FileName);
+
+
+                                } else {
+
+                                    ResMsg = "";
+
                                     UpdateESP32_update = "NO";
+                                    UpdatePIC_update = "NO";
+
+
                                 }
-
-                            } else {
-
-                                UpdateESP32_update = "NO";
-                                UpdatePIC_update = "NO";
-
-                                /*UpdateESP32_update = "YES";
-                                UpdatePIC_update = "NO";*/
                             }
 
                         }
@@ -301,23 +355,6 @@ public class MyServer extends NanoHTTPD {
                         AppConstants.WriteinFile(TAG + "  Response serve 2 --Exception " + e);
                 }
 
-                //---------------------------------------------------------
-                // ESP32_update = 1 or 0, PIC_update = 1 or 0.
-                //1 is need to update, 0 is not
-
-                FsvmInfo objEntityClass = new FsvmInfo();
-                //objEntityClass.FSVM = "upgrade";
-                objEntityClass.ESP32_update = UpdateESP32_update;//AppConstants.ESP32_update;
-                objEntityClass.PIC_update = UpdatePIC_update;//AppConstants.PIC_update;
-
-                Gson gson = new Gson();
-                String jsonData_fsvm = gson.toJson(objEntityClass);
-
-                //{FSVM: upgrade?ESP32=v1.1&PIC=v1.2&}
-                AppConstants.Server_Response = "jsonData_fsvm:" + jsonData_fsvm;
-                //if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  HttpServer Server_Response " + AppConstants.Server_Response);
-                ResMsg = jsonData_fsvm;
-
 
             }
 
@@ -331,6 +368,50 @@ public class MyServer extends NanoHTTPD {
 
     }
 
+    public String jsonForFSVMClient(String firmwareVersion, String FileName) {
+        FsvmChipInfo objclss_esp = new FsvmChipInfo();
+        objclss_esp.chip = "ESP32";
+        objclss_esp.version = firmwareVersion;
+        objclss_esp.server_ip = "192.168.43.1";
+        objclss_esp.server_port = "8550";
+        objclss_esp.file_name = "/FSVM/" + FileName.trim();
+
+        FsvmChipInfo objclss_pic = new FsvmChipInfo();
+        objclss_pic.chip = "pic";
+        objclss_pic.version = firmwareVersion;
+        objclss_pic.server_ip = "192.168.43.1";
+        objclss_pic.server_port = "8550";
+        objclss_pic.file_name = "/FSVM/" + FileName.trim();
+
+        FsvmInfo objEntityClass = new FsvmInfo();
+        objEntityClass.device = "FSVM";
+        if (AppConstants.ESP32_update.equalsIgnoreCase("yes")) {
+            objEntityClass.upgrade.add(objclss_esp);
+        }
+
+        if (AppConstants.PIC_update.equalsIgnoreCase("yes")) {
+            objEntityClass.upgrade.add(objclss_pic);
+        }
+
+        String jsonData_fsvm;
+
+
+        if (AppConstants.ESP32_update.equalsIgnoreCase("no") && AppConstants.PIC_update.equalsIgnoreCase("no")) {
+
+            jsonData_fsvm = "{" + "    \"device\": \"FSVM\"" + "}";
+
+        } else {
+            Gson gson = new Gson();
+            gson.serializeNulls();
+            jsonData_fsvm = gson.toJson(objEntityClass);
+
+        }
+
+
+        AppConstants.Server_Response = "jsonData_fsvm:" + jsonData_fsvm;
+
+        return jsonData_fsvm;
+    }
 
     public class SaveFsvmDataToServer extends AsyncTask<String, Void, String> {
 
@@ -374,7 +455,7 @@ public class MyServer extends NanoHTTPD {
         }
     }
 
-    private String GetProbeOffByOne(String ProbeStr){
+    private String GetProbeOffByOne(String ProbeStr) {
 
         String FinalStr = "";
         try {
@@ -396,14 +477,14 @@ public class MyServer extends NanoHTTPD {
                 Log.i(TAG, "Probe mac address wrong");
             }
 
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
         return FinalStr;
     }
 
-    private void TldSaveFun(String PROBEMacAddress, String level,String selSiteId){
+    private void TldSaveFun(String PROBEMacAddress, String level, String selSiteId, String TLDFirmwareVersionSave) {
 
 
         String CurrentDeviceDate = CommonUtils.getTodaysDateInString();
@@ -418,6 +499,7 @@ public class MyServer extends NanoHTTPD {
         obj_entity.Response_code = "";//Response_code;
         obj_entity.Level = level;
         obj_entity.FromDirectTLD = "y";
+        obj_entity.CurrentTLDVersion = TLDFirmwareVersionSave;
 
         Gson gson = new Gson();
         String jsonData = gson.toJson(obj_entity);
@@ -429,5 +511,26 @@ public class MyServer extends NanoHTTPD {
 
     }
 
+    public String convertStringToMacAddress(String strMac) {
+        String fmac = "";
+
+        if (strMac.trim().length() == 12) {
+            char macc[] = strMac.trim().toCharArray();
+
+            for (int i = 0; i < macc.length; i += 2) {
+
+                if (i % 2 == 0)
+                    fmac += macc[i] + "" + macc[i + 1] + "";
+
+
+                fmac += ":";
+            }
+
+            fmac = fmac.substring(0, fmac.length() - 1);
+
+            System.out.println("fmac-" + fmac);
+        }
+        return fmac;
+    }
 
 }
