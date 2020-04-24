@@ -275,13 +275,6 @@ public class BackgroundService_FS_UNIT_3 extends Service {
                         }
                     }, 1500);
 
-
-                    //Create and Empty transactiin into SQLite DB
-                    HashMap<String, String> mapsts = new HashMap<>();
-                    mapsts.put("transId", TransactionId);
-                    mapsts.put("transStatus", "1");
-
-                    controller.insertTransStatus(mapsts);
                     ////////////////////////////////////////////
                     String userEmail = CommonUtils.getCustomerDetails_backgroundService_FS3(BackgroundService_FS_UNIT_3.this).PersonEmail;
                     String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(BackgroundService_FS_UNIT_3.this) + ":" + userEmail + ":" + "TransactionComplete");
@@ -295,11 +288,11 @@ public class BackgroundService_FS_UNIT_3 extends Service {
                     //////////////////////////////////////////////////////////////
 
                     //=====================UpgradeTransaction Status = 1=================
-                    cd = new ConnectionDetector(BackgroundService_FS_UNIT_3.this);
+                    /*cd = new ConnectionDetector(BackgroundService_FS_UNIT_3.this);
                     if (cd.isConnectingToInternet() && AppConstants.NETWORK_STRENGTH) {
                         try {
 
-                            /*UpdateTransactionStatusClass authEntity = new UpdateTransactionStatusClass();
+                            *//*UpdateTransactionStatusClass authEntity = new UpdateTransactionStatusClass();
                             authEntity.TransactionId = TransactionId;
                             authEntity.Status = "1";
                             authEntity.IMEIUDID = AppConstants.getIMEI(BackgroundService_FS_UNIT_3.this);
@@ -311,41 +304,16 @@ public class BackgroundService_FS_UNIT_3 extends Service {
                             String serverRes = authTestAsynTask.response;
 
                             if (serverRes != null) {
-                            }*/
+                            }*//*
                             if (cd.isConnectingToInternet() && AppConstants.NETWORK_STRENGTH)
-                            CommonUtils.UpgradeTransactionStatusRetroFit(TransactionId,"1",BackgroundService_FS_UNIT_3.this);
+                            CommonUtils.UpgradeTransactionStatusToSqlite(TransactionId,"1",BackgroundService_FS_UNIT_3.this);
 
                         } catch (Exception e) {
                             e.printStackTrace();
-                            if (AppConstants.GenerateLogs) AppConstants.WriteinFile(TAG+ " UpgradeTransactionStatusRetroFit Ex:"+e.toString());
+                            if (AppConstants.GenerateLogs) AppConstants.WriteinFile(TAG+ " UpgradeTransactionStatusToSqlite Ex:"+e.toString());
                         }
 
-                    } else {
-
-                        AppConstants.colorToast(BackgroundService_FS_UNIT_3.this, "Please check Internet Connection.", Color.RED);
-                        UpdateTransactionStatusClass authEntity = new UpdateTransactionStatusClass();
-                        authEntity.TransactionId = TransactionId;
-                        authEntity.Status = "1";
-                        authEntity.IMEIUDID = AppConstants.getIMEI(BackgroundService_FS_UNIT_3.this);
-
-
-                        Gson gson1 = new Gson();
-                        String jsonData1 = gson1.toJson(authEntity);
-
-                        System.out.println("FS_UNIT_3 UpdatetransactionData......" + jsonData1);
-
-                        String userEmail1 = CommonUtils.getCustomerDetails_backgroundService_FS3(this).PersonEmail;
-                        String authString1 = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(this) + ":" + userEmail1 + ":" + "UpgradeTransactionStatus");
-
-                        HashMap<String, String> imapStatus = new HashMap<>();
-                        imapStatus.put("jsonData", jsonData1);
-                        imapStatus.put("authString", authString1);
-
-                        controller.insertIntoUpdateTranStatus(imapStatus);
-
-                    }
-
-
+                    }*/
                     //=========================UpgradeTransactionStatus Ends===============
 
                     minFuelLimit = Double.parseDouble(MinLimit);
@@ -769,8 +737,7 @@ public class BackgroundService_FS_UNIT_3 extends Service {
                 Log.e(TAG, "error in getting response using async okhttp call");
                 //Temp code..
                 CommonUtils.AddRemovecurrentTransactionList(false,TransactionId);//Remove transaction Id from list
-                System.out.println("FS Link not connected" + listOfConnectedIP_UNIT_3);
-                if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+"  err Link not connected");
+                if (AppConstants.GenerateLogs) AppConstants.WriteinFile(TAG + " -Exception " + e.toString());
                 stopTimer = false;
                 new CommandsPOST().execute(URL_RELAY, jsonRelayOff);
                 Constants.FS_3STATUS = "FREE";
@@ -867,7 +834,7 @@ public class BackgroundService_FS_UNIT_3 extends Service {
                 if (CNT_current > 0 && ongoingStatusSend){
                     ongoingStatusSend = false;
                     if (cd.isConnectingToInternet() && AppConstants.NETWORK_STRENGTH)
-                    CommonUtils.UpgradeTransactionStatusRetroFit(TransactionId,"8",BackgroundService_FS_UNIT_3.this);
+                    CommonUtils.UpgradeTransactionStatusToSqlite(TransactionId,"8",BackgroundService_FS_UNIT_3.this);
                 }
 
                 if (CNT_LAST <= CNT_current) {
@@ -1198,7 +1165,7 @@ public class BackgroundService_FS_UNIT_3 extends Service {
                         if (seconds >= pont) {
                             //Timed out (Start was pressed, and pump on timer hit): Pump Time On limit reached* = 4
                             if (cd.isConnectingToInternet() && AppConstants.NETWORK_STRENGTH)
-                            CommonUtils.UpgradeTransactionStatusRetroFit(TransactionId,"4",BackgroundService_FS_UNIT_3.this);
+                            CommonUtils.UpgradeTransactionStatusToSqlite(TransactionId,"4",BackgroundService_FS_UNIT_3.this);
 
                             commonForAutoStopQtySameForSeconds();
                         }
@@ -1344,9 +1311,6 @@ public class BackgroundService_FS_UNIT_3 extends Service {
 
                     controller.insertTransactions(imap);
                 }
-
-                controller.deleteTransStatusByTransID(TransactionId);
-
 
             }
         } else {
@@ -2104,7 +2068,7 @@ public class BackgroundService_FS_UNIT_3 extends Service {
         return mac_address;
     }
 
-    public void ListConnectedHotspotIP_FS_UNIT_3AsyncCall() {
+    public synchronized void ListConnectedHotspotIP_FS_UNIT_3AsyncCall() {
 
         Thread thread = new Thread(new Runnable() {
 

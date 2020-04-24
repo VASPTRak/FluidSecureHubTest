@@ -179,16 +179,16 @@ public class OfflineConstants {
 
     }
 
-    public static void DownloadOfflineData(Context ctx) {
-
+    public static void setAlaramManagerToStartDownloadOfflineData(Context ctx) {
 
         try {
+            Log.i(TAG, " setAlaramManagerToStartDownloadOfflineData _templog");
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + " setAlaramManagerToStartDownloadOfflineData _templog");
 
             SharedPreferences sharedPref = ctx.getSharedPreferences("storeOfflineAccess", Context.MODE_PRIVATE);
             String isOffline = sharedPref.getString("isOffline", "");
             String OFFLineDataDwnldFreq = sharedPref.getString("OFFLineDataDwnldFreq", "Weekly");
-
-
 
             int DayOfWeek = sharedPref.getInt("DayOfWeek", 2);
             int HourOfDay = sharedPref.getInt("HourOfDay", 2);
@@ -196,44 +196,20 @@ public class OfflineConstants {
 
             PendingIntent alarmIntent = PendingIntent.getService(ctx, 0,
                     new Intent(ctx, OffBackgroundService.class), 0);
-
-
             Calendar calendar = Calendar.getInstance();
             calendar.setTimeInMillis(System.currentTimeMillis());
+            calendar.set(Calendar.HOUR_OF_DAY, HourOfDay);
+            calendar.set(Calendar.MINUTE, MinuteOfHour);
 
-            if (OFFLineDataDwnldFreq.equalsIgnoreCase("Weekly")) {
-
-
-
-                calendar.set(Calendar.DAY_OF_WEEK, DayOfWeek);
-                calendar.set(Calendar.HOUR_OF_DAY, HourOfDay);
-                calendar.set(Calendar.MINUTE, MinuteOfHour);
-
-                AlarmManager alarmMgr = (AlarmManager) ctx.getSystemService(Context.ALARM_SERVICE);
-                alarmMgr.setInexactRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(),
-                        AlarmManager.INTERVAL_DAY * 7, alarmIntent);
-            } else {
-
-
-                calendar.set(Calendar.HOUR_OF_DAY, HourOfDay);
-                calendar.set(Calendar.MINUTE, MinuteOfHour);
-
-
-                // With setInexactRepeating(), you have to use one of the AlarmManager interval constants--in this case, AlarmManager.INTERVAL_DAY.
-                AlarmManager alarmMgr = (AlarmManager) ctx.getSystemService(Context.ALARM_SERVICE);
-                alarmMgr.setInexactRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(),
-                        AlarmManager.INTERVAL_DAY, alarmIntent);
-
-
-            }
-
+            AlarmManager alarmMgr = (AlarmManager) ctx.getSystemService(Context.ALARM_SERVICE);
+            alarmMgr.setInexactRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(),
+                    AlarmManager.INTERVAL_DAY, alarmIntent);
 
         } catch (Exception e) {
-
-            AppConstants.WriteinFile(TAG + " Started offline data downloading..ex-" + e.getMessage());
+            Log.i(TAG, " setAlaramManagerToStartDownloadOfflineData Exception:" + e.toString());
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + " setAlaramManagerToStartDownloadOfflineData Exception:" + e.toString());
         }
-
-
     }
 
 

@@ -11,6 +11,7 @@ import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
 
+import com.TrakEngineering.FluidSecureHub.enity.TransactionStatus;
 import com.TrakEngineering.FluidSecureHub.retrofit.BusProvider;
 import com.TrakEngineering.FluidSecureHub.retrofit.ErrorEvent;
 import com.TrakEngineering.FluidSecureHub.retrofit.Interface;
@@ -64,22 +65,25 @@ public class BackgroundService extends Service {
             AppConstants.ListOfRunningTransactiins.clear();
         }
 
-        ArrayList<HashMap<String, String>> StatusData = controller.getAllUpdateTranStatus();
 
-        if (StatusData != null && StatusData.size() > 0) {
+        //---UpdateTransaction Status to server------
+        ArrayList<HashMap<String, String>> stsData = controller.getAllTransStatus();
 
-            for (int i = 0; i < StatusData.size(); i++) {
+        if (stsData != null && stsData.size() > 0) {
 
-                String Id = StatusData.get(i).get("Id");
-                String jsonData = StatusData.get(i).get("jsonData");
-                String authString = StatusData.get(i).get("authString");
+            for (int i = 0; i < stsData.size(); i++) {
 
-                //new UploadTransactionStatus().execute(Id, jsonData, authString);
-                UploadTransactionStatusRetroFit(Id, jsonData, authString);
+                String Id = stsData.get(i).get("Id");
+                String transId = stsData.get(i).get("transId");
+                String transStatus = stsData.get(i).get("transStatus");
+                System.out.println("resp...Transstatus transId:" + transId + " :"+transStatus);
+                new SetTransactionStatus().execute(Id, transId, transStatus);
 
             }
 
         }
+
+        //-------------------end------------
 
 
         ArrayList<HashMap<String, String>> uData = controller.getAllTransaction();
@@ -360,60 +364,6 @@ public class BackgroundService extends Service {
 
     }
 
-    public void UploadTransactionStatusRetroFit(String Id, String jsonData, String authString) {
-
-        //Here a logging interceptor is created
-        HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
-        logging.setLevel(HttpLoggingInterceptor.Level.BODY);
-
-        //The logging interceptor will be added to the http client
-        okhttp3.OkHttpClient.Builder httpClient = new okhttp3.OkHttpClient.Builder();
-        httpClient.addInterceptor(logging);
-
-        //The Retrofit builder will have the client attached, in order to get connection logs
-        Retrofit retrofit = new Retrofit.Builder()
-                .client(httpClient.build())
-                .addConverterFactory(GsonConverterFactory.create())
-                .addConverterFactory(ScalarsConverterFactory.create())
-                .baseUrl(AppConstants.webIP)
-                .build();
-        Interface service = retrofit.create(Interface.class);
-
-        Call<ServerResponse> call = service.postttt(authString, jsonData);
-
-        call.enqueue(new Callback<ServerResponse>() {
-            @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-            @Override
-            public void onResponse(Call<ServerResponse> call, retrofit2.Response<ServerResponse> response) {
-                BusProvider.getInstance().post(new ServerEvent(response.body()));
-
-                String ResponceMessage = response.body().getResponceMessage();
-                String ResponceText = response.body().getResponceText();
-
-                Log.i(TAG, "UploadTransactionStatusRetroFit ResponceMessage:"+ResponceMessage+ " ResponceText:"+ResponceText);
-
-                if (ResponceMessage.equalsIgnoreCase("success")) {
-
-                    //AppConstants.notificationAlert(BackgroundService.this);
-
-                    controller.deleteTranStatus(Id);
-
-                    System.out.println("deleteTransactions..." + Id);
-                }
-
-            }
-
-            @Override
-            public void onFailure(Call<ServerResponse> call, Throwable t) {
-                // handle execution failures like no internet connectivity
-                BusProvider.getInstance().post(new ErrorEvent(-2, t.getMessage()));
-                Log.i(TAG, "Something went wrong in UploadTransactionStatusRetroFit call No internet connectivity or server connection fail.");
-
-            }
-        });
-
-    }
-
     public void SaveMultipleTransactionsRetroFit(String Merged_jsonData) {
 
         //Here a logging interceptor is created
@@ -566,76 +516,6 @@ public class BackgroundService extends Service {
         }
     }
 
-    public class UploadTransactionStatus extends AsyncTask<String, Void, String> {
-
-        String Id;
-        String jsonData;
-        String authString;
-
-
-        @Override
-        protected String doInBackground(String... params) {
-
-            Log.i(TAG, "UploadTransactionStatus doInBackground");
-            String response = "";
-            try {
-
-                Id = params[0];
-                jsonData = params[1];
-                authString = params[2];
-
-                System.out.println("jsonData--" + jsonData);
-                System.out.println("authString--" + authString);
-
-
-                response = serverHandler.PostTextData(BackgroundService.this, AppConstants.webURL, jsonData, authString);
-
-                System.out.println("Id..." + Id);
-
-            } catch (Exception e) {
-                System.out.println(e);
-            }
-
-            return response;
-        }
-
-        @Override
-        protected void onPostExecute(String resp) {
-
-            Log.i(TAG, "UploadTransactionStatus onPostExecute resp:"+resp);
-            System.out.println("resp..." + resp);
-
-            try {
-                JSONObject jsonObj = new JSONObject(resp);
-
-                String ResponceMessage = jsonObj.getString(AppConstants.RES_MESSAGE);
-                String ResponceText = jsonObj.getString(AppConstants.RES_TEXT);
-
-                if (ResponceMessage.equalsIgnoreCase("success") || ResponceMessage.equalsIgnoreCase("fail")) {
-
-                    if (ResponceMessage.equalsIgnoreCase("success")) {
-                        //AppConstants.notificationAlert(BackgroundService.this);
-
-                        controller.deleteTranStatus(Id);
-
-                        System.out.println("deleteTransactions..." + Id);
-                    }
-
-
-                }
-
-                /*ArrayList<HashMap<String, String>> uData = controller.getAllTransaction();
-
-                if (uData != null && uData.size() == 0) {
-                    stopSelf();
-                }*/
-
-            } catch (Exception e) {
-                System.out.println(e.getMessage());
-            }
-        }
-    }
-
     public class SaveMultipleTransactions extends AsyncTask<String, Void, String> {
 
         String shrPrefName = "";
@@ -699,5 +579,73 @@ public class BackgroundService extends Service {
         }
     }
 
+    public class SetTransactionStatus extends AsyncTask<String, Void, String> {
+
+        String Id;
+        String transId;
+        String transStatus;
+
+
+        @Override
+        protected String doInBackground(String... params) {
+
+            String response = "";
+            try {
+
+                Id = params[0];
+                transId = params[1];
+                transStatus = params[2];
+
+                System.out.println("transId--" + transId);
+                System.out.println("transStatus--" + transStatus);
+
+                String userEmail = CommonUtils.getCustomerDetailsbackgroundService(BackgroundService.this).PersonEmail;
+                String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(BackgroundService.this) + ":" + userEmail + ":" + "UpgradeTransactionStatus");
+
+                TransactionStatus objTS = new TransactionStatus();
+                objTS.TransactionId = transId;
+                objTS.Status = transStatus;
+                Gson gson = new Gson();
+                String jsonData = gson.toJson(objTS);
+                System.out.println("TransactionStatus......" + jsonData);
+
+
+                response = serverHandler.PostTextData(BackgroundService.this, AppConstants.webURL, jsonData, authString);
+
+                System.out.println("Id..." + Id);
+
+            } catch (Exception e) {
+                System.out.println(e);
+            }
+
+            return response;
+        }
+
+        @Override
+        protected void onPostExecute(String resp) {
+
+            System.out.println("resp...Transstatus" + resp);
+
+            try {
+                JSONObject jsonObj = new JSONObject(resp);
+
+                String ResponceMessage = jsonObj.getString(AppConstants.RES_MESSAGE);
+                String ResponceText = jsonObj.getString(AppConstants.RES_TEXT);
+
+
+                if (ResponceMessage.equalsIgnoreCase("success")) {
+
+                    controller.deleteTransStatus(Id);
+
+                    System.out.println("deleteTransStatus..." + Id);
+
+                }
+
+
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+            }
+        }
+    }
 
 }

@@ -9,6 +9,7 @@ import android.util.Log;
 import com.TrakEngineering.FluidSecureHub.AppConstants;
 import com.TrakEngineering.FluidSecureHub.CommonUtils;
 import com.TrakEngineering.FluidSecureHub.ConnectionDetector;
+import com.TrakEngineering.FluidSecureHub.Constants;
 import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
@@ -42,19 +43,21 @@ public class OffTranzSyncService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 
-        System.out.println("OffTranzSyncService started " + new Date());
-        if (AppConstants.GenerateLogs)
-            AppConstants.WriteinFile("OffTranzSyncService started " + new Date());
+        if (Constants.FS_1STATUS.equalsIgnoreCase("FREE") && Constants.FS_2STATUS.equalsIgnoreCase("FREE") && Constants.FS_3STATUS.equalsIgnoreCase("FREE") && Constants.FS_4STATUS.equalsIgnoreCase("FREE")) {
 
+            System.out.println("OffTranzSyncService started " + new Date());
+            if (AppConstants.GenerateLogs)AppConstants.WriteinFile("OffTranzSyncService started " + new Date());
 
-        //if (cd.isConnectingToInternet())
-        //    new GetAPIToken().execute();
+            //if (cd.isConnectingToInternet())
+            //    new GetAPIToken().execute();
 
-        azureQueueLogic();
+            azureQueueLogic();
+            tldQueueLogic();
 
-
-        tldQueueLogic();
-
+        }else{
+            System.out.println("OffTranzSyncService Transaction In Progress, Skip " + new Date());
+            if (AppConstants.GenerateLogs)AppConstants.WriteinFile("OffTranzSyncService Transaction In Progress, Skip" + new Date());
+        }
 
         return super.onStartCommand(intent, flags, startId);
     }

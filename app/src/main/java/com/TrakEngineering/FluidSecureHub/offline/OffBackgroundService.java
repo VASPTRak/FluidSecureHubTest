@@ -33,6 +33,10 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
@@ -61,34 +65,80 @@ public class OffBackgroundService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 
+        try {
 
-        deleteAllDownloadedFiles();
-
-        if (AppConstants.GenerateLogs)
-            AppConstants.WriteinFile(TAG + " Started offline data downloading..onStartCommand");
-
-        SharedPreferences sharedPref = getApplicationContext().getSharedPreferences("storeOfflineAccess", Context.MODE_PRIVATE);
-        String isOffline = sharedPref.getString("isOffline", "");
-        String OFFLineDataDwnldFreq = sharedPref.getString("OFFLineDataDwnldFreq", "Weekly");
-        int DayOfWeek = sharedPref.getInt("DayOfWeek", 2);
-        int HourOfDay = sharedPref.getInt("HourOfDay", 2);
-
-
-        //Check step 1
-        if (cd.isConnecting() && isOffline.equalsIgnoreCase("True") && checkSharedPrefOfflineData(getApplicationContext())) {
-
+            Log.i(TAG, " onStartCommand -------------- _templog");
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " Started offline data downloading.all true.Day-" + OFFLineDataDwnldFreq + " " + DayOfWeek + ":Hr-" + HourOfDay);
+                AppConstants.WriteinFile(TAG + " onStartCommand ------------------- _templog");
 
-            new GetAPIToken().execute();
+            OffDBController offcontroller = new OffDBController(this);
+            HashMap<String, String> linkmap = offcontroller.getAllLinksDetails();
 
-        } else {
+            if (linkmap.size() > 0) {
 
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " Started offline data downloading..else condition");
+                SharedPreferences sharedPref = getApplicationContext().getSharedPreferences("storeOfflineAccess", Context.MODE_PRIVATE);
+                String isOffline = sharedPref.getString("isOffline", "");
+                String OFFLineDataDwnldFreq = sharedPref.getString("OFFLineDataDwnldFreq", "Weekly");
+                int WeekDay = sharedPref.getInt("DayOfWeek", 2);
+                int HourOfDay = sharedPref.getInt("HourOfDay", 2);
 
+                Date date = new Date();   // given date
+                Calendar calendar = GregorianCalendar.getInstance(); // creates a new calendar instance
+                calendar.setTime(date);   // assigns calendar to given date
+                int CurrentDay = calendar.get(Calendar.DAY_OF_WEEK);
+                int CurrentHour24 = calendar.get(Calendar.HOUR_OF_DAY); // gets hour in 24h format
+                int CurrentHour12 = calendar.get(Calendar.HOUR);
+
+                if (cd.isConnecting() && isOffline.equalsIgnoreCase("True") && checkSharedPrefOfflineData()) {
+
+                    if (OFFLineDataDwnldFreq.equalsIgnoreCase("Weekly") && WeekDay == CurrentDay) {
+                        //Weekly logic
+                        Log.i(TAG, " Started Offline data download Frequency>>" + OFFLineDataDwnldFreq);
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + " Started Offline data download Frequency>>" + OFFLineDataDwnldFreq);
+                        deleteAllDownloadedFiles();
+
+                        new GetAPIToken().execute();
+
+                    } else if (OFFLineDataDwnldFreq.equalsIgnoreCase("Daily")) {
+                        //Everyday logic
+                        Log.i(TAG, " Started Offline data download Frequency>>" + OFFLineDataDwnldFreq);
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + " Started Offline data download Frequency>>" + OFFLineDataDwnldFreq);
+                        deleteAllDownloadedFiles();
+
+                        new GetAPIToken().execute();
+
+                    } else {
+                        //WeekDay did not match
+                        Log.i(TAG, " Skip download offline data scheduled on Weekday>>" + WeekDay + " CurrentWeekDay>>" + CurrentDay);
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + " Skip download offline data scheduled on Weekday>>" + WeekDay + " CurrentWeekDay>>" + CurrentDay);
+                    }
+
+                } else {
+                    //NO internet connection 0r  Offline status False
+                    Log.i(TAG, " Internet connection status>>" + cd.isConnecting() + " Offline status>>" + isOffline);
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + " Internet connection status>>" + cd.isConnecting() + " Offline status>>" + isOffline);
+                }
+            } else {
+                Log.i(TAG, " No previous offline data hence start offline data download.");
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " No previous offline data hence start offline data download.");
+
+                deleteAllDownloadedFiles();
+
+                new GetAPIToken().execute();
+            }
             stopSelf();
 
+        }catch (Exception e){
+
+            Log.i(TAG, " onStartCommand Exception:"+e.toString());
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + " onStartCommand Exception:"+e.toString());
+            stopSelf();
         }
 
         return super.onStartCommand(intent, flags, startId);
@@ -746,16 +796,17 @@ public class OffBackgroundService extends Service {
         }
     }
 
-    public static boolean checkSharedPrefOfflineData(Context myctx) {
-        SharedPreferences sharedPrefODO = myctx.getSharedPreferences("OfflineData", Context.MODE_PRIVATE);
+    public boolean checkSharedPrefOfflineData() {
+
+        SharedPreferences sharedPrefODO = getApplicationContext().getSharedPreferences("OfflineData", Context.MODE_PRIVATE);
         String last_date = sharedPrefODO.getString("last_date", "");
-
-
         String curr_date = AppConstants.currentDateFormat("dd/MM/yyyy");
 
-        System.out.println(last_date + "  -" + "-  " + curr_date);
-
         if (curr_date.trim().equalsIgnoreCase(last_date.trim())) {
+            //Offline data already downloaded in last 24 hours therefor skip offline data downloading process
+            Log.i(TAG, " Already downloaded Offline data on:" + last_date.trim() + " >>Skip Downloading.");
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + " Already downloaded Offline data on:" + last_date.trim() + " >>Skip Downloading.");
             return false;
         } else
             return true;

@@ -68,6 +68,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Locale;
 import java.util.Stack;
 
@@ -93,6 +94,7 @@ import static com.google.android.gms.internal.zzid.runOnUiThread;
  * Created by VASP-LAP on 08-09-2015.
  */
 public class CommonUtils {
+
     private static String TAG = "CommonUtils";
     private static File mypath; /*'---------------------------------------------------------------------------------------- Implemet logger functionality here....*/
     public static String FOLDER_PATH = Environment.getExternalStorageDirectory().getAbsolutePath() + "/FSBin/";
@@ -277,6 +279,7 @@ public class CommonUtils {
         return files;
     }
 
+
     public static String GetDateString(Long dateinms) {
         try {
             Time myDate = new Time();
@@ -287,6 +290,9 @@ public class CommonUtils {
         }
     } // Create logger functionality
 
+    //----------------------------------------------------------------------------
+
+    @RequiresApi(api = Build.VERSION_CODES.N)
     public static void AutoCloseCustomMessageDilaog(final Activity context, String title, String message) {
 
         //Declare timer
@@ -338,7 +344,6 @@ public class CommonUtils {
     }
 
 
-    //----------------------------------------------------------------------------
     public static void AlertDialogAutoClose(final Activity context, String title, String message) {
 
         final android.app.AlertDialog.Builder dialog = new android.app.AlertDialog.Builder(context).setTitle(title).setMessage(message);
@@ -385,8 +390,8 @@ public class CommonUtils {
         dialogBus.setContentView(R.layout.custom_alertdialouge);
         dialogBus.show();
 
-        String newString1 = message.replaceAll("PERSONNEL", "<font color='red'> "+"<U> PERSONNEL </U>"+" </font>");
-        String newString = newString1.replaceAll("VEHICLE", "<font color='red'> "+"<U> VEHICLE </U>"+" </font>");
+        String newString1 = message.replaceAll("PERSONNEL", "<font color='red'> " + "<U> PERSONNEL </U>" + " </font>");
+        String newString = newString1.replaceAll("VEHICLE", "<font color='red'> " + "<U> VEHICLE </U>" + " </font>");
 
         TextView edt_message = (TextView) dialogBus.findViewById(R.id.edt_message);
         Button btnAllow = (Button) dialogBus.findViewById(R.id.btnAllow);
@@ -560,7 +565,7 @@ public class CommonUtils {
         return false;
     }
 
-    public static void SaveLogFlagInPref(Activity activity,String data,String CompanyBrandName, String CompanyBrandLogoLink,String SupportEmail, String SupportPhonenumber){
+    public static void SaveLogFlagInPref(Activity activity, String data, String CompanyBrandName, String CompanyBrandLogoLink, String SupportEmail, String SupportPhonenumber) {
 
         SharedPreferences pref = activity.getSharedPreferences(Constants.PREF_Log_Data, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = pref.edit();
@@ -582,7 +587,6 @@ public class CommonUtils {
         editor.putBoolean(AppConstants.IsEnableServerForTLD, IsEnableServerForTLD);
         editor.putBoolean(AppConstants.UseBarcode, barcodedata);
         editor.commit();
-
 
     }
 
@@ -882,6 +886,21 @@ public class CommonUtils {
         return userInfoEntity;
     }
 
+    public static UserInfoEntity getCustomerDetailsbackgroundService(BackgroundService activity) {
+
+        UserInfoEntity userInfoEntity = new UserInfoEntity();
+
+        SharedPreferences sharedPref = activity.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
+
+        userInfoEntity.PersonName = sharedPref.getString(AppConstants.USER_NAME, "");
+        userInfoEntity.PhoneNumber = sharedPref.getString(AppConstants.USER_MOBILE, "");
+        userInfoEntity.PersonEmail = sharedPref.getString(AppConstants.USER_EMAIL, "");
+        userInfoEntity.FluidSecureSiteName = sharedPref.getString(AppConstants.FluidSecureSiteName, "");
+
+
+        return userInfoEntity;
+    }
+
     public static UserInfoEntity getCustomerDetails_backgroundServiceEddystoneScannerService(EddystoneScannerService activity) {
 
         UserInfoEntity userInfoEntity = new UserInfoEntity();
@@ -1014,7 +1033,6 @@ public class CommonUtils {
         System.out.println(padded);
 
 
-
         return padded;
     }
 
@@ -1039,7 +1057,7 @@ public class CommonUtils {
         for (int i = 0; i < s.length(); i++) {
             char c = s.charAt(i);
             int d = digits.indexOf(c);
-            val = 16*val + d;
+            val = 16 * val + d;
         }
         return val;
     }
@@ -1270,23 +1288,21 @@ public class CommonUtils {
 
 
     public static boolean isMyServiceRunning(Class<?> serviceClass, Context context) {
-        ActivityManager manager = (ActivityManager)context. getSystemService(ACTIVITY_SERVICE);
+        ActivityManager manager = (ActivityManager) context.getSystemService(ACTIVITY_SERVICE);
         for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
             if (serviceClass.getName().equals(service.service.getClassName())) {
-                Log.i("Service already","running");
+                Log.i("Service already", "running");
                 return true;
             }
         }
-        Log.i("Service not","running");
+        Log.i("Service not", "running");
         return false;
     }
 
-    public static boolean checkServiceRunning(Context con_text,String package_name){
+    public static boolean checkServiceRunning(Context con_text, String package_name) {
         ActivityManager manager = (ActivityManager) con_text.getSystemService(ACTIVITY_SERVICE);
-        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE))
-        {
-            if (package_name.equals(service.service.getClassName()))
-            {
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (package_name.equals(service.service.getClassName())) {
                 return true;
             }
         }
@@ -1361,89 +1377,14 @@ public class CommonUtils {
 
     }
 
+    public static void UpgradeTransactionStatusToSqlite(String TransactionId, String status, Context ctx) {
 
-    public static void UpgradeTransactionStatusRetroFit(String TransactionId, String status, Context ctx) {
+        DBController controller = new DBController(ctx);
+        HashMap<String, String> mapsts = new HashMap<>();
+        mapsts.put("transId", TransactionId);
+        mapsts.put("transStatus", status);
 
-        UpdateTransactionStatusClass authEntity = new UpdateTransactionStatusClass();
-        authEntity.TransactionId = TransactionId;
-        authEntity.Status = status;
-        authEntity.IMEIUDID = AppConstants.getIMEI(ctx);
-
-        //get user details
-        SharedPreferences sharedPref = ctx.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
-        String userName = sharedPref.getString(AppConstants.USER_NAME, "");
-        String userMobile = sharedPref.getString(AppConstants.USER_MOBILE, "");
-        String userEmail = sharedPref.getString(AppConstants.USER_EMAIL, "");
-
-        //creath auth string
-        Gson gson = new Gson();
-        String jsonData = gson.toJson(authEntity);
-        String authString = "Basic " + AppConstants.convertStingToBase64(authEntity.IMEIUDID + ":" + userEmail + ":" + "UpgradeTransactionStatus");
-
-        //Here a logging interceptor is created
-        HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
-        logging.setLevel(HttpLoggingInterceptor.Level.BODY);
-
-        //The logging interceptor will be added to the http client
-        okhttp3.OkHttpClient.Builder httpClient = new okhttp3.OkHttpClient.Builder();
-        httpClient.addInterceptor(logging);
-
-        //The Retrofit builder will have the client attached, in order to get connection logs
-        Retrofit retrofit = new Retrofit.Builder()
-                .client(httpClient.build())
-                .addConverterFactory(GsonConverterFactory.create())
-                .addConverterFactory(ScalarsConverterFactory.create())
-                .baseUrl(AppConstants.webIP)
-                .build();
-        Interface service = retrofit.create(Interface.class);
-
-
-        Call<ServerResponse> call = service.postttt(authString, jsonData);
-
-        call.enqueue(new Callback<ServerResponse>() {
-            @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-            @Override
-            public void onResponse(Call<ServerResponse> call, retrofit2.Response<ServerResponse> response) {
-                BusProvider.getInstance().post(new ServerEvent(response.body()));
-
-                String ResponceMessage = response.body().getResponceMessage();
-                String ResponceText = response.body().getResponceText();
-
-                //System.out.println("resp..." + response.body().toString());
-                Log.i(TAG, "UploadTaskRetroFit ResponceMessage:" + ResponceMessage + " ResponceText:" + ResponceText);
-
-                try {
-
-                    if (ResponceMessage.equalsIgnoreCase("success")) {
-
-                        if (ResponceMessage.equalsIgnoreCase("success")) {
-                            //success
-                            Log.i(TAG, "UpgradeTransactionStatusRetroFit success");
-                        } else if (ResponceMessage.equalsIgnoreCase("fail")) {
-                            //Fail
-                            Log.i(TAG, "UpgradeTransactionStatusRetroFit fail");
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(TAG + "UpgradeTransactionStatusRetroFit fail TransactionId:" + TransactionId + " status" + status);
-
-                        }
-                    }
-
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-
-            }
-
-            @Override
-            public void onFailure(Call<ServerResponse> call, Throwable t) {
-                // handle execution failures like no internet connectivity
-                BusProvider.getInstance().post(new ErrorEvent(-2, t.getMessage()));
-                Log.i(TAG, "Something went wrong in UpgradeTransactionStatusRetroFit call No internet connectivity or server connection fail.");
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "Something went wrong in UpgradeTransactionStatusRetroFit call No internet connectivity or server connection fail");
-
-            }
-        });
+        controller.insertTransStatusWithOnConflict(mapsts);
 
     }
 

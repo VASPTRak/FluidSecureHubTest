@@ -572,7 +572,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
         TimeOutDisplayMeterScreen();
     }
 
-    public void getListOfConnectedDevice() {
+    public synchronized void getListOfConnectedDevice() {
         Thread thread = new Thread(new Runnable() {
 
             @Override
@@ -3574,7 +3574,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
             if (TransactionId_US != null && !TransactionId_US.isEmpty() && cd.isConnectingToInternet()) {
                 Log.i(TAG,"UpdateDiffStatusMessages sent: "+s+" TransactionId:"+TransactionId_US);
                 if (cd.isConnectingToInternet() && AppConstants.NETWORK_STRENGTH)
-                CommonUtils.UpgradeTransactionStatusRetroFit(TransactionId_US, s, this);
+                CommonUtils.UpgradeTransactionStatusToSqlite(TransactionId_US, s, this);
             }
 
         }catch (Exception e){

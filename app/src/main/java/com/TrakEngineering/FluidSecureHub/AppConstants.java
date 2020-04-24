@@ -60,6 +60,8 @@ public class AppConstants {
     public static String sharedPref_KeyboardType = "KeyboardType";
     public static String sharedPref_HotSpotEmail = "HotSpotEmail";
     public static String sharedPref_OfflineAzureSync = "OfflineAzureSync";
+    public static boolean enableHotspotManuallyWindow = false;
+    public static boolean busyWithHotspotToggle = false;
 
     public static final String DEVICE_TYPE = "A";
     public static final String USER_NAME = "userName";

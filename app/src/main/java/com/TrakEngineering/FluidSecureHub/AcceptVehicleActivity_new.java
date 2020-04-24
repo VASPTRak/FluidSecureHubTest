@@ -412,7 +412,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
 
                 } else {
 
-                    checkFor5Seconds();
+                    checkFor10Seconds();
 
                 }
 
@@ -3061,29 +3061,12 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                 }
             } catch (Exception e) {
                 e.printStackTrace();
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "Two readers read at the same time Ex:" + e.toString());
             }
 
         }
     }
 
     private class ReconnectBleReaders extends AsyncTask<String, String, String> {
-
-        ProgressDialog pd;
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            String s = "Reconnectiong..\nPlease present FOB again..";
-            SpannableString ss2 = new SpannableString(s);
-            ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
-            ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
-            pd = new ProgressDialog(AcceptVehicleActivity_new.this);
-            pd.setMessage(ss2);
-            pd.setCancelable(true);
-            pd.show();
-        }
 
         @Override
         protected String doInBackground(String... strings) {
@@ -3098,7 +3081,6 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
 
 
             } catch (Exception e) {
-                pd.dismiss();
                 e.printStackTrace();
                 if (AppConstants.ServerCallLogs)
                     AppConstants.WriteinFile(TAG + " ReconnectBleReaders Exception: " + e.toString());
@@ -3106,29 +3088,13 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
 
             return null;
         }
-
-        @Override
-        protected void onPostExecute(String s) {
-            super.onPostExecute(s);
-            try {
-                if ((this.pd != null) && this.pd.isShowing()) {
-                    this.pd.dismiss();
-                }
-            } catch (final IllegalArgumentException e) {
-                // Handle or log or ignore
-            } catch (final Exception e) {
-                // Handle or log or ignore
-            } finally {
-                this.pd = null;
-            }
-        }
     }
 
-    private void checkFor5Seconds() {
+    private void checkFor10Seconds() {
 
         runOnUiThread(new Runnable() {
             public void run() {
-                if (sec_count == 5) {
+                if (sec_count == 10) {
 
                     if (!Constants.HF_ReaderStatus.equals("HF Connected") && !HFDeviceAddress.isEmpty() && !AppConstants.ACS_READER && mDisableFOBReadingForVehicle.equalsIgnoreCase("N")) {
                         new ReconnectBleReaders().execute();
