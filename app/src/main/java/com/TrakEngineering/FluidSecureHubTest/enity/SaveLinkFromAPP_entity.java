@@ -1,0 +1,16 @@
+package com.TrakEngineering.FluidSecureHubTest.enity;
+
+public class SaveLinkFromAPP_entity {
+
+    public String wifissid;
+    public String latitude;
+    public String longitude;
+    public String pumpOffTime;
+    public String pumpOnTime;
+    public String fuelTypeId;
+    public String TankNumber;
+    public String TankId;
+    public String userName;
+    public String password;
+
+}

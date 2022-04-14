@@ -123,6 +123,72 @@
                 android:textStyle="bold" />
 
             <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                android:id="@+id/tv_enter_username"
+                android:layout_marginTop="10dp"
+                android:text="User Name:"
+                android:textColor="#444"
+                android:textSize="25dp" />
+
+            <EditText
+                android:id="@+id/edt_username"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                android:hint="Please enter username here"
+                android:layout_marginLeft="5dp"
+                android:imeOptions="actionNext"
+                android:inputType="text"
+                android:textSize="25sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                android:id="@+id/tv_enter_password"
+                android:layout_marginTop="10dp"
+                android:text="User Password:"
+                android:textColor="#444"
+                android:textSize="25dp" />
+
+            <EditText
+                android:id="@+id/edt_password"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                android:password="true"
+                android:hint="Please enter password here"
+                android:layout_marginLeft="5dp"
+                android:imeOptions="actionNext"
+                android:inputType="text"
+                android:textSize="25sp" />
+
+            <Button
+                android:id="@+id/btnReplaceHub"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                android:layout_marginTop="5dp"
+                android:background="@color/save_button"
+                android:text="Submit"
+                android:textAllCaps="false"
+                android:textColor="#fff"
+                android:textSize="25sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tv_hint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="-"
+                android:gravity="center"
+                android:textColor="#444"
+                android:textSize="14sp" />
+
+            <TextView
                 android:id="@+id/tvVersionNum"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -131,6 +197,12 @@
                 android:gravity="center"
                 android:textColor="#444"
                 android:textSize="14sp" />
+
+
+
+
+
+
         </LinearLayout>
     </ScrollView>
 </LinearLayout>

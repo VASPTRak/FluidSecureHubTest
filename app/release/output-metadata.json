@@ -1,0 +1,18 @@
+{
+  "version": 2,
+  "artifactType": {
+    "type": "APK",
+    "kind": "Directory"
+  },
+  "applicationId": "com.TrakEngineering.FluidSecureHubTest",
+  "variantName": "processReleaseResources",
+  "elements": [
+    {
+      "type": "SINGLE",
+      "filters": [],
+      "versionCode": 49,
+      "versionName": "0.47.13.(1242.1)",
+      "outputFile": "app-release.apk"
+    }
+  ]
+}

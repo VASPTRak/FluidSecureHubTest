@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:layout_margin="30dp"
+    tools:context=".AddNewLinkToCloud">
+<ScrollView
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+
+<TableLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center">
+
+    <TableRow
+        android:layout_gravity="center">
+
+        <TextView
+            android:id="@+id/textView8"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="5dp"
+            android:text="Enter LINK Name (SSID):"
+            android:textColor="#444"
+            android:textSize="20dp"
+            tools:layout_editor_absoluteX="28dp"
+            tools:layout_editor_absoluteY="52dp" />
+
+        <EditText
+            android:id="@+id/edt_linkname"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/layout_border"
+            android:hint=" Enter Link Name here"
+            android:imeOptions="actionNext"
+            android:inputType="text"
+            android:padding="5dp"
+            android:textSize="25sp"
+            tools:layout_editor_absoluteX="325dp"
+            tools:layout_editor_absoluteY="52dp" />
+
+
+    </TableRow>
+
+
+    <TableRow>
+
+        <TextView
+            android:id="@+id/textView5"
+            android:layout_width="158dp"
+            android:layout_height="wrap_content"
+            android:text="Select Tank:"
+            android:textSize="20dp"
+            tools:layout_editor_absoluteX="29dp"
+            tools:layout_editor_absoluteY="111dp" />
+
+        <Spinner
+            android:id="@+id/spin_tanknumber"
+            android:layout_width="wrap_content"
+            android:layout_height="35dp"
+            tools:layout_editor_absoluteX="229dp"
+            tools:layout_editor_absoluteY="110dp" />
+
+    </TableRow>
+
+    <TableRow>
+
+        <TextView
+            android:id="@+id/tv_pumpontime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="PumpOnTime:"
+            android:textSize="20dp"
+            tools:layout_editor_absoluteX="36dp"
+            tools:layout_editor_absoluteY="165dp" />
+
+        <EditText
+            android:id="@+id/edt_pumpOnTime"
+            android:layout_width="wrap_content"
+            android:layout_height="46dp"
+            android:maxLength="4"
+            android:inputType="number"
+            android:text="30"
+            android:textSize="20dp"
+            tools:layout_editor_absoluteX="207dp"
+            tools:layout_editor_absoluteY="165dp" />
+
+
+    </TableRow>
+
+    <TableRow>
+
+        <TextView
+            android:id="@+id/tv_pumpofftime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Pump Off Time:"
+            android:textSize="20dp"
+            tools:layout_editor_absoluteX="24dp"
+            tools:layout_editor_absoluteY="222dp" />
+
+        <EditText
+            android:id="@+id/edt_pumpOffTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ems="5"
+            android:inputType="number"
+            android:maxLength="4"
+            android:text="30"
+            android:textSize="20dp"
+            tools:layout_editor_absoluteX="201dp"
+            tools:layout_editor_absoluteY="211dp" />
+
+    </TableRow>
+
+    <TableRow
+        android:layout_marginTop="50dp">
+
+        <TextView
+            android:id="@+id/tv_username"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Enter  User  Name:"
+            android:textSize="20dp"
+            tools:layout_editor_absoluteX="29dp"
+            tools:layout_editor_absoluteY="323dp" />
+
+        <EditText
+            android:id="@+id/edt_username"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/layout_border"
+            android:ems="10"
+            android:hint=" User name here"
+            android:inputType="textPersonName"
+            android:padding="5dp"
+            android:textSize="20dp"
+            tools:layout_editor_absoluteX="246dp"
+            tools:layout_editor_absoluteY="316dp" />
+
+    </TableRow>
+
+
+    <TableRow
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="10dp">
+
+        <TextView
+            android:id="@+id/tv_pass"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Enter Password:"
+            android:textSize="20dp"
+            tools:layout_editor_absoluteX="28dp"
+            tools:layout_editor_absoluteY="376dp" />
+
+        <EditText
+            android:id="@+id/edt_enter_password"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/layout_border"
+            android:ems="10"
+            android:hint=" Enter  password here"
+            android:inputType="textPassword"
+            android:padding="5dp"
+            android:textSize="20dp"
+            tools:layout_editor_absoluteX="219dp"
+            tools:layout_editor_absoluteY="381dp" />
+
+    </TableRow>
+
+    <TableRow
+        android:layout_marginTop="50dp">
+        <Button
+            android:id="@+id/btn_cancel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/layout_border"
+            android:text=" Cancel "
+            android:textSize="20dp"
+            tools:layout_editor_absoluteX="135dp"
+            tools:layout_editor_absoluteY="494dp" />
+
+        <Button
+            android:id="@+id/btn_done"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/layout_border"
+            android:text="  Done "
+            android:textSize="20dp"
+            tools:layout_editor_absoluteX="378dp"
+            tools:layout_editor_absoluteY="494dp" />
+
+
+    </TableRow>
+
+</TableLayout>
+
+</ScrollView>
+
+</LinearLayout>
