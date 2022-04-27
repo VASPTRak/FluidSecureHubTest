@@ -60,6 +60,7 @@ public class BackgroundService_BTThree extends Service {
     List<Timer> TimerList_ReadpulseBT3 = new ArrayList<Timer>();
     DBController controller = new DBController(BackgroundService_BTThree.this);
     Boolean IsThisBTTrnx;
+    Boolean isBroadcastReceiverRegistered = false;
 
     SimpleDateFormat sdformat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
     ArrayList<HashMap<String, String>> quantityRecords = new ArrayList<>();
@@ -117,7 +118,10 @@ public class BackgroundService_BTThree extends Service {
                 //Register Broadcast reciever
                 broadcastBlueLinkThreeData = new BackgroundService_BTThree.BroadcastBlueLinkThreeData();
                 IntentFilter intentFilter = new IntentFilter("BroadcastBlueLinkThreeData");
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " BTLink 3: Registering Receiver.");
                 registerReceiver(broadcastBlueLinkThreeData, intentFilter);
+                isBroadcastReceiverRegistered = true;
 
                 LinkName = CommonUtils.getlinkName(0);
                 if (LinkCommunicationType.equalsIgnoreCase("BT")) {
@@ -416,7 +420,14 @@ public class BackgroundService_BTThree extends Service {
     private void CloseTransaction() {
 
         try {
-            unregisterReceiver(broadcastBlueLinkThreeData);
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + " BTLink 3: Receiver is Registered >> " + isBroadcastReceiverRegistered);
+            if (isBroadcastReceiverRegistered) {
+                unregisterReceiver(broadcastBlueLinkThreeData);
+                isBroadcastReceiverRegistered = false;
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " BTLink 3: Receiver unregistered.");
+            }
             stopTxtprocess = true;
             Constants.FS_3STATUS = "FREE";
             Constants.FS_3Pulse = "00";
@@ -769,10 +780,10 @@ public class BackgroundService_BTThree extends Service {
                 stopCount++;
                 int pumpOnpoint = Integer.parseInt(PumpOnTime);
                 if (stopCount >= pumpOnpoint) {
-                    stopCount = 0;
                     Log.i(TAG, "BTLink 3: No response from link>>" + stopCount);
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(TAG + "BTLink 3: No response from link>>" + stopCount);
+                    stopCount = 0;
                     relayOffCommand(); //RelayOff
                     TransationCompleteFunction();
                     CloseTransaction(); //temp

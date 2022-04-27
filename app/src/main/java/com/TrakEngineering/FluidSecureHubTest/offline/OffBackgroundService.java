@@ -34,6 +34,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -53,6 +54,7 @@ public class OffBackgroundService extends Service {
 
     Timer timer;
     TimerTask repeatedTask;
+    SimpleDateFormat timeParser = new SimpleDateFormat("HH:mm");
 
     public OffBackgroundService() {
     }
@@ -75,60 +77,98 @@ public class OffBackgroundService extends Service {
                     AppConstants.WriteinFile(TAG + " onStartCommand ------------------- _templog");
 
                 OffDBController offcontroller = new OffDBController(this);
-                HashMap<String, String> linkmap = offcontroller.getAllLinksDetails();
+                //HashMap<String, String> linkmap = offcontroller.getAllLinksDetails();
 
-                if (linkmap.size() > 0) {
+                //if (linkmap.size() > 0) {
 
-                    SharedPreferences sharedPref = getApplicationContext().getSharedPreferences("storeOfflineAccess", Context.MODE_PRIVATE);
-                    String isOffline = sharedPref.getString("isOffline", "");
-                    String OFFLineDataDwnldFreq = sharedPref.getString("OFFLineDataDwnldFreq", "Weekly");
-                    int WeekDay = sharedPref.getInt("DayOfWeek", 2);
-                    int HourOfDay = sharedPref.getInt("HourOfDay", 2);
+                SharedPreferences sharedPref = getApplicationContext().getSharedPreferences("storeOfflineAccess", Context.MODE_PRIVATE);
+                String isOffline = sharedPref.getString("isOffline", "");
+                String OFFLineDataDwnldFreq = sharedPref.getString("OFFLineDataDwnldFreq", "Weekly");
+                int WeekDay = sharedPref.getInt("DayOfWeek", 2);
+                int SavedOfflineHourOfDay = sharedPref.getInt("HourOfDay", 2);
+                int SavedOfflineMinuteOfHour = sharedPref.getInt("MinuteOfHour", 22);
 
-                    Date date = new Date();   // given date
-                    Calendar calendar = GregorianCalendar.getInstance(); // creates a new calendar instance
-                    calendar.setTime(date);   // assigns calendar to given date
-                    int CurrentDay = calendar.get(Calendar.DAY_OF_WEEK);
-                    int CurrentHour24 = calendar.get(Calendar.HOUR_OF_DAY); // gets hour in 24h format
-                    int CurrentHour12 = calendar.get(Calendar.HOUR);
+                Date date = new Date();   // given date
+                Calendar calendar = GregorianCalendar.getInstance(); // creates a new calendar instance
+                calendar.setTime(date);   // assigns calendar to given date
+                int CurrentDay = calendar.get(Calendar.DAY_OF_WEEK);
+                int CurrentHour24 = calendar.get(Calendar.HOUR_OF_DAY); // gets hour in 24h format
+                int CurrentHour12 = calendar.get(Calendar.HOUR);
+                int CurrentMinutes = calendar.get(Calendar.MINUTE);
 
-                    if (cd.isConnecting() && isOffline.equalsIgnoreCase("True") && checkSharedPrefOfflineData()) {
+                if (cd.isConnecting() && isOffline.equalsIgnoreCase("True")) {
+                    if (checkSharedPrefOfflineData()) {
+                        if (checkOfflineDataTime(CurrentHour24, CurrentMinutes, SavedOfflineHourOfDay, SavedOfflineMinuteOfHour)) {
+                            if (OFFLineDataDwnldFreq.equalsIgnoreCase("Weekly") && WeekDay == CurrentDay) {
+                                //Weekly logic
+                                Log.i(TAG, " Started Offline data download Frequency>>" + OFFLineDataDwnldFreq);
+                                if (AppConstants.GenerateLogs)
+                                    AppConstants.WriteinFile(TAG + " Started Offline data download Frequency>>" + OFFLineDataDwnldFreq);
+                                deleteAllDownloadedFiles();
 
-                        if (OFFLineDataDwnldFreq.equalsIgnoreCase("Weekly") && WeekDay == CurrentDay) {
-                            //Weekly logic
-                            Log.i(TAG, " Started Offline data download Frequency>>" + OFFLineDataDwnldFreq);
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(TAG + " Started Offline data download Frequency>>" + OFFLineDataDwnldFreq);
-                            deleteAllDownloadedFiles();
+                                new GetAPIToken().execute();
 
-                            new GetAPIToken().execute();
+                            } else if (OFFLineDataDwnldFreq.equalsIgnoreCase("Daily")) {
+                                //Everyday logic
+                                Log.i(TAG, " Started Offline data download Frequency>>" + OFFLineDataDwnldFreq);
+                                if (AppConstants.GenerateLogs)
+                                    AppConstants.WriteinFile(TAG + " Started Offline data download Frequency>>" + OFFLineDataDwnldFreq);
+                                deleteAllDownloadedFiles();
 
-                        } else if (OFFLineDataDwnldFreq.equalsIgnoreCase("Daily")) {
-                            //Everyday logic
-                            Log.i(TAG, " Started Offline data download Frequency>>" + OFFLineDataDwnldFreq);
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(TAG + " Started Offline data download Frequency>>" + OFFLineDataDwnldFreq);
-                            deleteAllDownloadedFiles();
+                                new GetAPIToken().execute();
 
-                            new GetAPIToken().execute();
-
-                        } else {
-                            //WeekDay did not match
-                            Log.i(TAG, " Skip download offline data scheduled on Weekday>>" + WeekDay + " CurrentWeekDay>>" + CurrentDay);
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(TAG + " Skip download offline data scheduled on Weekday>>" + WeekDay + " CurrentWeekDay>>" + CurrentDay);
+                            } else {
+                                //WeekDay did not match
+                                Log.i(TAG, " Skip download offline data scheduled on Weekday>>" + WeekDay + " CurrentWeekDay>>" + CurrentDay);
+                                if (AppConstants.GenerateLogs)
+                                    AppConstants.WriteinFile(TAG + " Skip download offline data scheduled on Weekday>>" + WeekDay + " CurrentWeekDay>>" + CurrentDay);
+                            }
                         }
-
-                    } else {
-                        //NO internet connection 0r  Offline status False
-                        Log.i(TAG, " Internet connection status>>" + cd.isConnecting() + " Offline status>>" + isOffline);
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + " Internet connection status>>" + cd.isConnecting() + " Offline status>>" + isOffline);
                     }
                 } else {
-
+                    //NO internet connection 0r  Offline status False
+                    Log.i(TAG, " Internet connection status>>" + cd.isConnecting() + " Offline status>>" + isOffline);
                     if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + " No previous offline data.");
+                        AppConstants.WriteinFile(TAG + " Internet connection status>>" + cd.isConnecting() + " Offline status>>" + isOffline);
+                }
+
+                /*if (cd.isConnecting() && isOffline.equalsIgnoreCase("True") && checkSharedPrefOfflineData()) {
+
+                    if (OFFLineDataDwnldFreq.equalsIgnoreCase("Weekly") && WeekDay == CurrentDay) {
+                        //Weekly logic
+                        Log.i(TAG, " Started Offline data download Frequency>>" + OFFLineDataDwnldFreq);
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + " Started Offline data download Frequency>>" + OFFLineDataDwnldFreq);
+                        deleteAllDownloadedFiles();
+
+                        new GetAPIToken().execute();
+
+                    } else if (OFFLineDataDwnldFreq.equalsIgnoreCase("Daily")) {
+                        //Everyday logic
+                        Log.i(TAG, " Started Offline data download Frequency>>" + OFFLineDataDwnldFreq);
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + " Started Offline data download Frequency>>" + OFFLineDataDwnldFreq);
+                        deleteAllDownloadedFiles();
+
+                        new GetAPIToken().execute();
+
+                    } else {
+                        //WeekDay did not match
+                        Log.i(TAG, " Skip download offline data scheduled on Weekday>>" + WeekDay + " CurrentWeekDay>>" + CurrentDay);
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + " Skip download offline data scheduled on Weekday>>" + WeekDay + " CurrentWeekDay>>" + CurrentDay);
+                    }
+
+                } else {
+                    //NO internet connection 0r  Offline status False
+                    Log.i(TAG, " Internet connection status>>" + cd.isConnecting() + " Offline status>>" + isOffline);
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + " Internet connection status>>" + cd.isConnecting() + " Offline status>>" + isOffline);
+                }*/
+                //} else {
+
+                //    if (AppConstants.GenerateLogs)
+                //        AppConstants.WriteinFile(TAG + " No previous offline data.");
 
                     /*if (!AppConstants.selectHosePressed) {
                         if (AppConstants.GenerateLogs)
@@ -142,7 +182,7 @@ public class OffBackgroundService extends Service {
                             AppConstants.WriteinFile(TAG + " No previous offline data but select hose is pressed.");
 
                     }*/
-                }
+                //}
             } else {
                 Log.i(TAG, " onStartCommand -------------- One of the hose is busy, Skip offline data download");
                 cancelThinDownloadManager();
@@ -844,6 +884,29 @@ public class OffBackgroundService extends Service {
 
     }
 
+    public boolean checkOfflineDataTime(int CurrentHour, int CurrentMinutes, int HourOfDay, int MinuteOfHour) {
+
+        Date currentDate = parseDate(CurrentHour + ":" + CurrentMinutes);
+        Date savedOfflineDate = parseDate(HourOfDay + ":" + MinuteOfHour);
+        if (savedOfflineDate.before(currentDate)) { // checking offline access time is less than current time or not.
+            return true;
+        } else {
+            Log.i(TAG, " Offline data download time is set as :" + (HourOfDay + ":" + MinuteOfHour).trim() + "; Current time is "+ (CurrentHour + ":" + CurrentMinutes).trim() + " >>Skip Downloading.");
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + " Offline data download time is set as :" + (HourOfDay + ":" + MinuteOfHour).trim() + "; Current time is "+ (CurrentHour + ":" + CurrentMinutes).trim() + " >>Skip Downloading.");
+            return false;
+        }
+    }
+
+    private Date parseDate(String date) {
+
+        try {
+            return timeParser.parse(date);
+        } catch (java.text.ParseException e) {
+            return new Date(0);
+        }
+    }
+
     private static void setSharedPrefOfflineData(Context myctx) {
         SharedPreferences sharedPref = myctx.getSharedPreferences("OfflineData", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPref.edit();
@@ -877,7 +940,8 @@ public class OffBackgroundService extends Service {
 
 
         Uri downloadUri = Uri.parse(downloadUrl);
-        Uri destinationUri = Uri.parse(Environment.getExternalStorageDirectory() + "/FSdata/" + fileName + ".txt");
+        //Uri destinationUri = Uri.parse(Environment.getExternalStorageDirectory() + "/FSdata/" + fileName + ".txt");
+        Uri destinationUri = Uri.parse(getApplicationContext().getExternalFilesDir("FSdata") + "/" + fileName + ".txt");
         DownloadRequest downloadRequest = new DownloadRequest(downloadUri)
                 //.addCustomHeader("Auth-Token", "YourTokenApiKey")
                 .setRetryPolicy(new DefaultRetryPolicy())
@@ -932,7 +996,8 @@ public class OffBackgroundService extends Service {
 
     public void readEncryptedFileParseJsonInSqlite(String file_name) {
 
-        File file = new File(Environment.getExternalStorageDirectory() + "/FSdata/" + file_name + ".txt");
+        //File file = new File(Environment.getExternalStorageDirectory() + "/FSdata/" + file_name + ".txt");
+        File file = new File(getApplicationContext().getExternalFilesDir("FSdata") + "/" + file_name + ".txt");
 
         //File file = new File(file_pathrul);
 
@@ -991,7 +1056,8 @@ public class OffBackgroundService extends Service {
 
     public void deleteAllDownloadedFiles() {
         try {
-            File dir = new File(Environment.getExternalStorageDirectory() + "/FSdata");
+            //File dir = new File(Environment.getExternalStorageDirectory() + "/FSdata");
+            File dir = new File(String.valueOf(getApplicationContext().getExternalFilesDir("FSdata")));
             if (dir.isDirectory()) {
                 String[] children = dir.list();
                 for (int i = 0; i < children.length; i++) {
@@ -1018,7 +1084,8 @@ public class OffBackgroundService extends Service {
     }
 
     public void deleteIncompleteOfflineDataFiles() {
-        File dir = new File(Environment.getExternalStorageDirectory() + "/FSdata");
+        //File dir = new File(Environment.getExternalStorageDirectory() + "/FSdata");
+        File dir = new File(String.valueOf(getApplicationContext().getExternalFilesDir("FSdata")));
         if (dir.isDirectory()) {
             String[] children = dir.list();
             for (int i = 0; i < children.length; i++) {
