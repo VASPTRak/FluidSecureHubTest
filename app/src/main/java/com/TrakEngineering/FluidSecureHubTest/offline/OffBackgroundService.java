@@ -24,6 +24,7 @@ import com.squareup.okhttp.Response;
 import com.thin.downloadmanager.DefaultRetryPolicy;
 import com.thin.downloadmanager.DownloadRequest;
 import com.thin.downloadmanager.DownloadStatusListener;
+import com.thin.downloadmanager.DownloadStatusListenerV1;
 import com.thin.downloadmanager.ThinDownloadManager;
 
 import org.json.JSONArray;
@@ -948,7 +949,37 @@ public class OffBackgroundService extends Service {
                 .setDestinationURI(destinationUri).setPriority(DownloadRequest.Priority.HIGH)
                 .setDownloadResumable(true)
                 //.setDownloadContext(downloadContextObject)//Optional
-                .setDownloadListener(new DownloadStatusListener() {
+                .setStatusListener(new DownloadStatusListenerV1() {
+                    @Override
+                    public void onDownloadComplete(DownloadRequest downloadRequest) {
+                        AppConstants.WriteinFile("download-Complete--" + fileName);
+
+                        insertDownloadFileStatus(fileName, "1");
+
+                        if (!AppConstants.selectHosePressed)
+                            readEncryptedFileParseJsonInSqlite(fileName);
+                    }
+
+                    @Override
+                    public void onDownloadFailed(DownloadRequest downloadRequest, int errorCode, String errorMessage) {
+                        AppConstants.WriteinFile("download-Failed--" + fileName + " " + errorCode + " " + errorMessage);
+
+                        insertDownloadFileStatus(fileName, "2");
+
+                        if (errorCode == 416) {
+                            insertDownloadFileStatus(fileName, "1");
+
+                            readEncryptedFileParseJsonInSqlite(fileName);
+                        }
+                    }
+
+                    @Override
+                    public void onProgress(DownloadRequest downloadRequest, long totalBytes, long downloadedBytes, int progress) {
+                        insertDownloadFileStatus(fileName, "3");
+                        //AppConstants.WriteinFile("download-onProgress--" + fileName + " " + totalBytes + " " + downloadedBytes + " " + progress);
+                    }
+                });
+                /*.setDownloadListener(new DownloadStatusListener() {
                     @Override
                     public void onDownloadComplete(int id) {
                         AppConstants.WriteinFile("download-Complete--" + fileName);
@@ -981,7 +1012,7 @@ public class OffBackgroundService extends Service {
                         insertDownloadFileStatus(fileName, "3");
                         //AppConstants.WriteinFile("download-onProgress--" + fileName + " " + totalBytes + " " + downlaodedBytes + " " + progress);
                     }
-                });
+                });*/
 
 
         int downloadId = downloadManager.add(downloadRequest);

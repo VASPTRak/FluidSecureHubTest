@@ -434,13 +434,19 @@ public class BackgroundService_BTTwo extends Service {
     private void CloseTransaction() {
 
         try {
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " BTLink 2: Receiver is Registered >> " + isBroadcastReceiverRegistered);
-            if (isBroadcastReceiverRegistered) {
-                unregisterReceiver(broadcastBlueLinkTwoData);
-                isBroadcastReceiverRegistered = false;
+            try {
                 if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + " BTLink 2: Receiver unregistered.");
+                    AppConstants.WriteinFile(TAG + " BTLink 2: Receiver is Registered >> " + isBroadcastReceiverRegistered);
+                if (isBroadcastReceiverRegistered) {
+                    unregisterReceiver(broadcastBlueLinkTwoData);
+                    isBroadcastReceiverRegistered = false;
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + " BTLink 2: Receiver unregistered.");
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " BTLink 2: Exception occurred while unregistering receiver:>>" + e.getMessage());
             }
             stopTxtprocess = true;
             Constants.FS_2STATUS = "FREE";
@@ -849,13 +855,13 @@ public class BackgroundService_BTTwo extends Service {
 
                 //String newDateFormat = CommonUtils.changeDateFormat(date);
 
-                HashMap<String,String> Hmap = new HashMap<>();
-                Hmap.put("TransactionID",txtn);//TransactionID
-                Hmap.put("Pulses",pulse);//Pulses
-                Hmap.put("FuelQuantity",ReturnQty(pulse));//FuelQuantity
-                Hmap.put("TransactionDateTime",date); //TransactionDateTime
-                Hmap.put("VehicleId",vehicle); //VehicleId
-                Hmap.put("dflag",dflag);
+                HashMap<String, String> Hmap = new HashMap<>();
+                Hmap.put("TransactionID", txtn);//TransactionID
+                Hmap.put("Pulses", pulse);//Pulses
+                Hmap.put("FuelQuantity", ReturnQty(pulse));//FuelQuantity
+                Hmap.put("TransactionDateTime", date); //TransactionDateTime
+                Hmap.put("VehicleId", vehicle); //VehicleId
+                Hmap.put("dflag", dflag);
 
                 ReturnQty(pulse);
 

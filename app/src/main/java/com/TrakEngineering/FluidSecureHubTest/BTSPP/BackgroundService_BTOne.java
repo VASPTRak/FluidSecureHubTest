@@ -88,7 +88,7 @@ public class BackgroundService_BTOne extends Service {
                 stopCount = 0;
                 Constants.FS_1STATUS = "BUSY";
                 Log.i(TAG, "-Started-");
-                if (AppConstants.GenerateLogs) AppConstants.WriteinFile(TAG + "-Started-");
+                if (AppConstants.GenerateLogs) AppConstants.WriteinFile(TAG + " BTLink 1: -Started-");
 
                 SharedPreferences sharedPref = this.getSharedPreferences(Constants.PREF_VehiFuel, Context.MODE_PRIVATE);
                 TransactionId = sharedPref.getString("TransactionId_FS1", "");
@@ -149,7 +149,7 @@ public class BackgroundService_BTOne extends Service {
                     CloseTransaction();
                     Log.i(TAG, "BTLink 1: Something went Wrong in hose selection Exit");
                     if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + "BTLink 1: Something went Wrong in hose selection Exit");
+                        AppConstants.WriteinFile(TAG + " BTLink 1: Something went Wrong in hose selection Exit");
                     this.stopSelf();
                 }
             }
@@ -181,7 +181,7 @@ public class BackgroundService_BTOne extends Service {
                         //Info command success.
                         Log.i(TAG, "BTLink 1: InfoCommand Response success 1:>>" + Response);
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "BTLink 1: InfoCommand Response success 1:>>" + Response);
+                            AppConstants.WriteinFile(TAG + " BTLink 1: InfoCommand Response success 1:>>" + Response);
 
                         if (!TransactionId.isEmpty()) {
                             parseInfoCommandResponseForLast20txtn(Response);
@@ -189,13 +189,13 @@ public class BackgroundService_BTOne extends Service {
                         } else {
                             Log.i(TAG, "BTLink 1: Please check TransactionId empty>>" + TransactionId);
                             if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(TAG + "BTLink 1: Please check TransactionId empty>>" + TransactionId);
+                                AppConstants.WriteinFile(TAG + " BTLink 1: Please check TransactionId empty>>" + TransactionId);
                         }
                         cancel();
                     } else {
                         Log.i(TAG, "BTLink 1: Waiting for infoCommand Response: " + millisUntilFinished / 1000 + " Response>>" + Response);
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "BTLink 1: Waiting for infoCommand Response: " + millisUntilFinished / 1000 + " Response>>" + Response);
+                            AppConstants.WriteinFile(TAG + " BTLink 1: Waiting for infoCommand Response: " + millisUntilFinished / 1000 + " Response>>" + Response);
                     }
 
                 }
@@ -206,20 +206,20 @@ public class BackgroundService_BTOne extends Service {
                         //Info command success.
                         Log.i(TAG, "BTLink 1: InfoCommand Response success 2:>>" + Response);
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "BTLink 1: InfoCommand Response success 2:>>" + Response);
+                            AppConstants.WriteinFile(TAG + " BTLink 1: InfoCommand Response success 2:>>" + Response);
                         if (!TransactionId.isEmpty()) {
                             parseInfoCommandResponseForLast20txtn(Response);
                             transactionIdCommand(TransactionId);
                         } else {
                             Log.i(TAG, "BTLink 1: Please check TransactionId empty>>" + TransactionId);
                             if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(TAG + "BTLink 1: Please check TransactionId empty>>" + TransactionId);
+                                AppConstants.WriteinFile(TAG + " BTLink 1: Please check TransactionId empty>>" + TransactionId);
                             CloseTransaction();
                         }
                     } else {
                         Log.i(TAG, "BTLink 1: Failed to get infoCommand Response:>>" + Response);
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "BTLink 1: Failed to get infoCommand Response:>>" + Response);
+                            AppConstants.WriteinFile(TAG + " BTLink 1: Failed to get infoCommand Response:>>" + Response);
                         CloseTransaction();
                     }
                 }
@@ -229,7 +229,7 @@ public class BackgroundService_BTOne extends Service {
         } catch (Exception e) {
             e.printStackTrace();
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "BTLink 1: infoCommand Exception:>>" + e.getMessage());
+                AppConstants.WriteinFile(TAG + " BTLink 1: infoCommand Exception:>>" + e.getMessage());
         }
     }
 
@@ -256,18 +256,18 @@ public class BackgroundService_BTOne extends Service {
                             //Info command success.
                             Log.i(TAG, "BTLink 1: transactionId Command Response success 1:>>" + Response);
                             if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(TAG + "BTLink 1: transactionId Command Response success 1:>>" + Response);
+                                AppConstants.WriteinFile(TAG + " BTLink 1: transactionId Command Response success 1:>>" + Response);
                             relayOnCommand(); //RelayOn
                             cancel();
                         } else {
                             Log.i(TAG, "BTLink 1: Waiting for transactionId Command Response: " + millisUntilFinished / 1000 + " Response>>" + Response);
                             if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(TAG + "BTLink 1: Waiting for transactionId Command Response: " + millisUntilFinished / 1000 + " Response>>" + Response);
+                                AppConstants.WriteinFile(TAG + " BTLink 1: Waiting for transactionId Command Response: " + millisUntilFinished / 1000 + " Response>>" + Response);
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "BTLink 1: Waiting for transactionId Command Exception: " + e.getMessage());
+                            AppConstants.WriteinFile(TAG + " BTLink 1: Waiting for transactionId Command Exception: " + e.getMessage());
                     }
                 }
 
@@ -277,12 +277,12 @@ public class BackgroundService_BTOne extends Service {
                         //Info command success.
                         Log.i(TAG, "BTLink 1: transactionId Command Response success 2:>>" + Response);
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "BTLink 1: transactionId Command Response success 2:>>" + Response);
+                            AppConstants.WriteinFile(TAG + " BTLink 1: transactionId Command Response success 2:>>" + Response);
                         relayOnCommand(); //RelayOn
                     } else {
                         Log.i(TAG, "BTLink 1: Failed to get transactionId Command Response:>>" + Response);
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "BTLink 1: Failed to get transactionId Command Response:>>" + Response);
+                            AppConstants.WriteinFile(TAG + " BTLink 1: Failed to get transactionId Command Response:>>" + Response);
                         CloseTransaction();
                     }
                 }
@@ -292,7 +292,7 @@ public class BackgroundService_BTOne extends Service {
         } catch (Exception e) {
             e.printStackTrace();
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "BTLink 1: transactionIdCommand Exception:>>" + e.getMessage());
+                AppConstants.WriteinFile(TAG + " BTLink 1: transactionIdCommand Exception:>>" + e.getMessage());
         }
     }
 
@@ -318,12 +318,12 @@ public class BackgroundService_BTOne extends Service {
                         //Info command success.
                         Log.i(TAG, "BTLink 1: relayOn Command Response success 1:>>" + Response);
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "BTLink 1: relayOn Command Response success 1:>>" + Response);
+                            AppConstants.WriteinFile(TAG + " BTLink 1: relayOn Command Response success 1:>>" + Response);
                         cancel();
                     } else {
                         Log.i(TAG, "BTLink 1: Waiting for relayOn Command Response: " + millisUntilFinished / 1000 + " Response>>" + Response);
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "BTLink 1: Waiting for relayOn Command Response: " + millisUntilFinished / 1000 + " Response>>" + Response);
+                            AppConstants.WriteinFile(TAG + " BTLink 1: Waiting for relayOn Command Response: " + millisUntilFinished / 1000 + " Response>>" + Response);
                     }
 
                 }
@@ -334,11 +334,11 @@ public class BackgroundService_BTOne extends Service {
                         //RelayOff command success.
                         Log.i(TAG, "BTLink 1: relayOn Command Response success 2:>>" + Response);
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "BTLink 1: relayOn Command Response success 2:>>" + Response);
+                            AppConstants.WriteinFile(TAG + " BTLink 1: relayOn Command Response success 2:>>" + Response);
                     } else {
                         Log.i(TAG, "BTLink 1: Failed to get relayOn Command Response:>>" + Response);
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "BTLink 1: Failed to get relayOn Command Response:>>" + Response);
+                            AppConstants.WriteinFile(TAG + " BTLink 1: Failed to get relayOn Command Response:>>" + Response);
                         relayOffCommand(); //RelayOff
                     }
                 }
@@ -348,7 +348,7 @@ public class BackgroundService_BTOne extends Service {
         } catch (Exception e) {
             e.printStackTrace();
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "BTLink 1: relayOnCommand Exception:>>" + e.getMessage());
+                AppConstants.WriteinFile(TAG + " BTLink 1: relayOnCommand Exception:>>" + e.getMessage());
         }
     }
 
@@ -387,12 +387,12 @@ public class BackgroundService_BTOne extends Service {
                         //relayOff command success.
                         Log.i(TAG, "BTLink 1: relayOff Command Response success 1:>>" + Response);
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "BTLink 1: relayOff Command Response success 1:>>" + Response);
+                            AppConstants.WriteinFile(TAG + " BTLink 1: relayOff Command Response success 1:>>" + Response);
                         cancel();
                     } else {
                         Log.i(TAG, "BTLink 1: Waiting for relayOff Command Response: " + millisUntilFinished / 1000 + " Response>>" + Response);
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "BTLink 1: Waiting for relayOff Command Response: " + millisUntilFinished / 1000 + " Response>>" + Response);
+                            AppConstants.WriteinFile(TAG + " BTLink 1: Waiting for relayOff Command Response: " + millisUntilFinished / 1000 + " Response>>" + Response);
                     }
 
                 }
@@ -403,12 +403,12 @@ public class BackgroundService_BTOne extends Service {
                         //Info command success.
                         Log.i(TAG, "BTLink 1: relayOff Command Response success 2:>>" + Response);
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "BTLink 1: relayOff Command Response success 2:>>" + Response);
+                            AppConstants.WriteinFile(TAG + " BTLink 1: relayOff Command Response success 2:>>" + Response);
                     } else {
                         CloseTransaction();
                         Log.i(TAG, "BTLink 1: Failed to get relayOff Command Response:>>" + Response);
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "BTLink 1: Failed to get relayOff Command Response:>>" + Response);
+                            AppConstants.WriteinFile(TAG + " BTLink 1: Failed to get relayOff Command Response:>>" + Response);
                     }
                 }
 
@@ -423,13 +423,19 @@ public class BackgroundService_BTOne extends Service {
     private void CloseTransaction() {
 
         try {
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " BTLink 1: Receiver is Registered >> " + isBroadcastReceiverRegistered);
-            if (isBroadcastReceiverRegistered) {
-                unregisterReceiver(broadcastBlueLinkOneData);
-                isBroadcastReceiverRegistered = false;
+            try {
                 if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + " BTLink 1: Receiver unregistered.");
+                    AppConstants.WriteinFile(TAG + " BTLink 1: Receiver is Registered >> " + isBroadcastReceiverRegistered);
+                if (isBroadcastReceiverRegistered) {
+                    unregisterReceiver(broadcastBlueLinkOneData);
+                    isBroadcastReceiverRegistered = false;
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + " BTLink 1: Receiver unregistered.");
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " BTLink 1: Exception occurred while unregistering receiver:>>" + e.getMessage());
             }
             stopTxtprocess = true;
             Constants.FS_1STATUS = "FREE";
@@ -439,7 +445,7 @@ public class BackgroundService_BTOne extends Service {
         } catch (Exception e) {
             e.printStackTrace();
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "BTLink 1: CloseTransaction Exception:>>" + e.getMessage());
+                AppConstants.WriteinFile(TAG + " BTLink 1: CloseTransaction Exception:>>" + e.getMessage());
         }
     }
 
@@ -458,7 +464,7 @@ public class BackgroundService_BTOne extends Service {
 
                 Log.i(TAG, "BTLink 1: rename Command>>");
                 if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "BTLink 1: rename Command>>");
+                    AppConstants.WriteinFile(TAG + " BTLink 1: rename Command>>");
                 String userEmail = CommonUtils.getCustomerDetails_backgroundServiceBT(BackgroundService_BTOne.this).PersonEmail;
                 String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(this) + ":" + userEmail + ":" + "SetHoseNameReplacedFlag");
 
@@ -476,7 +482,7 @@ public class BackgroundService_BTOne extends Service {
         } catch (Exception e) {
             e.printStackTrace();
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "BTLink 1: renameCommand Exception:>>" + e.getMessage());
+                AppConstants.WriteinFile(TAG + " BTLink 1: renameCommand Exception:>>" + e.getMessage());
         }
     }
 
@@ -543,7 +549,7 @@ public class BackgroundService_BTOne extends Service {
                         pulseCount();
                         Log.i(TAG, "BTLink 1: Execute FD Check..>>");
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "BTLink 1: Execute FD Check..>>");
+                            AppConstants.WriteinFile(TAG + " BTLink 1: Execute FD Check..>>");
                         cancel();
                         TransationCompleteFunction();
                         CloseTransaction();
@@ -553,7 +559,7 @@ public class BackgroundService_BTOne extends Service {
                         pulseCount();
                         Log.i(TAG, "BTLink 1: Check pulse>>");
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "BTLink 1: Check pulse>>");
+                            AppConstants.WriteinFile(TAG + " BTLink 1: Check pulse>>");
                     }
                 }
             }
@@ -622,7 +628,7 @@ public class BackgroundService_BTOne extends Service {
             } catch (Exception e) {
                 e.printStackTrace();
                 if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "BTLink 1:onReceive Exception:" + e.toString());
+                    AppConstants.WriteinFile(TAG + " BTLink 1:onReceive Exception:" + e.toString());
             }
         }
     }
@@ -660,7 +666,7 @@ public class BackgroundService_BTOne extends Service {
         String jsonData = gson.toJson(authEntityClass);
 
         if (AppConstants.GenerateLogs)
-            AppConstants.WriteinFile(TAG + "  BTLink:" + LinkName + " Pulses:" + Integer.parseInt(outputQuantity) + " Qty:" + fillqty + " TxnID:" + TransactionId);
+            AppConstants.WriteinFile(TAG + " BTLink 1:" + LinkName + " Pulses:" + Integer.parseInt(outputQuantity) + " Qty:" + fillqty + " TxnID:" + TransactionId);
 
         String userEmail = CommonUtils.getCustomerDetails_backgroundServiceBT(BackgroundService_BTOne.this).PersonEmail;
         String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(BackgroundService_BTOne.this) + ":" + userEmail + ":" + "TransactionComplete");
@@ -701,7 +707,7 @@ public class BackgroundService_BTOne extends Service {
         if (minFuelLimit > 0 && fillqty >= minFuelLimit) {
             Log.i(TAG, "BTLink 1: Auto Stop Hit>> You reached MAX fuel limit.");
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "BTLink 1: Auto Stop Hit>> You reached MAX fuel limit.");
+                AppConstants.WriteinFile(TAG + " BTLink 1: Auto Stop Hit>> You reached MAX fuel limit.");
             relayOffCommand(); //RelayOff
             TransationCompleteFunction();
             CloseTransaction();
@@ -719,7 +725,7 @@ public class BackgroundService_BTOne extends Service {
                 if (stopCount >= pumpOnpoint) {
                     Log.i(TAG, "BTLink 1: PumpOnTime Hit>>" + stopCount);
                     if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + "BTLink 1: PumpOnTime Hit>>" + stopCount);
+                        AppConstants.WriteinFile(TAG + " BTLink 1: PumpOnTime Hit>>" + stopCount);
                     relayOffCommand(); //RelayOff
                     TransationCompleteFunction();
                     CloseTransaction();
@@ -736,7 +742,7 @@ public class BackgroundService_BTOne extends Service {
                 if (stopCount >= stopAutoFuelSeconds) {
                     Log.i(TAG, "BTLink 1: PumpOffTime Hit>>" + stopCount);
                     if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + "BTLink 1: PumpOffTime Hit>>" + stopCount);
+                        AppConstants.WriteinFile(TAG + " BTLink 1: PumpOffTime Hit>>" + stopCount);
                     relayOffCommand(); //RelayOff
                     TransationCompleteFunction();
                     CloseTransaction();
@@ -787,7 +793,7 @@ public class BackgroundService_BTOne extends Service {
                 if (stopCount >= pumpOnpoint) {
                     Log.i(TAG, "BTLink 1: No response from link>>" + stopCount);
                     if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + "BTLink 1: No response from link>>" + stopCount);
+                        AppConstants.WriteinFile(TAG + " BTLink 1: No response from link>>" + stopCount);
                     stopCount = 0;
                     relayOffCommand(); //RelayOff
                     TransationCompleteFunction();

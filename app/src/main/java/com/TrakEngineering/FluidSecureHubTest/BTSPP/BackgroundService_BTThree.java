@@ -87,7 +87,7 @@ public class BackgroundService_BTThree extends Service {
                 stopCount = 0;
                 Constants.FS_3STATUS = "BUSY";
                 Log.i(TAG, "-Started-");
-                if (AppConstants.GenerateLogs) AppConstants.WriteinFile(TAG + "-Started-");
+                if (AppConstants.GenerateLogs) AppConstants.WriteinFile(TAG + "   BTLink 3: -Started-");
 
                 SharedPreferences sharedPref = this.getSharedPreferences(Constants.PREF_VehiFuel, Context.MODE_PRIVATE);
                 TransactionId = sharedPref.getString("TransactionId_FS3", "");
@@ -123,7 +123,7 @@ public class BackgroundService_BTThree extends Service {
                 registerReceiver(broadcastBlueLinkThreeData, intentFilter);
                 isBroadcastReceiverRegistered = true;
 
-                LinkName = CommonUtils.getlinkName(0);
+                LinkName = CommonUtils.getlinkName(2);
                 if (LinkCommunicationType.equalsIgnoreCase("BT")) {
                     IsThisBTTrnx = true;
                     if (BTConstants.BTStatusStrThree.equalsIgnoreCase("Connected")){
@@ -146,7 +146,7 @@ public class BackgroundService_BTThree extends Service {
                     CloseTransaction();
                     Log.i(TAG, "BTLink 3: Something went Wrong in hose selection Exit");
                     if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + "BTLink 3: Something went Wrong in hose selection Exit");
+                        AppConstants.WriteinFile(TAG + " BTLink 3: Something went Wrong in hose selection Exit");
                     this.stopSelf();
                 }
             }
@@ -178,7 +178,7 @@ public class BackgroundService_BTThree extends Service {
                         //Info command success.
                         Log.i(TAG, "BTLink 3: InfoCommand Response success 1:>>" + Response);
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "BTLink 3: InfoCommand Response success 1:>>" + Response);
+                            AppConstants.WriteinFile(TAG + " BTLink 3: InfoCommand Response success 1:>>" + Response);
 
                         if (!TransactionId.isEmpty()) {
                             parseInfoCommandResponseForLast20txtn(Response);
@@ -186,13 +186,13 @@ public class BackgroundService_BTThree extends Service {
                         } else {
                             Log.i(TAG, "BTLink 3: Please check TransactionId empty>>" + TransactionId);
                             if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(TAG + "BTLink 3: Please check TransactionId empty>>" + TransactionId);
+                                AppConstants.WriteinFile(TAG + " BTLink 3: Please check TransactionId empty>>" + TransactionId);
                         }
                         cancel();
                     } else {
                         Log.i(TAG, "BTLink 3: Waiting for infoCommand Response: " + millisUntilFinished / 1000 + " Response>>" + Response);
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "BTLink 3: Waiting for infoCommand Response: " + millisUntilFinished / 1000 + " Response>>" + Response);
+                            AppConstants.WriteinFile(TAG + " BTLink 3: Waiting for infoCommand Response: " + millisUntilFinished / 1000 + " Response>>" + Response);
                     }
 
                 }
@@ -203,20 +203,20 @@ public class BackgroundService_BTThree extends Service {
                         //Info command success.
                         Log.i(TAG, "BTLink 3: InfoCommand Response success 2:>>" + Response);
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "BTLink 3: InfoCommand Response success 2:>>" + Response);
+                            AppConstants.WriteinFile(TAG + " BTLink 3: InfoCommand Response success 2:>>" + Response);
                         if (!TransactionId.isEmpty()) {
                             parseInfoCommandResponseForLast20txtn(Response);
                             transactionIdCommand(TransactionId);
                         } else {
                             Log.i(TAG, "BTLink 3: Please check TransactionId empty>>" + TransactionId);
                             if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(TAG + "BTLink 3: Please check TransactionId empty>>" + TransactionId);
+                                AppConstants.WriteinFile(TAG + " BTLink 3: Please check TransactionId empty>>" + TransactionId);
                             CloseTransaction();
                         }
                     } else {
                         Log.i(TAG, "BTLink 3: Failed to get infoCommand Response:>>" + Response);
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "BTLink 3: Failed to get infoCommand Response:>>" + Response);
+                            AppConstants.WriteinFile(TAG + " BTLink 3: Failed to get infoCommand Response:>>" + Response);
                         CloseTransaction();
                     }
                 }
@@ -226,7 +226,7 @@ public class BackgroundService_BTThree extends Service {
         } catch (Exception e) {
             e.printStackTrace();
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "BTLink 3: infoCommand Exception:>>" + e.getMessage());
+                AppConstants.WriteinFile(TAG + " BTLink 3: infoCommand Exception:>>" + e.getMessage());
         }
     }
 
@@ -253,18 +253,18 @@ public class BackgroundService_BTThree extends Service {
                             //Info command success.
                             Log.i(TAG, "BTLink 3: transactionId Command Response success 1:>>" + Response);
                             if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(TAG + "BTLink 3: transactionId Command Response success 1:>>" + Response);
+                                AppConstants.WriteinFile(TAG + " BTLink 3: transactionId Command Response success 1:>>" + Response);
                             relayOnCommand(); //RelayOn
                             cancel();
                         } else {
                             Log.i(TAG, "BTLink 3: Waiting for transactionId Command Response: " + millisUntilFinished / 1000 + " Response>>" + Response);
                             if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(TAG + "BTLink 3: Waiting for transactionId Command Response: " + millisUntilFinished / 1000 + " Response>>" + Response);
+                                AppConstants.WriteinFile(TAG + " BTLink 3: Waiting for transactionId Command Response: " + millisUntilFinished / 1000 + " Response>>" + Response);
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "BTLink 3: Waiting for transactionId Command Exception: " + e.getMessage());
+                            AppConstants.WriteinFile(TAG + " BTLink 3: Waiting for transactionId Command Exception: " + e.getMessage());
                     }
                 }
 
@@ -274,12 +274,12 @@ public class BackgroundService_BTThree extends Service {
                         //Info command success.
                         Log.i(TAG, "BTLink 3: transactionId Command Response success 2:>>" + Response);
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "BTLink 3: transactionId Command Response success 2:>>" + Response);
+                            AppConstants.WriteinFile(TAG + " BTLink 3: transactionId Command Response success 2:>>" + Response);
                         relayOnCommand(); //RelayOn
                     } else {
                         Log.i(TAG, "BTLink 3: Failed to get transactionId Command Response:>>" + Response);
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "BTLink 3: Failed to get transactionId Command Response:>>" + Response);
+                            AppConstants.WriteinFile(TAG + " BTLink 3: Failed to get transactionId Command Response:>>" + Response);
                         CloseTransaction();
                     }
                 }
@@ -289,7 +289,7 @@ public class BackgroundService_BTThree extends Service {
         } catch (Exception e) {
             e.printStackTrace();
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "BTLink 3: transactionIdCommand Exception:>>" + e.getMessage());
+                AppConstants.WriteinFile(TAG + " BTLink 3: transactionIdCommand Exception:>>" + e.getMessage());
         }
     }
 
@@ -315,12 +315,13 @@ public class BackgroundService_BTThree extends Service {
                         //Info command success.
                         Log.i(TAG, "BTLink 3: relayOn Command Response success 1:>>" + Response);
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "BTLink 3: relayOn Command Response success 1:>>" + Response);
+                            AppConstants.WriteinFile(TAG + " BTLink 3: relayOn Command Response success 1:>>" + Response);
                         cancel();
                     } else {
+
                         Log.i(TAG, "BTLink 3: Waiting for relayOn Command Response: " + millisUntilFinished / 1000 + " Response>>" + Response);
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "BTLink 3: Waiting for relayOn Command Response: " + millisUntilFinished / 1000 + " Response>>" + Response);
+                            AppConstants.WriteinFile(TAG + " BTLink 3: Waiting for relayOn Command Response: " + millisUntilFinished / 1000 + " Response>>" + Response);
                     }
 
                 }
@@ -331,11 +332,11 @@ public class BackgroundService_BTThree extends Service {
                         //RelayOff command success.
                         Log.i(TAG, "BTLink 3: relayOn Command Response success 2:>>" + Response);
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "BTLink 3: relayOn Command Response success 2:>>" + Response);
+                            AppConstants.WriteinFile(TAG + " BTLink 3: relayOn Command Response success 2:>>" + Response);
                     } else {
                         Log.i(TAG, "BTLink 3: Failed to get relayOn Command Response:>>" + Response);
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "BTLink 3: Failed to get relayOn Command Response:>>" + Response);
+                            AppConstants.WriteinFile(TAG + " BTLink 3: Failed to get relayOn Command Response:>>" + Response);
                         relayOffCommand(); //RelayOff
                     }
                 }
@@ -345,7 +346,7 @@ public class BackgroundService_BTThree extends Service {
         } catch (Exception e) {
             e.printStackTrace();
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "BTLink 3: relayOnCommand Exception:>>" + e.getMessage());
+                AppConstants.WriteinFile(TAG + " BTLink 3: relayOnCommand Exception:>>" + e.getMessage());
         }
     }
 
@@ -384,12 +385,12 @@ public class BackgroundService_BTThree extends Service {
                         //relayOff command success.
                         Log.i(TAG, "BTLink 3: relayOff Command Response success 1:>>" + Response);
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "BTLink 3: relayOff Command Response success 1:>>" + Response);
+                            AppConstants.WriteinFile(TAG + " BTLink 3: relayOff Command Response success 1:>>" + Response);
                         cancel();
                     } else {
                         Log.i(TAG, "BTLink 3: Waiting for relayOff Command Response: " + millisUntilFinished / 1000 + " Response>>" + Response);
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "BTLink 3: Waiting for relayOff Command Response: " + millisUntilFinished / 1000 + " Response>>" + Response);
+                            AppConstants.WriteinFile(TAG + " BTLink 3: Waiting for relayOff Command Response: " + millisUntilFinished / 1000 + " Response>>" + Response);
                     }
 
                 }
@@ -400,12 +401,12 @@ public class BackgroundService_BTThree extends Service {
                         //Info command success.
                         Log.i(TAG, "BTLink 3: relayOff Command Response success 2:>>" + Response);
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "BTLink 3: relayOff Command Response success 2:>>" + Response);
+                            AppConstants.WriteinFile(TAG + " BTLink 3: relayOff Command Response success 2:>>" + Response);
                     } else {
                         CloseTransaction();
                         Log.i(TAG, "BTLink 3: Failed to get relayOff Command Response:>>" + Response);
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "BTLink 3: Failed to get relayOff Command Response:>>" + Response);
+                            AppConstants.WriteinFile(TAG + " BTLink 3: Failed to get relayOff Command Response:>>" + Response);
                     }
                 }
 
@@ -420,13 +421,19 @@ public class BackgroundService_BTThree extends Service {
     private void CloseTransaction() {
 
         try {
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " BTLink 3: Receiver is Registered >> " + isBroadcastReceiverRegistered);
-            if (isBroadcastReceiverRegistered) {
-                unregisterReceiver(broadcastBlueLinkThreeData);
-                isBroadcastReceiverRegistered = false;
+            try {
                 if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + " BTLink 3: Receiver unregistered.");
+                    AppConstants.WriteinFile(TAG + " BTLink 3: Receiver is Registered >> " + isBroadcastReceiverRegistered);
+                if (isBroadcastReceiverRegistered) {
+                    unregisterReceiver(broadcastBlueLinkThreeData);
+                    isBroadcastReceiverRegistered = false;
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + " BTLink 3: Receiver unregistered.");
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " BTLink 3: Exception occurred while unregistering receiver:>>" + e.getMessage());
             }
             stopTxtprocess = true;
             Constants.FS_3STATUS = "FREE";
@@ -436,7 +443,7 @@ public class BackgroundService_BTThree extends Service {
         } catch (Exception e) {
             e.printStackTrace();
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "BTLink 3: CloseTransaction Exception:>>" + e.getMessage());
+                AppConstants.WriteinFile(TAG + " BTLink 3: CloseTransaction Exception:>>" + e.getMessage());
         }
     }
 
@@ -455,7 +462,7 @@ public class BackgroundService_BTThree extends Service {
 
             Log.i(TAG, "BTLink 3: rename Command>>");
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "BTLink 3: rename Command>>");
+                AppConstants.WriteinFile(TAG + " BTLink 3: rename Command>>");
             String userEmail = CommonUtils.getCustomerDetails_backgroundServiceBT(BackgroundService_BTThree.this).PersonEmail;
             String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(this) + ":" + userEmail + ":" + "SetHoseNameReplacedFlag");
 
@@ -473,7 +480,7 @@ public class BackgroundService_BTThree extends Service {
         } catch (Exception e) {
             e.printStackTrace();
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "BTLink 3: renameCommand Exception:>>" + e.getMessage());
+                AppConstants.WriteinFile(TAG + " BTLink 3: renameCommand Exception:>>" + e.getMessage());
         }
     }
 
@@ -540,7 +547,7 @@ public class BackgroundService_BTThree extends Service {
                         pulseCount();
                         Log.i(TAG, "BTLink 3: Execute FD Check..>>");
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "BTLink 3: Execute FD Check..>>");
+                            AppConstants.WriteinFile(TAG + " BTLink 3: Execute FD Check..>>");
                         cancel();
                         TransationCompleteFunction();
                         CloseTransaction();
@@ -550,7 +557,7 @@ public class BackgroundService_BTThree extends Service {
                         pulseCount();
                         Log.i(TAG, "BTLink 3: Check pulse>>");
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "BTLink 3: Check pulse>>");
+                            AppConstants.WriteinFile(TAG + " BTLink 3: Check pulse>>");
                     }
                 }
             }
@@ -619,7 +626,7 @@ public class BackgroundService_BTThree extends Service {
             } catch (Exception e) {
                 e.printStackTrace();
                 if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "BTLink 3:onReceive Exception:" + e.toString());
+                    AppConstants.WriteinFile(TAG + " BTLink 3:onReceive Exception:" + e.toString());
             }
         }
     }
@@ -657,7 +664,7 @@ public class BackgroundService_BTThree extends Service {
         String jsonData = gson.toJson(authEntityClass);
 
         if (AppConstants.GenerateLogs)
-            AppConstants.WriteinFile(TAG + "  BTLink:" + LinkName + " Pulses:" + Integer.parseInt(outputQuantity) + " Qty:" + fillqty + " TxnID:" + TransactionId);
+            AppConstants.WriteinFile(TAG + "  BTLink 3:" + LinkName + " Pulses:" + Integer.parseInt(outputQuantity) + " Qty:" + fillqty + " TxnID:" + TransactionId);
 
         String userEmail = CommonUtils.getCustomerDetails_backgroundServiceBT(BackgroundService_BTThree.this).PersonEmail;
         String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(BackgroundService_BTThree.this) + ":" + userEmail + ":" + "TransactionComplete");
@@ -697,7 +704,7 @@ public class BackgroundService_BTThree extends Service {
         if (minFuelLimit > 0 && fillqty >= minFuelLimit) {
             Log.i(TAG, "BTLink 3: Auto Stop Hit>> You reached MAX fuel limit.");
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "BTLink 3: Auto Stop Hit>> You reached MAX fuel limit.");
+                AppConstants.WriteinFile(TAG + " BTLink 3: Auto Stop Hit>> You reached MAX fuel limit.");
             relayOffCommand(); //RelayOff
             TransationCompleteFunction();
             CloseTransaction();
@@ -715,7 +722,7 @@ public class BackgroundService_BTThree extends Service {
                 if (stopCount >= pumpOnpoint) {
                     Log.i(TAG, "BTLink 3: PumpOnTime Hit>>" + stopCount);
                     if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + "BTLink 3: PumpOnTime Hit>>" + stopCount);
+                        AppConstants.WriteinFile(TAG + " BTLink 3: PumpOnTime Hit>>" + stopCount);
                     relayOffCommand(); //RelayOff
                     TransationCompleteFunction();
                     CloseTransaction();
@@ -732,7 +739,7 @@ public class BackgroundService_BTThree extends Service {
                 if (stopCount >= stopAutoFuelSeconds) {
                     Log.i(TAG, "BTLink 3: PumpOffTime Hit>>" + stopCount);
                     if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + "BTLink 3: PumpOffTime Hit>>" + stopCount);
+                        AppConstants.WriteinFile(TAG + " BTLink 3: PumpOffTime Hit>>" + stopCount);
                     relayOffCommand(); //RelayOff
                     TransationCompleteFunction();
                     CloseTransaction();
@@ -782,7 +789,7 @@ public class BackgroundService_BTThree extends Service {
                 if (stopCount >= pumpOnpoint) {
                     Log.i(TAG, "BTLink 3: No response from link>>" + stopCount);
                     if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + "BTLink 3: No response from link>>" + stopCount);
+                        AppConstants.WriteinFile(TAG + " BTLink 3: No response from link>>" + stopCount);
                     stopCount = 0;
                     relayOffCommand(); //RelayOff
                     TransationCompleteFunction();
