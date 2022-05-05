@@ -4,6 +4,9 @@
     <option name="filePathToZoomLevelMap">
       <map>
         <entry key="..\:/Android Workspace/FluidSecureHubTest/app/src/main/res/layout/activity_accept_dept.xml" value="0.25416666666666665" />
+        <entry key="..\:/Android Workspace/FluidSecureHubTest/app/src/main/res/layout/activity_accept_other.xml" value="0.25025641025641027" />
+        <entry key="..\:/Android Workspace/FluidSecureHubTest/app/src/main/res/layout/activity_accept_pin_fob.xml" value="0.25025641025641027" />
+        <entry key="..\:/Android Workspace/FluidSecureHubTest/app/src/main/res/layout/activity_accept_vehicle.xml" value="0.25025641025641027" />
         <entry key="..\:/Android Workspace/FluidSecureHubTest/app/src/main/res/layout/activity_fobreader.xml" value="0.25416666666666665" />
         <entry key="..\:/Android Workspace/FluidSecureHubTest/app/src/main/res/layout/activity_pair_device.xml" value="0.18055555555555555" />
         <entry key="..\:/Android Workspace/FluidSecureHubTest/app/src/main/res/layout/activity_read_access_device_fob.xml" value="0.25416666666666665" />

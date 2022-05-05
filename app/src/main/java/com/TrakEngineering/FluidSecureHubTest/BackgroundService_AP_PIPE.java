@@ -878,7 +878,7 @@ public class BackgroundService_AP_PIPE extends Service {
                     clearEditTextFields();
                     stopSelf();
                 }
-                if (GetPulsarAttemptFailCount == 2) { // checked count 2 here, because this function calling once again even after stopTimer is set as false.
+                if (GetPulsarAttemptFailCount == 2) { // checked count 2 here, because this function being called one more time even after stopTimer is set as false.
                     stopTimer = false;
                     new CommandsPOST().execute(URL_RELAY, jsonRelayOff);
                 }

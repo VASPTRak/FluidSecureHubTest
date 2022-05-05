@@ -8577,7 +8577,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 pd.dismiss();
                 System.out.println("Ex" + e.getMessage());
                 if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "  GetSSIDUsingLocation onPostExecute --Exception " + e);
+                    AppConstants.WriteinFile(TAG + " GetSSIDUsingLocationOnResume onPostExecute --Exception " + e);
                 if (OfflineConstants.isOfflineAccess(WelcomeActivity.this)) {
                     AppConstants.NETWORK_STRENGTH = false;
                 }
@@ -9459,7 +9459,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                 System.out.println("Ex" + e.getMessage());
                 if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "  GetSSIDUsingLocation onPostExecute --Exception " + e);
+                    AppConstants.WriteinFile(TAG + " GetSSIDUsingLocationGateHub onPostExecute --Exception " + e);
                 if (OfflineConstants.isOfflineAccess(WelcomeActivity.this)) {
                     AppConstants.NETWORK_STRENGTH = false;
                 }
@@ -11975,7 +11975,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                             break;
                         case 1://Link Two
                             if (!BTMacAddress.isEmpty() && !BTConstants.BTLinkTwoStatus && CommonFunctions.CheckIfPresentInPairedDeviceList(BTMacAddress) && !BTConstants.BTStatusStrTwo.equalsIgnoreCase("Connecting...")) {
-                                //Connect to Link one
+                                //Connect to Link two
                                 BTSPPMain btspp2 = new BTSPPMain();
                                 btspp2.activity = WelcomeActivity.this;
                                 btspp2.connect2(); }

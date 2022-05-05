@@ -63,6 +63,7 @@ public class BackgroundService_BTTwo extends Service {
     DBController controller = new DBController(BackgroundService_BTTwo.this);
     Boolean IsThisBTTrnx;
     Boolean isBroadcastReceiverRegistered = false;
+    Boolean isNewVersionLinkTwo = false;
 
     SimpleDateFormat sdformat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
     ArrayList<HashMap<String, String>> quantityRecords = new ArrayList<>();
@@ -179,11 +180,17 @@ public class BackgroundService_BTTwo extends Service {
                     if (Request.equalsIgnoreCase(BTConstants.info_cmd) && !Response.equalsIgnoreCase("")) {
                         //Info command success.
                         Log.i(TAG, "BTLink 2: InfoCommand Response success 1:>>" + Response);
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + " BTLink 2: InfoCommand Response success 1:>>" + Response);
 
                         if (!TransactionId.isEmpty()) {
-                            parseInfoCommandResponseForLast20txtn(Response);
+                            if (Response.contains("records")) {
+                                if (AppConstants.GenerateLogs)
+                                    AppConstants.WriteinFile(TAG + " BTLink 2: InfoCommand Response success 1");
+                                isNewVersionLinkTwo = true;
+                                parseInfoCommandResponseForLast20txtn(Response);
+                            } else {
+                                if (AppConstants.GenerateLogs)
+                                    AppConstants.WriteinFile(TAG + " BTLink 2: InfoCommand Response success 1:>>" + Response);
+                            }
                             transactionIdCommand(TransactionId);
                         } else {
                             Log.i(TAG, "BTLink 2: Please check TransactionId empty>>" + TransactionId);
@@ -204,10 +211,17 @@ public class BackgroundService_BTTwo extends Service {
                     if (Request.equalsIgnoreCase(BTConstants.info_cmd) && !Response.equalsIgnoreCase("")) {
                         //Info command success.
                         Log.i(TAG, "BTLink 2: InfoCommand Response success 2:>>" + Response);
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + " BTLink 2: InfoCommand Response success 2:>>" + Response);
+
                         if (!TransactionId.isEmpty()) {
-                            parseInfoCommandResponseForLast20txtn(Response);
+                            if (Response.contains("records")) {
+                                if (AppConstants.GenerateLogs)
+                                    AppConstants.WriteinFile(TAG + " BTLink 2: InfoCommand Response success 2");
+                                isNewVersionLinkTwo = true;
+                                parseInfoCommandResponseForLast20txtn(Response);
+                            } else {
+                                if (AppConstants.GenerateLogs)
+                                    AppConstants.WriteinFile(TAG + " BTLink 2: InfoCommand Response success 2:>>" + Response);
+                            }
                             transactionIdCommand(TransactionId);
                         } else {
                             Log.i(TAG, "BTLink 2: Please check TransactionId empty>>" + TransactionId);
@@ -244,13 +258,20 @@ public class BackgroundService_BTTwo extends Service {
             //Execute transactionId Command
             Request = "";
             Response = "";
+            String transaction_id_cmd = BTConstants.transaction_id_cmd;
+
+            if (isNewVersionLinkTwo) {
+                transaction_id_cmd = transaction_id_cmd.replace("txtnid:", ""); // For New version LK_COMM=T:XXXXX;D:XXXXX;V:XXXXXXXX;
+                TransactionDateWithFormat = BTConstants.parseDateForNewVersion(TransactionDateWithFormat);
+            }
+
             if (IsThisBTTrnx) {
                 BTSPPMain btspp = new BTSPPMain();
-                btspp.send2(BTConstants.transaction_id_cmd +"T:"+ transactionId+";D:"+TransactionDateWithFormat+";V:"+VehicleNumber+";");
+                btspp.send2(transaction_id_cmd + "T:" + transactionId + ";D:" + TransactionDateWithFormat + ";V:" + VehicleNumber + ";");
             } else {
-                new Thread(new ClientSendAndListenUDPOne(BTConstants.transaction_id_cmd +"T:"+ transactionId+";D:"+TransactionDateWithFormat+";V:"+VehicleNumber+";", SERVER_IP, this)).start();
+                new Thread(new ClientSendAndListenUDPOne(transaction_id_cmd + "T:" + transactionId + ";D:" + TransactionDateWithFormat + ";V:" + VehicleNumber + ";", SERVER_IP, this)).start();
             }
-            Log.i(TAG, "BTLink 2: In Request>>" + BTConstants.transaction_id_cmd +"T:"+ transactionId+";D:"+TransactionDateWithFormat+";V:"+VehicleNumber+";");
+            Log.i(TAG, "BTLink 2: In Request>>" + transaction_id_cmd + "T:" + transactionId + ";D:" + TransactionDateWithFormat + ";V:" + VehicleNumber + ";");
 
             new CountDownTimer(4000, 1000) {
 
@@ -266,8 +287,13 @@ public class BackgroundService_BTTwo extends Service {
                             cancel();
                         } else {
                             Log.i(TAG, "BTLink 2: Waiting for transactionId Command Response: " + millisUntilFinished / 1000 + " Response>>" + Response);
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(TAG + " BTLink 2: Waiting for transactionId Command Response: " + millisUntilFinished / 1000 + " Response>>" + Response);
+                            if (AppConstants.GenerateLogs) {
+                                if (Response.contains("records") && isNewVersionLinkTwo) {
+                                    AppConstants.WriteinFile(TAG + " BTLink 2: Waiting for transactionId Command Response: " + millisUntilFinished / 1000);
+                                } else {
+                                    AppConstants.WriteinFile(TAG + " BTLink 2: Waiting for transactionId Command Response: " + millisUntilFinished / 1000 + " Response>>" + Response);
+                                }
+                            }
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -287,7 +313,7 @@ public class BackgroundService_BTTwo extends Service {
                     } else {
 
                         //UpgradeTransaction Status Transactionid command fail.
-                        CommonUtils.UpgradeTransactionStatusToSqlite(TransactionId, "6",BackgroundService_BTTwo.this);
+                        CommonUtils.UpgradeTransactionStatusToSqlite(transactionId, "6",BackgroundService_BTTwo.this);
                         Log.i(TAG, "BTLink 2: Failed to get transactionId Command Response:>>" + Response);
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + " BTLink 2: Failed to get transactionId Command Response:>>" + Response);
@@ -330,8 +356,13 @@ public class BackgroundService_BTTwo extends Service {
                         cancel();
                     } else {
                         Log.i(TAG, "BTLink 2: Waiting for relayOn Command Response: " + millisUntilFinished / 1000 + " Response>>" + Response);
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + " BTLink 2: Waiting for relayOn Command Response: " + millisUntilFinished / 1000 + " Response>>" + Response);
+                        if (AppConstants.GenerateLogs) {
+                            if (Response.contains("records") && isNewVersionLinkTwo) {
+                                AppConstants.WriteinFile(TAG + " BTLink 2: Waiting for relayOn Command Response: " + millisUntilFinished / 1000);
+                            } else {
+                                AppConstants.WriteinFile(TAG + " BTLink 2: Waiting for relayOn Command Response: " + millisUntilFinished / 1000 + " Response>>" + Response);
+                            }
+                        }
                     }
 
                 }
@@ -548,10 +579,17 @@ public class BackgroundService_BTTwo extends Service {
                 //Repaeting code..
                 //CancelTimer(); cancel all once done.
 
-                Log.i(TAG, "BTLink 1: Timer count..");
+                Log.i(TAG, "BTLink 2: Timer count..");
                 FdCheckFunction();//Fdcheck
 
-                if (Response.contains("pulse:") && RelayStatus == true) {
+                String checkPulses;
+                if (isNewVersionLinkTwo) {
+                    checkPulses = "pulse";
+                } else {
+                    checkPulses = "pulse:";
+                }
+
+                if (Response.contains(checkPulses) && RelayStatus == true) {
                     pulseCount = 0;
                     pulseCount();
 
@@ -583,9 +621,25 @@ public class BackgroundService_BTTwo extends Service {
 
         try {
             pumpTimingsOnOffFunction();//PumpOn/PumpOff functionality
+            String outputQuantity;
 
-            String[] items = Response.trim().split(":");
-            String outputQuantity = items[1].replaceAll("\"", "").trim();
+            if (isNewVersionLinkTwo) {
+                if (Response.contains("pulse")) {
+                    JSONObject jsonObj = new JSONObject(Response);
+                    outputQuantity = jsonObj.getString("pulse");
+                } else {
+                    return;
+                }
+            } else {
+                String[] items = Response.trim().split(":");
+                if (items.length > 1) {
+                    outputQuantity = items[1].replaceAll("\"", "").trim();
+                } else {
+                    // got response as "OFF" after relay_off_cmd
+                    return;
+                }
+            }
+
             Pulses = Integer.parseInt(outputQuantity);
             fillqty = Double.parseDouble(outputQuantity);
             fillqty = fillqty / numPulseRatio;//convert to gallons
@@ -599,7 +653,7 @@ public class BackgroundService_BTTwo extends Service {
 
         } catch (Exception e) {
             e.printStackTrace();
-            //if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "BTLink 2: pulse count Exception>>" + e.toString());
+            //if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "BTLink 2: pulse count Exception>>" + e.getMessage());
         }
     }
 
@@ -738,7 +792,7 @@ public class BackgroundService_BTTwo extends Service {
 
                     //Timed out (Start was pressed, and pump on timer hit): Pump Time On limit reached* = 4
                     CommonUtils.UpgradeTransactionStatusToSqlite(TransactionId, "4", BackgroundService_BTTwo.this);
-                    Log.i(TAG, " BTLink 2: PumpOnTime Hit>>" + Pulses);
+                    Log.i(TAG, " BTLink 2: PumpOnTime Hit>>" + stopCount);
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(TAG + " BTLink 2: PumpOnTime Hit>>" + stopCount);
                     relayOffCommand(); //RelayOff
@@ -845,7 +899,6 @@ public class BackgroundService_BTTwo extends Service {
             JSONArray jsonArray = jsonObject.getJSONArray("records");
             for (int i = 0; i < jsonArray.length(); i++) {
 
-
                 JSONObject j = jsonArray.getJSONObject(i);
                 String txtn = j.getString("txtn");
                 String date = j.getString("date");
@@ -853,7 +906,14 @@ public class BackgroundService_BTTwo extends Service {
                 String pulse = j.getString("pulse");
                 String dflag = j.getString("dflag");
 
-                //String newDateFormat = CommonUtils.changeDateFormat(date);
+                //// One problem here, we can convert date format, but cannot get seconds. need to ignore seconds from datetime string while checking.
+                /*try {
+                    if (!date.contains("-")) { // change date format from "yyMMddHHmm" to "yyyy-MM-dd HH:mm:ss"
+                        date = BTConstants.parseDateForOldVersion(date);
+                    }
+                } catch (Exception e) {
+                    Log.i(TAG, " BTLink 2: Exception while parsing date format.>> " + e.getMessage());
+                }*/
 
                 HashMap<String, String> Hmap = new HashMap<>();
                 Hmap.put("TransactionID", txtn);//TransactionID
@@ -868,28 +928,27 @@ public class BackgroundService_BTTwo extends Service {
                 arrayList.add(Hmap);
             }
 
-
             Gson gs = new Gson();
             EntityCmd20Txn ety = new EntityCmd20Txn();
             ety.cmtxtnid_20_record = arrayList;
 
             String json20txn = gs.toJson(ety);
-
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + " BTLink 2: parseInfoCommandResponseForLast20txtn json20txn>>" + json20txn);
             Log.i(TAG, "BTLink 2: parseInfoCommandResponseForLast20txtn json20txn>>" + json20txn);
             //if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "BTLink 2: parseInfoCommandResponseForLast20txtn json20txn>>" + json20txn);
 
             SharedPreferences sharedPref = BackgroundService_BTTwo.this.getSharedPreferences("storeCmtxtnid_20_record", Context.MODE_PRIVATE);
             SharedPreferences.Editor editor = sharedPref.edit();
-            editor.putString("LINK2", json20txn);
+            //editor.putString("LINK2", json20txn); // due to date format issue commented this and saving blank value in shared pref.
+            editor.putString("LINK2", "");
             editor.apply();
-
 
         }catch (Exception e){
             e.printStackTrace();
-            if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "BTLink 2: parseInfoCommandResponseForLast20txtn Exception>>" + e.toString());
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + " BTLink 2: Exception in parseInfoCommandResponseForLast20txtn. response>> " + response + "; Exception>>" + e.toString());
         }
-
-
     }
 
     public class EntityCmd20Txn {
@@ -921,6 +980,5 @@ public class BackgroundService_BTTwo extends Service {
         }
         return return_qty;
     }
-
 
 }

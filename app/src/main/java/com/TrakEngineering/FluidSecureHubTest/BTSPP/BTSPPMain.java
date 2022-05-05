@@ -139,49 +139,49 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
 
     public void receive1(byte[] data) {
         String Response = new String(data);
-        SpannableStringBuilder spn = new SpannableStringBuilder(new String(data) + '\n');
-        Log.i(TAG, "BTLink 111: Request>>" + BTConstants.CurrentCommand_LinkOne);
-        Log.i(TAG, "BTLink 111: Response>>" + spn.toString());
+        SpannableStringBuilder spn = new SpannableStringBuilder(Response + '\n');
+        Log.i(TAG, "BTLink 1: Request>>" + BTConstants.CurrentCommand_LinkOne);
+        Log.i(TAG, "BTLink 1: Response>>" + spn.toString());
 
         // As per PROD
-        Intent broadcastIntent = new Intent();
+        /*Intent broadcastIntent = new Intent();
         broadcastIntent.setAction("BroadcastBlueLinkOneData");
         broadcastIntent.putExtra("Request", BTConstants.CurrentCommand_LinkOne);
         broadcastIntent.putExtra("Response", spn.toString());
         broadcastIntent.putExtra("Action", "BlueLinkOne");
-        activity.sendBroadcast(broadcastIntent);
+        activity.sendBroadcast(broadcastIntent);*/
         //==========================================
 
-        /*if (BTConstants.CurrentCommand_LinkOne.equalsIgnoreCase("LK_COMM=info")){
+        if (BTConstants.CurrentCommand_LinkOne.equalsIgnoreCase("LK_COMM=info")) {
 
-            sb1.append(new String(data));
+            if (Response.contains("records") || sb1.toString().contains("records")) {
+                // For new version Link response
+                sb1.append(Response);
 
-            new Handler().postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    Log.i(TAG, "BTLink 1: Response>>" + sb1.toString());
-                    if (sb1.toString().contains("records")){
-                        Intent broadcastIntent = new Intent();
-                        broadcastIntent.setAction("BroadcastBlueLinkOneData");
-                        broadcastIntent.putExtra("Request", BTConstants.CurrentCommand_LinkOne);
-                        broadcastIntent.putExtra("Response", sb1.toString());
-                        broadcastIntent.putExtra("Action", "BlueLinkOne");
-                        activity.sendBroadcast(broadcastIntent);
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        Log.i(TAG, "BTLink 1: Response>>" + sb1.toString());
+                        sendBroadcastIntentFromLinkOne(sb1.toString());
                     }
-                    sb1.setLength(0);
-                }
-            }, 1000);
+                }, 1000);
+            } else {
+                sb1.setLength(0);
+                sendBroadcastIntentFromLinkOne(spn.toString());
+            }
+        } else {
+            sendBroadcastIntentFromLinkOne(spn.toString());
+        }
+        //==========================================
+    }
 
-
-        }else{
-            Intent broadcastIntent = new Intent();
-            broadcastIntent.setAction("BroadcastBlueLinkOneData");
-            broadcastIntent.putExtra("Request", BTConstants.CurrentCommand_LinkOne);
-            broadcastIntent.putExtra("Response", spn.toString());
-            broadcastIntent.putExtra("Action", "BlueLinkOne");
-            activity.sendBroadcast(broadcastIntent);
-        }*/
-
+    public void sendBroadcastIntentFromLinkOne(String spn) {
+        Intent broadcastIntent = new Intent();
+        broadcastIntent.setAction("BroadcastBlueLinkOneData");
+        broadcastIntent.putExtra("Request", BTConstants.CurrentCommand_LinkOne);
+        broadcastIntent.putExtra("Response", spn);
+        broadcastIntent.putExtra("Action", "BlueLinkOne");
+        activity.sendBroadcast(broadcastIntent);
     }
 
     public void status1(String str) {
@@ -256,48 +256,49 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
 
     public void receive2(byte[] data) {
         String Response = new String(data);
-        SpannableStringBuilder spn = new SpannableStringBuilder(new String(data) + '\n');
+        SpannableStringBuilder spn = new SpannableStringBuilder(Response + '\n');
         Log.i(TAG, "BTLink 2: Request>>" + BTConstants.CurrentCommand_LinkTwo);
         Log.i(TAG, "BTLink 2: Response>>" + spn.toString());
 
         // As per PROD
-        Intent broadcastIntent = new Intent();
+        /*Intent broadcastIntent = new Intent();
         broadcastIntent.setAction("BroadcastBlueLinkTwoData");
         broadcastIntent.putExtra("Request", BTConstants.CurrentCommand_LinkTwo);
         broadcastIntent.putExtra("Response", spn.toString());
         broadcastIntent.putExtra("Action", "BlueLinkTwo");
-        activity.sendBroadcast(broadcastIntent);
+        activity.sendBroadcast(broadcastIntent);*/
         //==========================================
-        /*if (BTConstants.CurrentCommand_LinkTwo.equalsIgnoreCase("LK_COMM=info")){
 
-            sb2.append(new String(data));
+        if (BTConstants.CurrentCommand_LinkTwo.equalsIgnoreCase("LK_COMM=info")) {
 
-            new Handler().postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    Log.i(TAG, "BTLink 22222: Response>>" + sb2.toString());
-                    if (sb2.toString().contains("records")){
-                        Intent broadcastIntent = new Intent();
-                        broadcastIntent.setAction("BroadcastBlueLinkTwoData");
-                        broadcastIntent.putExtra("Request", BTConstants.CurrentCommand_LinkTwo);
-                        broadcastIntent.putExtra("Response", sb2.toString());
-                        broadcastIntent.putExtra("Action", "BlueLinkTwo");
-                        activity.sendBroadcast(broadcastIntent);
+            if (Response.contains("records") || sb2.toString().contains("records")) {
+                // For new version Link response
+                sb2.append(Response);
+
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        Log.i(TAG, "BTLink 2: Response>>" + sb2.toString());
+                        sendBroadcastIntentFromLinkTwo(sb2.toString());
                     }
-                    sb2.setLength(0);
-                }
-            }, 1000);
+                }, 1000);
+            } else {
+                sb2.setLength(0);
+                sendBroadcastIntentFromLinkTwo(spn.toString());
+            }
+        } else {
+            sendBroadcastIntentFromLinkTwo(spn.toString());
+        }
+        //==========================================
+    }
 
-
-        }else{
-            Intent broadcastIntent = new Intent();
-            broadcastIntent.setAction("BroadcastBlueLinkTwoData");
-            broadcastIntent.putExtra("Request", BTConstants.CurrentCommand_LinkTwo);
-            broadcastIntent.putExtra("Response", spn.toString());
-            broadcastIntent.putExtra("Action", "BlueLinkTwo");
-            activity.sendBroadcast(broadcastIntent);
-        }*/
-
+    public void sendBroadcastIntentFromLinkTwo(String spn) {
+        Intent broadcastIntent = new Intent();
+        broadcastIntent.setAction("BroadcastBlueLinkTwoData");
+        broadcastIntent.putExtra("Request", BTConstants.CurrentCommand_LinkTwo);
+        broadcastIntent.putExtra("Response", spn);
+        broadcastIntent.putExtra("Action", "BlueLinkTwo");
+        activity.sendBroadcast(broadcastIntent);
     }
 
     public void status2(String str) {
@@ -370,48 +371,49 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
 
     public void receive3(byte[] data) {
         String Response = new String(data);
-        SpannableStringBuilder spn = new SpannableStringBuilder(new String(data) + '\n');
+        SpannableStringBuilder spn = new SpannableStringBuilder(Response + '\n');
         Log.i(TAG, "BTLink 3: Request>>" + BTConstants.CurrentCommand_LinkThree);
         Log.i(TAG, "BTLink 3: Response>>" + spn.toString());
 
         // As per PROD
-        Intent broadcastIntent = new Intent();
+        /*Intent broadcastIntent = new Intent();
         broadcastIntent.setAction("BroadcastBlueLinkThreeData");
         broadcastIntent.putExtra("Request", BTConstants.CurrentCommand_LinkThree);
         broadcastIntent.putExtra("Response", spn.toString());
         broadcastIntent.putExtra("Action", "BlueLinkThree");
-        activity.sendBroadcast(broadcastIntent);
+        activity.sendBroadcast(broadcastIntent);*/
         //==========================================
-        /*if (BTConstants.CurrentCommand_LinkThree.equalsIgnoreCase("LK_COMM=info")){
 
-            sb3.append(new String(data));
+        if (BTConstants.CurrentCommand_LinkThree.equalsIgnoreCase("LK_COMM=info")) {
 
-            new Handler().postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    Log.i(TAG, "BTLink 3333: Response>>" + sb3.toString());
-                    if (sb3.toString().contains("records")){
-                        Intent broadcastIntent = new Intent();
-                        broadcastIntent.setAction("BroadcastBlueLinkThreeData");
-                        broadcastIntent.putExtra("Request", BTConstants.CurrentCommand_LinkThree);
-                        broadcastIntent.putExtra("Response", sb3.toString());
-                        broadcastIntent.putExtra("Action", "BlueLinkThree");
-                        activity.sendBroadcast(broadcastIntent);
+            if (Response.contains("records") || sb3.toString().contains("records")) {
+                // For new version Link response
+                sb3.append(Response);
+
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        Log.i(TAG, "BTLink 3: Response>>" + sb3.toString());
+                        sendBroadcastIntentFromLinkThree(sb3.toString());
                     }
-                    sb3.setLength(0);
-                }
-            }, 1000);
-
-
+                }, 1000);
+            } else {
+                sb3.setLength(0);
+                sendBroadcastIntentFromLinkThree(spn.toString());
+            }
         }else{
-            Intent broadcastIntent = new Intent();
-            broadcastIntent.setAction("BroadcastBlueLinkThreeData");
-            broadcastIntent.putExtra("Request", BTConstants.CurrentCommand_LinkThree);
-            broadcastIntent.putExtra("Response", spn.toString());
-            broadcastIntent.putExtra("Action", "BlueLinkThree");
-            activity.sendBroadcast(broadcastIntent);
-        }*/
+            sendBroadcastIntentFromLinkThree(spn.toString());
+        }
+        //==========================================
+    }
 
+    public void sendBroadcastIntentFromLinkThree(String spn) {
+        Intent broadcastIntent = new Intent();
+        broadcastIntent.setAction("BroadcastBlueLinkThreeData");
+        broadcastIntent.putExtra("Request", BTConstants.CurrentCommand_LinkThree);
+        broadcastIntent.putExtra("Response", spn);
+        broadcastIntent.putExtra("Action", "BlueLinkThree");
+        activity.sendBroadcast(broadcastIntent);
     }
 
     public void status3(String str) {
@@ -488,49 +490,49 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
 
     public void receive4(byte[] data) {
         String Response = new String(data);
-        SpannableStringBuilder spn = new SpannableStringBuilder(new String(data) + '\n');
+        SpannableStringBuilder spn = new SpannableStringBuilder(Response + '\n');
         Log.i(TAG, "BTLink 4: Request>>" + BTConstants.CurrentCommand_LinkFour);
         Log.i(TAG, "BTLink 4: Response>>" + spn.toString());
 
         // As per PROD
-        Intent broadcastIntent = new Intent();
+        /*Intent broadcastIntent = new Intent();
         broadcastIntent.setAction("BroadcastBlueLinkFourData");
         broadcastIntent.putExtra("Request", BTConstants.CurrentCommand_LinkFour);
         broadcastIntent.putExtra("Response", spn.toString());
         broadcastIntent.putExtra("Action", "BlueLinkFour");
-        activity.sendBroadcast(broadcastIntent);
+        activity.sendBroadcast(broadcastIntent);*/
         //==========================================
-        /*if (BTConstants.CurrentCommand_LinkFour.equalsIgnoreCase("LK_COMM=info")){
 
-            sb4.append(new String(data));
+        if (BTConstants.CurrentCommand_LinkFour.equalsIgnoreCase("LK_COMM=info")){
 
-            new Handler().postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    Log.i(TAG, "BTLink 22222: Response>>" + sb4.toString());
-                    if (sb4.toString().contains("records")){
-                        Intent broadcastIntent = new Intent();
-                        broadcastIntent.setAction("BroadcastBlueLinkFourData");
-                        broadcastIntent.putExtra("Request", BTConstants.CurrentCommand_LinkFour);
-                        broadcastIntent.putExtra("Response", sb4.toString());
-                        broadcastIntent.putExtra("Action", "BlueLinkFour");
-                        activity.sendBroadcast(broadcastIntent);
+            if (Response.contains("records") || sb4.toString().contains("records")) {
+                // For new version Link response
+                sb4.append(Response);
+
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        Log.i(TAG, "BTLink 4: Response>>" + sb4.toString());
+                        sendBroadcastIntentFromLinkFour(sb4.toString());
                     }
-                    sb4.setLength(0);
-                }
-            }, 1000);
+                }, 1000);
+            } else {
+                sb4.setLength(0);
+                sendBroadcastIntentFromLinkFour(spn.toString());
+            }
+        } else {
+            sendBroadcastIntentFromLinkFour(spn.toString());
+        }
+        //==========================================
+    }
 
-
-        }else{
-            Intent broadcastIntent = new Intent();
-            broadcastIntent.setAction("BroadcastBlueLinkFourData");
-            broadcastIntent.putExtra("Request", BTConstants.CurrentCommand_LinkFour);
-            broadcastIntent.putExtra("Response", spn.toString());
-            broadcastIntent.putExtra("Action", "BlueLinkFour");
-            activity.sendBroadcast(broadcastIntent);
-        }*/
-
-
+    public void sendBroadcastIntentFromLinkFour(String spn) {
+        Intent broadcastIntent = new Intent();
+        broadcastIntent.setAction("BroadcastBlueLinkFourData");
+        broadcastIntent.putExtra("Request", BTConstants.CurrentCommand_LinkFour);
+        broadcastIntent.putExtra("Response", spn);
+        broadcastIntent.putExtra("Action", "BlueLinkFour");
+        activity.sendBroadcast(broadcastIntent);
     }
 
     public void status4(String str) {

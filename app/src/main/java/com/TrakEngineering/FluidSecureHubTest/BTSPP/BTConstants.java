@@ -1,5 +1,10 @@
 package com.TrakEngineering.FluidSecureHubTest.BTSPP;
 
+import com.TrakEngineering.FluidSecureHubTest.AppConstants;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 public class BTConstants {
 
     public static int SelectedLinkForPaireddevices = 0;
@@ -55,4 +60,23 @@ public class BTConstants {
     public static String BT4HOSE_ID;
     public static String BT4SITE_ID;
 
+    //date formatters for Old and New version link
+    public static SimpleDateFormat dateFormatForOldVersion = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    public static SimpleDateFormat dateFormatForNewVersion = new SimpleDateFormat("yyMMddHHmm");
+
+    public static String parseDateForNewVersion(String dateString) {
+        try {
+            return dateFormatForNewVersion.format(dateFormatForOldVersion.parse(dateString));
+        } catch (Exception e) {
+            return dateString;
+        }
+    }
+
+    public static String parseDateForOldVersion(String dateString) {
+        try {
+            return dateFormatForOldVersion.format(dateFormatForNewVersion.parse(dateString));
+        } catch (Exception e) {
+            return dateString;
+        }
+    }
 }
