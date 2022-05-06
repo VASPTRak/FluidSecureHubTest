@@ -2040,13 +2040,27 @@ public class CommonUtils {
 
                 TankDataList.add(map);
 
-
             }
             Log.i(TAG,"TankDataList"+TankDataList.size());
 
         }catch (Exception e){
             e.printStackTrace();
         }
+    }
+
+    public static String getHUBNumberByName(String hubName) {
+        String HUBNumber = "";
+        try {
+            String number = hubName.substring(hubName.length() - 8);    // "HUB12345678" to "12345678"
+            String strPattern = "^0+(?!$)";                             // Pattern to remove all leading zeros.
+            HUBNumber = number.replaceAll(strPattern, "");   // "HUB00000123" to "123"
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + " Exception occurred while getting HUB Number by Name.>>" + e.getMessage());
+            HUBNumber = hubName;
+        }
+        return HUBNumber.trim();
     }
 
 }

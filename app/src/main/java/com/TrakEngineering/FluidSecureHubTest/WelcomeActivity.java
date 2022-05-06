@@ -807,16 +807,16 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         // set User Information
         UserInfoEntity userInfoEntity = CommonUtils.getCustomerDetails(WelcomeActivity.this);
 
-        AppConstants.Title = "HUB name: " + userInfoEntity.PersonName;//+ "\nMobile : " + userInfoEntity.PhoneNumber + "\nEmail : " + userInfoEntity.PersonEmail
-        AppConstants.SiteName = "Site name: " + userInfoEntity.FluidSecureSiteName;//+ "\nMobile : " + userInfoEntity.PhoneNumber + "\nEmail : " + userInfoEntity.PersonEmail
+        AppConstants.Title = "HUB Number: " + CommonUtils.getHUBNumberByName(userInfoEntity.PersonName);//+ "\nMobile : " + userInfoEntity.PhoneNumber + "\nEmail : " + userInfoEntity.PersonEmail
+        AppConstants.SiteName = "Site Name: " + userInfoEntity.FluidSecureSiteName;//+ "\nMobile : " + userInfoEntity.PhoneNumber + "\nEmail : " + userInfoEntity.PersonEmail
         AppConstants.HubName = userInfoEntity.PersonName;
         tvTitle = (TextView) findViewById(textView);
         tv_SiteName = (TextView) findViewById(R.id.tv_SiteName);
         Fa_log = (TextView) findViewById(R.id.Fa_log);
         tvTitle.setText(AppConstants.Title);
         tv_SiteName.setText(AppConstants.SiteName);
-        AppConstants.WriteinFile(TAG + " HUB name: " + userInfoEntity.PersonName);
-        AppConstants.WriteinFile(TAG + " Site name: " + userInfoEntity.FluidSecureSiteName);
+        AppConstants.WriteinFile(TAG + " HUB Name: " + userInfoEntity.PersonName);
+        AppConstants.WriteinFile(TAG + " Site Name: " + userInfoEntity.FluidSecureSiteName);
         AppConstants.WriteinFile(TAG + " App Version: " + CommonUtils.getVersionCode(WelcomeActivity.this) + " " + AppConstants.getDeviceName() + " Android " + Build.VERSION.RELEASE + " ");
 
         wifiApManager = new WifiApManager(this);
