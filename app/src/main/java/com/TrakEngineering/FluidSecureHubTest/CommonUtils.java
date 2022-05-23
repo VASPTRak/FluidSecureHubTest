@@ -726,7 +726,11 @@ public class CommonUtils {
     }
 
     public static void SaveUserInPref(Activity activity, String userName, String userMobile, String userEmail, String IsOdoMeterRequire,
-                                      String IsDepartmentRequire, String IsPersonnelPINRequire, String IsOtherRequire, String IsHoursRequire, String OtherLabel, String TimeOut, String HubId, String IsPersonnelPINRequireForHub, String fluidSecureSiteName, String IsVehicleHasFob, String isPersonHasFob,String IsVehicleNumberRequire,int WifiChannelToUse,String HubType,String IsNonValidateVehicle,String IsNonValidatePerson,String IsPersonPinAndFOBRequire,String AllowAccessDeviceORManualEntry,String AllowAccessDeviceORManualEntryForVehicle) {
+                                      String IsDepartmentRequire, String IsPersonnelPINRequire, String IsOtherRequire, String IsHoursRequire,
+                                      String OtherLabel, String TimeOut, String HubId, String IsPersonnelPINRequireForHub, String fluidSecureSiteName,
+                                      String IsVehicleHasFob, String isPersonHasFob, String IsVehicleNumberRequire, int WifiChannelToUse, String HubType,
+                                      String IsNonValidateVehicle, String IsNonValidatePerson, String IsPersonPinAndFOBRequire, String AllowAccessDeviceORManualEntry,
+                                      String AllowAccessDeviceORManualEntryForVehicle, String CompanyName) {
 
         SharedPreferences sharedPref = activity.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPref.edit();
@@ -754,6 +758,7 @@ public class CommonUtils {
         editor.putString(AppConstants.IsNonValidatePerson,  IsNonValidatePerson);
         editor.putString(AppConstants.HubType,  HubType);
         editor.putString(AppConstants.AllowAccessDeviceORManualEntryForVehicle,  AllowAccessDeviceORManualEntryForVehicle);
+        editor.putString("CompanyName", CompanyName);
 
         editor.commit();
     }
@@ -2063,4 +2068,36 @@ public class CommonUtils {
         return HUBNumber.trim();
     }
 
+    public static String getSpareHUBNumberByName(String hubName) {
+        String HUBNumber = "";
+        try {
+            String name = hubName.substring(0, hubName.length() - 8);    // "SPARE12345678" to "SPARE"
+            String number = hubName.substring(hubName.length() - 8);    // "SPARE12345678" to "12345678"
+            String strPattern = "^0+(?!$)";                             // Pattern to remove all leading zeros.
+            HUBNumber = name + number.replaceAll(strPattern, "");   // "SPARE00000123" to "SPARE123"
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + " Exception occurred while getting SPARE HUB Number by Name.>>" + e.getMessage());
+            HUBNumber = hubName;
+        }
+        return HUBNumber.trim();
+    }
+
+    public static void sharedPrefTxtnInterrupted(Context activity, String txnId, boolean isInterrupted) {
+
+        SharedPreferences.Editor editor;
+        SharedPreferences pref = activity.getSharedPreferences(Constants.PREF_TXTN_INTERRUPTED, 0);
+        editor = pref.edit();
+
+        if (isInterrupted) {
+            //true for interrupted
+            editor.putBoolean(txnId, isInterrupted);
+        } else {
+            // false txn is normal
+            editor.remove(txnId);
+        }
+
+        editor.commit();
+    }
 }

@@ -20,6 +20,9 @@ import android.os.Handler;
 import androidx.annotation.RequiresApi;
 import android.util.Log;
 
+import com.TrakEngineering.FluidSecureHubTest.AppConstants;
+import com.TrakEngineering.FluidSecureHubTest.CommonUtils;
+
 import static android.content.Context.WIFI_SERVICE;
 
 
@@ -42,7 +45,7 @@ public class WifiApManager {
     public boolean setWifiApEnabled(WifiConfiguration wifiConfig, boolean enabled) {
         try {
 
-
+            AppConstants.IsProblemWhileEnableHotspot = false;
             if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
 
                 if (enabled) {
@@ -58,7 +61,6 @@ public class WifiApManager {
                     sendImplicitBroadcast(context,intent);
                 }
 
-
                 return false;
             } else {
                 if (enabled) { // disable WiFi in any case
@@ -69,6 +71,8 @@ public class WifiApManager {
             }
 
         } catch (Exception e) {
+            AppConstants.WriteinFile(" setWifiApEnabled Exception: " + e);
+            AppConstants.IsProblemWhileEnableHotspot = true;
             Log.e(this.getClass().toString(), "", e);
             return false;
         }

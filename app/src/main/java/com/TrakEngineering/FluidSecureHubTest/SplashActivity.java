@@ -5,6 +5,7 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.app.Dialog;
 import android.app.admin.DevicePolicyManager;
 import android.bluetooth.BluetoothAdapter;
 import android.content.ComponentName;
@@ -29,8 +30,14 @@ import android.os.Environment;
 import android.os.Handler;
 import android.provider.Settings;
 import android.util.Log;
+import android.view.View;
+import android.view.Window;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -509,7 +516,6 @@ try {
 
                 String userData = jsonObj.getString(AppConstants.RES_DATA_USER);
 
-
                 try {
 
                     JSONObject jsonObject = new JSONObject(userData);
@@ -525,6 +531,7 @@ try {
                     String DisableAllReboots = jsonObject.getString("DisableAllReboots");
                     String IsNonValidateVehicle = jsonObject.getString("IsNonValidateVehicle");
                     String IsNonValidatePerson = jsonObject.getString("IsNonValidatePerson");
+                    String CompanyName = jsonObject.getString("CompanyName");
 
                     AppConstants.AccessCode = AccessCode;
                     String IsLoginRequire = jsonObject.getString("IsLoginRequire");
@@ -650,7 +657,10 @@ try {
                     System.out.println("BluetoothCardReader--" + response);
 
                     if (IsApproved.equalsIgnoreCase("True")) {
-                        CommonUtils.SaveUserInPref(SplashActivity.this, userName, userMobile, userEmail, "", IsDepartmentRequire, IsPersonnelPINRequire, IsOtherRequire, "", OtherLabel, TimeOut, HubId, IsPersonnelPINRequireForHub, FluidSecureSiteName, IsVehicleHasFob, IsPersonHasFob, IsVehicleNumberRequire, WifiChannelToUse,HubType, IsNonValidateVehicle,IsNonValidatePerson,IsPersonPinAndFOBRequire,AllowAccessDeviceORManualEntry,AllowAccessDeviceORManualEntryForVehicle);
+                        CommonUtils.SaveUserInPref(SplashActivity.this, userName, userMobile, userEmail, "", IsDepartmentRequire, IsPersonnelPINRequire,
+                                IsOtherRequire, "", OtherLabel, TimeOut, HubId, IsPersonnelPINRequireForHub, FluidSecureSiteName, IsVehicleHasFob, IsPersonHasFob,
+                                IsVehicleNumberRequire, WifiChannelToUse, HubType, IsNonValidateVehicle, IsNonValidatePerson, IsPersonPinAndFOBRequire, AllowAccessDeviceORManualEntry,
+                                AllowAccessDeviceORManualEntryForVehicle, CompanyName);
 
                         if (IsLoginRequire.trim().equalsIgnoreCase("True")) {
                             AppConstants.Login_Email = userEmail;
@@ -672,9 +682,10 @@ try {
                                 startActivity(new Intent(SplashActivity.this, ActivitySparehub.class));
                                 finish();
                             }else if (BluetoothCardReader != null && BluetoothCardReaderMacAddress.equals("") && !BluetoothCardReader.isEmpty()) {
-                                AppConstants.colorToastBigFont(SplashActivity.this, " Provide Bluetooth MAC address in 'Items->FluidSecure Hub' on server.", Color.RED);
-                                startActivity(new Intent(SplashActivity.this, WelcomeActivity.class));//
-                                finish();
+                                //AppConstants.colorToastBigFont(SplashActivity.this, " Device reader needs its MAC to be entered in the Cloud. Please call Customer Support for assistance.", Color.RED); // Changed message as per #1828
+                                showCustomMessageForMACDilaog(SplashActivity.this, "Message", "Device reader needs its MAC to be entered in the Cloud. Please call Customer Support for assistance.");
+                                //startActivity(new Intent(SplashActivity.this, WelcomeActivity.class));//
+                                //finish();
 
                             } else {
 
@@ -707,7 +718,7 @@ try {
 
                 } else if (ResponceText.equalsIgnoreCase("notapproved")) {
 
-                    AlertDialogBox(SplashActivity.this, "Your registration has not been approved. Please contact Support.");
+                    AlertDialogBox(SplashActivity.this, "Your Registration request is not approved yet.\nIt is marked Inactive in the Company Software.\nPlease contact your companyâ€™s administrator.");
 
                 } else if (ResponceText.equalsIgnoreCase("IMEI not exists")) {
 
@@ -743,9 +754,9 @@ try {
                 MediaType TEXT = MediaType.parse("application/x-www-form-urlencoded");
 
                 OkHttpClient client = new OkHttpClient();
-                client.setConnectTimeout(4, TimeUnit.SECONDS);
-                client.setReadTimeout(4, TimeUnit.SECONDS);
-                client.setWriteTimeout(4, TimeUnit.SECONDS);
+                client.setConnectTimeout(20, TimeUnit.SECONDS);
+                client.setReadTimeout(20, TimeUnit.SECONDS);
+                client.setWriteTimeout(20, TimeUnit.SECONDS);
 
                 String imieNumber = AppConstants.getIMEI(SplashActivity.this);
                 RequestBody body = RequestBody.create(TEXT, "Authenticate:A");
@@ -1141,6 +1152,33 @@ try {
         }
 
         return file_content;
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.N)
+    public void showCustomMessageForMACDilaog(final Activity context, String title, String message) {
+
+        final Dialog dialogBus = new Dialog(context);
+        dialogBus.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialogBus.setCancelable(false);
+        dialogBus.setContentView(R.layout.custom_alertdialouge);
+        dialogBus.show();
+
+        TextView edt_message = (TextView) dialogBus.findViewById(R.id.edt_message);
+        Button btnAllow = (Button) dialogBus.findViewById(R.id.btnAllow);
+        edt_message.setText(message);
+
+        btnAllow.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                dialogBus.dismiss();
+                startActivity(new Intent(SplashActivity.this, WelcomeActivity.class));//
+                finish();
+
+                InputMethodManager imm = (InputMethodManager) context.getSystemService(INPUT_METHOD_SERVICE);
+                imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, InputMethodManager.HIDE_IMPLICIT_ONLY);
+            }
+        });
     }
 }
 

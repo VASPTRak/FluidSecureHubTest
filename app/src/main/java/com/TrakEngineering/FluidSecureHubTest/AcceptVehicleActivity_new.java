@@ -19,6 +19,8 @@ import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.Rect;
 import android.net.ConnectivityManager;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -786,7 +788,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                     //AppConstants.APDU_FOB_KEY = MagCard_vehicle;
                     AppConstants.VehicleLocal_FOB_KEY = MagCard_vehicle;
                     //if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  Local_MagCard_KEY" + AppConstants.VehicleLocal_FOB_KEY);
-                    //On LF Fob read success
+                    //On Mag Card read success
                     Istimeout_Sec = false;
                     CancelTimerScreenOut();
 
@@ -883,7 +885,8 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                  tv_fob_number.setVisibility(View.GONE);//VISIBLE
 
                  if (OfflineConstants.isOfflineAccess(AcceptVehicleActivity_new.this)) {
-                     checkVehicleOFFLINEvalidation(hmap);
+                     //checkVehicleOFFLINEvalidation(hmap);
+                     WaitAndRedirectToOFFLINEvalidation(hmap);
 
                  } else {
                      if (AppConstants.GenerateLogs)
@@ -922,7 +925,9 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                 tv_fob_number.setVisibility(View.GONE);//VISIBLE
 
                 if (OfflineConstants.isOfflineAccess(AcceptVehicleActivity_new.this)) {
-                    checkVehicleOFFLINEvalidation(hmap);
+                    //checkVehicleOFFLINEvalidation(hmap);
+                    WaitAndRedirectToOFFLINEvalidation(hmap);
+
                 } else {
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile("Please check your Offline Access");
@@ -933,6 +938,24 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
 
         } else {
             AppConstants.colorToastBigFont(getApplicationContext(), "Access Device not found", Color.RED);
+        }
+    }
+
+    public void WaitAndRedirectToOFFLINEvalidation(HashMap<String, String> hmap) {
+        try {
+            btnSave.setEnabled(false);
+            btnCancel.setEnabled(false);
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    btnSave.setEnabled(true);
+                    btnCancel.setEnabled(true);
+                    checkVehicleOFFLINEvalidation(hmap);
+                }
+            }, 3000);
+        } catch (Exception ex) {
+            CommonUtils.LogMessage(TAG, "", ex);
+            checkVehicleOFFLINEvalidation(hmap);
         }
     }
 
@@ -2963,7 +2986,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
 
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile("Vehicle Number not found in offline db");
-                    CommonUtils.AutoCloseCustomMessageDilaog(AcceptVehicleActivity_new.this, "Message", "Invalid Number");
+                    CommonUtils.AutoCloseCustomMessageDilaog(AcceptVehicleActivity_new.this, "Message", "Invalid " + ScreenNameForVehicle + " Number");
 
                 }
 

@@ -9,7 +9,6 @@ import android.content.SharedPreferences;
 import android.os.Handler;
 import android.text.SpannableStringBuilder;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.TrakEngineering.FluidSecureHubTest.AppConstants;
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkFour.SerialListenerFour;
@@ -60,7 +59,8 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
 
     }
 
-    //Link One code begins..
+    //region Link One code
+    //Link One code begins....
     @Override
     public void onSerialConnectOne() {
         BTConstants.BTLinkOneStatus = true;
@@ -143,15 +143,6 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         Log.i(TAG, "BTLink 1: Request>>" + BTConstants.CurrentCommand_LinkOne);
         Log.i(TAG, "BTLink 1: Response>>" + spn.toString());
 
-        // As per PROD
-        /*Intent broadcastIntent = new Intent();
-        broadcastIntent.setAction("BroadcastBlueLinkOneData");
-        broadcastIntent.putExtra("Request", BTConstants.CurrentCommand_LinkOne);
-        broadcastIntent.putExtra("Response", spn.toString());
-        broadcastIntent.putExtra("Action", "BlueLinkOne");
-        activity.sendBroadcast(broadcastIntent);*/
-        //==========================================
-
         if (BTConstants.CurrentCommand_LinkOne.equalsIgnoreCase("LK_COMM=info")) {
 
             if (Response.contains("records") || sb1.toString().contains("records")) {
@@ -188,9 +179,10 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         Log.i(TAG, "Status1:" + str);
         BTConstants.BTStatusStrOne = str;
     }
-
     //Link one code ends.......
+    //endregion
 
+    //region Link Two code
     //Link Two code begins..
     @Override
     public void onSerialConnectTwo() {
@@ -260,15 +252,6 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         Log.i(TAG, "BTLink 2: Request>>" + BTConstants.CurrentCommand_LinkTwo);
         Log.i(TAG, "BTLink 2: Response>>" + spn.toString());
 
-        // As per PROD
-        /*Intent broadcastIntent = new Intent();
-        broadcastIntent.setAction("BroadcastBlueLinkTwoData");
-        broadcastIntent.putExtra("Request", BTConstants.CurrentCommand_LinkTwo);
-        broadcastIntent.putExtra("Response", spn.toString());
-        broadcastIntent.putExtra("Action", "BlueLinkTwo");
-        activity.sendBroadcast(broadcastIntent);*/
-        //==========================================
-
         if (BTConstants.CurrentCommand_LinkTwo.equalsIgnoreCase("LK_COMM=info")) {
 
             if (Response.contains("records") || sb2.toString().contains("records")) {
@@ -305,7 +288,9 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         Log.i(TAG, "Status2:" + str);
         BTConstants.BTStatusStrTwo = str;
     }
+    //endregion
 
+    //region Link Three code
     //Link Three code begins..
     @Override
     public void onSerialConnectThree() {
@@ -375,15 +360,6 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         Log.i(TAG, "BTLink 3: Request>>" + BTConstants.CurrentCommand_LinkThree);
         Log.i(TAG, "BTLink 3: Response>>" + spn.toString());
 
-        // As per PROD
-        /*Intent broadcastIntent = new Intent();
-        broadcastIntent.setAction("BroadcastBlueLinkThreeData");
-        broadcastIntent.putExtra("Request", BTConstants.CurrentCommand_LinkThree);
-        broadcastIntent.putExtra("Response", spn.toString());
-        broadcastIntent.putExtra("Action", "BlueLinkThree");
-        activity.sendBroadcast(broadcastIntent);*/
-        //==========================================
-
         if (BTConstants.CurrentCommand_LinkThree.equalsIgnoreCase("LK_COMM=info")) {
 
             if (Response.contains("records") || sb3.toString().contains("records")) {
@@ -420,11 +396,10 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         Log.i(TAG, "Status3:" + str);
         BTConstants.BTStatusStrThree = str;
     }
+    //Link Three code ends...
+    //endregion
 
-    //Link Three code ends..
-
-
-
+    //region Link Four code
     //Link Four code begins..
     @Override
     public void onSerialConnectFour() {
@@ -494,15 +469,6 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         Log.i(TAG, "BTLink 4: Request>>" + BTConstants.CurrentCommand_LinkFour);
         Log.i(TAG, "BTLink 4: Response>>" + spn.toString());
 
-        // As per PROD
-        /*Intent broadcastIntent = new Intent();
-        broadcastIntent.setAction("BroadcastBlueLinkFourData");
-        broadcastIntent.putExtra("Request", BTConstants.CurrentCommand_LinkFour);
-        broadcastIntent.putExtra("Response", spn.toString());
-        broadcastIntent.putExtra("Action", "BlueLinkFour");
-        activity.sendBroadcast(broadcastIntent);*/
-        //==========================================
-
         if (BTConstants.CurrentCommand_LinkFour.equalsIgnoreCase("LK_COMM=info")){
 
             if (Response.contains("records") || sb4.toString().contains("records")) {
@@ -539,5 +505,5 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         Log.i(TAG, "Status4:" + str);
         BTConstants.BTStatusStrFour = str;
     }
-
+    //endregion
 }

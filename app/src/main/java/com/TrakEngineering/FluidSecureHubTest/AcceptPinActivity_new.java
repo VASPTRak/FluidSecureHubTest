@@ -380,8 +380,8 @@ public class AcceptPinActivity_new extends AppCompatActivity {
 
                     AppConstants.AUTH_CALL_SUCCESS = false;
                     if (AppConstants.GenerateLogs) AppConstants.WriteinFile("Offline Pin : " + pin);
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + " if(OfflineConstants.isOfflineAccess(WelcomeActivity.this)){AppConstants.NETWORK_STRENGTH = false;}");
+                    //if (AppConstants.GenerateLogs)
+                    //    AppConstants.WriteinFile(TAG + " if(OfflineConstants.isOfflineAccess(WelcomeActivity.this)){AppConstants.NETWORK_STRENGTH = false;}");
 
                     if (OfflineConstants.isOfflineAccess(AcceptPinActivity_new.this)) {
                         //offline----------
