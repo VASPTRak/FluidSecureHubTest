@@ -2100,4 +2100,91 @@ public class CommonUtils {
 
         editor.commit();
     }
+
+    public static String CheckMacAddressFromInfoCommand(String TAG, String result, String ipAddress, String selMacAddress, String MA_ConnectedDevices) {
+        String validIpAddress = "";
+        try {
+
+            String mac_address = "";
+            String AP_mac_address = "";
+            if (result.startsWith("{") && result.contains("Version")) {
+                try {
+                    JSONObject jsonObj = new JSONObject(result);
+                    String userData = jsonObj.getString("Version");
+                    JSONObject jsonObject = new JSONObject(userData);
+
+                    mac_address = jsonObject.getString("mac_address");
+
+                    if (result.contains("AP_mac_address")) {
+                        AP_mac_address = jsonObject.getString("AP_mac_address");
+                    }
+                } catch (JSONException e) {
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + "Error occurred while parsing response of info command. >> " + e.getMessage());
+                    e.printStackTrace();
+                }
+            }
+
+            if (mac_address.equalsIgnoreCase(selMacAddress) || AP_mac_address.equalsIgnoreCase(selMacAddress)) { // compare with MAC saved in cloud.
+                if (mac_address.equalsIgnoreCase(MA_ConnectedDevices)) {
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + "[STA Mac Address (from info command) ==> " + mac_address + "; Connected Device Mac Address ==> " + MA_ConnectedDevices + "]");
+                    validIpAddress = ipAddress;
+                } else {
+                    String staMacAddressFromLink = "";
+                    if (AP_mac_address.trim().isEmpty()) {
+                        staMacAddressFromLink = mac_address;
+                    } else {
+                        staMacAddressFromLink = AP_mac_address;
+                    }
+
+                    String APMacAddress = generateAPMacFromSTAMac(TAG, staMacAddressFromLink);
+                    if (APMacAddress.equalsIgnoreCase(MA_ConnectedDevices)) {
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + "\n[STA Mac Address (from info command) ==> " + staMacAddressFromLink + ";\n AP Mac Address ==> " + APMacAddress + ";\n Connected Device Mac Address ==> " + MA_ConnectedDevices + "]");
+                        validIpAddress = ipAddress;
+                    }
+                }
+            } else {
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + "\n[Selected Mac Address ==> " + selMacAddress + ";\n Connected Device Mac Address ==> " + MA_ConnectedDevices + ";\n STA Mac Address (from info command) ==> " + mac_address + ";\n AP Mac Address (from info command) ==> " + AP_mac_address + "]");
+            }
+
+        } catch (Exception e) {
+            validIpAddress = "";
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + " GetAndCheckMacAddressFromInfoCommand Exception >> " + e.getMessage());
+            Log.d("Ex", e.getMessage());
+        }
+        return validIpAddress;
+    }
+
+    public static String generateAPMacFromSTAMac(String TAG, String selMacAddress) {
+        String apMacAddress = "";
+        try {
+            if (!selMacAddress.trim().isEmpty()) {
+                String staMacAddressInitials = selMacAddress.substring(0, 2); // 8e:aa:b5:04:e2:de ==> 8e
+                String staMacAddressRestPart = selMacAddress.substring(2);  // 8e:aa:b5:04:e2:de ==> :aa:b5:04:e2:de
+
+                long value = Long.parseLong(staMacAddressInitials, 16);
+                value = value - 2;
+                String valueInHex = Long.toHexString(value);  // 8e ==> 8c
+                if (valueInHex.length() > 1) {
+                    apMacAddress = valueInHex + staMacAddressRestPart;  // 8c ==> 8c:aa:b5:04:e2:de
+                } else {
+                    apMacAddress = selMacAddress;
+                }
+            }
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + "(STA Mac Address: " + selMacAddress + "; AP Mac Address: " + apMacAddress + ")");
+
+        } catch (Exception e) {
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + " Exception occurred in generateAPMacFromSTAMac: " + e.getMessage());
+            Log.e(TAG, "Exception occurred in generateAPMacFromSTAMac: " + e.getMessage());
+            apMacAddress = selMacAddress;
+        }
+        return apMacAddress;
+    }
+
 }

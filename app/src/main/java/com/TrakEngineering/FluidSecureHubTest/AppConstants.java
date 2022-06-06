@@ -100,6 +100,12 @@ public class AppConstants {
     public static final String IsVehicleNumberRequire = "IsVehicleNumberRequire";
     public static final String WifiChannelToUse = "0";
 
+    public static boolean isRelayON_fs1 = false;
+    public static boolean isRelayON_fs2 = false;
+    public static boolean isRelayON_fs3 = false;
+    public static boolean isRelayON_fs4 = false;
+    public static boolean isRelayON_fs5 = false;
+    public static boolean isRelayON_fs6 = false;
 
     public static final String LinkConnectionIssuePref = "LinkConnectionIssuePref";
 

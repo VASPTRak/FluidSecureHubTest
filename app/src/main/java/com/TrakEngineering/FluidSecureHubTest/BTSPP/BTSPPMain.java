@@ -143,27 +143,22 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         Log.i(TAG, "BTLink 1: Request>>" + BTConstants.CurrentCommand_LinkOne);
         Log.i(TAG, "BTLink 1: Response>>" + spn.toString());
 
-        if (BTConstants.CurrentCommand_LinkOne.equalsIgnoreCase("LK_COMM=info")) {
-
-            if (Response.contains("records") || sb1.toString().contains("records")) {
-                // For new version Link response
+        //==========================================
+        if (BTConstants.CurrentCommand_LinkOne.equalsIgnoreCase("LK_COMM=info") && Response.contains("records")) {
+            BTConstants.isNewVersionLinkOne = true;
+        }
+        if (Response.contains("$$")) {
+            sendBroadcastIntentFromLinkOne(sb1.toString());
+            sb1.setLength(0);
+        } else {
+            if (BTConstants.isNewVersionLinkOne) {
                 sb1.append(Response);
-
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        Log.i(TAG, "BTLink 1: Response>>" + sb1.toString());
-                        sendBroadcastIntentFromLinkOne(sb1.toString());
-                    }
-                }, 1000);
             } else {
+                // For old version Link response
                 sb1.setLength(0);
                 sendBroadcastIntentFromLinkOne(spn.toString());
             }
-        } else {
-            sendBroadcastIntentFromLinkOne(spn.toString());
         }
-        //==========================================
     }
 
     public void sendBroadcastIntentFromLinkOne(String spn) {
@@ -252,27 +247,22 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         Log.i(TAG, "BTLink 2: Request>>" + BTConstants.CurrentCommand_LinkTwo);
         Log.i(TAG, "BTLink 2: Response>>" + spn.toString());
 
-        if (BTConstants.CurrentCommand_LinkTwo.equalsIgnoreCase("LK_COMM=info")) {
-
-            if (Response.contains("records") || sb2.toString().contains("records")) {
-                // For new version Link response
+        //==========================================
+        if (BTConstants.CurrentCommand_LinkTwo.equalsIgnoreCase("LK_COMM=info") && Response.contains("records")) {
+            BTConstants.isNewVersionLinkTwo = true;
+        }
+        if (Response.contains("$$")) {
+            sendBroadcastIntentFromLinkTwo(sb2.toString());
+            sb2.setLength(0);
+        } else {
+            if (BTConstants.isNewVersionLinkTwo) {
                 sb2.append(Response);
-
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        Log.i(TAG, "BTLink 2: Response>>" + sb2.toString());
-                        sendBroadcastIntentFromLinkTwo(sb2.toString());
-                    }
-                }, 1000);
             } else {
+                // For old version Link response
                 sb2.setLength(0);
                 sendBroadcastIntentFromLinkTwo(spn.toString());
             }
-        } else {
-            sendBroadcastIntentFromLinkTwo(spn.toString());
         }
-        //==========================================
     }
 
     public void sendBroadcastIntentFromLinkTwo(String spn) {
@@ -360,27 +350,22 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         Log.i(TAG, "BTLink 3: Request>>" + BTConstants.CurrentCommand_LinkThree);
         Log.i(TAG, "BTLink 3: Response>>" + spn.toString());
 
-        if (BTConstants.CurrentCommand_LinkThree.equalsIgnoreCase("LK_COMM=info")) {
-
-            if (Response.contains("records") || sb3.toString().contains("records")) {
-                // For new version Link response
+        //==========================================
+        if (BTConstants.CurrentCommand_LinkThree.equalsIgnoreCase("LK_COMM=info") && Response.contains("records")) {
+            BTConstants.isNewVersionLinkThree = true;
+        }
+        if (Response.contains("$$")) {
+            sendBroadcastIntentFromLinkThree(sb3.toString());
+            sb3.setLength(0);
+        } else {
+            if (BTConstants.isNewVersionLinkThree) {
                 sb3.append(Response);
-
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        Log.i(TAG, "BTLink 3: Response>>" + sb3.toString());
-                        sendBroadcastIntentFromLinkThree(sb3.toString());
-                    }
-                }, 1000);
             } else {
+                // For old version Link response
                 sb3.setLength(0);
                 sendBroadcastIntentFromLinkThree(spn.toString());
             }
-        }else{
-            sendBroadcastIntentFromLinkThree(spn.toString());
         }
-        //==========================================
     }
 
     public void sendBroadcastIntentFromLinkThree(String spn) {
@@ -469,27 +454,22 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         Log.i(TAG, "BTLink 4: Request>>" + BTConstants.CurrentCommand_LinkFour);
         Log.i(TAG, "BTLink 4: Response>>" + spn.toString());
 
-        if (BTConstants.CurrentCommand_LinkFour.equalsIgnoreCase("LK_COMM=info")){
-
-            if (Response.contains("records") || sb4.toString().contains("records")) {
-                // For new version Link response
+        //==========================================
+        if (BTConstants.CurrentCommand_LinkFour.equalsIgnoreCase("LK_COMM=info") && Response.contains("records")) {
+            BTConstants.isNewVersionLinkFour = true;
+        }
+        if (Response.contains("$$")) {
+            sendBroadcastIntentFromLinkFour(sb4.toString());
+            sb4.setLength(0);
+        } else {
+            if (BTConstants.isNewVersionLinkFour) {
                 sb4.append(Response);
-
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        Log.i(TAG, "BTLink 4: Response>>" + sb4.toString());
-                        sendBroadcastIntentFromLinkFour(sb4.toString());
-                    }
-                }, 1000);
             } else {
+                // For old version Link response
                 sb4.setLength(0);
                 sendBroadcastIntentFromLinkFour(spn.toString());
             }
-        } else {
-            sendBroadcastIntentFromLinkFour(spn.toString());
         }
-        //==========================================
     }
 
     public void sendBroadcastIntentFromLinkFour(String spn) {

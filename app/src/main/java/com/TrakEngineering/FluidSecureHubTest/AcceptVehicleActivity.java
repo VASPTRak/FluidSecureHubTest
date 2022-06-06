@@ -442,6 +442,9 @@ public class AcceptVehicleActivity extends AppCompatActivity {
                         String OdometerReasonabilityConditions = jsonObject.getString("OdometerReasonabilityConditions");
                         String CheckOdometerReasonable = jsonObject.getString("CheckOdometerReasonable");
                         String LastTransactionFuelQuantity = jsonObject.getString("LastTransactionFuelQuantity").replace(",", ".");
+                        if (LastTransactionFuelQuantity.trim().isEmpty() || LastTransactionFuelQuantity.equalsIgnoreCase("null")) {
+                            LastTransactionFuelQuantity = "0";
+                        }
                         System.out.println("LastTransactionFuelQuantity: " + LastTransactionFuelQuantity);
 
 
@@ -603,6 +606,9 @@ public class AcceptVehicleActivity extends AppCompatActivity {
                     String OdometerReasonabilityConditions = jsonObject.getString("OdometerReasonabilityConditions");
                     String CheckOdometerReasonable = jsonObject.getString("CheckOdometerReasonable");
                     String LastTransactionFuelQuantity = jsonObject.getString("LastTransactionFuelQuantity").replace(",", ".");
+                    if (LastTransactionFuelQuantity.trim().isEmpty() || LastTransactionFuelQuantity.equalsIgnoreCase("null")) {
+                        LastTransactionFuelQuantity = "0";
+                    }
                     System.out.println("LastTransactionFuelQuantity: " + LastTransactionFuelQuantity);
 
                     SharedPreferences sharedPref = AcceptVehicleActivity.this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);

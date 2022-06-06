@@ -36,6 +36,11 @@ public class BTConstants {
     public static String namecommand = "LK_COMM=name:";
     public static String linkUpgrade_cmd = "upgrade:";
 
+    public static boolean isNewVersionLinkOne = false;
+    public static boolean isNewVersionLinkTwo = false;
+    public static boolean isNewVersionLinkThree = false;
+    public static boolean isNewVersionLinkFour = false;
+
     //Rename BT link one
     public static boolean BT1NeedRename;
     public static String BT1REPLACEBLE_WIFI_NAME;
@@ -62,7 +67,7 @@ public class BTConstants {
 
     //date formatters for Old and New version link
     public static SimpleDateFormat dateFormatForOldVersion = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    public static SimpleDateFormat dateFormatForNewVersion = new SimpleDateFormat("yyMMddHHmm");
+    public static SimpleDateFormat dateFormatForNewVersion = new SimpleDateFormat("yyMMddHHmmss");
 
     public static String parseDateForNewVersion(String dateString) {
         try {

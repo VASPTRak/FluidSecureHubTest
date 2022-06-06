@@ -17,6 +17,7 @@ import android.graphics.Rect;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.text.Html;
 import android.text.InputType;
 import android.util.DisplayMetrics;
@@ -63,7 +64,7 @@ public class AcceptVehicleActivity_FOB extends AppCompatActivity {
     private String HFDeviceAddress;
     private String FobKey = "";
     private String MagCard_FobKey = "";
-    private String Barcode_val = "",ScreenNameForVehicle = "Vehicle",KeyboardType = "2";
+    private String Barcode_val = "",ScreenNameForVehicle = "Vehicle", KeyboardType = "2";
     private static Timer t;
     List<Timer> Timerlist = new ArrayList<Timer>();
     Button btnScanForBarcode,btnSave,btnCancel,btnAccessDevice;
@@ -150,7 +151,7 @@ public class AcceptVehicleActivity_FOB extends AppCompatActivity {
                     AppConstants.AddBarcode_val = Barcode_val;
 
                     if (cd.isConnectingToInternet()){
-                        new CheckPersonFobOnly(objEntityClass).execute();
+                        new CheckVehicleFobOnly(objEntityClass).execute();
                     }else{
                         CommonUtils.showNoInternetDialog(AcceptVehicleActivity_FOB.this);
                     }
@@ -163,6 +164,7 @@ public class AcceptVehicleActivity_FOB extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent i = new Intent(AcceptVehicleActivity_FOB.this, FOBReaderActivity.class);
+                i.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 startActivity(i);
             }
         });
@@ -233,6 +235,7 @@ public class AcceptVehicleActivity_FOB extends AppCompatActivity {
     public void onBackPressed() {
         super.onBackPressed();
         Intent i = new Intent(AcceptVehicleActivity_FOB.this, FOBReaderActivity.class);
+        i.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         startActivity(i);
     }
 
@@ -416,8 +419,6 @@ public class AcceptVehicleActivity_FOB extends AppCompatActivity {
                         }
                         FobKey = last_val.replaceAll("\\s", "");
 
-
-
                     } else {
 
                         FobKey = Str_data.replaceAll("\\s", "");
@@ -428,8 +429,23 @@ public class AcceptVehicleActivity_FOB extends AppCompatActivity {
                         AppConstants.VehicleLocal_FOB_KEY = FobKey;
                         Log.i(TAG, "Vehi FOB:" +  AppConstants.VehicleLocal_FOB_KEY);
                         //if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  Local_HF_KEY" + AppConstants.VehicleLocal_FOB_KEY);
-                        tv_Display_msg.setText("Access device read");
-                        SuccessUi();
+                        tv_Display_msg.setText(R.string.AccessDeviceReadSuccess);
+                        //SuccessUi(); //Commented as per #1818 > #5
+
+                        // Recognize Vehicle OR Personnel Access Device
+                        VehicleRequireEntity objEntityClass = new VehicleRequireEntity();
+                        objEntityClass.IMEIUDID = AppConstants.getIMEI(AcceptVehicleActivity_FOB.this);
+                        objEntityClass.FOBNumber = FobKey;
+                        objEntityClass.MagneticCardNumber = "";
+                        objEntityClass.Barcode = "";
+
+                        if (cd.isConnectingToInternet()){
+                            new RecognizeVehicleORPersonnelAccessDevice(objEntityClass).execute();
+                        }else{
+                            AppConstants.WriteinFile(TAG + "No Internet please check.");
+                            CommonUtils.showNoInternetDialog(AcceptVehicleActivity_FOB.this);
+                        }
+                        ///==================================================
                     }
 
                 } catch (Exception ex) {
@@ -469,8 +485,23 @@ public class AcceptVehicleActivity_FOB extends AppCompatActivity {
                     AppConstants.VehicleLocal_FOB_KEY = MagCard_FobKey;
                     //if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  Local_MagCard_KEY" + AppConstants.VehicleLocal_FOB_KEY);
                     //On Magnatic Fob read success
-                    tv_Display_msg.setText("Access device read");
-                    SuccessUi();
+                    tv_Display_msg.setText(R.string.AccessDeviceReadSuccess);
+                    //SuccessUi(); //Commented as per #1818 > #5
+
+                    // Recognize Vehicle OR Personnel Access Device
+                    VehicleRequireEntity objEntityClass = new VehicleRequireEntity();
+                    objEntityClass.IMEIUDID = AppConstants.getIMEI(AcceptVehicleActivity_FOB.this);
+                    objEntityClass.FOBNumber = "";
+                    objEntityClass.MagneticCardNumber = MagCard_FobKey;
+                    objEntityClass.Barcode = "";
+
+                    if (cd.isConnectingToInternet()){
+                        new RecognizeVehicleORPersonnelAccessDevice(objEntityClass).execute();
+                    }else{
+                        AppConstants.WriteinFile(TAG + "No Internet please check.");
+                        CommonUtils.showNoInternetDialog(AcceptVehicleActivity_FOB.this);
+                    }
+                    ///==================================================
 
                 } catch (Exception ex) {
                     MagCard_FobKey = "";
@@ -519,10 +550,14 @@ public class AcceptVehicleActivity_FOB extends AppCompatActivity {
         editVehicleNumber = (EditText) findViewById(R.id.editVehicleNumber);
         tv_Display_msg = (TextView) findViewById(R.id.tv_Display_msg);
         tv_vehicle_no_below = (TextView) findViewById(R.id.tv_vehicle_no_below);
-        btnAccessDevice.setText("Please Hold "+ScreenNameForVehicle+" FOB to reader");
         tv_return = (TextView) findViewById(R.id.tv_return);
         tv_swipekeybord = (TextView) findViewById(R.id.tv_swipekeybord);
         footer_keybord = (RelativeLayout) findViewById(R.id.footer_keybord);
+
+        String btnAccessDeviceText = getResources().getString(R.string.BtnReadAccessDeviceV);
+        btnAccessDeviceText = btnAccessDeviceText.replaceAll("Vehicle", ScreenNameForVehicle);
+        btnAccessDevice.setText(btnAccessDeviceText);
+
     }
 
     private void SuccessUi(){
@@ -531,7 +566,7 @@ public class AcceptVehicleActivity_FOB extends AppCompatActivity {
         editVehicleNumber.setVisibility(View.VISIBLE);
         btnSave.setVisibility(View.VISIBLE);
         btnAccessDevice.setVisibility(View.INVISIBLE);
-        tv_vehicle_no_below.setText("Enter "+ScreenNameForVehicle);
+        tv_vehicle_no_below.setText("Enter " + ScreenNameForVehicle + " ID");
         editVehicleNumber.setFocusable(true);
 
         InputMethodManager inputMethodManager = (InputMethodManager) editVehicleNumber.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -558,7 +593,7 @@ public class AcceptVehicleActivity_FOB extends AppCompatActivity {
     private boolean ValidateData(){
 
         if (editVehicleNumber.getText().toString().isEmpty()){
-            editVehicleNumber.setError("Enter vehicle number");
+            editVehicleNumber.setError("Enter " + ScreenNameForVehicle + " ID");
             return false;
         }else if (FobKey.isEmpty() && MagCard_FobKey.isEmpty() && Barcode_val.isEmpty()){
             Toast.makeText(this, "Access device value empty", Toast.LENGTH_SHORT).show();
@@ -600,7 +635,7 @@ public class AcceptVehicleActivity_FOB extends AppCompatActivity {
         }
     }
 
-    public class CheckPersonFobOnly extends AsyncTask<Void, Void, String> {
+    public class CheckVehicleFobOnly extends AsyncTask<Void, Void, String> {
 
         public String response = null;
         //VehicleRequireEntity vrentity = null;
@@ -608,7 +643,7 @@ public class AcceptVehicleActivity_FOB extends AppCompatActivity {
         //SW: I will use this once server does
         VehicleRequireEntity vfentity = null;
 
-        public CheckPersonFobOnly(VehicleRequireEntity vfentity) {
+        public CheckVehicleFobOnly(VehicleRequireEntity vfentity) {
             this.vfentity = vfentity;
         }
 
@@ -640,7 +675,7 @@ public class AcceptVehicleActivity_FOB extends AppCompatActivity {
 
             } catch (Exception ex) {
                 ex.printStackTrace();
-                if (AppConstants.GenerateLogs) AppConstants.WriteinFile(TAG + " CheckPersonFobOnly Exception: "+ex.getMessage());
+                if (AppConstants.GenerateLogs) AppConstants.WriteinFile(TAG + " CheckVehicleFobOnly Exception: "+ex.getMessage());
             }
             return response;
         }
@@ -659,16 +694,18 @@ public class AcceptVehicleActivity_FOB extends AppCompatActivity {
 
                     String ResponceMessage = jsonObject.getString("ResponceMessage");
                     String ResponceText = jsonObject.getString("ResponceText");
+
                     System.out.println("ResponceMessage.." + ResponceMessage);
 
                     InitScreen();
-                    if (AppConstants.GenerateLogs) AppConstants.WriteinFile(TAG + " CheckPersonFobOnly Response: "+ResponceText);
                     if (ResponceMessage.equalsIgnoreCase("success")) {
-                        CommonUtils.showCustomMessageDilaog(AcceptVehicleActivity_FOB.this, "Message", ResponceText);
+                        //CommonUtils.showCustomMessageDilaog(AcceptVehicleActivity_FOB.this, "Message", ResponceText);
+                        CommonUtils.AutoCloseCustomMessageDilaog(AcceptVehicleActivity_FOB.this, "Message", ResponceText);
                     } else {
-                        //AppConstants.colorToastBigFont(getApplicationContext(),ResponceText, Color.RED);
-                        //Toast.makeText(AcceptVehicleActivity_FOB.this, "failed!", Toast.LENGTH_SHORT).show();
-                        String IsVehicleNumberHavingAccessDevice = jsonObject.getString("IsVehicleNumberHavingAccessDevice");
+                        String IsVehicleNumberHavingAccessDevice = "n";
+                        if(jsonObject.has("IsVehicleNumberHavingAccessDevice")) {
+                            IsVehicleNumberHavingAccessDevice = jsonObject.getString("IsVehicleNumberHavingAccessDevice");
+                        }
                         if (IsVehicleNumberHavingAccessDevice.equalsIgnoreCase("y")){
                             String msg = "The "+ScreenNameForVehicle+" you have entered already has an Access Device assigned. Would you like to remove the existing device we have on file and use this as a replacement.";
                             CustomMessage2Input(AcceptVehicleActivity_FOB.this, "Message", msg);
@@ -689,7 +726,6 @@ public class AcceptVehicleActivity_FOB extends AppCompatActivity {
 
                 } else {
                     InitScreen();
-                    //CommonUtils.showNoInternetDialog(AcceptVehicleActivity_FOB.this);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -728,7 +764,7 @@ public class AcceptVehicleActivity_FOB extends AppCompatActivity {
         TextView edt_message = (TextView) dialogBus.findViewById(R.id.edt_message);
         Button btnYes = (Button) dialogBus.findViewById(R.id.btnYes);
         Button btnNo = (Button) dialogBus.findViewById(R.id.btnNo);
-        edt_message.setText(Html.fromHtml(newString));
+        edt_message.setText(Html.fromHtml(newString, Html.FROM_HTML_MODE_LEGACY));
 
         btnYes.setOnClickListener(new View.OnClickListener() {
 
@@ -745,7 +781,7 @@ public class AcceptVehicleActivity_FOB extends AppCompatActivity {
                 objEntityClass.ReplaceAccessDevice = "y";
 
                 if (cd.isConnectingToInternet()){
-                    new CheckPersonFobOnly(objEntityClass).execute();
+                    new CheckVehicleFobOnly(objEntityClass).execute();
                 }else{
                     CommonUtils.showNoInternetDialog(AcceptVehicleActivity_FOB.this);
                 }
@@ -785,4 +821,103 @@ public class AcceptVehicleActivity_FOB extends AppCompatActivity {
 
 
     }
+
+    public class RecognizeVehicleORPersonnelAccessDevice extends AsyncTask<Void, Void, String> {
+
+        public String response = null;
+        //VehicleRequireEntity vrentity = null;
+
+        //SW: I will use this once server does
+        VehicleRequireEntity vfentity = null;
+
+        public RecognizeVehicleORPersonnelAccessDevice(VehicleRequireEntity vfentity) {
+            this.vfentity = vfentity;
+        }
+
+        ProgressDialog pd;
+
+        @Override
+        protected void onPreExecute() {
+            pd = new ProgressDialog(AcceptVehicleActivity_FOB.this);
+            pd.setMessage("Please wait...");
+            pd.show();
+
+        }
+
+        @Override
+        protected String doInBackground(Void... voids) {
+
+            try {
+                ServerHandler serverHandler = new ServerHandler();
+
+                Gson gson = new Gson();
+                String jsonData = gson.toJson(vfentity);
+                String userEmail = CommonUtils.getCustomerDetails(AcceptVehicleActivity_FOB.this).PersonEmail;
+
+                System.out.println("jsonDatajsonDatajsonData" + jsonData);
+                //----------------------------------------------------------------------------------
+                String authString = "Basic " + AppConstants.convertStingToBase64(vfentity.IMEIUDID + ":" + userEmail + ":" + "RecognizeVehicleORPersonnelAccessDevice" + AppConstants.LANG_PARAM);
+                response = serverHandler.PostTextData(AcceptVehicleActivity_FOB.this, AppConstants.webURL, jsonData, authString);
+                //----------------------------------------------------------------------------------
+
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                AppConstants.WriteinFile(TAG + " RecognizeVehicleORPersonnelAccessDevice Exception: "+ex.getMessage());
+            }
+            return response;
+        }
+
+        @Override
+        protected void onPostExecute(String serverRes) {
+            pd.dismiss();
+            System.out.println("onPostExecute-" + serverRes);
+
+            try {
+
+                if (serverRes != null) {
+
+                    JSONObject jsonObject = new JSONObject(serverRes);
+
+                    String ResponceMessage = jsonObject.getString("ResponceMessage");
+                    String ResponceText = jsonObject.getString("ResponceText");
+                    String VehicleNumber = jsonObject.getString("VehicleNumber");
+                    String PersonPin = jsonObject.getString("PersonPin");
+                    System.out.println("ResponceMessage.." + ResponceMessage);
+
+                    //InitScreen();
+                    AppConstants.WriteinFile(TAG + " RecognizeVehicleORPersonnelAccessDevice Response: "+ResponceText);
+                    if (ResponceMessage.equalsIgnoreCase("success")) {
+                        if (VehicleNumber.trim().isEmpty() && PersonPin.trim().isEmpty()) {
+                            SuccessUi();
+                        }
+                        else if (!VehicleNumber.trim().isEmpty() && PersonPin.trim().isEmpty()) {
+                            String message = String.format(getResources().getString(R.string.AccessDeviceAssignedToVehicle), VehicleNumber.trim());;
+                            message = message.replaceFirst("Vehicle", ScreenNameForVehicle);
+                            InitScreen();
+                            CommonUtils.showCustomMessageDilaog(AcceptVehicleActivity_FOB.this, "Message", message);
+                        } else {
+                            InitScreen();
+                            CommonUtils.showCustomMessageDilaog(AcceptVehicleActivity_FOB.this, "Message", ResponceText);
+                        }
+                    } else {
+                        CommonUtils.showCustomMessageDilaog(AcceptVehicleActivity_FOB.this, "Message", ResponceText);
+
+                        new Handler().postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                InitScreen();
+                            }
+                        }, 2000);
+
+                    }
+
+                } else {
+                    InitScreen();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
 }

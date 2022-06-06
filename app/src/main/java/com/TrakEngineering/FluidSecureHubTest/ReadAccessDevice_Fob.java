@@ -63,7 +63,7 @@ public class ReadAccessDevice_Fob extends AppCompatActivity {
     private String HFDeviceAddress;
     private String FobKey = "";
     private String MagCard_FobKey = "";
-    private String Barcode_val = "",ScreenNameForVehicle = "Vehicle",KeyboardType = "2";
+    private String Barcode_val = "",ScreenNameForVehicle = "Vehicle", KeyboardType = "2";
     private static Timer t;
     List<Timer> Timerlist = new ArrayList<Timer>();
     Button btnScanForBarcode,btnSave,btnCancel,btnAccessDevice;
@@ -143,6 +143,7 @@ public class ReadAccessDevice_Fob extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent i = new Intent(ReadAccessDevice_Fob.this, FOBReaderActivity.class);
+                i.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 startActivity(i);
             }
         });
@@ -213,6 +214,7 @@ public class ReadAccessDevice_Fob extends AppCompatActivity {
     public void onBackPressed() {
         super.onBackPressed();
         Intent i = new Intent(ReadAccessDevice_Fob.this, FOBReaderActivity.class);
+        i.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         startActivity(i);
     }
 
@@ -408,7 +410,7 @@ public class ReadAccessDevice_Fob extends AppCompatActivity {
                         AppConstants.VehicleLocal_FOB_KEY = FobKey;
                         Log.i(TAG, "Vehi FOB:" +  AppConstants.VehicleLocal_FOB_KEY);
                         //if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  Local_HF_KEY" + AppConstants.VehicleLocal_FOB_KEY);
-                        tv_Display_msg.setText("Access device read");
+                        tv_Display_msg.setText(R.string.AccessDeviceReadSuccess);
                         SuccessUi();
                     }
 
@@ -449,7 +451,7 @@ public class ReadAccessDevice_Fob extends AppCompatActivity {
                     AppConstants.VehicleLocal_FOB_KEY = MagCard_FobKey;
                     //if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  Local_MagCard_KEY" + AppConstants.VehicleLocal_FOB_KEY);
                     //On Magnatic Fob read success
-                    tv_Display_msg.setText("Access device read");
+                    tv_Display_msg.setText(R.string.AccessDeviceReadSuccess);
                     SuccessUi();
 
                 } catch (Exception ex) {
@@ -499,7 +501,7 @@ public class ReadAccessDevice_Fob extends AppCompatActivity {
         editVehicleNumber = (EditText) findViewById(R.id.editVehicleNumber);
         tv_Display_msg = (TextView) findViewById(R.id.tv_Display_msg);
         tv_vehicle_no_below = (TextView) findViewById(R.id.tv_vehicle_no_below);
-        btnAccessDevice.setText("Please Hold Access Device to Reader");
+        btnAccessDevice.setText("Present the access device to the reader");
         tv_return = (TextView) findViewById(R.id.tv_return);
         tv_swipekeybord = (TextView) findViewById(R.id.tv_swipekeybord);
         footer_keybord = (RelativeLayout) findViewById(R.id.footer_keybord);
@@ -511,7 +513,7 @@ public class ReadAccessDevice_Fob extends AppCompatActivity {
         // editVehicleNumber.setVisibility(View.VISIBLE);
         // btnSave.setVisibility(View.VISIBLE);
         btnAccessDevice.setVisibility(View.INVISIBLE);
-        tv_vehicle_no_below.setText("Enter "+ScreenNameForVehicle);
+        tv_vehicle_no_below.setText("Enter " + ScreenNameForVehicle + " ID");
         editVehicleNumber.setFocusable(true);
 
         InputMethodManager inputMethodManager = (InputMethodManager) editVehicleNumber.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -580,7 +582,7 @@ public class ReadAccessDevice_Fob extends AppCompatActivity {
         }
     }
 
-    public class CheckPersonFobOnly extends AsyncTask<Void, Void, String> {
+    public class RecognizeVehicleORPersonnelAccessDevice extends AsyncTask<Void, Void, String> {
 
         public String response = null;
         //VehicleRequireEntity vrentity = null;
@@ -588,7 +590,7 @@ public class ReadAccessDevice_Fob extends AppCompatActivity {
         //SW: I will use this once server does
         VehicleRequireEntity vfentity = null;
 
-        public CheckPersonFobOnly(VehicleRequireEntity vfentity) {
+        public RecognizeVehicleORPersonnelAccessDevice(VehicleRequireEntity vfentity) {
             this.vfentity = vfentity;
         }
 
@@ -620,7 +622,7 @@ public class ReadAccessDevice_Fob extends AppCompatActivity {
 
             } catch (Exception ex) {
                 ex.printStackTrace();
-                AppConstants.WriteinFile(TAG + " CheckPersonFobOnly Exception: "+ex.getMessage());
+                AppConstants.WriteinFile(TAG + " RecognizeVehicleORPersonnelAccessDevice Exception: "+ex.getMessage());
             }
             return response;
         }
@@ -642,8 +644,9 @@ public class ReadAccessDevice_Fob extends AppCompatActivity {
                     System.out.println("ResponceMessage.." + ResponceMessage);
 
                     InitScreen();
-                    AppConstants.WriteinFile(TAG + " CheckPersonFobOnly Response: "+ResponceText);
+                    AppConstants.WriteinFile(TAG + " RecognizeVehicleORPersonnelAccessDevice Response: "+ResponceText);
                     if (ResponceMessage.equalsIgnoreCase("success")) {
+                        ResponceText = ResponceText.replaceFirst("vehicle", ScreenNameForVehicle);
                         CommonUtils.showCustomMessageDilaog(ReadAccessDevice_Fob.this, "Message", ResponceText);
                     } else {
 
@@ -716,7 +719,7 @@ public class ReadAccessDevice_Fob extends AppCompatActivity {
                 objEntityClass.ReplaceAccessDevice = "y";
 
                 if (cd.isConnectingToInternet()){
-                    new ReadAccessDevice_Fob.CheckPersonFobOnly(objEntityClass).execute();
+                    new ReadAccessDevice_Fob.RecognizeVehicleORPersonnelAccessDevice(objEntityClass).execute();
                 }else{
                     CommonUtils.showNoInternetDialog(ReadAccessDevice_Fob.this);
                 }
@@ -769,7 +772,7 @@ public class ReadAccessDevice_Fob extends AppCompatActivity {
             // objEntityClass.ReplaceAccessDevice = "n";
 
             if (cd.isConnectingToInternet()){
-                new ReadAccessDevice_Fob.CheckPersonFobOnly(objEntityClass).execute();
+                new ReadAccessDevice_Fob.RecognizeVehicleORPersonnelAccessDevice(objEntityClass).execute();
             }else{
                 AppConstants.WriteinFile(TAG + "No Internet please check.");
                 CommonUtils.showNoInternetDialog(ReadAccessDevice_Fob.this);

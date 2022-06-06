@@ -1287,6 +1287,9 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                         String PreviousHours = jsonObject.getString("PreviousHours");
                         String HoursLimit = jsonObject.getString("HoursLimit");
                         String LastTransactionFuelQuantity = jsonObject.getString("LastTransactionFuelQuantity").replace(",", ".");
+                        if (LastTransactionFuelQuantity.trim().isEmpty() || LastTransactionFuelQuantity.equalsIgnoreCase("null")) {
+                            LastTransactionFuelQuantity = "0";
+                        }
                         System.out.println("LastTransactionFuelQuantity: " + LastTransactionFuelQuantity);
 
                         editVehicleNumber.setText(VehicleNumber);
@@ -1807,6 +1810,9 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                         String PreviousHours = jsonObject.getString("PreviousHours");
                         String HoursLimit = jsonObject.getString("HoursLimit");
                         String LastTransactionFuelQuantity = jsonObject.getString("LastTransactionFuelQuantity").replace(",", ".");
+                        if (LastTransactionFuelQuantity.trim().isEmpty() || LastTransactionFuelQuantity.equalsIgnoreCase("null")) {
+                            LastTransactionFuelQuantity = "0";
+                        }
                         System.out.println("LastTransactionFuelQuantity: " + LastTransactionFuelQuantity);
 
                         SharedPreferences sharedPref = AcceptVehicleActivity_new.this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);

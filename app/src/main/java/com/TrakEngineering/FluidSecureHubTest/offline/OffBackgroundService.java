@@ -887,8 +887,8 @@ public class OffBackgroundService extends Service {
 
     public boolean checkOfflineDataTime(int CurrentHour, int CurrentMinutes, int HourOfDay, int MinuteOfHour) {
 
-        Date currentDate = parseDate(CurrentHour + ":" + CurrentMinutes);
-        Date savedOfflineDate = parseDate(HourOfDay + ":" + MinuteOfHour);
+        Date currentDate = parseTime(CurrentHour + ":" + CurrentMinutes);
+        Date savedOfflineDate = parseTime(HourOfDay + ":" + MinuteOfHour);
         if (savedOfflineDate.before(currentDate)) { // checking offline access time is less than current time or not.
             return true;
         } else {
@@ -899,11 +899,11 @@ public class OffBackgroundService extends Service {
         }
     }
 
-    private Date parseDate(String date) {
+    private Date parseTime(String date) {
 
         try {
             return timeParser.parse(date);
-        } catch (java.text.ParseException e) {
+        } catch (Exception e) {
             return new Date(0);
         }
     }

@@ -67,7 +67,7 @@ public class BackgroundService_BTFour extends Service {
     List<Timer> TimerList_ReadpulseBT4 = new ArrayList<Timer>();
     DBController controller = new DBController(BackgroundService_BTFour.this);
     Boolean IsThisBTTrnx;
-    Boolean isBroadcastReceiverRegistered = false, isNewVersionLinkFour = false;
+    boolean isBroadcastReceiverRegistered = false;
     String OffLastTXNid = "0";
     ConnectionDetector cd = new ConnectionDetector(BackgroundService_BTFour.this);
     OffDBController offlineController = new OffDBController(BackgroundService_BTFour.this);
@@ -137,7 +137,9 @@ public class BackgroundService_BTFour extends Service {
                     AppConstants.WriteinFile(TAG + " BTLink 4: Registering Receiver.");
                 registerReceiver(broadcastBlueLinkFourData, intentFilter);
                 isBroadcastReceiverRegistered = true;
+                AppConstants.WriteinFile(TAG + " BTLink 4: Registered successfully. (" + broadcastBlueLinkFourData + ")");
 
+                AppConstants.isRelayON_fs4 = false;
                 LinkName = CommonUtils.getlinkName(3);
                 if (LinkCommunicationType.equalsIgnoreCase("BT")) {
                     IsThisBTTrnx = true;
@@ -194,16 +196,22 @@ public class BackgroundService_BTFour extends Service {
                         Log.i(TAG, "BTLink 4: InfoCommand Response success 1:>>" + Response);
 
                         if (!TransactionId.isEmpty()) {
-                            if (Response.contains("records")) {
+                            if (Response.contains("records") && Response.contains("mac_address")) {
                                 if (AppConstants.GenerateLogs)
-                                    AppConstants.WriteinFile(TAG + " BTLink 4: InfoCommand Response success 1");
-                                isNewVersionLinkFour = true;
+                                    AppConstants.WriteinFile(TAG + " BTLink 4: InfoCommand Response success 1.");
+                                BTConstants.isNewVersionLinkFour = true;
                                 parseInfoCommandResponseForLast20txtn(Response);
+                                Response = "";
                             } else {
                                 if (AppConstants.GenerateLogs)
                                     AppConstants.WriteinFile(TAG + " BTLink 4: InfoCommand Response success 1:>>" + Response);
                             }
-                            transactionIdCommand(TransactionId);
+                            new Handler().postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    transactionIdCommand(TransactionId);
+                                }
+                            }, 1000);
                         } else {
                             Log.i(TAG, "BTLink 4: Please check TransactionId empty>>" + TransactionId);
                             if (AppConstants.GenerateLogs)
@@ -225,16 +233,22 @@ public class BackgroundService_BTFour extends Service {
                         Log.i(TAG, "BTLink 4: InfoCommand Response success 2:>>" + Response);
 
                         if (!TransactionId.isEmpty()) {
-                            if (Response.contains("records")) {
+                            if (Response.contains("records") && Response.contains("mac_address")) {
                                 if (AppConstants.GenerateLogs)
-                                    AppConstants.WriteinFile(TAG + " BTLink 4: InfoCommand Response success 2");
-                                isNewVersionLinkFour = true;
+                                    AppConstants.WriteinFile(TAG + " BTLink 4: InfoCommand Response success 2.");
+                                BTConstants.isNewVersionLinkFour = true;
                                 parseInfoCommandResponseForLast20txtn(Response);
+                                Response = "";
                             } else {
                                 if (AppConstants.GenerateLogs)
                                     AppConstants.WriteinFile(TAG + " BTLink 4: InfoCommand Response success 2:>>" + Response);
                             }
-                            transactionIdCommand(TransactionId);
+                            new Handler().postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    transactionIdCommand(TransactionId);
+                                }
+                            }, 1000);
                         } else {
                             Log.i(TAG, "BTLink 4: Please check TransactionId empty>>" + TransactionId);
                             if (AppConstants.GenerateLogs)
@@ -269,7 +283,7 @@ public class BackgroundService_BTFour extends Service {
             Response = "";
             String transaction_id_cmd = BTConstants.transaction_id_cmd;
 
-            if (isNewVersionLinkFour) {
+            if (BTConstants.isNewVersionLinkFour) {
                 transaction_id_cmd = transaction_id_cmd.replace("txtnid:", ""); // For New version LK_COMM=T:XXXXX;D:XXXXX;V:XXXXXXXX;
                 TransactionDateWithFormat = BTConstants.parseDateForNewVersion(TransactionDateWithFormat);
             }
@@ -465,18 +479,19 @@ public class BackgroundService_BTFour extends Service {
         try {
             clearEditTextFields();
             try {
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + " BTLink 4: Receiver is Registered >> " + isBroadcastReceiverRegistered);
                 if (isBroadcastReceiverRegistered) {
                     unregisterReceiver(broadcastBlueLinkFourData);
                     isBroadcastReceiverRegistered = false;
                     if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + " BTLink 4: Receiver unregistered.");
+                        AppConstants.WriteinFile(TAG + " BTLink 4: Receiver unregistered successfully. (" + broadcastBlueLinkFourData + ")");
+                } else {
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + " BTLink 4: Receiver is not registered. (" + broadcastBlueLinkFourData + ")");
                 }
             } catch (Exception e) {
                 e.printStackTrace();
                 if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + " BTLink 4: Exception occurred while unregistering receiver:>>" + e.getMessage());
+                    AppConstants.WriteinFile(TAG + " BTLink 4: Exception occurred while unregistering receiver:>>" + e.getMessage() + " (" + broadcastBlueLinkFourData + ")");
             }
             stopTxtprocess = true;
             Constants.FS_4STATUS = "FREE";
@@ -592,7 +607,7 @@ public class BackgroundService_BTFour extends Service {
                 Log.i(TAG, "BTLink 4: Timer count..");
 
                 String checkPulses;
-                if (isNewVersionLinkFour) {
+                if (BTConstants.isNewVersionLinkFour) {
                     checkPulses = "pulse";
                 } else {
                     checkPulses = "pulse:";
@@ -634,7 +649,7 @@ public class BackgroundService_BTFour extends Service {
             pumpTimingsOnOffFunction();//PumpOn/PumpOff functionality
             String outputQuantity;
 
-            if (isNewVersionLinkFour) {
+            if (BTConstants.isNewVersionLinkFour) {
                 if (Response.contains("pulse")) {
                     JSONObject jsonObj = new JSONObject(Response);
                     outputQuantity = jsonObj.getString("pulse");
@@ -646,7 +661,7 @@ public class BackgroundService_BTFour extends Service {
                 if (items.length > 1) {
                     outputQuantity = items[1].replaceAll("\"", "").trim();
                 } else {
-                    // got response as "OFF" after relay_off_cmd
+                    // response is "OFF" after relay_off_cmd
                     return;
                 }
             }
@@ -706,7 +721,9 @@ public class BackgroundService_BTFour extends Service {
                     if (Response.contains("OFF")) {
                         RelayStatus = false;
                     } else if (Response.contains("ON")) {
+                        AppConstants.WriteinFile(TAG + " BTLink 4: onReceive Response:" + Response.trim() + "; ReadPulse: " + redpulseloop_on);
                         RelayStatus = true;
+                        AppConstants.isRelayON_fs4 = true;
                         if (!redpulseloop_on)
                             ReadPulse();
                     }
@@ -917,9 +934,6 @@ public class BackgroundService_BTFour extends Service {
 
         try{
 
-            //Log.i(TAG, "BTLink 4: parseInfoCommandResponseForLast20txtn Raw Data>>" + Response);
-            //if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "BTLink 4: parseInfoCommandResponseForLast20txtn Raw Data>>" + Response);
-
             ArrayList<HashMap<String,String>> arrayList = new ArrayList<>();
 
             JSONObject jsonObject = new JSONObject(response);
@@ -933,14 +947,13 @@ public class BackgroundService_BTFour extends Service {
                 String pulse = j.getString("pulse");
                 String dflag = j.getString("dflag");
 
-                //// One problem here, we can convert date format, but cannot get seconds. need to ignore seconds from datetime string while checking.
-                /*try {
-                    if (!date.contains("-")) { // change date format from "yyMMddHHmm" to "yyyy-MM-dd HH:mm:ss"
+                try {
+                    if (!date.contains("-") && date.length() == 12) { // change date format from "yyMMddHHmmss" to "yyyy-MM-dd HH:mm:ss"
                         date = BTConstants.parseDateForOldVersion(date);
                     }
                 } catch (Exception e) {
                     Log.i(TAG, " BTLink 4: Exception while parsing date format.>> " + e.getMessage());
-                }*/
+                }
 
                 HashMap<String,String> Hmap = new HashMap<>();
                 Hmap.put("TransactionID",txtn);//TransactionID
@@ -963,11 +976,9 @@ public class BackgroundService_BTFour extends Service {
             if (AppConstants.GenerateLogs)
                 AppConstants.WriteinFile(TAG + " BTLink 4: parseInfoCommandResponseForLast20txtn json20txn>>" + json20txn);
             Log.i(TAG, "BTLink 4: parseInfoCommandResponseForLast20txtn json20txn>>" + json20txn);
-            //if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "BTLink 4: parseInfoCommandResponseForLast20txtn json20txn>>" + json20txn);
 
             SharedPreferences sharedPref = BackgroundService_BTFour.this.getSharedPreferences("storeCmtxtnid_20_record", Context.MODE_PRIVATE);
             SharedPreferences.Editor editor = sharedPref.edit();
-            //editor.putString("LINK4", json20txn); // due to date format issue commented this and saving blank value in shared pref.
             editor.putString("LINK4", json20txn);
             editor.apply();
 
