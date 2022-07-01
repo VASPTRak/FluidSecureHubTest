@@ -25,7 +25,6 @@ import android.util.Log;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.view.Window;
-import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
@@ -265,7 +264,7 @@ public class AcceptPinActivity_FOB extends AppCompatActivity {
         }else if (FobKey != null && !FobKey.isEmpty()){
             Log.i(TAG,"FobreadSuccess FobKey"+FobKey);
         }else {
-            AppConstants.colorToastBigFont(getApplicationContext(), "Access Device not found", Color.RED);
+            //AppConstants.colorToastBigFont(getApplicationContext(), "Access Device not found", Color.RED);
         }
     }
 

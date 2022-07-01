@@ -260,8 +260,8 @@
     <string name="BtnReadAccessDevice">Present the access device to the reader</string>
     <string name="BtnReadAccessDeviceV">Present the Vehicle access device to the reader</string>
     <string name="BtnReadAccessDeviceP">Present the Personnel access device to the reader</string>
-    <string name="FobAssignButtonVehicle">Tap here to assign a device\n for a Vehicle</string>
-    <string name="FobAssignButtonPer">Tap here to assign a device\n for a Person</string>
+    <string name="FobAssignButtonVehicle">Tap here to assign a device\n for Vehicle</string>
+    <string name="FobAssignButtonPer">Tap here to assign a device\n for Person</string>
     <string name="FobRead">Read Access Device</string>
     <string name="AccessDeviceReadSuccess">Access Device Read Successfully</string>
     <string name="AccessDeviceAssignedToVehicle">You have presented a device that is already assigned to Vehicle %1$s. Please scan another device.</string>

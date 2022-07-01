@@ -31,6 +31,7 @@ import com.google.gson.Gson;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -127,6 +128,7 @@ public class BackgroundService_BTThree extends Service {
 
                 // Offline functionality
                 if (!cd.isConnectingToInternet()) {
+                    if (AppConstants.GenerateLogs) AppConstants.WriteinFile(TAG + " BTLink 3:-Offline mode--");
                     offlineLogicBT3();
                 }
 
@@ -1039,7 +1041,6 @@ public class BackgroundService_BTThree extends Service {
                 }
             }, 1500);
 
-
             EntityOffTranz tzc = offlineController.getTransactionDetailsBySqliteId(sqlite_id);
 
             VehicleId = tzc.VehicleId;
@@ -1058,6 +1059,9 @@ public class BackgroundService_BTThree extends Service {
             numPulseRatio = Double.parseDouble(PulseRatio);
 
             stopAutoFuelSeconds = Long.parseLong(IntervalToStopFuel);
+
+            Calendar calendar = Calendar.getInstance();
+            TransactionDateWithFormat = BTConstants.dateFormatForOldVersion.format(calendar.getTime());
 
         } catch (Exception e) {
             e.printStackTrace();

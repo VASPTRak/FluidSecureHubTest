@@ -695,7 +695,8 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
     @SuppressLint("LongLogTag")
     public void DownloadFirmwareFile() {
 
-        File folder = new File(Environment.getExternalStorageDirectory() + File.separator + "FSBin");
+        //File folder = new File(Environment.getExternalStorageDirectory() + File.separator + "FSBin");
+        File folder = new File(String.valueOf(getApplicationContext().getExternalFilesDir(AppConstants.FOLDER_BIN)));
         boolean success = true;
         if (!folder.exists()) {
             success = folder.mkdirs();
@@ -710,7 +711,7 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
         }
 
         if (AppConstants.UP_FilePath != null)
-            new DownloadFileFromURL().execute(AppConstants.FOLDER_PATH, AppConstants.UP_Upgrade_File_name);
+            new DownloadFileFromURL().execute(String.valueOf(getApplicationContext().getExternalFilesDir(AppConstants.FOLDER_BIN)), AppConstants.UP_Upgrade_File_name);
 
     }
 
@@ -730,7 +731,7 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
                 InputStream input = new BufferedInputStream(url.openStream(), 8192);
 
                 // Output stream to write file
-                OutputStream output = new FileOutputStream(AppConstants.FOLDER_PATH + f_url[1]);
+                OutputStream output = new FileOutputStream(getApplicationContext().getExternalFilesDir(AppConstants.FOLDER_BIN) + "/" + f_url[1]);
 
                 byte data[] = new byte[1024];
 
@@ -828,7 +829,7 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
                         //   if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+"  GetUpgrateFirmwareStatus CommandsPOST Response" + cmpresponse);
 
                         //upgrade bin
-                        String LocalPath = AppConstants.FOLDER_PATH + AppConstants.UP_Upgrade_File_name;
+                        String LocalPath = getApplicationContext().getExternalFilesDir(AppConstants.FOLDER_BIN) + "/" + AppConstants.UP_Upgrade_File_name;
                         File f = new File(LocalPath);
                         if (f.exists()) {
 

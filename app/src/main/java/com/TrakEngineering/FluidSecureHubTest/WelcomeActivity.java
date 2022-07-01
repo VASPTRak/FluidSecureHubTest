@@ -86,6 +86,7 @@ import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkFour.SerialService
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkOne.SerialServiceOne;
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkThree.SerialServiceThree;
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkTwo.SerialServiceTwo;
+import com.TrakEngineering.FluidSecureHubTest.BTSPP.BackgroundService_BTFour;
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.ClientSendAndListenUDPOne;
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.CommonFunctions;
 import com.TrakEngineering.FluidSecureHubTest.EddystoneScanner.EddystoneScannerService;
@@ -298,7 +299,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
     String URL_INFO = "";
     String URL_UPDATE_FS_INFO = "";
-    String FOLDER_PATH = Environment.getExternalStorageDirectory().getAbsolutePath() + "/FSBin/";
+    String FOLDER_PATH = ""; //Environment.getExternalStorageDirectory().getAbsolutePath() + "/FSBin/";
     private WifiManager.LocalOnlyHotspotReservation mReservation;
 
     //============Bluetooth reader Gatt==============
@@ -378,6 +379,9 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     String iot_version = "";
     ServerHandler serverHandler = new ServerHandler();
     public int HotspotEnableErrorCount = 0;
+    public ProgressDialog pdOnResume;
+    public ProgressDialog pdUpgradeProcess;
+    public boolean showUpgradeSpinnerMessage = true;
 
     //============ Bluetooth reader Gatt end==============
 
@@ -390,7 +394,6 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     protected void onResume() {
         super.onResume();
 
-        //getMacAddressFromConnectedHose();
         IsHotspotEnabled();
         AppConstants.IsBTLinkSelectedCurrently = false;
 
@@ -479,6 +482,12 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             }
         }
 
+        if (BTConstants.CurrentTransactionIsBT && BTConstants.UpgradeStatusBT1.equalsIgnoreCase("Started")) {
+            BTConstants.UpgradeStatusBT1 = "";
+
+            BTLinkUpgradeProcessLoader();
+        }
+        showUpgradeSpinnerMessage = true;
         UpdateFSUI_seconds();
         DeleteOldLogFiles();//Delete log files older than 1 month
         //Reconnect BT reader if disconnected
@@ -586,6 +595,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_welcome);
+        //getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         SharedPreferences sharedPre2 = WelcomeActivity.this.getSharedPreferences("storeBT_FOBDetails", Context.MODE_PRIVATE);
 
@@ -613,7 +623,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         } else {
             AppConstants.PRE_STATE_MOBILEDATA = false;
         }
-
+        FOLDER_PATH = getApplicationContext().getExternalFilesDir(AppConstants.FOLDER_BIN) + "/";
 
         SelectedItemPos = -1;
 
@@ -1149,11 +1159,11 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 CommonUtils.getAllFilesInDir(file);
             }
 
-            String LocalPath = AppConstants.FOLDER_PATH + AppConstants.UP_Upgrade_File_name;
-            File Firmwarefile = new File(LocalPath);
-            boolean exists1 = Firmwarefile.exists();
+            //String LocalPath = getApplicationContext().getExternalFilesDir(AppConstants.FOLDER_BIN) + "/" + AppConstants.UP_Upgrade_File_name;
+            File firmwareFile = new File(String.valueOf(getApplicationContext().getExternalFilesDir(AppConstants.FOLDER_BIN)));
+            boolean exists1 = firmwareFile.exists();
             if (exists1) {
-                CommonUtils.getAllFilesInDir(Firmwarefile);
+                CommonUtils.getAllFilesInDir(firmwareFile);
             }
 
         } catch (Exception e) {
@@ -2846,19 +2856,23 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     String selMacAddress = serverSSIDList.get(SelectedItemPos).get("MacAddress");
                     String BTselMacAddress = serverSSIDList.get(SelectedItemPos).get("BTMacAddress");
                     String selSiteId = serverSSIDList.get(SelectedItemPos).get("SiteId");
-                    String hoseID = selSiteId;//serverSSIDList.get(SelectedItemPos).get("HoseId");
+                    String hoseID = serverSSIDList.get(SelectedItemPos).get("HoseId"); //selSiteId;
                     String ReconfigureLink = serverSSIDList.get(SelectedItemPos).get("ReconfigureLink");
                     String LinkCommunicationType = serverSSIDList.get(SelectedItemPos).get("LinkCommunicationType");
                     String IsTankEmpty = serverSSIDList.get(SelectedItemPos).get("IsTankEmpty");
                     AppConstants.PulserTimingAdjust = serverSSIDList.get(SelectedItemPos).get("PulserTimingAdjust");
                     String IsLinkFlagged = serverSSIDList.get(SelectedItemPos).get("IsLinkFlagged");
                     String LinkFlaggedMessage = serverSSIDList.get(SelectedItemPos).get("LinkFlaggedMessage");
+                    String IsUpgrade = serverSSIDList.get(SelectedItemPos).get("IsUpgrade");
+                    String UPFilePath = serverSSIDList.get(SelectedItemPos).get("UPFilePath");
+                    String FirmwareVersion = serverSSIDList.get(SelectedItemPos).get("FirmwareVersion");
 
                     AppConstants.CURRENT_SELECTED_SSID = selSSID;
                     AppConstants.CURRENT_HOSE_SSID = hoseID;
                     AppConstants.CURRENT_SELECTED_SITEID = selSiteId;
                     AppConstants.SELECTED_MACADDRESS = selMacAddress;
                     AppConstants.SITE_ID = selSiteId;
+                    AppConstants.UP_FilePath = UPFilePath;
 
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(TAG + "Selected LINK: " + selSSID);
@@ -2886,6 +2900,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         } else if (CommonFunctions.CheckIfPresentInPairedDeviceList(BTselMacAddress)) {
                             AppConstants.SELECTED_MACADDRESS = BTselMacAddress;
                             OfflineConstants.storeCurrentTransaction(WelcomeActivity.this, "", selSiteId, "", "", "", "", "", AppConstants.currentDateFormat("yyyy-MM-dd HH:mm"));
+                            SetUpgradeFirmwareDetails(position, IsUpgrade, FirmwareVersion, selSiteId, hoseID);
+
                             CheckBTConnection(SelectedItemPos, selSSID, BTselMacAddress);
                         } else {
                             //AppConstants.colorToastBigFont(getApplicationContext(), "Selected Link not in BT paired list", Color.RED);
@@ -2944,8 +2960,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                             //String selMacAddress = serverSSIDList.get(SelectedItemPos).get("MacAddress");
                             //String selSiteId = serverSSIDList.get(SelectedItemPos).get("SiteId");
                             hoseID = serverSSIDList.get(SelectedItemPos).get("HoseId");
-                            String IsUpgrade = serverSSIDList.get(SelectedItemPos).get("IsUpgrade"); //"Y";
-                            String FirmwareVersion = serverSSIDList.get(SelectedItemPos).get("FirmwareVersion"); //"Y";
+                            //String IsUpgrade = serverSSIDList.get(SelectedItemPos).get("IsUpgrade"); //"Y";
+                            //String FirmwareVersion = serverSSIDList.get(SelectedItemPos).get("FirmwareVersion"); //"Y";
                             AppConstants.CURRENT_SELECTED_SSID_ReqTLDCall = IsTLDCall;
                             AppConstants.CURRENT_SELECTED_SSID = selSSID;
                             AppConstants.CURRENT_HOSE_SSID = hoseID;
@@ -2968,70 +2984,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                             /////////////////////////////////////////////////////
 
-                            //Firmware upgrade
-                            System.out.println("IsUpgradeIsUpgrade: " + IsUpgrade);
-                            if (IsUpgrade.trim().equalsIgnoreCase("Y")) {
-                                AppConstants.UP_Upgrade = true;
-                                AppConstants.UP_Upgrade_File_name = "user1.2048.new.5." + FirmwareVersion + ".bin";
-                            } else {
-                                AppConstants.UP_Upgrade = false;
-                            }
-
-                            if (String.valueOf(position).equalsIgnoreCase("0")) {
-
-                                AppConstants.UP_SiteId_fs1 = selSiteId;
-                                AppConstants.UP_HoseId_fs1 = hoseID;
-                                if (IsUpgrade.trim().equalsIgnoreCase("Y"))
-                                    AppConstants.UP_Upgrade_fs1 = true;
-                                else
-                                    AppConstants.UP_Upgrade_fs1 = false;
-
-                            } else if (String.valueOf(position).equalsIgnoreCase("1")) {
-
-                                AppConstants.UP_SiteId_fs2 = selSiteId;
-                                AppConstants.UP_HoseId_fs2 = hoseID;
-                                if (IsUpgrade.trim().equalsIgnoreCase("Y"))
-                                    AppConstants.UP_Upgrade_fs2 = true;
-                                else
-                                    AppConstants.UP_Upgrade_fs2 = false;
-
-                            } else if (String.valueOf(position).equalsIgnoreCase("2")) {
-
-                                AppConstants.UP_SiteId_fs3 = selSiteId;
-                                AppConstants.UP_HoseId_fs3 = hoseID;
-                                if (IsUpgrade.trim().equalsIgnoreCase("Y"))
-                                    AppConstants.UP_Upgrade_fs3 = true;
-                                else
-                                    AppConstants.UP_Upgrade_fs3 = false;
-
-                            } else if (String.valueOf(position).equalsIgnoreCase("3")) {
-
-                                AppConstants.UP_SiteId_fs4 = selSiteId;
-                                AppConstants.UP_HoseId_fs4 = hoseID;
-                                if (IsUpgrade.trim().equalsIgnoreCase("Y"))
-                                    AppConstants.UP_Upgrade_fs4 = true;
-                                else
-                                    AppConstants.UP_Upgrade_fs4 = false;
-
-                            } else if (String.valueOf(position).equalsIgnoreCase("4")) {
-
-                                AppConstants.UP_SiteId_fs5 = selSiteId;
-                                AppConstants.UP_HoseId_fs5 = hoseID;
-                                if (IsUpgrade.trim().equalsIgnoreCase("Y"))
-                                    AppConstants.UP_Upgrade_fs5 = true;
-                                else
-                                    AppConstants.UP_Upgrade_fs5 = false;
-
-                            } else if (String.valueOf(position).equalsIgnoreCase("5")) {
-
-                                AppConstants.UP_SiteId_fs6 = selSiteId;
-                                AppConstants.UP_HoseId_fs6 = hoseID;
-                                if (IsUpgrade.trim().equalsIgnoreCase("Y"))
-                                    AppConstants.UP_Upgrade_fs6 = true;
-                                else
-                                    AppConstants.UP_Upgrade_fs6 = false;
-
-                            }
+                            SetUpgradeFirmwareDetails(position, IsUpgrade, FirmwareVersion, selSiteId, hoseID);
 
                             //Rename SSID while mac address updation
                             if (IsHoseNameReplaced.equalsIgnoreCase("Y")) {
@@ -5457,6 +5410,89 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
     }
 
+    public void BTLinkUpgradeProcessLoader() {
+
+        pdUpgradeProcess = new ProgressDialog(WelcomeActivity.this);
+        pdUpgradeProcess.setMessage(GetSpinnerMessage("Software update in progress.\nPlease wait several seconds...."));
+        pdUpgradeProcess.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        pdUpgradeProcess.setCancelable(false);
+        pdUpgradeProcess.show();
+
+    }
+
+    public void ManageBTLinkUpgrade() {
+        try {
+
+            if (BTConstants.CurrentTransactionIsBT) {
+                switch (BTConstants.CurrentSelectedLinkBT) {
+                    case 1://Link 1
+                        if (AppConstants.UP_Upgrade_fs1) {
+                            if (pdOnResume != null) {
+                                pdOnResume.dismiss();
+                            }
+                            if (pdUpgradeProcess != null & showUpgradeSpinnerMessage) {
+                                //pdUpgradeProcess.setProgress(Integer.parseInt(BTConstants.upgradeProgress));
+                                pdUpgradeProcess.setMessage(GetSpinnerMessage("Software update in progress.\nPlease wait several seconds... " + BTConstants.upgradeProgress));
+                            }
+                        }
+                        if (BTConstants.UpgradeStatusBT1.equalsIgnoreCase("Completed")) {
+                            showUpgradeSpinnerMessage = false;
+                            AppConstants.WriteinFile(TAG + " Upgrade Completed. Connecting to LINK. (" + BTConstants.deviceAddress1 + ")");
+                            BTConstants.UpgradeStatusBT1 = "";
+
+                            pdUpgradeProcess.setMessage(GetSpinnerMessage("Connecting to LINK.\nPlease wait several seconds... "));
+
+                            startBTSppMain();
+
+                            if (pdUpgradeProcess != null) {
+                                new Handler().postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        pdUpgradeProcess.dismiss();
+                                    }
+                                }, 10000);
+                            }
+
+                            /*try {
+                                Thread.sleep(2000);
+                            } catch (Exception e) {
+                                Log.e("Error: ", e.getMessage());
+                            }*/
+                        }
+                        if (BTConstants.UpgradeStatusBT1.equalsIgnoreCase("Incomplete")) {
+                            showUpgradeSpinnerMessage = false;
+                            pdUpgradeProcess.setMessage(GetSpinnerMessage("LINK connection lost.\nPlease try again later!"));
+                            BTConstants.UpgradeStatusBT1 = "";
+                            if (pdUpgradeProcess != null) {
+                                new Handler().postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        pdUpgradeProcess.dismiss();
+                                    }
+                                }, 3000);
+                            }
+                        }
+                        break;
+                    case 2://Link 2
+                        break;
+                    case 3://Link 3
+                        break;
+                    case 4://Link 4
+                        break;
+                    default://Something went wrong in link selection please try again.
+                        break;
+                }
+            }
+        } catch (Exception e) {
+            Log.e("Error: ", e.getMessage());
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + "Exception in ManageBTLinkUpgrade: " + e.getMessage());
+            if (pdUpgradeProcess != null) {
+                pdUpgradeProcess.dismiss();
+            }
+        }
+    }
+
     /////////////////////////////////////////////////////////////////////////////////////////////////
     public void DisplayDashboardEveSecond() {
 
@@ -5471,6 +5507,10 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         IsUiChangeReq();
         if (AppConstants.EnableFA || AppConstants.EnableServerForTLD) {
             UpdateServerMessages();
+        }
+
+        if (showUpgradeSpinnerMessage) {
+            ManageBTLinkUpgrade();
         }
 
         // Toast.makeText(getApplicationContext(),"FS_Count"+FS_Count,Toast.LENGTH_SHORT).show();
@@ -6239,6 +6279,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         String IsLinkFlagged = serverSSIDList.get(SelectedItemPos).get("IsLinkFlagged");
         String LinkFlaggedMessage = serverSSIDList.get(SelectedItemPos).get("LinkFlaggedMessage");
         String LinkCommunicationType = serverSSIDList.get(SelectedItemPos).get("LinkCommunicationType");
+        AppConstants.UP_FilePath = serverSSIDList.get(SelectedItemPos).get("UPFilePath");
 
         //Rename SSID while mac address updation
         if (IsHoseNameReplaced.equalsIgnoreCase("Y")) {
@@ -7319,7 +7360,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
     public void DownloadFirmwareFile() {
 
-        File folder = new File(Environment.getExternalStorageDirectory() + File.separator + "FSBin");
+        //File folder = new File(Environment.getExternalStorageDirectory() + File.separator + "FSBin");
+        File folder = new File(String.valueOf(getApplicationContext().getExternalFilesDir(AppConstants.FOLDER_BIN)));
         boolean success = true;
         if (!folder.exists()) {
             success = folder.mkdirs();
@@ -7331,7 +7373,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         }
 
         if (AppConstants.UP_FilePath != null)
-            new DownloadFileFromURL().execute(AppConstants.FOLDER_PATH, AppConstants.UP_Upgrade_File_name);
+            new DownloadFileFromURL().execute(String.valueOf(getApplicationContext().getExternalFilesDir(AppConstants.FOLDER_BIN)), AppConstants.UP_Upgrade_File_name);
 
     }
 
@@ -7677,9 +7719,9 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         String ReconfigureLink = serverSSIDList.get(0).get("ReconfigureLink");
                         AppConstants.SITE_ID = serverSSIDList.get(0).get("SiteId");
                         String Chk_ip = "";
-                        if (AppConstants.DetailsListOfConnectedDevices != null && AppConstants.DetailsListOfConnectedDevices.size() > 0)
+                        if (AppConstants.DetailsListOfConnectedDevices != null && AppConstants.DetailsListOfConnectedDevices.size() > 0) {
                             Chk_ip = AppConstants.DetailsListOfConnectedDevices.get(0).get("ipAddress");
-                        else {
+                        } else {
                             getipOverOSVersion();
                         }
 
@@ -8631,7 +8673,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             SpannableString ss2 = new SpannableString(s);
             ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
             ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
-            pd = new ProgressDialog(WelcomeActivity.this);
+            pdOnResume = pd = new ProgressDialog(WelcomeActivity.this);
             pd.setMessage(ss2);
             pd.setCancelable(true);
             pd.setCancelable(false);
@@ -8863,6 +8905,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                 map.put("BTMacAddress", BTMacAddress);
                                 map.put("IsBusy", IsBusy);
                                 map.put("IsUpgrade", IsUpgrade);
+                                map.put("UPFilePath", FilePath);
                                 map.put("FirmwareVersion", FirmwareVersion);
                                 map.put("PulserTimingAdjust", PulserTimingAdjust);
                                 map.put("ReconfigureLink", ReconfigureLink);
@@ -9011,9 +9054,9 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                     String ReconfigureLink = serverSSIDList.get(0).get("ReconfigureLink");
                                     AppConstants.SITE_ID = serverSSIDList.get(0).get("SiteId");
                                     String Chk_ip = "";
-                                    if (AppConstants.DetailsListOfConnectedDevices != null && AppConstants.DetailsListOfConnectedDevices.size() > 0)
+                                    if (AppConstants.DetailsListOfConnectedDevices != null && AppConstants.DetailsListOfConnectedDevices.size() > 0) {
                                         Chk_ip = AppConstants.DetailsListOfConnectedDevices.get(0).get("ipAddress");
-                                    else {
+                                    } else {
                                         getipOverOSVersion();
                                     }
 
@@ -9710,6 +9753,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                 map.put("BTMacAddress", BTMacAddress);
                                 map.put("IsBusy", IsBusy);
                                 map.put("IsUpgrade", IsUpgrade);
+                                map.put("UPFilePath", FilePath);
                                 map.put("FirmwareVersion", FirmwareVersion);
                                 map.put("PulserTimingAdjust", PulserTimingAdjust);
                                 map.put("ReconfigureLink", ReconfigureLink);
@@ -9800,9 +9844,9 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                     String ReconfigureLink = serverSSIDList.get(0).get("ReconfigureLink");
                                     AppConstants.SITE_ID = serverSSIDList.get(0).get("SiteId");
                                     String Chk_ip = "";
-                                    if (AppConstants.DetailsListOfConnectedDevices != null && AppConstants.DetailsListOfConnectedDevices.size() > 0)
+                                    if (AppConstants.DetailsListOfConnectedDevices != null && AppConstants.DetailsListOfConnectedDevices.size() > 0) {
                                         Chk_ip = AppConstants.DetailsListOfConnectedDevices.get(0).get("ipAddress");
-                                    else {
+                                    } else {
                                         getipOverOSVersion();
                                     }
 
@@ -10108,6 +10152,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                             map.put("BTMacAddress", BTMacAddress);
                             map.put("IsBusy", IsBusy);
                             map.put("IsUpgrade", IsUpgrade);
+                            map.put("UPFilePath", FilePath);
                             map.put("FirmwareVersion", FirmwareVersion);
                             map.put("PulserTimingAdjust", PulserTimingAdjust);
                             map.put("IsDefective", IsDefective);
@@ -11090,7 +11135,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                         }
                                         AppConstants.WriteinFile(TAG + " Available Wifi Connections (Step1 onFinish) ==> [" + availableWifi + "]");
                                     } catch (Exception ex) {
-                                        Log.i(TAG, "Link ReConfiguration process -Step 1 onTick Exception" + ex);
+                                        Log.i(TAG, "Link ReConfiguration process -Step 1 onFinish Exception" + ex);
                                     }
 
                                     WifiInfo wifiInfo = wifiManager.getConnectionInfo();
@@ -12996,7 +13041,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
             try {
 
-                String LocalPath = AppConstants.FOLDER_PATH + "user1.2048.new.5.bin";//AppConstants.UP_Upgrade_File_name;
+                String LocalPath = getApplicationContext().getExternalFilesDir(AppConstants.FOLDER_BIN) + "/" + "user1.2048.new.5.bin";//AppConstants.UP_Upgrade_File_name;
                 File file = new File(LocalPath);
                 int file_size = Integer.parseInt(String.valueOf(file.length() / 1024));
 
@@ -13160,9 +13205,96 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 System.out.println("APFS_PIPE OUTPUT" + result);
             } catch (Exception e) {
                 if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "  CommandsGET onPostExecute Execption " + e);
+                    AppConstants.WriteinFile(TAG + "  CommandsGET onPostExecute Exception " + e);
                 System.out.println(e);
             }
+        }
+    }
+
+    public void SetUpgradeFirmwareDetails(int position, String IsUpgrade, String FirmwareVersion, String selSiteId, String hoseID) {
+        try {
+            //Firmware upgrade
+            System.out.println("IsUpgrade: " + IsUpgrade + ";Is BT Link: " + AppConstants.IsBTLinkSelectedCurrently);
+            AppConstants.UP_FirmwareVersion = FirmwareVersion;
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + "SetUpgradeFirmwareDetails => IsUpgrade: " + IsUpgrade + ";Is BT Link: " + AppConstants.IsBTLinkSelectedCurrently);
+            if (IsUpgrade.trim().equalsIgnoreCase("Y")) {
+                AppConstants.UP_Upgrade = true;
+                AppConstants.UP_Upgrade_File_name = "user1.2048.new.5." + FirmwareVersion + ".bin";
+            } else {
+                AppConstants.UP_Upgrade = false;
+            }
+
+            if (String.valueOf(position).equalsIgnoreCase("0")) {
+
+                AppConstants.UP_SiteId_fs1 = selSiteId;
+                AppConstants.UP_HoseId_fs1 = hoseID;
+                if (IsUpgrade.trim().equalsIgnoreCase("Y"))
+                    AppConstants.UP_Upgrade_fs1 = true;
+                else
+                    AppConstants.UP_Upgrade_fs1 = false;
+
+            } else if (String.valueOf(position).equalsIgnoreCase("1")) {
+
+                AppConstants.UP_SiteId_fs2 = selSiteId;
+                AppConstants.UP_HoseId_fs2 = hoseID;
+                if (IsUpgrade.trim().equalsIgnoreCase("Y"))
+                    AppConstants.UP_Upgrade_fs2 = true;
+                else
+                    AppConstants.UP_Upgrade_fs2 = false;
+
+            } else if (String.valueOf(position).equalsIgnoreCase("2")) {
+
+                AppConstants.UP_SiteId_fs3 = selSiteId;
+                AppConstants.UP_HoseId_fs3 = hoseID;
+                if (IsUpgrade.trim().equalsIgnoreCase("Y"))
+                    AppConstants.UP_Upgrade_fs3 = true;
+                else
+                    AppConstants.UP_Upgrade_fs3 = false;
+
+            } else if (String.valueOf(position).equalsIgnoreCase("3")) {
+
+                AppConstants.UP_SiteId_fs4 = selSiteId;
+                AppConstants.UP_HoseId_fs4 = hoseID;
+                if (IsUpgrade.trim().equalsIgnoreCase("Y"))
+                    AppConstants.UP_Upgrade_fs4 = true;
+                else
+                    AppConstants.UP_Upgrade_fs4 = false;
+
+            } else if (String.valueOf(position).equalsIgnoreCase("4")) {
+
+                AppConstants.UP_SiteId_fs5 = selSiteId;
+                AppConstants.UP_HoseId_fs5 = hoseID;
+                if (IsUpgrade.trim().equalsIgnoreCase("Y"))
+                    AppConstants.UP_Upgrade_fs5 = true;
+                else
+                    AppConstants.UP_Upgrade_fs5 = false;
+
+            } else if (String.valueOf(position).equalsIgnoreCase("5")) {
+
+                AppConstants.UP_SiteId_fs6 = selSiteId;
+                AppConstants.UP_HoseId_fs6 = hoseID;
+                if (IsUpgrade.trim().equalsIgnoreCase("Y"))
+                    AppConstants.UP_Upgrade_fs6 = true;
+                else
+                    AppConstants.UP_Upgrade_fs6 = false;
+            }
+        } catch (Exception ex) {
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + "Exception in SetUpgradeFirmwareDetails. " + ex.getMessage() + ";position: " + position);
+            System.out.println(ex);
+        }
+    }
+
+    public CharSequence GetSpinnerMessage(String message) {
+        try {
+            SpannableString ss2 = new SpannableString(message);
+            ss2.setSpan(new RelativeSizeSpan(1.2f), 0, ss2.length(), 0);
+            return ss2;
+        } catch (Exception ex) {
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + "Exception in GetSpinnerMessage. " + ex.getMessage());
+            return message;
         }
     }
 }

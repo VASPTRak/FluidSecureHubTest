@@ -34,7 +34,8 @@ public class BTConstants {
     public static String linkstation_cmd = "LK_COMM=HUB:";
     public static String fdcheckcommand = "LK_COMM=FD_check"; //BlueLink commands
     public static String namecommand = "LK_COMM=name:";
-    public static String linkUpgrade_cmd = "upgrade:";
+    //public static String linkUpgrade_cmd = "upgrade:";
+    public static String linkUpgrade_cmd = "LK_COMM=upgrade ";
 
     public static boolean isNewVersionLinkOne = false;
     public static boolean isNewVersionLinkTwo = false;
@@ -64,6 +65,14 @@ public class BTConstants {
     public static String BT4REPLACEBLE_WIFI_NAME;
     public static String BT4HOSE_ID;
     public static String BT4SITE_ID;
+
+    public static String UpgradeStatusBT1 = "";
+    public static String UpgradeStatusBT2 = "";
+    public static String UpgradeStatusBT3 = "";
+    public static String UpgradeStatusBT4 = "";
+
+    public static String upgradeProgress = "0 %";
+    public static boolean IsFileUploadCompleted = false;
 
     //date formatters for Old and New version link
     public static SimpleDateFormat dateFormatForOldVersion = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");

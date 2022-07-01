@@ -6,6 +6,7 @@
         <entry key="..\:/Android Workspace/FluidSecureHubTest/app/src/main/res/layout/activity_accept_pin_fob.xml" value="0.25416666666666665" />
         <entry key="..\:/Android Workspace/FluidSecureHubTest/app/src/main/res/layout/activity_accept_vehicle.xml" value="0.2" />
         <entry key="..\:/Android Workspace/FluidSecureHubTest/app/src/main/res/layout/activity_accept_vehicle_fob.xml" value="0.25416666666666665" />
+        <entry key="..\:/Android Workspace/FluidSecureHubTest/app/src/main/res/layout/activity_add_new_link_to_cloud.xml" value="0.25416666666666665" />
         <entry key="..\:/Android Workspace/FluidSecureHubTest/app/src/main/res/layout/activity_device_control_pin.xml" value="0.25416666666666665" />
         <entry key="..\:/Android Workspace/FluidSecureHubTest/app/src/main/res/layout/activity_device_control_vehicle.xml" value="0.2" />
         <entry key="..\:/Android Workspace/FluidSecureHubTest/app/src/main/res/layout/activity_display_meter.xml" value="0.25416666666666665" />
@@ -13,6 +14,11 @@
         <entry key="..\:/Android Workspace/FluidSecureHubTest/app/src/main/res/layout/activity_pair_device.xml" value="0.25416666666666665" />
         <entry key="..\:/Android Workspace/FluidSecureHubTest/app/src/main/res/layout/activity_read_access_device_fob.xml" value="0.25416666666666665" />
         <entry key="..\:/Android Workspace/FluidSecureHubTest/app/src/main/res/layout/activity_welcome.xml" value="0.25416666666666665" />
+        <entry key="..\:/Android Workspace/FluidSecureHubTest/app/src/main/res/layout/custom_alertdialouge.xml" value="0.25025641025641027" />
+        <entry key="..\:/Android Workspace/FluidSecureHubTest/app/src/main/res/layout/custom_alertdialouge_debugwindow.xml" value="0.25025641025641027" />
+        <entry key="..\:/Android Workspace/FluidSecureHubTest/app/src/main/res/layout/custom_alertdialouge_two.xml" value="0.25025641025641027" />
+        <entry key="..\:/Android Workspace/FluidSecureHubTest/app/src/main/res/layout/custom_alertdialougeinput.xml" value="0.25025641025641027" />
+        <entry key="..\:/Android Workspace/FluidSecureHubTest/app/src/main/res/layout/dialog_alert_big_finish.xml" value="0.25025641025641027" />
         <entry key="..\:/Android Workspace/FluidSecureHubTest/app/src/main/res/layout/single_list.xml" value="0.25416666666666665" />
         <entry key="..\:/Android Workspace/FluidSecureHubTest/app/src/main/res/menu/reader.xml" value="0.25416666666666665" />
       </map>

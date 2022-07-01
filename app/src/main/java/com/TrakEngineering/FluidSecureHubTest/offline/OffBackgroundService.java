@@ -425,59 +425,66 @@ public class OffBackgroundService extends Service {
 
     public void startDownloadTimerTask() {
 
-        EntityHub obj = controller.getOfflineHubDetails(OffBackgroundService.this);
+        try {
 
-        String VehicleDataFilePath = obj.VehicleDataFilePath;
-        String PersonnelDataFilePath = obj.PersonnelDataFilePath;
-        String LinkDataFilePath = obj.LinkDataFilePath;
+            EntityHub obj = controller.getOfflineHubDetails(OffBackgroundService.this);
 
+            String VehicleDataFilePath = obj.VehicleDataFilePath;
+            String PersonnelDataFilePath = obj.PersonnelDataFilePath;
+            String LinkDataFilePath = obj.LinkDataFilePath;
 
-        repeatedTask = new TimerTask() {
-            public void run() {
+            repeatedTask = new TimerTask() {
+                public void run() {
 
-                System.out.println("startDownloadTimerTask**********");
+                    System.out.println("startDownloadTimerTask**********");
 
-                String status_v = getDownloadFileStatus("Vehicle");
+                    String status_v = getDownloadFileStatus("Vehicle");
 
-                if (status_v.isEmpty() || status_v.equalsIgnoreCase("2"))
-                    downloadLibrary(VehicleDataFilePath, "Vehicle");
-
-
-                String status_p = getDownloadFileStatus("Personnel");
-
-                if (status_p.isEmpty() || status_p.equalsIgnoreCase("2"))
-                    downloadLibrary(PersonnelDataFilePath, "Personnel");
+                    if (status_v.isEmpty() || status_v.equalsIgnoreCase("2")) {
+                        if (!VehicleDataFilePath.equalsIgnoreCase(""))
+                            downloadLibrary(VehicleDataFilePath, "Vehicle");
+                    }
 
 
-                String status_l = getDownloadFileStatus("Link");
+                    String status_p = getDownloadFileStatus("Personnel");
 
-                if (status_l.isEmpty() || status_l.equalsIgnoreCase("2"))
-                    downloadLibrary(LinkDataFilePath, "Link");
+                    if (status_p.isEmpty() || status_p.equalsIgnoreCase("2")) {
+                        if (!PersonnelDataFilePath.equalsIgnoreCase(""))
+                            downloadLibrary(PersonnelDataFilePath, "Personnel");
+                    }
 
 
-                if (status_v.equalsIgnoreCase("1") && status_p.equalsIgnoreCase("1") && status_l.equalsIgnoreCase("1")) {
+                    String status_l = getDownloadFileStatus("Link");
 
-                    setSharedPrefOfflineData(getApplicationContext());
+                    if (status_l.isEmpty() || status_l.equalsIgnoreCase("2")) {
+                        if (!LinkDataFilePath.equalsIgnoreCase(""))
+                            downloadLibrary(LinkDataFilePath, "Link");
+                    }
 
-                    if (timer != null)
-                        timer.cancel();
 
-                    AppConstants.WriteinFile("All 3 files downloaded successfully.");
+                    if (status_v.equalsIgnoreCase("1") && status_p.equalsIgnoreCase("1") && status_l.equalsIgnoreCase("1")) {
 
+                        setSharedPrefOfflineData(getApplicationContext());
+
+                        if (timer != null)
+                            timer.cancel();
+
+                        AppConstants.WriteinFile("All 3 files downloaded successfully.");
+
+                    }
                 }
+            };
 
+            long delay = 5000L;
+            long period = 60000L;
+            timer = new Timer("TimerOffDownload");
 
-            }
-        };
+            timer.scheduleAtFixedRate(repeatedTask, delay, period);
 
-        long delay = 5000L;
-        long period = 60000L;
-        timer = new Timer("TimerOffDownload");
-
-        timer.scheduleAtFixedRate(repeatedTask, delay, period);
-
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
-
 
     public class GetAPILinkDetails extends AsyncTask<String, Void, String> {
 
@@ -939,10 +946,9 @@ public class OffBackgroundService extends Service {
 
         ThinDownloadManager downloadManager = new ThinDownloadManager();
 
-
         Uri downloadUri = Uri.parse(downloadUrl);
         //Uri destinationUri = Uri.parse(Environment.getExternalStorageDirectory() + "/FSdata/" + fileName + ".txt");
-        Uri destinationUri = Uri.parse(getApplicationContext().getExternalFilesDir("FSdata") + "/" + fileName + ".txt");
+        Uri destinationUri = Uri.parse(getApplicationContext().getExternalFilesDir(AppConstants.OfflineDataFolderName) + "/" + fileName + ".txt");
         DownloadRequest downloadRequest = new DownloadRequest(downloadUri)
                 //.addCustomHeader("Auth-Token", "YourTokenApiKey")
                 .setRetryPolicy(new DefaultRetryPolicy())
@@ -1008,7 +1014,6 @@ public class OffBackgroundService extends Service {
                     @Override
                     public void onProgress(int id, long totalBytes, long downlaodedBytes, int progress) {
 
-
                         insertDownloadFileStatus(fileName, "3");
                         //AppConstants.WriteinFile("download-onProgress--" + fileName + " " + totalBytes + " " + downlaodedBytes + " " + progress);
                     }
@@ -1028,7 +1033,7 @@ public class OffBackgroundService extends Service {
     public void readEncryptedFileParseJsonInSqlite(String file_name) {
 
         //File file = new File(Environment.getExternalStorageDirectory() + "/FSdata/" + file_name + ".txt");
-        File file = new File(getApplicationContext().getExternalFilesDir("FSdata") + "/" + file_name + ".txt");
+        File file = new File(getApplicationContext().getExternalFilesDir(AppConstants.OfflineDataFolderName) + "/" + file_name + ".txt");
 
         //File file = new File(file_pathrul);
 
@@ -1088,7 +1093,7 @@ public class OffBackgroundService extends Service {
     public void deleteAllDownloadedFiles() {
         try {
             //File dir = new File(Environment.getExternalStorageDirectory() + "/FSdata");
-            File dir = new File(String.valueOf(getApplicationContext().getExternalFilesDir("FSdata")));
+            File dir = new File(String.valueOf(getApplicationContext().getExternalFilesDir(AppConstants.OfflineDataFolderName)));
             if (dir.isDirectory()) {
                 String[] children = dir.list();
                 for (int i = 0; i < children.length; i++) {
@@ -1116,7 +1121,7 @@ public class OffBackgroundService extends Service {
 
     public void deleteIncompleteOfflineDataFiles() {
         //File dir = new File(Environment.getExternalStorageDirectory() + "/FSdata");
-        File dir = new File(String.valueOf(getApplicationContext().getExternalFilesDir("FSdata")));
+        File dir = new File(String.valueOf(getApplicationContext().getExternalFilesDir(AppConstants.OfflineDataFolderName)));
         if (dir.isDirectory()) {
             String[] children = dir.list();
             for (int i = 0; i < children.length; i++) {

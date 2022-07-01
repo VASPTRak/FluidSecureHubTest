@@ -2,6 +2,7 @@ package com.TrakEngineering.FluidSecureHubTest;
 
 import android.annotation.SuppressLint;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
@@ -34,6 +35,7 @@ public class BackgroundServiceDownloadFirmware extends BackgroundService {
 
     private static String TAG = "BS_DFirmware";
     static ServerHandler serverHandler = new ServerHandler();
+    Context context;
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 
@@ -260,7 +262,7 @@ public class BackgroundServiceDownloadFirmware extends BackgroundService {
                 String IsHFUpdate = myPrefslo.getString("IsHFUpdate", "");
                 String BLEVersion = myPrefslo.getString("BLEVersion", "");
                 String FOLDER_PATH_BLE = Environment.getExternalStorageDirectory().getAbsolutePath() + "/www/FSCardReader/";
-                String FOLDER_PATH = Environment.getExternalStorageDirectory().getAbsolutePath() + "/FSBin/";
+                //String FOLDER_PATH = Environment.getExternalStorageDirectory().getAbsolutePath() + "/FSBin/";
 
                 URL url = new URL(f_url[0]);
                 URLConnection conection = url.openConnection();
@@ -273,9 +275,9 @@ public class BackgroundServiceDownloadFirmware extends BackgroundService {
 
                 // Output stream to write file
                 OutputStream output = null;
-                if (f_url[2].equals("UP_Upgrade"))
-                    output = new FileOutputStream(FOLDER_PATH + f_url[1]);
-                else if (f_url[2].equals("BLEUpdate"))
+                //if (f_url[2].equals("UP_Upgrade")) // Moved UP_Upgrade related code into AcceptVehicleActivity_new and AcceptPinActivity_new
+                //    output = new FileOutputStream(FOLDER_PATH + f_url[1]);
+                if (f_url[2].equals("BLEUpdate"))
                     output = new FileOutputStream(FOLDER_PATH_BLE + f_url[1]);
 
                 byte data[] = new byte[1024];
@@ -326,4 +328,5 @@ public class BackgroundServiceDownloadFirmware extends BackgroundService {
             return null;
         }
 
-    }}
+    }
+}

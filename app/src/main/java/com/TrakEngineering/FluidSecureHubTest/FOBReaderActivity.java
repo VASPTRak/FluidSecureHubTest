@@ -180,14 +180,18 @@ public class FOBReaderActivity extends AppCompatActivity {
         tvCompanyName.setText("Company Name: " + CompanyName);
 
         String btnGoText = getResources().getString(R.string.FobAssignButtonVehicle);
-        btnGoText = btnGoText.replace("\n", "<br>");
+        btnGoText = btnGoText.replaceAll("Vehicle", ScreenNameForVehicle);
+        btnGo.setText(btnGoText);
+        /*btnGoText = btnGoText.replace("\n", "<br>");
         btnGoText = btnGoText.replaceAll("Vehicle", "<font color='#FFC0CB'>" + ScreenNameForVehicle + "</font>");
-        btnGo.setText(Html.fromHtml(btnGoText, Html.FROM_HTML_MODE_LEGACY));
+        btnGo.setText(Html.fromHtml(btnGoText, Html.FROM_HTML_MODE_LEGACY));*/
 
         String btnGoPerText = getResources().getString(R.string.FobAssignButtonPer);
-        btnGoPerText = btnGoPerText.replace("\n", "<br>");
+        btnGoPerText = btnGoPerText.replaceAll("Person", ScreenNameForPersonnel);
+        btnGoPer.setText(btnGoPerText);
+        /*btnGoPerText = btnGoPerText.replace("\n", "<br>");
         btnGoPerText = btnGoPerText.replaceAll("Person", "<font color='#FFC0CB'>" + ScreenNameForPersonnel + "</font>");
-        btnGoPer.setText(Html.fromHtml(btnGoPerText, Html.FROM_HTML_MODE_LEGACY));
+        btnGoPer.setText(Html.fromHtml(btnGoPerText, Html.FROM_HTML_MODE_LEGACY));*/
 
         FSlogo_img = (ImageView) findViewById(R.id.FSlogo_img);
         FSlogo_img = (ImageView) findViewById(R.id.FSlogo_img);

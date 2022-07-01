@@ -72,6 +72,14 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         BTConstants.BTLinkOneStatus = false;
         status1("Disconnect");
         e.printStackTrace();
+        if (BTConstants.IsFileUploadCompleted) {
+            try {
+                connect1();
+            } catch (Exception ex) {
+                Log.e("Error: ", ex.getMessage());
+            }
+        }
+        AppConstants.WriteinFile(TAG + " onSerialConnectErrorOne Status: " + e.getMessage());
     }
 
     @Override
@@ -84,6 +92,14 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         BTConstants.BTLinkOneStatus = false;
         status1("Disconnect");
         e.printStackTrace();
+        if (BTConstants.IsFileUploadCompleted) {
+            try {
+                connect1();
+            } catch (Exception ex) {
+                Log.e("Error: ", ex.getMessage());
+            }
+        }
+        AppConstants.WriteinFile(TAG + " onSerialIoErrorOne Status: " + e.getMessage());
     }
 
     public void connect1() {
@@ -109,7 +125,7 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
             Log.i(TAG, "BTLink 1: Link not connected");
             //Toast.makeText(activity, "BTLink 1: Link not connected", Toast.LENGTH_SHORT).show();
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "BTLink 1: Link not connected");
+                AppConstants.WriteinFile(TAG + " BTLink 1: Link not connected");
             return;
         }
         try {
@@ -117,6 +133,22 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
             BTConstants.CurrentCommand_LinkOne = str;
             Log.i(TAG, "BTLink 1: Requesting..." + str);
             byte[] data = (str + newline).getBytes();
+            service1.write(data);
+        } catch (Exception e) {
+            onSerialIoErrorOne(e);
+        }
+    }
+
+    public void sendBytes1(byte[] data) {
+        if (!BTConstants.BTLinkOneStatus) {
+            BTConstants.CurrentCommand_LinkOne = "";
+            Log.i(TAG, "BTLink 1: Link not connected");
+            //Toast.makeText(activity, "BTLink 1: Link not connected", Toast.LENGTH_SHORT).show();
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + " BTLink 1: Link not connected");
+            return;
+        }
+        try {
             service1.write(data);
         } catch (Exception e) {
             onSerialIoErrorOne(e);
@@ -434,7 +466,7 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
             Log.i(TAG, "BTLink 4: Link not connected");
             //Toast.makeText(activity, "BTLink 4: Link not connected", Toast.LENGTH_SHORT).show();
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "BTLink 4: Link not connected");
+                AppConstants.WriteinFile(TAG + " BTLink 4: Link not connected");
             return;
         }
         try {

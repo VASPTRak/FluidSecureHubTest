@@ -24,6 +24,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
+import android.os.IBinder;
 import android.provider.Settings;
 import android.text.Html;
 import android.text.SpannableString;
@@ -163,8 +164,6 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
     String jsonConnectWifi = "{\"Request\":  {\"Station\":{\"Connect_Station\":{\"ssid\":\"tenda\",\"password\":\"1234567890\",\"token\":\"1234567890123456789012345678901234567890\"}}}}";
     String jsonRelayOn = "{\"relay_request\":{\"Password\":\"12345678\",\"Status\":1}}";
     String jsonRelayOff = "{\"relay_request\":{\"Password\":\"12345678\",\"Status\":0}}";
-
-
 
     public Network networkTransportWifi;
 
@@ -572,7 +571,6 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
         IntentFilter ifilter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
         receiver = new NetworkReceiver();
         this.registerReceiver(receiver, ifilter);
-
 
     }
 
