@@ -67,6 +67,12 @@
         app:showAsAction="never" />
 
     <item
+        android:id="@+id/btLinkScope"
+        android:orderInCategory="100"
+        android:title="Scope"
+        android:visible="false"
+        app:showAsAction="never" />
+    <item
         android:id="@+id/mrestartapp"
         android:orderInCategory="100"
         android:title="Restart App"

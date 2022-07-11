@@ -17,6 +17,8 @@ import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import android.text.Html;
 import android.text.InputType;
+import android.text.SpannableString;
+import android.text.style.RelativeSizeSpan;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
@@ -940,7 +942,11 @@ public class AcceptVehicleActivity extends AppCompatActivity {
         @Override
         protected void onPreExecute() {
             pd = new ProgressDialog(AcceptVehicleActivity.this);
-            pd.setMessage("Software update in progress.\nPlease wait several seconds....");
+            String message = "Upgrade file download in progress.\nPlease wait several seconds....";
+            SpannableString ss2 = new SpannableString(message);
+            ss2.setSpan(new RelativeSizeSpan(1.2f), 0, ss2.length(), 0);
+            pd.setMessage(ss2);
+            pd.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
             pd.setCancelable(false);
             pd.show();
         }
@@ -991,7 +997,7 @@ public class AcceptVehicleActivity extends AppCompatActivity {
 
         protected void onProgressUpdate(String... progress) {
             // setting progress percentage
-            //pDialog.setProgress(Integer.parseInt(progress[0]));
+            pd.setProgress(Integer.parseInt(progress[0]));
         }
 
         @Override

@@ -59,6 +59,9 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
+            android:name=".BT_Link_Oscilloscope_Activity"
+            android:exported="false" />
+        <activity
             android:name=".ActivitySparehub"
             android:exported="false" />
         <activity
@@ -330,6 +333,7 @@
         <service android:name=".BTSPP.BTSPP_LinkTwo.SerialServiceTwo" />
         <service android:name=".BTSPP.BTSPP_LinkThree.SerialServiceThree" />
         <service android:name=".BTSPP.BTSPP_LinkFour.SerialServiceFour" />
+        <service android:name=".BTSPP.BTSPP_Oscilloscope.SerialServiceOscilloscope" />
         <service
             android:name=".EddystoneScanner.FStagScannerService"
             android:enabled="true"

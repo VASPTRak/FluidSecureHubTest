@@ -86,7 +86,7 @@ import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkFour.SerialService
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkOne.SerialServiceOne;
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkThree.SerialServiceThree;
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkTwo.SerialServiceTwo;
-import com.TrakEngineering.FluidSecureHubTest.BTSPP.BackgroundService_BTFour;
+import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_Oscilloscope.SerialServiceOscilloscope;
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.ClientSendAndListenUDPOne;
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.CommonFunctions;
 import com.TrakEngineering.FluidSecureHubTest.EddystoneScanner.EddystoneScannerService;
@@ -191,6 +191,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     public static SerialServiceTwo service2;
     public static SerialServiceThree service3;
     public static SerialServiceFour service4;
+    public static SerialServiceOscilloscope serviceOscilloscope;
     private boolean initialStart = true;
     public int count_uithread = 0;
     CountDownTimer countDownTimerForReconfigure = null;
@@ -237,6 +238,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
     public static ArrayList<HashMap<String, String>> ListOfBleDevices = new ArrayList<>();
     public static ArrayList<HashMap<String, String>> serverSSIDList = new ArrayList<>();
+    public static ArrayList<HashMap<String, String>> BTLinkList = new ArrayList<>();
     ArrayList<HashMap<String, String>> ListOfConnectedDevices = new ArrayList<>();
     public static int SelectedItemPos;
     public static int SelectedItemPosFor10Txn;
@@ -482,10 +484,24 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             }
         }
 
-        if (BTConstants.CurrentTransactionIsBT && BTConstants.UpgradeStatusBT1.equalsIgnoreCase("Started")) {
-            BTConstants.UpgradeStatusBT1 = "";
-
-            BTLinkUpgradeProcessLoader();
+        boolean showLoader = false;
+        if (BTConstants.CurrentTransactionIsBT) {
+            if (BTConstants.UpgradeStatusBT1.equalsIgnoreCase("Started")) {
+                BTConstants.UpgradeStatusBT1 = "";
+                showLoader = true;
+            } else if (BTConstants.UpgradeStatusBT2.equalsIgnoreCase("Started")) {
+                BTConstants.UpgradeStatusBT2 = "";
+                showLoader = true;
+            } else if (BTConstants.UpgradeStatusBT3.equalsIgnoreCase("Started")) {
+                BTConstants.UpgradeStatusBT3 = "";
+                showLoader = true;
+            } else if (BTConstants.UpgradeStatusBT4.equalsIgnoreCase("Started")) {
+                BTConstants.UpgradeStatusBT4 = "";
+                showLoader = true;
+            }
+            if (showLoader) {
+                BTLinkUpgradeProcessLoader();
+            }
         }
         showUpgradeSpinnerMessage = true;
         UpdateFSUI_seconds();
@@ -1026,7 +1042,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             //CommonUtils.enableMobileHotspotmanuallyStartTimer(this);
         }
 
-        startBTSppMain(); //BT link connection
+        startBTSppMain(0); //BT link connection
 
         cancelThinDownloadManager();
     }
@@ -2521,6 +2537,15 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             initialStart = false;
             btspp.connect4();
 
+        /*} else if (className.equalsIgnoreCase("com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_Oscilloscope.SerialServiceOscilloscope")) {
+
+            BTSPPMain btspp = new BTSPPMain();
+            btspp.activity = WelcomeActivity.this;
+            serviceOscilloscope = ((SerialServiceOscilloscope.SerialBinder) service).getService();
+            serviceOscilloscope.attach(btspp);
+            initialStart = false;
+            btspp.connectOscilloscope();*/
+
         } else {
             Log.d(TAG, "Connected to Reader service");
             mService = ((EddystoneScannerService.LocalBinder) service).getService();
@@ -2532,14 +2557,16 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     public void onServiceDisconnected(ComponentName componentName) {
 
         String className = componentName.getClassName();
-        if (className.equalsIgnoreCase("com.example.classicBluetoothDemo.BTSPP_LinkOne.SerialServiceOne")) {
+        if (className.equalsIgnoreCase("com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkOne.SerialServiceOne")) {
             service1 = null;
-        } else if (className.equalsIgnoreCase("com.example.classicBluetoothDemo.BTSPP_LinkTwo.SerialServiceTwo")) {
+        } else if (className.equalsIgnoreCase("com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkTwo.SerialServiceTwo")) {
             service2 = null;
         } else if (className.equalsIgnoreCase("com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkThree.SerialServiceThree")) {
             service3 = null;
-        } else if (className.equalsIgnoreCase("com.TrakEngineering.FluidSecureHub.BTSPP.BTSPP_LinkFour.SerialServiceFour")) {
+        } else if (className.equalsIgnoreCase("com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkFour.SerialServiceFour")) {
             service4 = null;
+        /*} else if (className.equalsIgnoreCase("com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_Oscilloscope.SerialServiceOscilloscope")) {
+            serviceOscilloscope = null;*/
         } else {
             Log.d(TAG, "Disconnected from Reader service");
             mService = null;
@@ -5437,12 +5464,12 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         }
                         if (BTConstants.UpgradeStatusBT1.equalsIgnoreCase("Completed")) {
                             showUpgradeSpinnerMessage = false;
-                            AppConstants.WriteinFile(TAG + " Upgrade Completed. Connecting to LINK. (" + BTConstants.deviceAddress1 + ")");
+                            AppConstants.WriteinFile(TAG + " BTLink 1 Upgrade Completed. Connecting to LINK. (" + BTConstants.deviceAddress1 + ")");
                             BTConstants.UpgradeStatusBT1 = "";
 
                             pdUpgradeProcess.setMessage(GetSpinnerMessage("Connecting to LINK.\nPlease wait several seconds... "));
 
-                            startBTSppMain();
+                            startBTSppMain(1);
 
                             if (pdUpgradeProcess != null) {
                                 new Handler().postDelayed(new Runnable() {
@@ -5452,12 +5479,6 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                     }
                                 }, 10000);
                             }
-
-                            /*try {
-                                Thread.sleep(2000);
-                            } catch (Exception e) {
-                                Log.e("Error: ", e.getMessage());
-                            }*/
                         }
                         if (BTConstants.UpgradeStatusBT1.equalsIgnoreCase("Incomplete")) {
                             showUpgradeSpinnerMessage = false;
@@ -5474,10 +5495,133 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         }
                         break;
                     case 2://Link 2
+
+                        if (AppConstants.UP_Upgrade_fs2) {
+                            if (pdOnResume != null) {
+                                pdOnResume.dismiss();
+                            }
+                            if (pdUpgradeProcess != null & showUpgradeSpinnerMessage) {
+                                //pdUpgradeProcess.setProgress(Integer.parseInt(BTConstants.upgradeProgress));
+                                pdUpgradeProcess.setMessage(GetSpinnerMessage("Software update in progress.\nPlease wait several seconds... " + BTConstants.upgradeProgress));
+                            }
+                        }
+                        if (BTConstants.UpgradeStatusBT2.equalsIgnoreCase("Completed")) {
+                            showUpgradeSpinnerMessage = false;
+                            AppConstants.WriteinFile(TAG + " BTLink 2 Upgrade Completed. Connecting to LINK. (" + BTConstants.deviceAddress2 + ")");
+                            BTConstants.UpgradeStatusBT2 = "";
+
+                            pdUpgradeProcess.setMessage(GetSpinnerMessage("Connecting to LINK.\nPlease wait several seconds... "));
+
+                            startBTSppMain(2);
+
+                            if (pdUpgradeProcess != null) {
+                                new Handler().postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        pdUpgradeProcess.dismiss();
+                                    }
+                                }, 10000);
+                            }
+                        }
+                        if (BTConstants.UpgradeStatusBT2.equalsIgnoreCase("Incomplete")) {
+                            showUpgradeSpinnerMessage = false;
+                            pdUpgradeProcess.setMessage(GetSpinnerMessage("LINK connection lost.\nPlease try again later!"));
+                            BTConstants.UpgradeStatusBT2 = "";
+                            if (pdUpgradeProcess != null) {
+                                new Handler().postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        pdUpgradeProcess.dismiss();
+                                    }
+                                }, 3000);
+                            }
+                        }
                         break;
                     case 3://Link 3
+
+                        if (AppConstants.UP_Upgrade_fs3) {
+                            if (pdOnResume != null) {
+                                pdOnResume.dismiss();
+                            }
+                            if (pdUpgradeProcess != null & showUpgradeSpinnerMessage) {
+                                //pdUpgradeProcess.setProgress(Integer.parseInt(BTConstants.upgradeProgress));
+                                pdUpgradeProcess.setMessage(GetSpinnerMessage("Software update in progress.\nPlease wait several seconds... " + BTConstants.upgradeProgress));
+                            }
+                        }
+                        if (BTConstants.UpgradeStatusBT3.equalsIgnoreCase("Completed")) {
+                            showUpgradeSpinnerMessage = false;
+                            AppConstants.WriteinFile(TAG + " BTLink 3 Upgrade Completed. Connecting to LINK. (" + BTConstants.deviceAddress3 + ")");
+                            BTConstants.UpgradeStatusBT3 = "";
+
+                            pdUpgradeProcess.setMessage(GetSpinnerMessage("Connecting to LINK.\nPlease wait several seconds... "));
+
+                            startBTSppMain(3);
+
+                            if (pdUpgradeProcess != null) {
+                                new Handler().postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        pdUpgradeProcess.dismiss();
+                                    }
+                                }, 10000);
+                            }
+                        }
+                        if (BTConstants.UpgradeStatusBT3.equalsIgnoreCase("Incomplete")) {
+                            showUpgradeSpinnerMessage = false;
+                            pdUpgradeProcess.setMessage(GetSpinnerMessage("LINK connection lost.\nPlease try again later!"));
+                            BTConstants.UpgradeStatusBT3 = "";
+                            if (pdUpgradeProcess != null) {
+                                new Handler().postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        pdUpgradeProcess.dismiss();
+                                    }
+                                }, 3000);
+                            }
+                        }
                         break;
                     case 4://Link 4
+
+                        if (AppConstants.UP_Upgrade_fs4) {
+                            if (pdOnResume != null) {
+                                pdOnResume.dismiss();
+                            }
+                            if (pdUpgradeProcess != null & showUpgradeSpinnerMessage) {
+                                //pdUpgradeProcess.setProgress(Integer.parseInt(BTConstants.upgradeProgress));
+                                pdUpgradeProcess.setMessage(GetSpinnerMessage("Software update in progress.\nPlease wait several seconds... " + BTConstants.upgradeProgress));
+                            }
+                        }
+                        if (BTConstants.UpgradeStatusBT4.equalsIgnoreCase("Completed")) {
+                            showUpgradeSpinnerMessage = false;
+                            AppConstants.WriteinFile(TAG + " BTLink 4 Upgrade Completed. Connecting to LINK. (" + BTConstants.deviceAddress4 + ")");
+                            BTConstants.UpgradeStatusBT4 = "";
+
+                            pdUpgradeProcess.setMessage(GetSpinnerMessage("Connecting to LINK.\nPlease wait several seconds... "));
+
+                            startBTSppMain(4);
+
+                            if (pdUpgradeProcess != null) {
+                                new Handler().postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        pdUpgradeProcess.dismiss();
+                                    }
+                                }, 10000);
+                            }
+                        }
+                        if (BTConstants.UpgradeStatusBT4.equalsIgnoreCase("Incomplete")) {
+                            showUpgradeSpinnerMessage = false;
+                            pdUpgradeProcess.setMessage(GetSpinnerMessage("LINK connection lost.\nPlease try again later!"));
+                            BTConstants.UpgradeStatusBT4 = "";
+                            if (pdUpgradeProcess != null) {
+                                new Handler().postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        pdUpgradeProcess.dismiss();
+                                    }
+                                }, 3000);
+                            }
+                        }
                         break;
                     default://Something went wrong in link selection please try again.
                         break;
@@ -6169,7 +6313,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                             AppConstants.WriteinFile(TAG + " Hose in use, Please try After sometime.");
                     } else {
                         new handleGetAndroidSSID().execute(AppConstants.LAST_CONNECTED_SSID);//AppConstants.LAST_CONNECTED_SSID = selectedSSID
-                        //startWelcomeActivity();
+                        ////startWelcomeActivity();
                     }
 
                 }
@@ -6974,6 +7118,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         menu.findItem(R.id.mcamera_back).setVisible(false);
         menu.findItem(R.id.mcamera_front).setVisible(false);
         menu.findItem(R.id.mreload).setVisible(false);
+        //menu.findItem(R.id.btLinkScope).setVisible(true);
 
         if (cd.isConnectingToInternet()) {
 
@@ -7025,6 +7170,10 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 //new SppLinkFirmwareUpgrade().execute();
                 Intent in = new Intent(WelcomeActivity.this, AddNewLinkToCloud.class);
                 startActivity(in);
+                break;
+
+            case R.id.btLinkScope:
+                //OscilloscopeLinkSelection();
                 break;
 
         }
@@ -7358,7 +7507,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
     }
 
-    public void DownloadFirmwareFile() {
+    /*public void DownloadFirmwareFile() {
 
         //File folder = new File(Environment.getExternalStorageDirectory() + File.separator + "FSBin");
         File folder = new File(String.valueOf(getApplicationContext().getExternalFilesDir(AppConstants.FOLDER_BIN)));
@@ -7375,9 +7524,9 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         if (AppConstants.UP_FilePath != null)
             new DownloadFileFromURL().execute(String.valueOf(getApplicationContext().getExternalFilesDir(AppConstants.FOLDER_BIN)), AppConstants.UP_Upgrade_File_name);
 
-    }
+    }*/
 
-    class DownloadFileFromURL extends AsyncTask<String, String, String> {
+    /*class DownloadFileFromURL extends AsyncTask<String, String, String> {
 
         ProgressDialog pd;
 
@@ -7446,7 +7595,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             pd.dismiss();
         }
 
-    }
+    }*/
 
     public void ReConnectBTReader() {
 
@@ -11759,29 +11908,43 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         }
     }
 
-    public void startBTSppMain() {
+    public void startBTSppMain(int serviceIndex) {
 
         try {
             //Link 1
-            WelcomeActivity.this.startService(new Intent(this, SerialServiceOne.class));
-            WelcomeActivity.this.bindService(new Intent(this, SerialServiceOne.class), this, Context.BIND_AUTO_CREATE);
-            Log.i(TAG, "BTLink 1: startBTSppMain");
+            if (serviceIndex == 0 || serviceIndex == 1) {
+                WelcomeActivity.this.startService(new Intent(this, SerialServiceOne.class));
+                WelcomeActivity.this.bindService(new Intent(this, SerialServiceOne.class), this, Context.BIND_AUTO_CREATE);
+                Log.i(TAG, "BTLink 1: startBTSppMain");
+            }
 
             //Link 2
-            WelcomeActivity.this.startService(new Intent(this, SerialServiceTwo.class));
-            WelcomeActivity.this.bindService(new Intent(this, SerialServiceTwo.class), this, Context.BIND_AUTO_CREATE);
-            Log.i(TAG, "BTLink 2: startBTSppMain");
+            if (serviceIndex == 0 || serviceIndex == 2) {
+                WelcomeActivity.this.startService(new Intent(this, SerialServiceTwo.class));
+                WelcomeActivity.this.bindService(new Intent(this, SerialServiceTwo.class), this, Context.BIND_AUTO_CREATE);
+                Log.i(TAG, "BTLink 2: startBTSppMain");
+            }
 
             //Link 3
-            WelcomeActivity.this.startService(new Intent(this, SerialServiceThree.class));
-            WelcomeActivity.this.bindService(new Intent(this, SerialServiceThree.class), this, Context.BIND_AUTO_CREATE);
-            Log.i(TAG, "BTLink 3: startBTSppMain");
+            if (serviceIndex == 0 || serviceIndex == 3) {
+                WelcomeActivity.this.startService(new Intent(this, SerialServiceThree.class));
+                WelcomeActivity.this.bindService(new Intent(this, SerialServiceThree.class), this, Context.BIND_AUTO_CREATE);
+                Log.i(TAG, "BTLink 3: startBTSppMain");
+            }
 
             //Link 4
-            WelcomeActivity.this.startService(new Intent(this, SerialServiceFour.class));
-            WelcomeActivity.this.bindService(new Intent(this, SerialServiceFour.class), this, Context.BIND_AUTO_CREATE);
-            Log.i(TAG, "BTLink 4: startBTSppMain");
+            if (serviceIndex == 0 || serviceIndex == 4) {
+                WelcomeActivity.this.startService(new Intent(this, SerialServiceFour.class));
+                WelcomeActivity.this.bindService(new Intent(this, SerialServiceFour.class), this, Context.BIND_AUTO_CREATE);
+                Log.i(TAG, "BTLink 4: startBTSppMain");
+            }
 
+            /*//BT Link Oscilloscope
+            if (serviceIndex == 5) {
+                WelcomeActivity.this.startService(new Intent(this, SerialServiceOscilloscope.class));
+                WelcomeActivity.this.bindService(new Intent(this, SerialServiceOscilloscope.class), this, Context.BIND_AUTO_CREATE);
+                Log.i(TAG, "BTLink Oscilloscope: startBTSppMain");
+            }*/
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -11804,6 +11967,10 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         //Link 4
         WelcomeActivity.this.stopService(new Intent(this, SerialServiceFour.class));
         Log.i(TAG, "BTLink 4: closeBTSppMain");
+
+        /*//BT Link Oscilloscope
+        WelcomeActivity.this.stopService(new Intent(this, SerialServiceOscilloscope.class));
+        Log.i(TAG, "BTLink Oscilloscope: closeBTSppMain");*/
     }
 
     private void CheckBTConnection(int selectedItemPos, String selSSID, String selMacAddress) {
@@ -12247,7 +12414,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                 btspp2.connect3();
                             }
                             break;
-                        case 3://Link Foure
+                        case 3://Link Four
                             if (!BTMacAddress.isEmpty() && !BTConstants.BTLinkFourStatus && CommonFunctions.CheckIfPresentInPairedDeviceList(BTMacAddress) && !BTConstants.BTStatusStrFour.equalsIgnoreCase("Connecting...")) {
                                 //Connect to Link Four
                                 BTSPPMain btspp2 = new BTSPPMain();
@@ -13297,4 +13464,148 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             return message;
         }
     }
+
+    public void OscilloscopeLinkSelection() {
+        try {
+            BTLinkList.clear();
+            if (serverSSIDList != null) {
+                for (int i = 0; i < serverSSIDList.size(); i++) {
+                    String WifiSSId = serverSSIDList.get(i).get("WifiSSId");
+                    String BTMacAddress = serverSSIDList.get(i).get("BTMacAddress");
+                    String LinkCommunicationType = serverSSIDList.get(i).get("LinkCommunicationType");
+
+                    if (BTMacAddress != null && !BTMacAddress.isEmpty() && LinkCommunicationType.equalsIgnoreCase("BT") && CommonFunctions.CheckIfPresentInPairedDeviceList(BTMacAddress)) {
+                        // Add into BT link list for Oscilloscope functionality
+                        HashMap<String, String> map = new HashMap<>();
+                        map.put("WifiSSId", WifiSSId);
+                        map.put("item", WifiSSId);
+                        map.put("BTMacAddress", BTMacAddress);
+                        map.put("LinkPosition", String.valueOf(i));
+                        BTLinkList.add(map);
+                    }
+                }
+            }
+            if (BTLinkList != null) {
+                if (BTLinkList.size() > 0) {
+                    alertSelectBTLinkList();
+                } else {
+                    Toast.makeText(getApplicationContext(), "BT LINK not found.", Toast.LENGTH_SHORT).show();
+                }
+            } else {
+                Toast.makeText(getApplicationContext(), "BT LINK not found.", Toast.LENGTH_SHORT).show();
+            }
+
+        } catch (Exception ex) {
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + "Exception in OscilloscopeLinkSelection. " + ex.getMessage());
+        }
+    }
+
+    public void alertSelectBTLinkList() {
+        final int counter = 0;
+        final Dialog dialog = new Dialog(WelcomeActivity.this);
+        dialog.setTitle("FluidSecureHubTest");
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.setContentView(R.layout.dialog_bt_link_list);
+
+        ListView lvBTHoseNames = (ListView) dialog.findViewById(R.id.lvHoseNames);
+        Button btnCancel = (Button) dialog.findViewById(R.id.btnCancel);
+        lvBTHoseNames.setVisibility(View.VISIBLE);
+
+        SimpleAdapter adapter = new SimpleAdapter(WelcomeActivity.this, BTLinkList, R.layout.item_hose, new String[]{"item"}, new int[]{R.id.tvSingleItem});
+        lvBTHoseNames.setAdapter(adapter);
+
+        btnCancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
+
+        lvBTHoseNames.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+                try {
+                    dialog.dismiss();
+
+                    String WifiSSId = BTLinkList.get(position).get("WifiSSId");
+                    String BTMacAddress = BTLinkList.get(position).get("BTMacAddress");
+                    String LinkPosition = BTLinkList.get(position).get("LinkPosition");
+
+                    BTConstants.deviceAddressOscilloscope = BTMacAddress.toUpperCase();
+
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + "Selected LINK for Oscilloscope: " + WifiSSId);
+
+                    //startBTSppMain(5);
+
+                    new RedirectToOscilloscope().execute();
+                    //CheckBTConnection(Integer.parseInt(LinkPosition), WifiSSId, BTMacAddress);
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        dialog.show();
+    }
+
+
+    public class RedirectToOscilloscope extends AsyncTask<String, String, String> {
+
+        ProgressDialog pd;
+        int counter = 0;
+        int delay = 10000;
+
+        @Override
+        protected void onPreExecute() {
+            String st = "Please wait...";
+            SpannableString ss2 = new SpannableString(st);
+            ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
+            ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
+            pd = new ProgressDialog(WelcomeActivity.this);
+            pd.setMessage(ss2);
+            pd.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+            pd.setCancelable(false);
+            pd.show();
+        }
+
+        @Override
+        protected String doInBackground(String... f_url) {
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(String res) {
+            //pd.dismiss();
+
+            Handler handler = new Handler();
+
+            handler.postDelayed(new Runnable() {
+                public void run() {
+                    if (BTConstants.BTStatusStrTwo.equalsIgnoreCase("Connected")) {
+                        counter = 0;
+                        handler.removeCallbacksAndMessages(null);
+                        AppConstants.WriteinFile(TAG + "Redirect to Oscilloscope");
+                        pd.dismiss();
+                    } else {
+                        counter++;
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + "BTLink Oscilloscope Reconnecting... attempt (" + counter + ")");
+                        if (counter < 5) {
+                            handler.postDelayed(this, delay);
+                        } else {
+                            pd.dismiss();
+                            Toast.makeText(getApplicationContext(), "BT LINK Oscilloscope not connected.", Toast.LENGTH_SHORT).show();
+                            if (AppConstants.GenerateLogs)
+                                AppConstants.WriteinFile(TAG + "BT LINK Oscilloscope not connected.");
+                        }
+                    }
+                }
+            }, delay);
+        }
+    }
+
 }

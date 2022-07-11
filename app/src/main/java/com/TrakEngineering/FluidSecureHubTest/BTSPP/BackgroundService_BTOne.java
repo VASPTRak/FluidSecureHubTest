@@ -38,6 +38,7 @@ import com.TrakEngineering.FluidSecureHubTest.offline.OfflineConstants;
 import com.TrakEngineering.FluidSecureHubTest.server.ServerHandler;
 import com.google.gson.Gson;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -121,8 +122,8 @@ public class BackgroundService_BTOne extends Service {
 
                 SharedPreferences sharedPref = this.getSharedPreferences(Constants.PREF_VehiFuel, Context.MODE_PRIVATE);
                 TransactionId = sharedPref.getString("TransactionId_FS1", "");
-                VehicleNumber = sharedPref.getString("VehicleNumber_FS1", "");
                 VehicleId = sharedPref.getString("VehicleId_FS1", "");
+                VehicleNumber = sharedPref.getString("VehicleNumber_FS1", "");
                 PhoneNumber = sharedPref.getString("PhoneNumber_FS1", "");
                 PersonId = sharedPref.getString("PersonId_FS1", "");
                 PulseRatio = sharedPref.getString("PulseRatio_FS1", "1");
@@ -978,10 +979,6 @@ public class BackgroundService_BTOne extends Service {
             ArrayList<HashMap<String,String>> arrayList = new ArrayList<>();
 
             JSONObject jsonObject = new JSONObject(response);
-
-            JSONObject versionJsonArray = jsonObject.getJSONObject("version");
-            AppConstants.WriteinFile(TAG + " Version ==> " + versionJsonArray.getString("version"));
-
             JSONArray jsonArray = jsonObject.getJSONArray("records");
             for (int i = 0; i < jsonArray.length(); i++) {
 
@@ -1027,6 +1024,8 @@ public class BackgroundService_BTOne extends Service {
             editor.putString("LINK1", json20txn);
             editor.apply();
 
+            JSONObject versionJsonArray = jsonObject.getJSONObject("version");
+            AppConstants.WriteinFile(TAG + " Version ==> " + versionJsonArray.getString("version"));
 
         }catch (Exception e){
             e.printStackTrace();
@@ -1206,7 +1205,7 @@ public class BackgroundService_BTOne extends Service {
 
                 InputStream inputStream = new FileInputStream(file);
 
-                int BUFFER_SIZE = 8192;
+                int BUFFER_SIZE = 490; //8192;
                 byte[] bufferBytes = new byte[BUFFER_SIZE];
 
                 Thread.sleep(2000);
@@ -1214,6 +1213,9 @@ public class BackgroundService_BTOne extends Service {
                 if (inputStream != null) {
                     long bytesWritten = 0;
                     int amountOfBytesRead;
+                    //BufferedInputStream bufferedReader = new BufferedInputStream(inputStream);
+                    //while ((amountOfBytesRead = bufferedReader.read(bufferBytes, 0, bufferBytes.length)) != -1) {
+
                     while ((amountOfBytesRead = inputStream.read(bufferBytes)) != -1) {
 
                         bytesWritten += amountOfBytesRead;
@@ -1291,20 +1293,6 @@ public class BackgroundService_BTOne extends Service {
                     }
                 }, delay);
 
-                /*new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (BTConstants.BTStatusStrOne.equalsIgnoreCase("Connected")) {
-                            infoCommand();
-                        } else {
-                            Log.i(TAG, "BTLink 1: Failed to connecting to link.");
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(TAG + " BTLink 1: Failed to connecting to link. (" + BTConstants.BTStatusStrOne + ")");
-                            IsThisBTTrnx = false;
-                            CloseTransaction();
-                        }
-                    }
-                }, 20000);*/
             } else {
                 infoCommand();
             }

@@ -11,21 +11,24 @@ import android.text.SpannableStringBuilder;
 import android.util.Log;
 
 import com.TrakEngineering.FluidSecureHubTest.AppConstants;
-import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkFour.SerialListenerFour;
-import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkFour.SerialSocketFour;
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkOne.SerialListenerOne;
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkOne.SerialSocketOne;
-import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkThree.SerialListenerThree;
-import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkThree.SerialSocketThree;
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkTwo.SerialListenerTwo;
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkTwo.SerialSocketTwo;
+import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkThree.SerialListenerThree;
+import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkThree.SerialSocketThree;
+import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkFour.SerialListenerFour;
+import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkFour.SerialSocketFour;
+import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_Oscilloscope.SerialListenerOscilloscope;
+import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_Oscilloscope.SerialSocketOscilloscope;
 
 import static com.TrakEngineering.FluidSecureHubTest.WelcomeActivity.service1;
 import static com.TrakEngineering.FluidSecureHubTest.WelcomeActivity.service2;
 import static com.TrakEngineering.FluidSecureHubTest.WelcomeActivity.service3;
 import static com.TrakEngineering.FluidSecureHubTest.WelcomeActivity.service4;
+import static com.TrakEngineering.FluidSecureHubTest.WelcomeActivity.serviceOscilloscope;
 
-public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialListenerThree , SerialListenerFour {
+public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialListenerThree , SerialListenerFour, SerialListenerOscilloscope {
 
     public Activity activity;
     private static final String TAG = BTSPPMain.class.getSimpleName();
@@ -180,6 +183,9 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
             BTConstants.isNewVersionLinkOne = true;
         }
         if (Response.contains("$$")) {
+            if (BTConstants.CurrentCommand_LinkOne.equalsIgnoreCase("LK_COMM=info")) {
+                sb1.append(Response.replace("$$", ""));
+            }
             sendBroadcastIntentFromLinkOne(sb1.toString());
             sb1.setLength(0);
         } else {
@@ -222,6 +228,14 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         BTConstants.BTLinkTwoStatus = false;
         status2("Disconnect");
         e.printStackTrace();
+        if (BTConstants.IsFileUploadCompleted) {
+            try {
+                connect2();
+            } catch (Exception ex) {
+                Log.e("Error: ", ex.getMessage());
+            }
+        }
+        AppConstants.WriteinFile(TAG + " onSerialConnectErrorTwo Status: " + e.getMessage());
     }
 
     @Override
@@ -234,6 +248,14 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         BTConstants.BTLinkTwoStatus = false;
         status2("Disconnect");
         e.printStackTrace();
+        if (BTConstants.IsFileUploadCompleted) {
+            try {
+                connect2();
+            } catch (Exception ex) {
+                Log.e("Error: ", ex.getMessage());
+            }
+        }
+        AppConstants.WriteinFile(TAG + " onSerialIoErrorTwo Status: " + e.getMessage());
     }
 
     public void connect2() {
@@ -259,7 +281,7 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
             Log.i(TAG, "BTLink 2: Link not connected");
             //Toast.makeText(activity, "BTLink 2: Link not connected", Toast.LENGTH_SHORT).show();
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "BTLink 2: Link not connected");
+                AppConstants.WriteinFile(TAG + " BTLink 2: Link not connected");
             return;
         }
         try {
@@ -269,7 +291,22 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
             byte[] data = (str + newline).getBytes();
             service2.write(data);
         } catch (Exception e) {
-            onSerialIoErrorOne(e);
+            onSerialIoErrorTwo(e);
+        }
+    }
+
+    public void sendBytes2(byte[] data) {
+        if (!BTConstants.BTLinkTwoStatus) {
+            BTConstants.CurrentCommand_LinkTwo = "";
+            Log.i(TAG, "BTLink 2: Link not connected");
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + " BTLink 2: Link not connected");
+            return;
+        }
+        try {
+            service2.write(data);
+        } catch (Exception e) {
+            onSerialIoErrorTwo(e);
         }
     }
 
@@ -284,6 +321,9 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
             BTConstants.isNewVersionLinkTwo = true;
         }
         if (Response.contains("$$")) {
+            if (BTConstants.CurrentCommand_LinkTwo.equalsIgnoreCase("LK_COMM=info")) {
+                sb2.append(Response.replace("$$", ""));
+            }
             sendBroadcastIntentFromLinkTwo(sb2.toString());
             sb2.setLength(0);
         } else {
@@ -325,6 +365,14 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         BTConstants.BTLinkThreeStatus = false;
         status3("Disconnect");
         e.printStackTrace();
+        if (BTConstants.IsFileUploadCompleted) {
+            try {
+                connect3();
+            } catch (Exception ex) {
+                Log.e("Error: ", ex.getMessage());
+            }
+        }
+        AppConstants.WriteinFile(TAG + " onSerialConnectErrorThree Status: " + e.getMessage());
     }
 
     @Override
@@ -337,6 +385,14 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         BTConstants.BTLinkThreeStatus = false;
         status3("Disconnect");
         e.printStackTrace();
+        if (BTConstants.IsFileUploadCompleted) {
+            try {
+                connect3();
+            } catch (Exception ex) {
+                Log.e("Error: ", ex.getMessage());
+            }
+        }
+        AppConstants.WriteinFile(TAG + " onSerialIoErrorThree Status: " + e.getMessage());
     }
 
     public void connect3() {
@@ -362,7 +418,7 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
             Log.i(TAG, "BTLink 3: Link not connected");
             //Toast.makeText(activity, "BTLink 3: Link not connected", Toast.LENGTH_SHORT).show();
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "BTLink 3: Link not connected");
+                AppConstants.WriteinFile(TAG + " BTLink 3: Link not connected");
             return;
         }
         try {
@@ -370,6 +426,21 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
             BTConstants.CurrentCommand_LinkThree = str;
             Log.i(TAG, "BTLink 3: Requesting..." + str);
             byte[] data = (str + newline).getBytes();
+            service3.write(data);
+        } catch (Exception e) {
+            onSerialIoErrorThree(e);
+        }
+    }
+
+    public void sendBytes3(byte[] data) {
+        if (!BTConstants.BTLinkThreeStatus) {
+            BTConstants.CurrentCommand_LinkThree = "";
+            Log.i(TAG, "BTLink 3: Link not connected");
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + " BTLink 3: Link not connected");
+            return;
+        }
+        try {
             service3.write(data);
         } catch (Exception e) {
             onSerialIoErrorThree(e);
@@ -387,6 +458,9 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
             BTConstants.isNewVersionLinkThree = true;
         }
         if (Response.contains("$$")) {
+            if (BTConstants.CurrentCommand_LinkThree.equalsIgnoreCase("LK_COMM=info")) {
+                sb3.append(Response.replace("$$", ""));
+            }
             sendBroadcastIntentFromLinkThree(sb3.toString());
             sb3.setLength(0);
         } else {
@@ -429,6 +503,14 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         BTConstants.BTLinkFourStatus = false;
         status4("Disconnect");
         e.printStackTrace();
+        if (BTConstants.IsFileUploadCompleted) {
+            try {
+                connect4();
+            } catch (Exception ex) {
+                Log.e("Error: ", ex.getMessage());
+            }
+        }
+        AppConstants.WriteinFile(TAG + " onSerialConnectErrorFour Status: " + e.getMessage());
     }
 
     @Override
@@ -441,6 +523,14 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         BTConstants.BTLinkFourStatus = false;
         status4("Disconnect");
         e.printStackTrace();
+        if (BTConstants.IsFileUploadCompleted) {
+            try {
+                connect4();
+            } catch (Exception ex) {
+                Log.e("Error: ", ex.getMessage());
+            }
+        }
+        AppConstants.WriteinFile(TAG + " onSerialIoErrorFour Status: " + e.getMessage());
     }
 
     public void connect4() {
@@ -480,6 +570,21 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         }
     }
 
+    public void sendBytes4(byte[] data) {
+        if (!BTConstants.BTLinkFourStatus) {
+            BTConstants.CurrentCommand_LinkFour = "";
+            Log.i(TAG, "BTLink 4: Link not connected");
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + " BTLink 4: Link not connected");
+            return;
+        }
+        try {
+            service4.write(data);
+        } catch (Exception e) {
+            onSerialIoErrorFour(e);
+        }
+    }
+
     public void receive4(byte[] data) {
         String Response = new String(data);
         SpannableStringBuilder spn = new SpannableStringBuilder(Response + '\n');
@@ -491,6 +596,9 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
             BTConstants.isNewVersionLinkFour = true;
         }
         if (Response.contains("$$")) {
+            if (BTConstants.CurrentCommand_LinkFour.equalsIgnoreCase("LK_COMM=info")) {
+                sb4.append(Response.replace("$$", ""));
+            }
             sendBroadcastIntentFromLinkFour(sb4.toString());
             sb4.setLength(0);
         } else {
@@ -516,6 +624,120 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
     public void status4(String str) {
         Log.i(TAG, "Status4:" + str);
         BTConstants.BTStatusStrFour = str;
+    }
+    //endregion
+
+    //region BT_Link_Oscilloscope
+
+    @Override
+    public void onSerialConnectOscilloscope() {
+        BTConstants.BTLinkOscilloscopeStatus = true;
+        statusOscilloscope("Connected");
+    }
+
+    @Override
+    public void onSerialConnectErrorOscilloscope(Exception e) {
+        BTConstants.BTLinkOscilloscopeStatus = false;
+        statusOscilloscope("Disconnect");
+        try {
+            connectOscilloscope();
+        } catch (Exception ex) {
+            Log.e("Error: ", ex.getMessage());
+        }
+        e.printStackTrace();
+        AppConstants.WriteinFile(TAG + " onSerialConnectErrorOscilloscope Status: " + e.getMessage());
+    }
+
+    @Override
+    public void onSerialReadOscilloscope(byte[] data) {
+        receiveOscilloscope(data);
+    }
+
+    @Override
+    public void onSerialIoErrorOscilloscope(Exception e) {
+        BTConstants.BTLinkOscilloscopeStatus = false;
+        statusOscilloscope("Disconnect");
+        try {
+            connectOscilloscope();
+        } catch (Exception ex) {
+            Log.e("Error: ", ex.getMessage());
+        }
+        e.printStackTrace();
+        AppConstants.WriteinFile(TAG + " onSerialIoErrorOscilloscope Status: " + e.getMessage());
+    }
+
+    public void connectOscilloscope() {
+        try {
+
+            if (BTConstants.deviceAddressOscilloscope != null || !BTConstants.deviceAddressOscilloscope.isEmpty()) {
+                BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+                BluetoothDevice device = bluetoothAdapter.getRemoteDevice(BTConstants.deviceAddressOscilloscope);
+                statusOscilloscope("Connecting...");
+                SerialSocketOscilloscope socket = new SerialSocketOscilloscope(activity.getApplicationContext(), device);
+                serviceOscilloscope.connect(socket);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void sendOscilloscope(String str) {
+        if (!BTConstants.BTLinkOscilloscopeStatus) {
+            BTConstants.CurrentCommand_LinkOscilloscope = "";
+            Log.i(TAG, "BTLink Oscilloscope: Link not connected");
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + " BTLink Oscilloscope: Link not connected");
+            return;
+        }
+        try {
+            //Log command sent:str
+            BTConstants.CurrentCommand_LinkOscilloscope = str;
+            Log.i(TAG, "BTLink Oscilloscope: Requesting..." + str);
+            byte[] data = (str + newline).getBytes();
+            serviceOscilloscope.write(data);
+        } catch (Exception e) {
+            onSerialIoErrorOscilloscope(e);
+        }
+    }
+
+    public void receiveOscilloscope(byte[] data) {
+        String Response = new String(data);
+        SpannableStringBuilder spn = new SpannableStringBuilder(Response + '\n');
+        Log.i(TAG, "BTLink Oscilloscope: Request>>" + BTConstants.CurrentCommand_LinkOscilloscope);
+        Log.i(TAG, "BTLink Oscilloscope: Response>>" + spn.toString());
+
+        //==========================================
+        /*if (BTConstants.CurrentCommand_LinkFour.equalsIgnoreCase("LK_COMM=info") && Response.contains("records")) {
+            BTConstants.isNewVersionLinkFour = true;
+        }
+        if (Response.contains("$$")) {
+            sendBroadcastIntentFromLinkFour(sb4.toString());
+            sb4.setLength(0);
+        } else {
+            if (BTConstants.isNewVersionLinkFour) {
+                sb4.append(Response);
+            } else {
+                // For old version Link response
+                sb4.setLength(0);
+                sendBroadcastIntentFromLinkFour(spn.toString());
+            }
+        }*/
+        sendBroadcastIntentFromLinkOscilloscope(spn.toString());
+    }
+
+    public void sendBroadcastIntentFromLinkOscilloscope(String spn) {
+        Intent broadcastIntent = new Intent();
+        broadcastIntent.setAction("BroadcastBTLinkOscilloscopeData");
+        broadcastIntent.putExtra("Request", BTConstants.CurrentCommand_LinkOscilloscope);
+        broadcastIntent.putExtra("Response", spn);
+        broadcastIntent.putExtra("Action", "BTLinkOscilloscope");
+        activity.sendBroadcast(broadcastIntent);
+    }
+
+    public void statusOscilloscope(String str) {
+        Log.i(TAG, "StatusOscilloscope:" + str);
+        BTConstants.BTStatusStrOscilloscope = str;
     }
     //endregion
 }
