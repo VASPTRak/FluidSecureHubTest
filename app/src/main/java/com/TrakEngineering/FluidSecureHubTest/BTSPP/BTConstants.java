@@ -3,6 +3,7 @@ package com.TrakEngineering.FluidSecureHubTest.BTSPP;
 import com.TrakEngineering.FluidSecureHubTest.AppConstants;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 
 public class BTConstants {
@@ -30,6 +31,7 @@ public class BTConstants {
     public static String deviceAddress3 = "";
     public static String deviceAddress4 = "";
     public static String deviceAddressOscilloscope = "";
+    public static boolean forOscilloscope = false;
 
     public static String info_cmd = "LK_COMM=info";
     public static String transaction_id_cmd = "LK_COMM=txtnid:";
@@ -40,8 +42,12 @@ public class BTConstants {
     public static String namecommand = "LK_COMM=name:";
     //public static String linkUpgrade_cmd = "upgrade:";
     public static String linkUpgrade_cmd = "LK_COMM=upgrade ";
+    public static String p_type_command = "LK_COMM=p_type:";
+    public static String p_type = "";
     public static String scope_ON_cmd = "LK_COMM=scope=ON";
     public static String scope_READ_cmd = "LK_COMM=scope=READ";
+    public static String ScopeStatus = "";
+    public static ArrayList<Integer> BTLinkVoltageReadings = new ArrayList<>();
 
     public static boolean isNewVersionLinkOne = false;
     public static boolean isNewVersionLinkTwo = false;

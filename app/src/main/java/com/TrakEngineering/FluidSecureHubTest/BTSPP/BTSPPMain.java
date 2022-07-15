@@ -26,7 +26,7 @@ import static com.TrakEngineering.FluidSecureHubTest.WelcomeActivity.service1;
 import static com.TrakEngineering.FluidSecureHubTest.WelcomeActivity.service2;
 import static com.TrakEngineering.FluidSecureHubTest.WelcomeActivity.service3;
 import static com.TrakEngineering.FluidSecureHubTest.WelcomeActivity.service4;
-import static com.TrakEngineering.FluidSecureHubTest.WelcomeActivity.serviceOscilloscope;
+import static com.TrakEngineering.FluidSecureHubTest.BT_Link_Oscilloscope_Activity.serviceOscilloscope;
 
 public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialListenerThree , SerialListenerFour, SerialListenerOscilloscope {
 
@@ -182,6 +182,11 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         if (BTConstants.CurrentCommand_LinkOne.equalsIgnoreCase("LK_COMM=info") && Response.contains("records")) {
             BTConstants.isNewVersionLinkOne = true;
         }
+        if (BTConstants.CurrentCommand_LinkOne.equalsIgnoreCase(BTConstants.scope_READ_cmd)) {
+            if (!Response.equalsIgnoreCase("$$")) {
+                AppConstants.WriteinFile(TAG + " BTLink 1: receive1 Response:" + Response.trim());
+            }
+        }
         if (Response.contains("$$")) {
             if (BTConstants.CurrentCommand_LinkOne.equalsIgnoreCase("LK_COMM=info")) {
                 sb1.append(Response.replace("$$", ""));
@@ -189,7 +194,7 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
             sendBroadcastIntentFromLinkOne(sb1.toString());
             sb1.setLength(0);
         } else {
-            if (BTConstants.isNewVersionLinkOne) {
+            if (BTConstants.isNewVersionLinkOne || BTConstants.forOscilloscope) {
                 sb1.append(Response);
             } else {
                 // For old version Link response
@@ -320,6 +325,11 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         if (BTConstants.CurrentCommand_LinkTwo.equalsIgnoreCase("LK_COMM=info") && Response.contains("records")) {
             BTConstants.isNewVersionLinkTwo = true;
         }
+        if (BTConstants.CurrentCommand_LinkTwo.equalsIgnoreCase(BTConstants.scope_READ_cmd)) {
+            if (!Response.equalsIgnoreCase("$$")) {
+                AppConstants.WriteinFile(TAG + " BTLink 2: receive2 Response:" + Response.trim());
+            }
+        }
         if (Response.contains("$$")) {
             if (BTConstants.CurrentCommand_LinkTwo.equalsIgnoreCase("LK_COMM=info")) {
                 sb2.append(Response.replace("$$", ""));
@@ -327,7 +337,7 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
             sendBroadcastIntentFromLinkTwo(sb2.toString());
             sb2.setLength(0);
         } else {
-            if (BTConstants.isNewVersionLinkTwo) {
+            if (BTConstants.isNewVersionLinkTwo || BTConstants.forOscilloscope) {
                 sb2.append(Response);
             } else {
                 // For old version Link response
@@ -457,6 +467,11 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         if (BTConstants.CurrentCommand_LinkThree.equalsIgnoreCase("LK_COMM=info") && Response.contains("records")) {
             BTConstants.isNewVersionLinkThree = true;
         }
+        if (BTConstants.CurrentCommand_LinkThree.equalsIgnoreCase(BTConstants.scope_READ_cmd)) {
+            if (!Response.equalsIgnoreCase("$$")) {
+                AppConstants.WriteinFile(TAG + " BTLink 3: receive3 Response:" + Response.trim());
+            }
+        }
         if (Response.contains("$$")) {
             if (BTConstants.CurrentCommand_LinkThree.equalsIgnoreCase("LK_COMM=info")) {
                 sb3.append(Response.replace("$$", ""));
@@ -464,7 +479,7 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
             sendBroadcastIntentFromLinkThree(sb3.toString());
             sb3.setLength(0);
         } else {
-            if (BTConstants.isNewVersionLinkThree) {
+            if (BTConstants.isNewVersionLinkThree || BTConstants.forOscilloscope) {
                 sb3.append(Response);
             } else {
                 // For old version Link response
@@ -595,6 +610,11 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         if (BTConstants.CurrentCommand_LinkFour.equalsIgnoreCase("LK_COMM=info") && Response.contains("records")) {
             BTConstants.isNewVersionLinkFour = true;
         }
+        if (BTConstants.CurrentCommand_LinkFour.equalsIgnoreCase(BTConstants.scope_READ_cmd)) {
+            if (!Response.equalsIgnoreCase("$$")) {
+                AppConstants.WriteinFile(TAG + " BTLink 4: receive4 Response:" + Response.trim());
+            }
+        }
         if (Response.contains("$$")) {
             if (BTConstants.CurrentCommand_LinkFour.equalsIgnoreCase("LK_COMM=info")) {
                 sb4.append(Response.replace("$$", ""));
@@ -602,7 +622,7 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
             sendBroadcastIntentFromLinkFour(sb4.toString());
             sb4.setLength(0);
         } else {
-            if (BTConstants.isNewVersionLinkFour) {
+            if (BTConstants.isNewVersionLinkFour || BTConstants.forOscilloscope) {
                 sb4.append(Response);
             } else {
                 // For old version Link response
@@ -639,11 +659,6 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
     public void onSerialConnectErrorOscilloscope(Exception e) {
         BTConstants.BTLinkOscilloscopeStatus = false;
         statusOscilloscope("Disconnect");
-        try {
-            connectOscilloscope();
-        } catch (Exception ex) {
-            Log.e("Error: ", ex.getMessage());
-        }
         e.printStackTrace();
         AppConstants.WriteinFile(TAG + " onSerialConnectErrorOscilloscope Status: " + e.getMessage());
     }
@@ -657,11 +672,6 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
     public void onSerialIoErrorOscilloscope(Exception e) {
         BTConstants.BTLinkOscilloscopeStatus = false;
         statusOscilloscope("Disconnect");
-        try {
-            connectOscilloscope();
-        } catch (Exception ex) {
-            Log.e("Error: ", ex.getMessage());
-        }
         e.printStackTrace();
         AppConstants.WriteinFile(TAG + " onSerialIoErrorOscilloscope Status: " + e.getMessage());
     }
