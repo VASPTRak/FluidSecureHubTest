@@ -386,7 +386,6 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     public ProgressDialog pdOnResume;
     public ProgressDialog pdUpgradeProcess;
     public boolean showUpgradeSpinnerMessage = true;
-    public boolean goButtonClicked = false;
 
     //============ Bluetooth reader Gatt end==============
 
@@ -1586,14 +1585,32 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         qrcodebleServiceOn();
         //launchCamera();     //Calling camera activity for image capture on GO button click
 
-        String LinkType = "";
-        if (serverSSIDList.size() > 0) {
-            LinkType = serverSSIDList.get(0).get("LinkCommunicationType");
-        }
-        if (!goButtonClicked && AppConstants.IsSingleLink && LinkType.equalsIgnoreCase("BT")) {
-            goButtonClicked = true;
-            CheckBTConnection(0, AppConstants.CURRENT_SELECTED_SSID, AppConstants.SELECTED_MACADDRESS);
-            return;
+        if (AppConstants.IsSingleLink) {
+            if (!AppConstants.goButtonClicked) {
+                AppConstants.goButtonClicked = true;
+
+                if (serverSSIDList != null && serverSSIDList.size() == 1) {
+                    String LinkCommunicationType = serverSSIDList.get(0).get("LinkCommunicationType");
+                    String selSiteId = serverSSIDList.get(0).get("SiteId");
+                    String hoseID = serverSSIDList.get(0).get("HoseId");
+                    String IsUpgrade = serverSSIDList.get(0).get("IsUpgrade");
+                    String FirmwareVersion = serverSSIDList.get(0).get("FirmwareVersion");
+                    AppConstants.UP_FilePath = serverSSIDList.get(0).get("UPFilePath");
+
+                    if (LinkCommunicationType.equalsIgnoreCase("BT")) {
+                        AppConstants.IsBTLinkSelectedCurrently = true;
+                    } else {
+                        AppConstants.IsBTLinkSelectedCurrently = false;
+                    }
+
+                    SetUpgradeFirmwareDetails(0, IsUpgrade, FirmwareVersion, selSiteId, hoseID);
+
+                    if (LinkCommunicationType.equalsIgnoreCase("BT")) {
+                        CheckBTConnection(0, AppConstants.CURRENT_SELECTED_SSID, AppConstants.SELECTED_MACADDRESS);
+                        return;
+                    }
+                }
+            }
         }
         ///////////////////common online offline///////////////////////////////
         EntityHub obj = offcontroller.getOfflineHubDetails(WelcomeActivity.this);
@@ -7880,10 +7897,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         if (LinkCommunicationType.equalsIgnoreCase("BT") && !ReconfigureLink.equalsIgnoreCase("true")) {
                             //tvSSIDName.setText("Tap here to select hose");
                             //btnGo.setVisibility(View.VISIBLE);
-                            AppConstants.CURRENT_SELECTED_SSID = selSSID;
-                            AppConstants.SELECTED_MACADDRESS = BTselMacAddress;
-                            tvSSIDName.setText(serverSSIDList.get(0).get("WifiSSId"));
-                            OnHoseSelected_OnClick(Integer.toString(0));
+                            SingleBTLinkSelection(selSSID, BTselMacAddress);
 
                         } else {
                             String Chk_ip = "";
@@ -9236,10 +9250,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                     if (LinkCommunicationType.equalsIgnoreCase("BT") && !ReconfigureLink.equalsIgnoreCase("true")) {
                                         //tvSSIDName.setText("Tap here to select hose");
                                         //btnGo.setVisibility(View.VISIBLE);
-                                        AppConstants.CURRENT_SELECTED_SSID = selSSID;
-                                        AppConstants.SELECTED_MACADDRESS = BTselMacAddress;
-                                        tvSSIDName.setText(serverSSIDList.get(0).get("WifiSSId"));
-                                        OnHoseSelected_OnClick(Integer.toString(0));
+                                        SingleBTLinkSelection(selSSID, BTselMacAddress);
 
                                     } else {
                                         String Chk_ip = "";
@@ -10036,10 +10047,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                     if (LinkCommunicationType.equalsIgnoreCase("BT") && !ReconfigureLink.equalsIgnoreCase("true")) {
                                         //tvSSIDName.setText("Tap here to select hose");
                                         //btnGo.setVisibility(View.VISIBLE);
-                                        AppConstants.CURRENT_SELECTED_SSID = selSSID;
-                                        AppConstants.SELECTED_MACADDRESS = BTselMacAddress;
-                                        tvSSIDName.setText(serverSSIDList.get(0).get("WifiSSId"));
-                                        OnHoseSelected_OnClick(Integer.toString(0));
+                                        SingleBTLinkSelection(selSSID, BTselMacAddress);
 
                                     } else {
                                         String Chk_ip = "";
@@ -12528,10 +12536,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     if (LinkCommunicationType.equalsIgnoreCase("BT") && !ReconfigureLink.equalsIgnoreCase("true")) {
                         //tvSSIDName.setText("Tap here to select hose");
                         //btnGo.setVisibility(View.VISIBLE);
-                        AppConstants.CURRENT_SELECTED_SSID = selSSID;
-                        AppConstants.SELECTED_MACADDRESS = BTselMacAddress;
-                        tvSSIDName.setText(serverSSIDList.get(0).get("WifiSSId"));
-                        OnHoseSelected_OnClick(Integer.toString(0));
+                        SingleBTLinkSelection(selSSID, BTselMacAddress);
 
                     } else {
 
@@ -12574,6 +12579,20 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             } catch (Exception e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    public void SingleBTLinkSelection(String selSSID, String BTselMacAddress) {
+        try {
+            if (CommonFunctions.CheckIfPresentInPairedDeviceList(BTselMacAddress)) {
+                AppConstants.CURRENT_SELECTED_SSID = selSSID;
+                AppConstants.SELECTED_MACADDRESS = BTselMacAddress;
+                tvSSIDName.setText(selSSID);
+                OnHoseSelected_OnClick(Integer.toString(0));
+            }
+        } catch (Exception e) {
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + "SingleBTLinkSelection Exception >> " + e.getMessage());
         }
     }
 
@@ -13436,7 +13455,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     public void SetUpgradeFirmwareDetails(int position, String IsUpgrade, String FirmwareVersion, String selSiteId, String hoseID) {
         try {
             //Firmware upgrade
-            System.out.println("IsUpgrade: " + IsUpgrade + ";Is BT Link: " + AppConstants.IsBTLinkSelectedCurrently);
+            System.out.println("IsUpgrade: " + IsUpgrade + " ;Is BT Link: " + AppConstants.IsBTLinkSelectedCurrently);
             AppConstants.UP_FirmwareVersion = FirmwareVersion;
             if (AppConstants.GenerateLogs)
                 AppConstants.WriteinFile(TAG + "SetUpgradeFirmwareDetails => IsUpgrade: " + IsUpgrade + ";Is BT Link: " + AppConstants.IsBTLinkSelectedCurrently);

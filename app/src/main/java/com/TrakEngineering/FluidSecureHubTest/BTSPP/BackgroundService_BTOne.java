@@ -208,6 +208,9 @@ public class BackgroundService_BTOne extends Service {
     private void infoCommand() {
 
         try {
+            if (BTConstants.IsFileUploadCompleted) {
+                BTConstants.IsFileUploadCompleted = false;
+            }
             //Execute info command
             Request = "";
             Response = "";
@@ -526,6 +529,7 @@ public class BackgroundService_BTOne extends Service {
                     AppConstants.WriteinFile(TAG + " BTLink 1: Exception occurred while unregistering receiver:>>" + e.getMessage() + " (" + broadcastBlueLinkOneData + ")");
             }
             stopTxtprocess = true;
+            AppConstants.goButtonClicked = false;
             Constants.FS_1STATUS = "FREE";
             Constants.FS_1Pulse = "00";
             CancelTimer();
@@ -864,6 +868,15 @@ public class BackgroundService_BTOne extends Service {
 
             if (hoseid != null && !hoseid.trim().isEmpty()) {
                 new UpgradeCurrentVersionWithUpgradableVersion(objEntityClass).execute();
+
+                // Update upgrade details into serverSSIDList
+                if (AppConstants.IsSingleLink) {
+                    HashMap<String, String> selSSid = WelcomeActivity.serverSSIDList.get(0);
+                    selSSid.put("IsUpgrade", "N");
+                    selSSid.put("FirmwareVersion", fsversion);
+                    WelcomeActivity.serverSSIDList.set(0, selSSid);
+                }
+                //=============================================================
             }
             //=============================================================
 

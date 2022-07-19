@@ -199,6 +199,9 @@ public class BackgroundService_BTTwo extends Service {
     private void infoCommand() {
 
         try {
+            if (BTConstants.IsFileUploadCompleted) {
+                BTConstants.IsFileUploadCompleted = false;
+            }
             //Execute info command
             Request = "";
             Response = "";

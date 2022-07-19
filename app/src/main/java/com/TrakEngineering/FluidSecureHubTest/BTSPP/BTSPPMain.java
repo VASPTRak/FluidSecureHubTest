@@ -40,6 +40,11 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
     StringBuilder sb3 = new StringBuilder();
     StringBuilder sb4 = new StringBuilder();
 
+    /*boolean isRelayOff1 = false;
+    boolean isRelayOff2 = false;
+    boolean isRelayOff3 = false;
+    boolean isRelayOff4 = false;*/
+
     public void CheckForStoredMacAddress() {
 
         SharedPreferences sharedPref = activity.getSharedPreferences("StoreBTDeviceInfo", Context.MODE_PRIVATE);
@@ -179,7 +184,7 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         Log.i(TAG, "BTLink 1: Response>>" + spn.toString());
 
         //==========================================
-        if (BTConstants.CurrentCommand_LinkOne.equalsIgnoreCase("LK_COMM=info") && Response.contains("records")) {
+        if (BTConstants.CurrentCommand_LinkOne.equalsIgnoreCase(BTConstants.info_cmd) && Response.contains("records")) {
             BTConstants.isNewVersionLinkOne = true;
         }
         if (BTConstants.CurrentCommand_LinkOne.equalsIgnoreCase(BTConstants.scope_READ_cmd)) {
@@ -187,12 +192,26 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
                 AppConstants.WriteinFile(TAG + " BTLink 1: receive1 Response:" + Response.trim());
             }
         }
+
         if (Response.contains("$$")) {
-            if (BTConstants.CurrentCommand_LinkOne.equalsIgnoreCase("LK_COMM=info")) {
-                sb1.append(Response.replace("$$", ""));
+            String res = Response.replace("$$", "");
+            if (!res.trim().isEmpty()) {
+                sb1.append(res.trim());
+                /*if (BTConstants.CurrentCommand_LinkOne.equalsIgnoreCase(BTConstants.info_cmd)) {
+                    sb1.append(res.trim());
+                } else if (BTConstants.CurrentCommand_LinkOne.equalsIgnoreCase(BTConstants.relay_off_cmd) && !isRelayOff1) {
+                    isRelayOff1 = true;
+                    sb1.append(res.trim());
+                }*/
             }
             sendBroadcastIntentFromLinkOne(sb1.toString());
             sb1.setLength(0);
+
+            /*if (BTConstants.CurrentCommand_LinkOne.equalsIgnoreCase("LK_COMM=info")) {
+                sb1.append(Response.replace("$$", ""));
+            }
+            sendBroadcastIntentFromLinkOne(sb1.toString());
+            sb1.setLength(0);*/
         } else {
             if (BTConstants.isNewVersionLinkOne || BTConstants.forOscilloscope) {
                 sb1.append(Response);
@@ -322,7 +341,7 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         Log.i(TAG, "BTLink 2: Response>>" + spn.toString());
 
         //==========================================
-        if (BTConstants.CurrentCommand_LinkTwo.equalsIgnoreCase("LK_COMM=info") && Response.contains("records")) {
+        if (BTConstants.CurrentCommand_LinkTwo.equalsIgnoreCase(BTConstants.info_cmd) && Response.contains("records")) {
             BTConstants.isNewVersionLinkTwo = true;
         }
         if (BTConstants.CurrentCommand_LinkTwo.equalsIgnoreCase(BTConstants.scope_READ_cmd)) {
@@ -331,11 +350,24 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
             }
         }
         if (Response.contains("$$")) {
-            if (BTConstants.CurrentCommand_LinkTwo.equalsIgnoreCase("LK_COMM=info")) {
-                sb2.append(Response.replace("$$", ""));
+            String res = Response.replace("$$", "");
+            if (!res.trim().isEmpty()) {
+                sb2.append(res.trim());
+                /*if (BTConstants.CurrentCommand_LinkTwo.equalsIgnoreCase(BTConstants.info_cmd)) {
+                    sb2.append(res.trim());
+                } else if (BTConstants.CurrentCommand_LinkTwo.equalsIgnoreCase(BTConstants.relay_off_cmd) && !isRelayOff2) {
+                    isRelayOff2 = true;
+                    sb2.append(res.trim());
+                }*/
             }
             sendBroadcastIntentFromLinkTwo(sb2.toString());
             sb2.setLength(0);
+
+            /*if (BTConstants.CurrentCommand_LinkTwo.equalsIgnoreCase("LK_COMM=info")) {
+                sb2.append(Response.replace("$$", ""));
+            }
+            sendBroadcastIntentFromLinkTwo(sb2.toString());
+            sb2.setLength(0);*/
         } else {
             if (BTConstants.isNewVersionLinkTwo || BTConstants.forOscilloscope) {
                 sb2.append(Response);
@@ -464,7 +496,7 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         Log.i(TAG, "BTLink 3: Response>>" + spn.toString());
 
         //==========================================
-        if (BTConstants.CurrentCommand_LinkThree.equalsIgnoreCase("LK_COMM=info") && Response.contains("records")) {
+        if (BTConstants.CurrentCommand_LinkThree.equalsIgnoreCase(BTConstants.info_cmd) && Response.contains("records")) {
             BTConstants.isNewVersionLinkThree = true;
         }
         if (BTConstants.CurrentCommand_LinkThree.equalsIgnoreCase(BTConstants.scope_READ_cmd)) {
@@ -473,11 +505,24 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
             }
         }
         if (Response.contains("$$")) {
-            if (BTConstants.CurrentCommand_LinkThree.equalsIgnoreCase("LK_COMM=info")) {
-                sb3.append(Response.replace("$$", ""));
+            String res = Response.replace("$$", "");
+            if (!res.trim().isEmpty()) {
+                sb3.append(res.trim());
+                /*if (BTConstants.CurrentCommand_LinkThree.equalsIgnoreCase(BTConstants.info_cmd)) {
+                    sb3.append(res.trim());
+                } else if (BTConstants.CurrentCommand_LinkThree.equalsIgnoreCase(BTConstants.relay_off_cmd) && !isRelayOff3) {
+                    isRelayOff3 = true;
+                    sb3.append(res.trim());
+                }*/
             }
             sendBroadcastIntentFromLinkThree(sb3.toString());
             sb3.setLength(0);
+
+            /*if (BTConstants.CurrentCommand_LinkThree.equalsIgnoreCase("LK_COMM=info")) {
+                sb3.append(Response.replace("$$", ""));
+            }
+            sendBroadcastIntentFromLinkThree(sb3.toString());
+            sb3.setLength(0);*/
         } else {
             if (BTConstants.isNewVersionLinkThree || BTConstants.forOscilloscope) {
                 sb3.append(Response);
@@ -607,7 +652,7 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         Log.i(TAG, "BTLink 4: Response>>" + spn.toString());
 
         //==========================================
-        if (BTConstants.CurrentCommand_LinkFour.equalsIgnoreCase("LK_COMM=info") && Response.contains("records")) {
+        if (BTConstants.CurrentCommand_LinkFour.equalsIgnoreCase(BTConstants.info_cmd) && Response.contains("records")) {
             BTConstants.isNewVersionLinkFour = true;
         }
         if (BTConstants.CurrentCommand_LinkFour.equalsIgnoreCase(BTConstants.scope_READ_cmd)) {
@@ -616,11 +661,24 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
             }
         }
         if (Response.contains("$$")) {
-            if (BTConstants.CurrentCommand_LinkFour.equalsIgnoreCase("LK_COMM=info")) {
-                sb4.append(Response.replace("$$", ""));
+            String res = Response.replace("$$", "");
+            if (!res.trim().isEmpty()) {
+                sb4.append(res.trim());
+                /*if (BTConstants.CurrentCommand_LinkFour.equalsIgnoreCase(BTConstants.info_cmd)) {
+                    sb4.append(res.trim());
+                } else if (BTConstants.CurrentCommand_LinkFour.equalsIgnoreCase(BTConstants.relay_off_cmd) && !isRelayOff4) {
+                    isRelayOff4 = true;
+                    sb4.append(res.trim());
+                }*/
             }
             sendBroadcastIntentFromLinkFour(sb4.toString());
             sb4.setLength(0);
+
+           /* if (BTConstants.CurrentCommand_LinkFour.equalsIgnoreCase("LK_COMM=info")) {
+                sb4.append(Response.replace("$$", ""));
+            }
+            sendBroadcastIntentFromLinkFour(sb4.toString());
+            sb4.setLength(0);*/
         } else {
             if (BTConstants.isNewVersionLinkFour || BTConstants.forOscilloscope) {
                 sb4.append(Response);
