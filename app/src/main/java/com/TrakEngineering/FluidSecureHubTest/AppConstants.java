@@ -590,15 +590,15 @@ public class AppConstants {
 
     }
 
-    public static void colorToastHotspotOn(Context ctx, String msg, int colr) {
+    public static void colorToastHotspotOn(Context ctx, String msg, int backColor, int textColor) {
 
         Toast toast = Toast.makeText(ctx, " " + msg + " ", Toast.LENGTH_SHORT);
-        toast.getView().setBackgroundColor(colr);
+        toast.getView().setBackgroundColor(backColor);
         toast.setGravity(Gravity.RELATIVE_HORIZONTAL_GRAVITY_MASK | Gravity.TOP, 0, AppConstants.ScreenResolutionYOffSet);
         ViewGroup group = (ViewGroup) toast.getView();
         TextView messageTextView = (TextView) group.getChildAt(0);
-        messageTextView.setShadowLayer(1, 1, 1, colr);
-        messageTextView.setTextColor(Color.BLUE);
+        messageTextView.setShadowLayer(1, 1, 1, backColor);
+        messageTextView.setTextColor(textColor);
         messageTextView.setTextSize(40);
         toast.show();
     }

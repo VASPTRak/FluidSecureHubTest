@@ -87,7 +87,7 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
                 Log.e("Error: ", ex.getMessage());
             }
         }
-        AppConstants.WriteinFile(TAG + " onSerialConnectErrorOne Status: " + e.getMessage());
+        //AppConstants.WriteinFile(TAG + " onSerialConnectErrorOne Status: " + e.getMessage());
     }
 
     @Override
@@ -107,7 +107,7 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
                 Log.e("Error: ", ex.getMessage());
             }
         }
-        AppConstants.WriteinFile(TAG + " onSerialIoErrorOne Status: " + e.getMessage());
+        //AppConstants.WriteinFile(TAG + " onSerialIoErrorOne Status: " + e.getMessage());
     }
 
     public void connect1() {
@@ -259,7 +259,7 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
                 Log.e("Error: ", ex.getMessage());
             }
         }
-        AppConstants.WriteinFile(TAG + " onSerialConnectErrorTwo Status: " + e.getMessage());
+        //AppConstants.WriteinFile(TAG + " onSerialConnectErrorTwo Status: " + e.getMessage());
     }
 
     @Override
@@ -279,7 +279,7 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
                 Log.e("Error: ", ex.getMessage());
             }
         }
-        AppConstants.WriteinFile(TAG + " onSerialIoErrorTwo Status: " + e.getMessage());
+        //AppConstants.WriteinFile(TAG + " onSerialIoErrorTwo Status: " + e.getMessage());
     }
 
     public void connect2() {
@@ -414,7 +414,7 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
                 Log.e("Error: ", ex.getMessage());
             }
         }
-        AppConstants.WriteinFile(TAG + " onSerialConnectErrorThree Status: " + e.getMessage());
+        //AppConstants.WriteinFile(TAG + " onSerialConnectErrorThree Status: " + e.getMessage());
     }
 
     @Override
@@ -434,7 +434,7 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
                 Log.e("Error: ", ex.getMessage());
             }
         }
-        AppConstants.WriteinFile(TAG + " onSerialIoErrorThree Status: " + e.getMessage());
+        //AppConstants.WriteinFile(TAG + " onSerialIoErrorThree Status: " + e.getMessage());
     }
 
     public void connect3() {
@@ -570,7 +570,7 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
                 Log.e("Error: ", ex.getMessage());
             }
         }
-        AppConstants.WriteinFile(TAG + " onSerialConnectErrorFour Status: " + e.getMessage());
+        //AppConstants.WriteinFile(TAG + " onSerialConnectErrorFour Status: " + e.getMessage());
     }
 
     @Override
@@ -590,7 +590,7 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
                 Log.e("Error: ", ex.getMessage());
             }
         }
-        AppConstants.WriteinFile(TAG + " onSerialIoErrorFour Status: " + e.getMessage());
+        //AppConstants.WriteinFile(TAG + " onSerialIoErrorFour Status: " + e.getMessage());
     }
 
     public void connect4() {

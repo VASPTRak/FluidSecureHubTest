@@ -79,6 +79,7 @@ import android.widget.Toast;
 
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTConstants;
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPPMain;
@@ -504,8 +505,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             if (showLoader) {
                 BTLinkUpgradeProcessLoader();
             }
+            showUpgradeSpinnerMessage = true;
         }
-        showUpgradeSpinnerMessage = true;
         UpdateFSUI_seconds();
         DeleteOldLogFiles();//Delete log files older than 1 month
         //Reconnect BT reader if disconnected
@@ -4359,7 +4360,6 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                         String result = new GETFINALPulsar_FS1().execute(URL_GET_PULSAR_FS1).get();
 
-
                         if (result.contains("pulsar_status")) {
 
                             JSONObject jsonObject = new JSONObject(result);
@@ -4378,18 +4378,16 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                         finalLastStep_fs1();
                                     }
                                 }, 1000);
-
                             }
-
                         }
                     }
                 } catch (Exception e) {
                     System.out.println(e);
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + " stopButtonFunctionality_FS1 Exception " + e.getMessage());
                 }
             }
         }, 1000);
-
-
     }
 
     public class CommandsPOST_FS1 extends AsyncTask<String, Void, String> {
@@ -4529,7 +4527,6 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         //it stops pulsar logic------
         stopTimer = false;
 
-
         new CommandsPOST_FS2().execute(URL_RELAY_FS2, jsonRelayOff);
 
         new Handler().postDelayed(new Runnable() {
@@ -4543,7 +4540,6 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                         String result = new GETFINALPulsar_FS2().execute(URL_GET_PULSAR_FS2).get();
 
-
                         if (result.contains("pulsar_status")) {
 
                             JSONObject jsonObject = new JSONObject(result);
@@ -4554,29 +4550,23 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                             convertCountToQuantity_fs2(counts);
 
-
                             if (i == 2) {
-
                                 new Handler().postDelayed(new Runnable() {
                                     @Override
                                     public void run() {
                                         finalLastStep_fs2();
                                     }
                                 }, 1000);
-
-
                             }
-
-
                         }
                     }
                 } catch (Exception e) {
                     System.out.println(e);
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + " stopButtonFunctionality_FS2 Exception " + e.getMessage());
                 }
             }
         }, 1000);
-
-
     }
 
     public class CommandsPOST_FS2 extends AsyncTask<String, Void, String> {
@@ -4716,7 +4706,6 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         //it stops pulsar logic------
         stopTimer = false;
 
-
         new CommandsPOST_FS3().execute(URL_RELAY_FS3, jsonRelayOff);
 
         new Handler().postDelayed(new Runnable() {
@@ -4730,7 +4719,6 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                         String result = new GETFINALPulsar_FS3().execute(URL_GET_PULSAR_FS3).get();
 
-
                         if (result.contains("pulsar_status")) {
 
                             JSONObject jsonObject = new JSONObject(result);
@@ -4741,28 +4729,23 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                             convertCountToQuantity_fs3(counts);
 
-
                             if (i == 2) {
-
                                 new Handler().postDelayed(new Runnable() {
                                     @Override
                                     public void run() {
                                         finalLastStep_fs3();
                                     }
                                 }, 1000);
-
                             }
-
-
                         }
                     }
                 } catch (Exception e) {
                     System.out.println(e);
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + " stopButtonFunctionality_FS3 Exception " + e.getMessage());
                 }
             }
         }, 1000);
-
-
     }
 
     public class CommandsPOST_FS3 extends AsyncTask<String, Void, String> {
@@ -4915,7 +4898,6 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                         String result = new GETFINALPulsar_FS4().execute(URL_GET_PULSAR_FS4).get();
 
-
                         if (result.contains("pulsar_status")) {
 
                             JSONObject jsonObject = new JSONObject(result);
@@ -4926,29 +4908,23 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                             convertCountToQuantity_fs4(counts);
 
-
                             if (i == 2) {
-
                                 new Handler().postDelayed(new Runnable() {
                                     @Override
                                     public void run() {
                                         finalLastStep_fs4();
                                     }
                                 }, 1000);
-
-
                             }
-
-
                         }
                     }
                 } catch (Exception e) {
                     System.out.println(e);
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + " stopButtonFunctionality_FS4 Exception " + e.getMessage());
                 }
             }
         }, 1000);
-
-
     }
 
     public class CommandsPOST_FS4 extends AsyncTask<String, Void, String> {
@@ -5101,7 +5077,6 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                         String result = new GETFINALPulsar_FS5().execute(URL_GET_PULSAR_FS5).get();
 
-
                         if (result.contains("pulsar_status")) {
 
                             JSONObject jsonObject = new JSONObject(result);
@@ -5112,29 +5087,23 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                             convertCountToQuantity_fs5(counts);
 
-
                             if (i == 2) {
-
                                 new Handler().postDelayed(new Runnable() {
                                     @Override
                                     public void run() {
                                         finalLastStep_fs5();
                                     }
                                 }, 1000);
-
-
                             }
-
-
                         }
                     }
                 } catch (Exception e) {
                     System.out.println(e);
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + " stopButtonFunctionality_FS5 Exception " + e.getMessage());
                 }
             }
         }, 1000);
-
-
     }
 
     public class CommandsPOST_FS5 extends AsyncTask<String, Void, String> {
@@ -5288,7 +5257,6 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                         String result = new GETFINALPulsar_FS6().execute(URL_GET_PULSAR_FS6).get();
 
-
                         if (result.contains("pulsar_status")) {
 
                             JSONObject jsonObject = new JSONObject(result);
@@ -5299,29 +5267,23 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                             convertCountToQuantity_fs6(counts);
 
-
                             if (i == 2) {
-
                                 new Handler().postDelayed(new Runnable() {
                                     @Override
                                     public void run() {
                                         finalLastStep_fs6();
                                     }
                                 }, 1000);
-
-
                             }
-
-
                         }
                     }
                 } catch (Exception e) {
                     System.out.println(e);
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + " stopButtonFunctionality_FS6 Exception " + e.getMessage());
                 }
             }
         }, 1000);
-
-
     }
 
     public class CommandsPOST_FS6 extends AsyncTask<String, Void, String> {
@@ -5671,7 +5633,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             UpdateServerMessages();
         }
 
-        if (showUpgradeSpinnerMessage) {
+        if (BTConstants.CurrentTransactionIsBT && showUpgradeSpinnerMessage) {
             ManageBTLinkUpgrade();
         }
 
@@ -11525,7 +11487,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                     } else {
                         if (millisUntilFinished > 5000)
-                            AppConstants.colorToastHotspotOn(context, "Please press  Mobile      ^     \nHotspot button.", Color.RED);  //\nWaiting seconds..." + millisUntilFinished / 1000
+                            //AppConstants.colorToastHotspotOn(context, "Please press  Mobile      ^     \nHotspot button.", Color.RED);  //\nWaiting seconds..." + millisUntilFinished / 1000
+                            AppConstants.colorToastHotspotOn(context, "Please press  Mobile      ^     \nHotspot button.", ContextCompat.getColor(WelcomeActivity.this, R.color.HotspotOnToastColor), Color.BLACK);
                     }
                 }
 
