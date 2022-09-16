@@ -1,7 +1,5 @@
 package com.TrakEngineering.FluidSecureHubTest.BTSPP;
 
-import com.TrakEngineering.FluidSecureHubTest.AppConstants;
-
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -54,6 +52,16 @@ public class BTConstants {
     public static boolean isNewVersionLinkThree = false;
     public static boolean isNewVersionLinkFour = false;
 
+    public static boolean isRelayOnAfterReconnect1 = false;
+    public static boolean isRelayOnAfterReconnect2 = false;
+    public static boolean isRelayOnAfterReconnect3 = false;
+    public static boolean isRelayOnAfterReconnect4 = false;
+
+    public static boolean isReconnectCalled1 = false;
+    public static boolean isReconnectCalled2 = false;
+    public static boolean isReconnectCalled3 = false;
+    public static boolean isReconnectCalled4 = false;
+
     //Rename BT link one
     public static boolean BT1NeedRename;
     public static String BT1REPLACEBLE_WIFI_NAME;
@@ -83,6 +91,10 @@ public class BTConstants {
     public static String UpgradeStatusBT3 = "";
     public static String UpgradeStatusBT4 = "";
 
+    public static boolean isUpgradeInProgress_BT1 = false;
+    public static boolean isUpgradeInProgress_BT2 = false;
+    public static boolean isUpgradeInProgress_BT3 = false;
+    public static boolean isUpgradeInProgress_BT4 = false;
     public static String upgradeProgress = "0 %";
     public static boolean IsFileUploadCompleted = false;
 

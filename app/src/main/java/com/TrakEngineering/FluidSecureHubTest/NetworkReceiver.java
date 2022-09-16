@@ -23,7 +23,7 @@ public class NetworkReceiver extends BroadcastReceiver {
                 context.getSystemService(Context.CONNECTIVITY_SERVICE);
         ctx = context;
         boolean CurrentState;
-        final String TAG = "NetworkReceiver";
+        final String TAG = AppConstants.LOG_BACKGROUND + "-" + "NetworkReceiver ";
 
         NetworkInfo activeInfo = conn.getActiveNetworkInfo();
         boolean wifiConnected;
@@ -64,11 +64,17 @@ public class NetworkReceiver extends BroadcastReceiver {
             System.out.println("Network not switched");
         } else {
             //NetworkSwitched
-            //AppConstants.NETWORK_STRENGTH = true;
+            String MobileDataStatus = "";
+            if (AppConstants.IS_MOBILE_ON) {
+                AppConstants.NETWORK_STRENGTH = true;
+                MobileDataStatus = "ON";
+            } else {
+                MobileDataStatus = "OFF";
+            }
             AppConstants.PRE_STATE_MOBILEDATA = CurrentState;
             Log.i(TAG, "Network Switched:" + AppConstants.IS_MOBILE_ON + " CurrentNetworkType: " + Constants.CurrentNetworkType + "~~~" + Constants.CurrentSignalStrength);
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "Network Switched:" + AppConstants.IS_MOBILE_ON + " CurrentNetworkType: " + Constants.CurrentNetworkType + "~~~" + Constants.CurrentSignalStrength);
+                AppConstants.WriteinFile(TAG + "Status >> Mobile_Data:" + MobileDataStatus + "; CurrentNetworkType: " + Constants.CurrentNetworkType + "~~~" + Constants.CurrentSignalStrength);
             //AppConstants.colorToastBigFont(context, "Network Switched", Color.RED);
             //context.startService(new Intent(context, StopRunningTransactionBackgroundService.class));
         }

@@ -56,9 +56,14 @@ public class AppConstants {
 
     public static boolean selectHosePressed;
     public static ArrayList<String> offlineDownloadIds = new ArrayList<>();
-    public static int CONNECTION_TIMEOUT_SEC = 2;
-    public static int READ_TIMEOUT_SEC = 2;
-    public static int WRITE_TIMEOUT_SEC = 2;
+    public static int CONNECTION_TIMEOUT_SEC = 4; //2 (refer #1935)
+    public static int READ_TIMEOUT_SEC = 4; //2
+    public static int WRITE_TIMEOUT_SEC = 4; //2
+
+    public static final String LOG_TXTN_BT = "[TXTN-BT]";
+    public static final String LOG_TXTN_HTTP = "[TXTN-HTTP]";
+    public static final String LOG_MAINTAIN = "[MAINTAIN]";
+    public static final String LOG_BACKGROUND = "[BACKGROUND]";
 
     public static int ScreenResolutionYOffSet = 0;
     public static int COUNT_HOTSPOT_MAIL;
@@ -166,7 +171,6 @@ public class AppConstants {
     public static String OFF_ODO_Limit;
     public static String OFF_HRS_Limit;
 
-
     public static String ESP32_update = "NO";
     public static String PIC_update = "NO";
     public static boolean GenerateLogs;
@@ -199,7 +203,22 @@ public class AppConstants {
     public static boolean DisplayToastmaxlimit = false;
     public static String MaxlimitMessage = "";
     public static boolean IsSingleLink = false;
-    public static boolean goButtonClicked = false;
+    public static boolean GoButtonAlreadyClicked = false;
+    public static boolean IsTransactionCompleted = false;
+
+    public static boolean IsTransactionFailed1 = false;
+    public static boolean IsTransactionFailed2 = false;
+    public static boolean IsTransactionFailed3 = false;
+    public static boolean IsTransactionFailed4 = false;
+    public static boolean IsTransactionFailed5 = false;
+    public static boolean IsTransactionFailed6 = false;
+
+    public static int TxnFailedCount1 = 0;
+    public static int TxnFailedCount2 = 0;
+    public static int TxnFailedCount3 = 0;
+    public static int TxnFailedCount4 = 0;
+    public static int TxnFailedCount5 = 0;
+    public static int TxnFailedCount6 = 0;
 
     public static boolean FlickeringScreenOff;
     public static String NoSleepRespTime = "";
@@ -215,6 +234,7 @@ public class AppConstants {
     public static String PrinterMacAddress;
     public static String BT_READER_NAME;
     public static String PulserTimingAdjust;
+    public static String IsResetSwitchTimeBounce;
 
     public static String UP_FirmwareVersion;
     public static String UP_FilePath;
@@ -548,8 +568,7 @@ public class AppConstants {
     }
 
 
-    public static void AlertDialogFinishWithTitle(final Activity ctx, String title, String message
-    ) {
+    public static void AlertDialogFinishWithTitle(final Activity ctx, String title, String message) {
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(ctx);
         alertDialogBuilder.setTitle(title);
         alertDialogBuilder.setMessage(message);
@@ -756,7 +775,7 @@ public class AppConstants {
 
             FileWriter fileWritter = new FileWriter(gpxfile, true);
             BufferedWriter bufferWritter = new BufferedWriter(fileWritter);
-            bufferWritter.write("\n" + UseDate + "--" + str + " ");
+            bufferWritter.write("\n" + UseDate + "-" + str + " ");
             bufferWritter.close();
 
         } catch (IOException e) {

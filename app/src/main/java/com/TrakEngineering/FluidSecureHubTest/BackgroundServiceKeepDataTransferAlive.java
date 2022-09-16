@@ -62,7 +62,7 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
     String URL_RESET = HTTP_URL + "upgrade?command=reset";
     String URL_INFO = HTTP_URL + "client?command=info";
     String URL_WIFI = HTTP_URL + "config?command=wifi";//returns connected link information
-    private static final String TAG = "BS_KAL";
+    private static final String TAG = AppConstants.LOG_MAINTAIN + "-" + "BS_KeepAlive";
     public static ArrayList<HashMap<String, String>> SSIDList = new ArrayList<>();
     public static ArrayList<HashMap<String, String>> DetailslistOfConnectedIP_KDTA = new ArrayList<>();
     public static ArrayList<HashMap<String, String>> DefectiveLinks = new ArrayList<>();
@@ -126,10 +126,24 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
                     String selSiteId = SSIDList.get(i).get("SiteId");
                     String hoseID = SSIDList.get(i).get("HoseId");
                     String IsUpgrade = SSIDList.get(i).get("IsUpgrade"); //"Y";//
+                    String LinkCommunicationType = "HTTP";
+                    try {
+                        LinkCommunicationType = SSIDList.get(i).get("LinkCommunicationType");
+                    } catch (Exception e) {
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + " Exception while getting LinkCommunicationType of WifiSSId (" + selSSID + "). " + e.getMessage());
+                    }
+
+                    if (LinkCommunicationType != null) {
+                        if (!LinkCommunicationType.equalsIgnoreCase("HTTP")) {
+                            continue;
+                        }
+                    } else {
+                        continue;
+                    }
 
                     boolean IsConnectedToHotspot = false;
                     boolean IsinfoCmdSuccess = false;
-
 
                     if (!IsFsConnected(selMacAddress)) {
 
@@ -290,7 +304,7 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
                 // Log.e(TAG, "~~~~~Second for end~~~~~");
             } else {
                 Log.i(TAG, "SSID List Empty");
-                if (AppConstants.GenerateLogs) AppConstants.WriteinFile(TAG + "  SSID List Empty");
+                if (AppConstants.GenerateLogs) AppConstants.WriteinFile(TAG + " SSID List Empty");
             }
             if (IsHoseBusyCheckLocally()) {
                 int s = DefectiveLinks.size();
@@ -310,7 +324,9 @@ public class BackgroundServiceKeepDataTransferAlive extends BackgroundService {
                            if (Sendmail){
                                setSharedPrefDefectiveLink(BackgroundServiceKeepDataTransferAlive.this,link_name);
                                Log.i(TAG, "Defective links email sent to: "+link_name+" Message: "+Message+" TDifferance: "+Differance);
-                               if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "Defective links email sent to: "+link_name+" Message: "+Message+" TDifferance: "+Differance);
+                               if (AppConstants.GenerateLogs)
+                                   //AppConstants.WriteinFile(TAG + "Defective links email sent to: "+link_name+" Message: "+Message+" TDifference: "+Differance);
+                                   AppConstants.WriteinFile(TAG + " LINK (" + link_name + ") did not respond to KeepAlive");
                                SendDefectiveLinkInfoEmailAsyncCall(link_name);
                            }
                         }

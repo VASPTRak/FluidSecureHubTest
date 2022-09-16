@@ -657,6 +657,11 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
 
                     CommonUtils.SaveDataInPrefForGatehub(SplashActivity.this, IsGateHub, IsStayOpenGate);
 
+                    String HotSpotSSID = jsonObject.getString("HotSpotSSID");
+                    String HotSpotPassword = jsonObject.getString("HotSpotPassword");
+
+                    CommonUtils.SaveHotSpotDetailsInPref(SplashActivity.this, HotSpotSSID, HotSpotPassword);
+
                     System.out.println("BluetoothCardReader--" + response);
 
                     if (IsApproved.equalsIgnoreCase("True")) {
@@ -737,7 +742,7 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
                 }
 
             } else {
-                AppConstants.AlertDialogFinishWithTitle(SplashActivity.this, "Fuel Secure", "No Internet");
+                AppConstants.AlertDialogFinishWithTitle(SplashActivity.this, "", "No Internet");
             }
 
 
@@ -785,11 +790,10 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
                 Response response = client.newCall(request).execute();
                 resp = response.body().string();
 
-            } catch (SocketTimeoutException e) {
-                e.printStackTrace();
-
             } catch (Exception e) {
                 e.printStackTrace();
+                AppConstants.WriteinFile(TAG + " Exception in CheckApproved: " + e.getMessage());
+
             }
             return resp;
         }
@@ -823,6 +827,7 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
                     }
 
                 } else {
+                    AppConstants.WriteinFile(TAG + "Server connection problem. server response: " + response);
                     RetryAlertDialogButtonClicked(getString(R.string.server_connection_problem));
                 }
 

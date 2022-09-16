@@ -460,8 +460,6 @@ public class AcceptVehicleActivity extends AppCompatActivity {
                         if (LastTransactionFuelQuantity.trim().isEmpty() || LastTransactionFuelQuantity.equalsIgnoreCase("null")) {
                             LastTransactionFuelQuantity = "0";
                         }
-                        System.out.println("LastTransactionFuelQuantity: " + LastTransactionFuelQuantity);
-
 
                         SharedPreferences sharedPref = AcceptVehicleActivity.this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
                         SharedPreferences.Editor editor = sharedPref.edit();
@@ -624,7 +622,6 @@ public class AcceptVehicleActivity extends AppCompatActivity {
                     if (LastTransactionFuelQuantity.trim().isEmpty() || LastTransactionFuelQuantity.equalsIgnoreCase("null")) {
                         LastTransactionFuelQuantity = "0";
                     }
-                    System.out.println("LastTransactionFuelQuantity: " + LastTransactionFuelQuantity);
 
                     SharedPreferences sharedPref = AcceptVehicleActivity.this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
                     SharedPreferences.Editor editor = sharedPref.edit();

@@ -66,7 +66,6 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Stack;
 
 import static android.content.Context.ACTIVITY_SERVICE;
@@ -86,7 +85,7 @@ import static com.TrakEngineering.FluidSecureHubTest.server.ServerHandler.TEXT;
  */
 public class CommonUtils {
 
-    private static String TAG = "CommonUtils";
+    private static String TAG = "CommonUtils ";
     private static File mypath; /*'---------------------------------------------------------------------------------------- Implemet logger functionality here....*/
     public static String FOLDER_PATH = Environment.getExternalStorageDirectory().getAbsolutePath() + "/FSBin/";
     public static String PATH_BIN_FILE1 = "user1.2048.new.5.bin";
@@ -279,7 +278,7 @@ public class CommonUtils {
 
     public static String getTodaysDateInStringbt() {
         Calendar c = Calendar.getInstance();
-        SimpleDateFormat df = new SimpleDateFormat("yyMMddhhmm");//
+        SimpleDateFormat df = new SimpleDateFormat("yyMMddhhmm");
         String CurrantDate = df.format(c.getTime());
         return (CurrantDate);
     }
@@ -497,6 +496,15 @@ public class CommonUtils {
     @RequiresApi(api = Build.VERSION_CODES.N)
     public static void showCustomMessageDilaog(final Activity context, String title, String message) {
 
+        String HoseUnavailableMessage = "";
+        try {
+            HoseUnavailableMessage = context.getResources().getString(R.string.HoseUnavailableMessage);
+        } catch (Exception ex) {
+            HoseUnavailableMessage = "";
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + "Exception in showCustomMessageDilaog: " + ex.getMessage());
+        }
+
         final Dialog dialogBus = new Dialog(context);
         dialogBus.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialogBus.setCancelable(false);
@@ -510,11 +518,16 @@ public class CommonUtils {
         Button btnAllow = (Button) dialogBus.findViewById(R.id.btnAllow);
         edt_message.setText(Html.fromHtml(newString));
 
+        String finalHoseUnavailableMessage = HoseUnavailableMessage;
         btnAllow.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
                 dialogBus.dismiss();
+
+                if (message.equalsIgnoreCase(finalHoseUnavailableMessage)) {
+                    AppConstants.GoButtonAlreadyClicked = false;
+                }
 
 //                editVehicleNumber.requestFocus();
                 InputMethodManager imm = (InputMethodManager) context.getSystemService(INPUT_METHOD_SERVICE);
@@ -707,6 +720,18 @@ public class CommonUtils {
         editor.putString(AppConstants.IsGateHub, IsGateHub);
         editor.putString(AppConstants.IsStayOpenGate, IsStayOpenGate);
         editor.commit();
+    }
+
+    public static void SaveHotSpotDetailsInPref(Activity activity, String HotSpotSSID, String HotSpotPassword) {
+        try {
+            SharedPreferences prefHotSpot = activity.getSharedPreferences("HotSpotDetails", Context.MODE_PRIVATE);
+            SharedPreferences.Editor edHotSpot = prefHotSpot.edit();
+            edHotSpot.putString("HotSpotSSID", HotSpotSSID);
+            edHotSpot.putString("HotSpotPassword", HotSpotPassword);
+            edHotSpot.commit();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public static void SaveDataInPref(Activity activity, String data, String valueType) {
@@ -1821,8 +1846,8 @@ public class CommonUtils {
                     } else {
                         //if (millisUntilFinished / 1000 <= 13)
                         //AppConstants.colorToastHotspotOn(context, "Please press  Mobile      ^     \nHotspot button. \nWaiting seconds..." + millisUntilFinished / 1000, Color.RED);
-                        if (tick_count[0] > 2 && WelcomeActivity.OnWelcomeActivity == false)
-                            AppConstants.colorToastHotspotOn(context, "We have detected that        " + context.getString(R.string.arrow_uni_code) + "   Mobile Hotspot is off. \n\nPlease press the Hotspot Toggle above.", Color.WHITE, Color.BLUE);
+                        /*if (tick_count[0] > 2 && WelcomeActivity.OnWelcomeActivity == false)
+                            AppConstants.colorToastHotspotOn(context, "We have detected that        " + context.getString(R.string.arrow_uni_code) + "   Mobile Hotspot is off. \n\nPlease press the Hotspot Toggle above.", Color.WHITE, Color.BLUE);*/
                     }
 
                     tick_count[0]++;
@@ -2107,6 +2132,7 @@ public class CommonUtils {
 
             String mac_address = "";
             String AP_mac_address = "";
+            String iot_version = "";
             if (result.startsWith("{") && result.contains("Version")) {
                 try {
                     JSONObject jsonObj = new JSONObject(result);
@@ -2115,6 +2141,9 @@ public class CommonUtils {
 
                     mac_address = jsonObject.getString("mac_address");
 
+                    if (result.contains("iot_version")) {
+                        iot_version = jsonObject.getString("iot_version");
+                    }
                     if (result.contains("AP_mac_address")) {
                         AP_mac_address = jsonObject.getString("AP_mac_address");
                     }
@@ -2128,7 +2157,7 @@ public class CommonUtils {
             if (mac_address.equalsIgnoreCase(selMacAddress) || AP_mac_address.equalsIgnoreCase(selMacAddress)) { // compare with MAC saved in cloud.
                 if (mac_address.equalsIgnoreCase(MA_ConnectedDevices)) {
                     if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + "[STA Mac Address (from info command) ==> " + mac_address + "; Connected Device Mac Address ==> " + MA_ConnectedDevices + "]");
+                        AppConstants.WriteinFile(TAG + "Mac Address found from info command.\n [STA Mac Address (from info command) => " + mac_address + " <==> Connected Device Mac Address => " + MA_ConnectedDevices + "]");
                     validIpAddress = ipAddress;
                 } else {
                     String staMacAddressFromLink = "";
@@ -2141,13 +2170,13 @@ public class CommonUtils {
                     String APMacAddress = generateAPMacFromSTAMac(TAG, staMacAddressFromLink);
                     if (APMacAddress.equalsIgnoreCase(MA_ConnectedDevices)) {
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "\n[STA Mac Address (from info command) ==> " + staMacAddressFromLink + ";\n AP Mac Address ==> " + APMacAddress + ";\n Connected Device Mac Address ==> " + MA_ConnectedDevices + "]");
+                            AppConstants.WriteinFile(TAG + "Mac Address found from info command.\n [STA Mac Address (from info command) ==> " + staMacAddressFromLink + "; AP Mac Address (Generated from STA Mac) ==> " + APMacAddress + "]");
                         validIpAddress = ipAddress;
                     }
                 }
             } else {
                 if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "\n[Selected Mac Address ==> " + selMacAddress + ";\n Connected Device Mac Address ==> " + MA_ConnectedDevices + ";\n STA Mac Address (from info command) ==> " + mac_address + ";\n AP Mac Address (from info command) ==> " + AP_mac_address + "]");
+                    AppConstants.WriteinFile(TAG + "Selected Mac Address (" + selMacAddress + ") is not found in info command response.\n [Version: " + iot_version + "; STA Mac Address (from info command) ==> " + mac_address + "; AP Mac Address (from info command) ==> " + AP_mac_address + "]");
             }
 
         } catch (Exception e) {

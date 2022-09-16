@@ -7,6 +7,7 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Environment;
+import android.os.Handler;
 import android.os.IBinder;
 import android.util.Base64;
 import android.util.Log;
@@ -51,7 +52,7 @@ public class OffBackgroundService extends Service {
     OffDBController controller = new OffDBController(OffBackgroundService.this);
 
     ConnectionDetector cd = new ConnectionDetector(OffBackgroundService.this);
-    private static final String TAG = OffBackgroundService.class.getSimpleName();
+    private static final String TAG = AppConstants.LOG_BACKGROUND + "-" + OffBackgroundService.class.getSimpleName();
 
     Timer timer;
     TimerTask repeatedTask;
@@ -72,10 +73,10 @@ public class OffBackgroundService extends Service {
         try {
 
             if (Constants.FS_1STATUS.equalsIgnoreCase("FREE") && Constants.FS_2STATUS.equalsIgnoreCase("FREE") && Constants.FS_3STATUS.equalsIgnoreCase("FREE") && Constants.FS_4STATUS.equalsIgnoreCase("FREE") && Constants.FS_5STATUS.equalsIgnoreCase("FREE") && Constants.FS_6STATUS.equalsIgnoreCase("FREE")) {
-
+                AppConstants.selectHosePressed = false;
                 Log.i(TAG, " onStartCommand -------------- _templog");
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + " onStartCommand ------------------- _templog");
+                /*if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " Started.");*/
 
                 OffDBController offcontroller = new OffDBController(this);
                 //HashMap<String, String> linkmap = offcontroller.getAllLinksDetails();
@@ -335,7 +336,6 @@ public class OffBackgroundService extends Service {
 
             }
 
-
             return resp;
         }
 
@@ -344,7 +344,6 @@ public class OffBackgroundService extends Service {
         protected void onPostExecute(String result) {
 
             if (result != null && !result.isEmpty()) {
-
 
                 try {
 
@@ -355,7 +354,6 @@ public class OffBackgroundService extends Service {
                     System.out.println("ResponceMessage:" + ResponceMessage);
 
                     if (ResponceMessage.equalsIgnoreCase("success")) {
-
 
                         JSONObject HubDataObj = jsonObject.getJSONObject("HubDataObj");
 
@@ -378,10 +376,17 @@ public class OffBackgroundService extends Service {
                         String VehicleDataFilePath = HubDataObj.getString("VehicleDataFilePath");
                         String PersonnelDataFilePath = HubDataObj.getString("PersonnelDataFilePath");
                         String LinkDataFilePath = HubDataObj.getString("LinkDataFilePath");
+                        String IsNonValidateVehicle = HubDataObj.getString("IsNonValidateVehicle");
+                        String IsNonValidatePerson = HubDataObj.getString("IsNonValidatePerson");
+                        String IsNonValidateODOM = HubDataObj.getString("IsNonValidateODOM");
+                        String IsOtherRequire = HubDataObj.getString("IsOtherRequire");
+                        String OtherLabel = HubDataObj.getString("OtherLabel");
+                        String HUBType = HubDataObj.getString("HUBType");
 
-                        controller.storeOfflineHubDetails(OffBackgroundService.this, HubId, AllowedLinks, PersonnelPINNumberRequired, VehicleNumberRequired, PersonhasFOB, VehiclehasFOB, WiFiChannel,
-                                BluetoothCardReader, BluetoothCardReaderMacAddress, LFBluetoothCardReader, LFBluetoothCardReaderMacAddress,
-                                PrinterMacAddress, PrinterName, EnablePrinter, VehicleDataFilePath, PersonnelDataFilePath, LinkDataFilePath);
+                        controller.storeOfflineHubDetails(OffBackgroundService.this, HubId, AllowedLinks, PersonnelPINNumberRequired, VehicleNumberRequired, PersonhasFOB,
+                                VehiclehasFOB, WiFiChannel, BluetoothCardReader, BluetoothCardReaderMacAddress, LFBluetoothCardReader, LFBluetoothCardReaderMacAddress,
+                                PrinterMacAddress, PrinterName, EnablePrinter, VehicleDataFilePath, PersonnelDataFilePath, LinkDataFilePath, IsNonValidateVehicle,
+                                IsNonValidatePerson, IsNonValidateODOM, IsOtherRequire, OtherLabel, HUBType);
 
                         if (cd.isConnecting()) {
 
@@ -394,10 +399,20 @@ public class OffBackgroundService extends Service {
 
                             new GetAPIPersonnelPinDetails().execute();
 
+                            new Handler().postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    if (!AppConstants.selectHosePressed) {
+                                        AppConstants.clearSharedPrefByName(OffBackgroundService.this, "DownloadFileStatus");
+                                        startDownloadTimerTask();
+                                    } else {
+                                        if (AppConstants.GenerateLogs)
+                                            AppConstants.WriteinFile(TAG + " Offline download canceled.");
+                                        stopSelf();
+                                    }
+                                }
+                            }, 60000);
 
-                            AppConstants.clearSharedPrefByName(OffBackgroundService.this, "DownloadFileStatus");
-
-                            startDownloadTimerTask();
 
                         } else {
                             if (AppConstants.GenerateLogs)
@@ -435,12 +450,15 @@ public class OffBackgroundService extends Service {
 
             repeatedTask = new TimerTask() {
                 public void run() {
+                    if (AppConstants.selectHosePressed) {
+                        repeatedTask.cancel();
+                    }
 
                     System.out.println("startDownloadTimerTask**********");
 
                     String status_v = getDownloadFileStatus("Vehicle");
 
-                    if (status_v.isEmpty() || status_v.equalsIgnoreCase("2")) {
+                    if ((status_v.isEmpty() || status_v.equalsIgnoreCase("2")) && !AppConstants.selectHosePressed) {
                         if (!VehicleDataFilePath.equalsIgnoreCase(""))
                             downloadLibrary(VehicleDataFilePath, "Vehicle");
                     }
@@ -448,7 +466,7 @@ public class OffBackgroundService extends Service {
 
                     String status_p = getDownloadFileStatus("Personnel");
 
-                    if (status_p.isEmpty() || status_p.equalsIgnoreCase("2")) {
+                    if ((status_p.isEmpty() || status_p.equalsIgnoreCase("2")) && !AppConstants.selectHosePressed) {
                         if (!PersonnelDataFilePath.equalsIgnoreCase(""))
                             downloadLibrary(PersonnelDataFilePath, "Personnel");
                     }
@@ -456,13 +474,13 @@ public class OffBackgroundService extends Service {
 
                     String status_l = getDownloadFileStatus("Link");
 
-                    if (status_l.isEmpty() || status_l.equalsIgnoreCase("2")) {
+                    if ((status_l.isEmpty() || status_l.equalsIgnoreCase("2")) && !AppConstants.selectHosePressed) {
                         if (!LinkDataFilePath.equalsIgnoreCase(""))
                             downloadLibrary(LinkDataFilePath, "Link");
                     }
 
 
-                    if (status_v.equalsIgnoreCase("1") && status_p.equalsIgnoreCase("1") && status_l.equalsIgnoreCase("1")) {
+                    if (status_v.equalsIgnoreCase("1") && status_p.equalsIgnoreCase("1") && status_l.equalsIgnoreCase("1") && !AppConstants.selectHosePressed) {
 
                         setSharedPrefOfflineData(getApplicationContext());
 
@@ -896,12 +914,19 @@ public class OffBackgroundService extends Service {
 
         Date currentDate = parseTime(CurrentHour + ":" + CurrentMinutes);
         Date savedOfflineDate = parseTime(HourOfDay + ":" + MinuteOfHour);
-        if (savedOfflineDate.before(currentDate)) { // checking offline access time is less than current time or not.
-            return true;
+
+        if (CurrentHour >= 0 && CurrentHour <= 3) { // Checking the time is in between 12 AM to 4 AM
+            if (savedOfflineDate.equals(currentDate) || savedOfflineDate.before(currentDate)) { // checking offline access time is same or less than current time or not.
+                return true;
+            } else {
+                Log.i(TAG, " Offline data download time is set as :" + (HourOfDay + ":" + MinuteOfHour).trim() + "; Current time is "+ (CurrentHour + ":" + CurrentMinutes).trim() + " >>Skip Downloading.");
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " Offline data download time is set as :" + (HourOfDay + ":" + MinuteOfHour).trim() + "; Current time is "+ (CurrentHour + ":" + CurrentMinutes).trim() + " >>Skip Downloading.");
+                return false;
+            }
         } else {
-            Log.i(TAG, " Offline data download time is set as :" + (HourOfDay + ":" + MinuteOfHour).trim() + "; Current time is "+ (CurrentHour + ":" + CurrentMinutes).trim() + " >>Skip Downloading.");
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " Offline data download time is set as :" + (HourOfDay + ":" + MinuteOfHour).trim() + "; Current time is "+ (CurrentHour + ":" + CurrentMinutes).trim() + " >>Skip Downloading.");
+                AppConstants.WriteinFile(TAG + " Skip Downloading.");
             return false;
         }
     }
@@ -962,8 +987,9 @@ public class OffBackgroundService extends Service {
 
                         insertDownloadFileStatus(fileName, "1");
 
-                        if (!AppConstants.selectHosePressed)
+                        if (!AppConstants.selectHosePressed) {
                             readEncryptedFileParseJsonInSqlite(fileName);
+                        }
                     }
 
                     @Override
@@ -1113,7 +1139,7 @@ public class OffBackgroundService extends Service {
                 AppConstants.offlineDownloadIds.clear();
             }
             deleteIncompleteOfflineDataFiles();
-            AppConstants.WriteinFile("WelAct- cancel offline Download...");
+            //AppConstants.WriteinFile("WelAct- cancel offline Download...");
 
         } catch (Exception e) {
         }

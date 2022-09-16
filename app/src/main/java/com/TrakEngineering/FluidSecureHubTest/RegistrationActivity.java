@@ -37,8 +37,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.TrakEngineering.FluidSecureHubTest.enity.ReplaceHUBFromAppEntity;
-import com.TrakEngineering.FluidSecureHubTest.enity.VehicleRequireEntity;
-import com.TrakEngineering.FluidSecureHubTest.offline.OfflineConstants;
 import com.TrakEngineering.FluidSecureHubTest.server.ServerHandler;
 import com.google.gson.Gson;
 import com.squareup.okhttp.MediaType;
@@ -180,7 +178,7 @@ public class RegistrationActivity extends AppCompatActivity {
 
 
                 if (etFName.getText().toString().trim().isEmpty()) {
-                    redToast(RegistrationActivity.this, "Please enter Name");
+                    redToast(RegistrationActivity.this, "Please enter HUB Name");
                     etFName.requestFocus();
                 }/* else if (etMobile.getText().toString().trim().isEmpty()) {
                     redToast(RegistrationActivity.this, "Please enter Mobile");

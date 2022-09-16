@@ -31,7 +31,7 @@ import static com.TrakEngineering.FluidSecureHubTest.BT_Link_Oscilloscope_Activi
 public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialListenerThree , SerialListenerFour, SerialListenerOscilloscope {
 
     public Activity activity;
-    private static final String TAG = BTSPPMain.class.getSimpleName();
+    private static final String TAG = AppConstants.LOG_TXTN_BT + "-"; //BTSPPMain.class.getSimpleName();
     private String newline = "\r\n";
     //private String deviceAddress1 = ""; //80:7D:3A:A4:67:22
     //private String deviceAddress2 = "";
@@ -39,11 +39,6 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
     StringBuilder sb2 = new StringBuilder();
     StringBuilder sb3 = new StringBuilder();
     StringBuilder sb4 = new StringBuilder();
-
-    /*boolean isRelayOff1 = false;
-    boolean isRelayOff2 = false;
-    boolean isRelayOff3 = false;
-    boolean isRelayOff4 = false;*/
 
     public void CheckForStoredMacAddress() {
 
@@ -113,7 +108,7 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
     public void connect1() {
         try {
 
-            if (BTConstants.deviceAddress1 != null || !BTConstants.deviceAddress1.isEmpty()) {
+            if (BTConstants.deviceAddress1 != null && !BTConstants.deviceAddress1.isEmpty()) {
                 BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
                 BluetoothDevice device = bluetoothAdapter.getRemoteDevice(BTConstants.deviceAddress1);
                 status1("Connecting...");
@@ -137,7 +132,7 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
             return;
         }
         try {
-            //Log commant sent:str
+            //Log command sent:str
             BTConstants.CurrentCommand_LinkOne = str;
             Log.i(TAG, "BTLink 1: Requesting..." + str);
             byte[] data = (str + newline).getBytes();
@@ -187,31 +182,13 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         if (BTConstants.CurrentCommand_LinkOne.equalsIgnoreCase(BTConstants.info_cmd) && Response.contains("records")) {
             BTConstants.isNewVersionLinkOne = true;
         }
-        if (BTConstants.CurrentCommand_LinkOne.equalsIgnoreCase(BTConstants.scope_READ_cmd)) {
-            if (!Response.equalsIgnoreCase("$$")) {
-                AppConstants.WriteinFile(TAG + " BTLink 1: receive1 Response:" + Response.trim());
-            }
-        }
-
         if (Response.contains("$$")) {
             String res = Response.replace("$$", "");
             if (!res.trim().isEmpty()) {
                 sb1.append(res.trim());
-                /*if (BTConstants.CurrentCommand_LinkOne.equalsIgnoreCase(BTConstants.info_cmd)) {
-                    sb1.append(res.trim());
-                } else if (BTConstants.CurrentCommand_LinkOne.equalsIgnoreCase(BTConstants.relay_off_cmd) && !isRelayOff1) {
-                    isRelayOff1 = true;
-                    sb1.append(res.trim());
-                }*/
             }
             sendBroadcastIntentFromLinkOne(sb1.toString());
             sb1.setLength(0);
-
-            /*if (BTConstants.CurrentCommand_LinkOne.equalsIgnoreCase("LK_COMM=info")) {
-                sb1.append(Response.replace("$$", ""));
-            }
-            sendBroadcastIntentFromLinkOne(sb1.toString());
-            sb1.setLength(0);*/
         } else {
             if (BTConstants.isNewVersionLinkOne || BTConstants.forOscilloscope) {
                 sb1.append(Response);
@@ -285,7 +262,7 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
     public void connect2() {
         try {
 
-            if (BTConstants.deviceAddress2 != null || !BTConstants.deviceAddress2.isEmpty()) {
+            if (BTConstants.deviceAddress2 != null && !BTConstants.deviceAddress2.isEmpty()) {
                 BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
                 BluetoothDevice device = bluetoothAdapter.getRemoteDevice(BTConstants.deviceAddress2);
                 status2("Connecting...");
@@ -309,7 +286,7 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
             return;
         }
         try {
-            //Log commant sent:str
+            //Log command sent:str
             BTConstants.CurrentCommand_LinkTwo = str;
             Log.i(TAG, "BTLink 2: Requesting..." + str);
             byte[] data = (str + newline).getBytes();
@@ -344,30 +321,13 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         if (BTConstants.CurrentCommand_LinkTwo.equalsIgnoreCase(BTConstants.info_cmd) && Response.contains("records")) {
             BTConstants.isNewVersionLinkTwo = true;
         }
-        if (BTConstants.CurrentCommand_LinkTwo.equalsIgnoreCase(BTConstants.scope_READ_cmd)) {
-            if (!Response.equalsIgnoreCase("$$")) {
-                AppConstants.WriteinFile(TAG + " BTLink 2: receive2 Response:" + Response.trim());
-            }
-        }
         if (Response.contains("$$")) {
             String res = Response.replace("$$", "");
             if (!res.trim().isEmpty()) {
                 sb2.append(res.trim());
-                /*if (BTConstants.CurrentCommand_LinkTwo.equalsIgnoreCase(BTConstants.info_cmd)) {
-                    sb2.append(res.trim());
-                } else if (BTConstants.CurrentCommand_LinkTwo.equalsIgnoreCase(BTConstants.relay_off_cmd) && !isRelayOff2) {
-                    isRelayOff2 = true;
-                    sb2.append(res.trim());
-                }*/
             }
             sendBroadcastIntentFromLinkTwo(sb2.toString());
             sb2.setLength(0);
-
-            /*if (BTConstants.CurrentCommand_LinkTwo.equalsIgnoreCase("LK_COMM=info")) {
-                sb2.append(Response.replace("$$", ""));
-            }
-            sendBroadcastIntentFromLinkTwo(sb2.toString());
-            sb2.setLength(0);*/
         } else {
             if (BTConstants.isNewVersionLinkTwo || BTConstants.forOscilloscope) {
                 sb2.append(Response);
@@ -440,7 +400,7 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
     public void connect3() {
         try {
 
-            if (BTConstants.deviceAddress3 != null || !BTConstants.deviceAddress3.isEmpty()) {
+            if (BTConstants.deviceAddress3 != null && !BTConstants.deviceAddress3.isEmpty()) {
                 BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
                 BluetoothDevice device = bluetoothAdapter.getRemoteDevice(BTConstants.deviceAddress3);
                 status3("Connecting...");
@@ -464,7 +424,7 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
             return;
         }
         try {
-            //Log commant sent:str
+            //Log command sent:str
             BTConstants.CurrentCommand_LinkThree = str;
             Log.i(TAG, "BTLink 3: Requesting..." + str);
             byte[] data = (str + newline).getBytes();
@@ -499,30 +459,13 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         if (BTConstants.CurrentCommand_LinkThree.equalsIgnoreCase(BTConstants.info_cmd) && Response.contains("records")) {
             BTConstants.isNewVersionLinkThree = true;
         }
-        if (BTConstants.CurrentCommand_LinkThree.equalsIgnoreCase(BTConstants.scope_READ_cmd)) {
-            if (!Response.equalsIgnoreCase("$$")) {
-                AppConstants.WriteinFile(TAG + " BTLink 3: receive3 Response:" + Response.trim());
-            }
-        }
         if (Response.contains("$$")) {
             String res = Response.replace("$$", "");
             if (!res.trim().isEmpty()) {
                 sb3.append(res.trim());
-                /*if (BTConstants.CurrentCommand_LinkThree.equalsIgnoreCase(BTConstants.info_cmd)) {
-                    sb3.append(res.trim());
-                } else if (BTConstants.CurrentCommand_LinkThree.equalsIgnoreCase(BTConstants.relay_off_cmd) && !isRelayOff3) {
-                    isRelayOff3 = true;
-                    sb3.append(res.trim());
-                }*/
             }
             sendBroadcastIntentFromLinkThree(sb3.toString());
             sb3.setLength(0);
-
-            /*if (BTConstants.CurrentCommand_LinkThree.equalsIgnoreCase("LK_COMM=info")) {
-                sb3.append(Response.replace("$$", ""));
-            }
-            sendBroadcastIntentFromLinkThree(sb3.toString());
-            sb3.setLength(0);*/
         } else {
             if (BTConstants.isNewVersionLinkThree || BTConstants.forOscilloscope) {
                 sb3.append(Response);
@@ -596,7 +539,7 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
     public void connect4() {
         try {
 
-            if (BTConstants.deviceAddress4 != null || !BTConstants.deviceAddress4.isEmpty()) {
+            if (BTConstants.deviceAddress4 != null && !BTConstants.deviceAddress4.isEmpty()) {
                 BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
                 BluetoothDevice device = bluetoothAdapter.getRemoteDevice(BTConstants.deviceAddress4);
                 status4("Connecting...");
@@ -620,7 +563,7 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
             return;
         }
         try {
-            //Log commant sent:str
+            //Log command sent:str
             BTConstants.CurrentCommand_LinkFour = str;
             Log.i(TAG, "BTLink 4: Requesting..." + str);
             byte[] data = (str + newline).getBytes();
@@ -655,30 +598,13 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         if (BTConstants.CurrentCommand_LinkFour.equalsIgnoreCase(BTConstants.info_cmd) && Response.contains("records")) {
             BTConstants.isNewVersionLinkFour = true;
         }
-        if (BTConstants.CurrentCommand_LinkFour.equalsIgnoreCase(BTConstants.scope_READ_cmd)) {
-            if (!Response.equalsIgnoreCase("$$")) {
-                AppConstants.WriteinFile(TAG + " BTLink 4: receive4 Response:" + Response.trim());
-            }
-        }
         if (Response.contains("$$")) {
             String res = Response.replace("$$", "");
             if (!res.trim().isEmpty()) {
                 sb4.append(res.trim());
-                /*if (BTConstants.CurrentCommand_LinkFour.equalsIgnoreCase(BTConstants.info_cmd)) {
-                    sb4.append(res.trim());
-                } else if (BTConstants.CurrentCommand_LinkFour.equalsIgnoreCase(BTConstants.relay_off_cmd) && !isRelayOff4) {
-                    isRelayOff4 = true;
-                    sb4.append(res.trim());
-                }*/
             }
             sendBroadcastIntentFromLinkFour(sb4.toString());
             sb4.setLength(0);
-
-           /* if (BTConstants.CurrentCommand_LinkFour.equalsIgnoreCase("LK_COMM=info")) {
-                sb4.append(Response.replace("$$", ""));
-            }
-            sendBroadcastIntentFromLinkFour(sb4.toString());
-            sb4.setLength(0);*/
         } else {
             if (BTConstants.isNewVersionLinkFour || BTConstants.forOscilloscope) {
                 sb4.append(Response);

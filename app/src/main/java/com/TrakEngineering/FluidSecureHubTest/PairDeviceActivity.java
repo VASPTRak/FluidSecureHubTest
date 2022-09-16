@@ -116,7 +116,7 @@ public class PairDeviceActivity extends AppCompatActivity {
             for (BluetoothDevice device : pairedDevices) {
                 String deviceName = device.getName();
                 String deviceHardwareAddress = device.getAddress(); // MAC address
-                if(deviceName != null) {
+                if (deviceName != null) {
                     if (deviceName.startsWith("FSBT-") || deviceName.startsWith("FSAST-")){
                         mImageUrls.add(deviceHardwareAddress);
                         mNames.add(deviceName);

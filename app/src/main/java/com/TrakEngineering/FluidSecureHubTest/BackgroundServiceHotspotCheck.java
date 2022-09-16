@@ -44,7 +44,7 @@ import static com.TrakEngineering.FluidSecureHubTest.server.ServerHandler.TEXT;
 
 public class BackgroundServiceHotspotCheck extends BackgroundService {
 
-    private String TAG = "BS_HotspotCheck";
+    private String TAG = AppConstants.LOG_BACKGROUND + " BS_HotspotCheck ";
     ConnectionDetector cd = new ConnectionDetector(BackgroundServiceHotspotCheck.this);
     OffDBController offcontroller = new OffDBController(BackgroundServiceHotspotCheck.this);
 
@@ -128,9 +128,9 @@ public class BackgroundServiceHotspotCheck extends BackgroundService {
                     AppConstants.COUNT_HOTSPOT_MAIL=0;
 
                     //AppConstants.WriteinFile(TAG+" enableMobileHotspotmanuallyStartTimer1");
-                    //if (!CommonUtils.isHotspotEnabled(BackgroundServiceHotspotCheck.this) && Constants.hotspotstayOn  && !AppConstants.IsBTLinkSelectedCurrently){
-                       // CommonUtils.enableMobileHotspotmanuallyStartTimer(this);
-                    }
+                    //if (!CommonUtils.isHotspotEnabled(BackgroundServiceHotspotCheck.this) && Constants.hotspotstayOn && !AppConstants.IsBTLinkSelectedCurrently){
+                    //    CommonUtils.enableMobileHotspotmanuallyStartTimer(this);
+                }
 
 
                 }
@@ -144,7 +144,7 @@ public class BackgroundServiceHotspotCheck extends BackgroundService {
 
                 } else if (!screenOff && !CommonUtils.isHotspotEnabled(BackgroundServiceHotspotCheck.this) && Constants.hotspotstayOn) {
 
-                    if (!AppConstants.IsBTLinkSelectedCurrently) {
+                    if (CheckAllHosesAreFree()) {
                         wifiApManager.setWifiApEnabled(null, true);  //Hotspot enabled
                         Log.i(TAG, "Connecting to hotspot, please wait....");
                         //if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+"  Hotspot ON--1");
@@ -154,7 +154,7 @@ public class BackgroundServiceHotspotCheck extends BackgroundService {
 
                     if (isScreenOn(this) && !CommonUtils.isHotspotEnabled(BackgroundServiceHotspotCheck.this) && Constants.hotspotstayOn) {
 
-                        if (!AppConstants.IsBTLinkSelectedCurrently) {
+                        if (CheckAllHosesAreFree()) {
                             wifiApManager.setWifiApEnabled(null, true);  //Hotspot enabled
                             Log.i(TAG, "Connecting to hotspot, please wait....");
                         }
@@ -276,9 +276,17 @@ public class BackgroundServiceHotspotCheck extends BackgroundService {
     }
 
 
+    public boolean CheckAllHosesAreFree() {
+        if (WelcomeActivity.OnWelcomeActivity && Constants.FS_1STATUS.equalsIgnoreCase("FREE") && Constants.FS_2STATUS.equalsIgnoreCase("FREE") && Constants.FS_3STATUS.equalsIgnoreCase("FREE") && Constants.FS_4STATUS.equalsIgnoreCase("FREE") && Constants.FS_5STATUS.equalsIgnoreCase("FREE") && Constants.FS_6STATUS.equalsIgnoreCase("FREE")) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     public void SyncSqliteData() {
 
-        if (WelcomeActivity.OnWelcomeActivity && Constants.FS_1STATUS.equalsIgnoreCase("FREE") && Constants.FS_2STATUS.equalsIgnoreCase("FREE") && Constants.FS_3STATUS.equalsIgnoreCase("FREE") && Constants.FS_4STATUS.equalsIgnoreCase("FREE")) {
+        if (CheckAllHosesAreFree()) {
 
             if (cd.isConnecting()) {
 

@@ -19,9 +19,10 @@ import java.util.Random;
 
 public class OfflineConstants {
 
-    public static final String TAG = OfflineConstants.class.getSimpleName();
+    public static final String TAG = AppConstants.LOG_BACKGROUND + "-" + OfflineConstants.class.getSimpleName();
 
-    public static void storeCurrentTransaction(Context ctx, String HubId, String SiteId, String VehicleId, String CurrentOdometer, String CurrentHours, String PersonId, String FuelQuantity, String TransactionDateTime) {
+    public static void storeCurrentTransaction(Context ctx, String HubId, String SiteId, String VehicleId, String CurrentOdometer, String CurrentHours, String PersonId,
+                                               String FuelQuantity, String TransactionDateTime, String VehicleNumber, String Other) {
 
         SharedPreferences pref = ctx.getSharedPreferences("storeCurrentTransaction", 0);
         SharedPreferences.Editor editor = pref.edit();
@@ -51,6 +52,12 @@ public class OfflineConstants {
         if (!TransactionDateTime.trim().isEmpty())
             editor.putString("TransactionDateTime", TransactionDateTime);
 
+        if (!VehicleNumber.trim().isEmpty())
+            editor.putString("VehicleNumber", VehicleNumber);
+
+        if (!Other.trim().isEmpty())
+            editor.putString("Other", Other);
+
         // commit changes
         editor.apply();
     }
@@ -64,13 +71,14 @@ public class OfflineConstants {
         EntityOffTranz eot = new EntityOffTranz();
         eot.HubId = sharedPref.getString("HubId", "");
         eot.SiteId = sharedPref.getString("SiteId", "");
-        eot.VehicleId = sharedPref.getString("VehicleId", "");
+        eot.VehicleId = sharedPref.getString("VehicleId", "0");
         eot.CurrentOdometer = sharedPref.getString("CurrentOdometer", "");
         eot.CurrentHours = sharedPref.getString("CurrentHours", "");
         eot.PersonId = sharedPref.getString("PersonId", "");
         eot.FuelQuantity = sharedPref.getString("FuelQuantity", "");
         eot.TransactionDateTime = sharedPref.getString("TransactionDateTime", "");
-
+        eot.VehicleNumber = sharedPref.getString("VehicleNumber", "");
+        eot.Other = sharedPref.getString("Other", "");
 
         return eot;
     }
@@ -254,12 +262,12 @@ public class OfflineConstants {
 
     }
 
-    public static void setAlaramManagerToStartDownloadOfflineData(Context ctx) {
+    public static void setAlarmManagerToStartDownloadOfflineData(Context ctx) {
 
         try {
-            Log.i(TAG, " setAlaramManagerToStartDownloadOfflineData _templog");
+            Log.i(TAG, " setAlarmManagerToStartDownloadOfflineData _templog");
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " setAlaramManagerToStartDownloadOfflineData _templog");
+                AppConstants.WriteinFile(TAG + " setAlarmManagerToStartDownloadOfflineData _templog");
 
             SharedPreferences sharedPref = ctx.getSharedPreferences("storeOfflineAccess", Context.MODE_PRIVATE);
             String isOffline = sharedPref.getString("isOffline", "");
@@ -281,9 +289,9 @@ public class OfflineConstants {
                     AlarmManager.INTERVAL_DAY, alarmIntent);
 
         } catch (Exception e) {
-            Log.i(TAG, " setAlaramManagerToStartDownloadOfflineData Exception:" + e.toString());
+            Log.i(TAG, " setAlarmManagerToStartDownloadOfflineData Exception:" + e.toString());
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " setAlaramManagerToStartDownloadOfflineData Exception:" + e.toString());
+                AppConstants.WriteinFile(TAG + " setAlarmManagerToStartDownloadOfflineData Exception:" + e.toString());
         }
     }
 
