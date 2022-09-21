@@ -547,7 +547,7 @@ public class CommonUtils {
                         .setTitle(title)
                         .setMessage(message)
                         .setCancelable(false)
-                        .setPositiveButton("ok", new DialogInterface.OnClickListener() {
+                        .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 // Whatever...

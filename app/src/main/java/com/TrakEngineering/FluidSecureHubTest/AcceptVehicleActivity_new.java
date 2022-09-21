@@ -1211,11 +1211,11 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
 
                         Log.i(TAG, " vehicle EN Manually: " + vehicleNumber + "  Fob: " + AppConstants.APDU_FOB_KEY + " Barcode_val:" + Barcode_val);
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "Vehicle entered manually: " + vehicleNumber + "  Fob: " + AppConstants.APDU_FOB_KEY + " Barcode_val:" + Barcode_val);
+                            AppConstants.WriteinFile(TAG + "Vehicle entered manually: " + vehicleNumber + "; Fob: " + AppConstants.APDU_FOB_KEY + "; Barcode_val:" + Barcode_val);
                     } else {
-                        System.out.println(TAG + " vehicle FOB No:" + AppConstants.APDU_FOB_KEY + "  VNo:" + vehicleNumber + " Barcode_val:" + Barcode_val);
+                        System.out.println(TAG + "Vehicle FOB No:" + AppConstants.APDU_FOB_KEY + "  VNo:" + vehicleNumber + " Barcode_val:" + Barcode_val);
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "vehicle FOB No:" + AppConstants.APDU_FOB_KEY + " VNo:" + vehicleNumber + " Barcode_val:" + Barcode_val);
+                            AppConstants.WriteinFile(TAG + "Vehicle FOB No:" + AppConstants.APDU_FOB_KEY + "; VNo:" + vehicleNumber + "; Barcode_val:" + Barcode_val);
                     }
 
 
@@ -1394,12 +1394,12 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                     } else {
 
                         String ResponceText = jsonObject.getString("ResponceText");
-                        String ValidationFailFor = jsonObject.getString("ValidationFailFor");
-                        String IsNewFob = jsonObject.getString("IsNewFob");
-
 
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "Vehicle rejected: " + VehicleNumber + " Error:" + ResponceText);
+                            AppConstants.WriteinFile(TAG + "Vehicle rejected. Error: " + ResponceText);
+
+                        String ValidationFailFor = jsonObject.getString("ValidationFailFor");
+                        String IsNewFob = jsonObject.getString("IsNewFob");
 
                         if (ResponceText.equalsIgnoreCase("New Barcode detected, please enter vehicle number.")) {
 
@@ -1504,7 +1504,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
             } catch (Exception e) {
                 e.printStackTrace();
                 if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "ServerCallFirst OnPost Exception" + e);
+                    AppConstants.WriteinFile(TAG + "ServerCallFirst OnPost Exception: " + e);
                 if (OfflineConstants.isOfflineAccess(AcceptVehicleActivity_new.this)) {
                     AppConstants.NETWORK_STRENGTH = false;
                 }
@@ -1560,10 +1560,13 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
 
                 btnSave.setEnabled(true);
                 if (mDisableFOBReadingForVehicle.equalsIgnoreCase("y")) {
-                    //HUB only manual No fob reading..    “Please enter (screen given name) or present an Access Device. If you still have issues, please contact your Manager.
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + "Please enter " + ScreenNameForVehicle + ". If you still have issues, please contact your Manager.");
                     CommonUtils.showCustomMessageDilaog(AcceptVehicleActivity_new.this, "Error Message", "Please enter " + ScreenNameForVehicle + ". If you still have issues, please contact your Manager.");
                     //showMessageDilaog
                 } else {
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + "Please enter " + ScreenNameForVehicle + " or present an Access Device. If you still have issues, please contact your Manager.");
                     CommonUtils.showCustomMessageDilaog(AcceptVehicleActivity_new.this, "Error Message", "Please enter " + ScreenNameForVehicle + " or present an Access Device. If you still have issues, please contact your Manager.");
                 }
             }
@@ -1688,6 +1691,8 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                 }
 
                 btnSave.setEnabled(true);
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + "Please enter " + ScreenNameForVehicle + " or use fob key.");
                 CommonUtils.showMessageDilaog(AcceptVehicleActivity_new.this, "Error Message", "Please enter " + ScreenNameForVehicle + " or use fob key.");
             }
 
@@ -1764,7 +1769,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
 
                 Log.i(TAG, " vehicle FOB No:" + AppConstants.APDU_FOB_KEY + " VNo:" + vehicleNumber + " Barcode value:" + Barcode_val + "MagCard_vehicle:" + MagCard_vehicle);
                 if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "vehicle FOB No:" + AppConstants.APDU_FOB_KEY + "  VNo:" + vehicleNumber + " Barcode_val:" + Barcode_val + "MagCard_vehicle:" + MagCard_vehicle);
+                    AppConstants.WriteinFile(TAG + "Vehicle FOB No:" + AppConstants.APDU_FOB_KEY + "; VNo:" + vehicleNumber + "; Barcode_val:" + Barcode_val + "; MagCard_vehicle:" + MagCard_vehicle);
 
                 Gson gson = new Gson();
                 String jsonData = gson.toJson(objEntityClass);
@@ -1916,7 +1921,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                         String IsNewFob = jsonObject.getString("IsNewFob");
 
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "vehicle Fob Read Fail: " + ResponceText);
+                            AppConstants.WriteinFile(TAG + "Vehicle Fob Read Fail. Error: " + ResponceText);
 
                        /* if (ValidationFailFor.equalsIgnoreCase("Pin")) {
 
@@ -2779,6 +2784,8 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                 } else {
                     RestTimeoutVehicleScreen();
                     //Toast.makeText(mBluetoothLeServiceVehicle, "FStagMac Address Not found", Toast.LENGTH_SHORT).show();
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + "FStagMac Address Not found");
                     CommonUtils.AutoCloseCustomMessageDilaog(AcceptVehicleActivity_new.this, "Message", "FStagMac Address Not found");
                     Log.i(TAG, "FStagMac Address Empty");
                 }
