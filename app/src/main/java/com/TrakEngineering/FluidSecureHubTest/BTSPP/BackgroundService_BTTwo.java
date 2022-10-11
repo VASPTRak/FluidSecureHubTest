@@ -149,10 +149,10 @@ public class BackgroundService_BTTwo extends Service {
                 broadcastBlueLinkTwoData = new BackgroundService_BTTwo.BroadcastBlueLinkTwoData();
                 IntentFilter intentFilter = new IntentFilter("BroadcastBlueLinkTwoData");
                 if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + " BTLink 2: Registering Receiver.");
+                    AppConstants.WriteinFile(TAG + " BTLink 2: <Registering Receiver.>");
                 registerReceiver(broadcastBlueLinkTwoData, intentFilter);
                 isBroadcastReceiverRegistered = true;
-                AppConstants.WriteinFile(TAG + " BTLink 2: Registered successfully. (" + broadcastBlueLinkTwoData + ")");
+                AppConstants.WriteinFile(TAG + " BTLink 2: <Registered successfully. (" + broadcastBlueLinkTwoData + ")>");
 
                 AppConstants.isRelayON_fs2 = false;
                 LinkName = CommonUtils.getlinkName(1);
@@ -629,15 +629,15 @@ public class BackgroundService_BTTwo extends Service {
                     unregisterReceiver(broadcastBlueLinkTwoData);
                     isBroadcastReceiverRegistered = false;
                     if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + " BTLink 2: Receiver unregistered successfully. (" + broadcastBlueLinkTwoData + ")");
+                        AppConstants.WriteinFile(TAG + " BTLink 2: <Receiver unregistered successfully. (" + broadcastBlueLinkTwoData + ")>");
                 } else {
                     if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + " BTLink 2: Receiver is not registered. (" + broadcastBlueLinkTwoData + ")");
+                        AppConstants.WriteinFile(TAG + " BTLink 2: <Receiver is not registered. (" + broadcastBlueLinkTwoData + ")>");
                 }
             } catch (Exception e) {
                 e.printStackTrace();
                 if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + " BTLink 2: Exception occurred while unregistering receiver:>>" + e.getMessage() + " (" + broadcastBlueLinkTwoData + ")");
+                    AppConstants.WriteinFile(TAG + " BTLink 2: <Exception occurred while unregistering receiver:>>" + e.getMessage() + " (" + broadcastBlueLinkTwoData + ")>");
             }
             stopTxtprocess = true;
             BTConstants.isRelayOnAfterReconnect2 = false;
@@ -781,6 +781,7 @@ public class BackgroundService_BTTwo extends Service {
                         Log.i(TAG, " BTLink 2: Link not connected. Please try again!");
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + " BTLink 2: Link not connected.");
+                        BTConstants.isReconnectCalled2 = false;
                         AppConstants.IsTransactionFailed2 = true;
                         PostTransactionBackgroundTasks();
                         CloseTransaction();
@@ -911,10 +912,10 @@ public class BackgroundService_BTTwo extends Service {
                         FDRequest = Request;
                         FDResponse = Response;
                     }
-                    if (AppConstants.isRelayON_fs2 && Response.trim().isEmpty()) {
+                    /*if (AppConstants.isRelayON_fs2 && Response.trim().isEmpty()) {
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + " BTLink 2: No Response from Broadcast.");
-                    }
+                    }*/
 
                     //Used only for debug
                     Log.i(TAG, "BTLink 2: Link Request>>" + Request);
@@ -1037,7 +1038,7 @@ public class BackgroundService_BTTwo extends Service {
             String jsonData = gson.toJson(authEntityClass);
 
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " BTLink 2: Last Transaction saved in local DB. LastTXNid:" + txnId + "; LINK:" + LinkName + "; Pulses:" + Integer.parseInt(counts) + "; Qty:" + Lastqty);
+                AppConstants.WriteinFile(TAG + " BTLink 2: <Last Transaction saved in local DB. LastTXNid:" + txnId + "; LINK:" + LinkName + "; Pulses:" + Integer.parseInt(counts) + "; Qty:" + Lastqty + ">");
 
             String userEmail = CommonUtils.getCustomerDetails_backgroundServiceBT(BackgroundService_BTTwo.this).PersonEmail;
             String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(BackgroundService_BTTwo.this) + ":" + userEmail + ":" + "TransactionComplete");
@@ -1213,16 +1214,18 @@ public class BackgroundService_BTTwo extends Service {
 
             if (!Response.contains(checkPulses)) {
                 stopCount++;
-                if (!Response.contains("OFF")) {
+                /*if (!Response.contains("ON") && !Response.contains("OFF")) {
                     Log.i(TAG, " BTLink 2: No response from link>>" + stopCount);
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(TAG + " BTLink 2: No response from link. Response >> " + Response.trim());
-                }
+                }*/
                 //int pumpOnpoint = Integer.parseInt(PumpOnTime);
                 if (stopCount >= stopAutoFuelSeconds) {
                     if (Pulses <= 0) {
                         CommonUtils.UpgradeTransactionStatusToSqlite(TransactionId, "4", BackgroundService_BTTwo.this);
                     }
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + " BTLink 2: Auto Stop Hit. Response >> " + Response.trim());
                     stopCount = 0;
                     relayOffCommand(); //RelayOff
                     TransactionCompleteFunction();
@@ -1489,7 +1492,7 @@ public class BackgroundService_BTTwo extends Service {
 
                 String LocalPath = getApplicationContext().getExternalFilesDir(AppConstants.FOLDER_BIN) + "/" + AppConstants.UP_Upgrade_File_name;
                 File file = new File(LocalPath);
-                if (file.exists() && AppConstants.UP_Upgrade_File_name.startsWith("BT_")) {
+                if (file.exists()) { // && AppConstants.UP_Upgrade_File_name.startsWith("BT_")
                     BTConstants.UpgradeStatusBT2 = "Started";
                     BTConstants.isUpgradeInProgress_BT2 = true;
                     new BTLinkUpgradeFunctionality().execute();

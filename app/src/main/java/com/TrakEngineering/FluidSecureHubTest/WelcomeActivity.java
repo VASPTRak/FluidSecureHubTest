@@ -1624,6 +1624,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             String selSSID = serverSSIDList.get(0).get("WifiSSId");
             String selMacAddress = serverSSIDList.get(0).get("MacAddress");
             String BTselMacAddress = serverSSIDList.get(0).get("BTMacAddress");
+            String FirmwareFileName = serverSSIDList.get(0).get("FirmwareFileName");
             AppConstants.CURRENT_SELECTED_SSID = selSSID;
 
             if (LinkCommunicationType.equalsIgnoreCase("BT")) {
@@ -1643,9 +1644,12 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             if (FirmwareVersion == null) {
                 FirmwareVersion = "";
             }
+            if (FirmwareFileName == null) {
+                FirmwareFileName = "";
+            }
 
             if (!IsUpgrade.isEmpty()) {
-                SetUpgradeFirmwareDetails(0, IsUpgrade, FirmwareVersion, selSiteId, hoseID);
+                SetUpgradeFirmwareDetails(0, IsUpgrade, FirmwareVersion, FirmwareFileName, selSiteId, hoseID);
             }
 
             if (LinkCommunicationType.equalsIgnoreCase("BT")) {
@@ -1727,8 +1731,15 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                             String LinkCommunicationType = serverSSIDList.get(SelectedItemPos).get("LinkCommunicationType");
                             AppConstants.LAST_CONNECTED_SSID = selectedSSID;
 
-                            if (IsTankEmpty.equalsIgnoreCase("True")) {
+                            /*if (LinkCommunicationType.equalsIgnoreCase("BT")) {
+                                if (CommonUtils.isHotspotEnabled(WelcomeActivity.this)) {
+                                    wifiApManager.setWifiApEnabled(null, false);
+                                }
+                            }*/
 
+                            if (IsTankEmpty.equalsIgnoreCase("True")) {
+                                if (AppConstants.GenerateLogs)
+                                    AppConstants.WriteinFile(TAG + "The system is low on fuel and must be refilled before fueling can start. Please contact your Manager.");
                                 CommonUtils.AlertDialogAutoClose(WelcomeActivity.this, "", "The system is low on fuel and must be refilled before fueling can start. Please contact your Manager.");
                                 tvSSIDName.setText("Tap here to select hose");
                                 btnGo.setVisibility(View.GONE);
@@ -1739,7 +1750,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                 Toast.makeText(getApplicationContext(), "Link Configuration flag true. please check", Toast.LENGTH_LONG).show();
 
                             } else if (IsLinkFlagged != null && IsLinkFlagged.equalsIgnoreCase("True")) {
-
+                                if (AppConstants.GenerateLogs)
+                                    AppConstants.WriteinFile(TAG + "Flagged Link: " + LinkFlaggedMessage);
                                 CommonUtils.AlertDialogAutoClose(WelcomeActivity.this, "", LinkFlaggedMessage);
                                 tvSSIDName.setText("Tap here to select hose");
                                 btnGo.setVisibility(View.GONE);
@@ -2922,6 +2934,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     String IsUpgrade = serverSSIDList.get(SelectedItemPos).get("IsUpgrade");
                     String UPFilePath = serverSSIDList.get(SelectedItemPos).get("UPFilePath");
                     String FirmwareVersion = serverSSIDList.get(SelectedItemPos).get("FirmwareVersion");
+                    String FirmwareFileName = serverSSIDList.get(SelectedItemPos).get("FirmwareFileName");
                     AppConstants.IsResetSwitchTimeBounce = serverSSIDList.get(SelectedItemPos).get("IsResetSwitchTimeBounce");
                     if (ReconfigureLink == null) {
                         ReconfigureLink = "";
@@ -2940,6 +2953,9 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     if (FirmwareVersion == null) {
                         FirmwareVersion = "";
                     }
+                    if (FirmwareFileName == null) {
+                        FirmwareFileName = "";
+                    }
 
                     String txtnTypeForLog = "";
                     if (LinkCommunicationType.equalsIgnoreCase("BT")) {
@@ -2952,7 +2968,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         AppConstants.WriteinFile(txtnTypeForLog + "-" + TAG + "Customer select hose: " + selSSID + " (position: " + (position + 1) + " of " + serverSSIDList.size() + ")");
 
                     if (IsTankEmpty != null && IsTankEmpty.equalsIgnoreCase("True")) {
-
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + "The system is low on fuel and must be refilled before fueling can start. Please contact your Manager.");
                         CommonUtils.AlertDialogAutoClose(WelcomeActivity.this, "", "The system is low on fuel and must be refilled before fueling can start. Please contact your Manager.");
                         tvSSIDName.setText("Tap here to select hose");
                         btnGo.setVisibility(View.GONE);
@@ -2967,7 +2984,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                             WelcomeActivity.this.startActivity(i);
 
                         } else if (IsLinkFlagged != null && IsLinkFlagged.equalsIgnoreCase("True")) {
-
+                            if (AppConstants.GenerateLogs)
+                                AppConstants.WriteinFile(TAG + "Flagged Link: " + LinkFlaggedMessage);
                             CommonUtils.AlertDialogAutoClose(WelcomeActivity.this, "", LinkFlaggedMessage);
                             RestrictHoseSelection("Please try again later");
 
@@ -2976,7 +2994,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                             OfflineConstants.storeCurrentTransaction(WelcomeActivity.this, "", selSiteId, "", "", "", "", "", AppConstants.currentDateFormat("yyyy-MM-dd HH:mm"), "", "");
 
                             if (!IsUpgrade.isEmpty()) {
-                                SetUpgradeFirmwareDetails(position, IsUpgrade, FirmwareVersion, selSiteId, hoseID);
+                                SetUpgradeFirmwareDetails(position, IsUpgrade, FirmwareVersion, FirmwareFileName, selSiteId, hoseID);
                             }
 
                             CheckBTConnection(SelectedItemPos, selSSID, BTselMacAddress);
@@ -3062,7 +3080,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                             /////////////////////////////////////////////////////
 
                             if (!IsUpgrade.isEmpty()) {
-                                SetUpgradeFirmwareDetails(position, IsUpgrade, FirmwareVersion, selSiteId, hoseID);
+                                SetUpgradeFirmwareDetails(position, IsUpgrade, FirmwareVersion, FirmwareFileName, selSiteId, hoseID);
                             }
 
                             //Rename SSID while mac address updation
@@ -3112,7 +3130,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                             AppConstants.colorToastBigFont(getApplicationContext(), "Can't reconfigure hose is busy", Color.RED);
                                         }
                                     } else if (IsLinkFlagged != null && IsLinkFlagged.equalsIgnoreCase("True")) {
-
+                                        if (AppConstants.GenerateLogs)
+                                            AppConstants.WriteinFile(TAG + "Flagged Link: " + LinkFlaggedMessage);
                                         CommonUtils.AlertDialogAutoClose(WelcomeActivity.this, "", LinkFlaggedMessage);
                                         RestrictHoseSelection("Please try again later");
 
@@ -6819,7 +6838,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             }
 
         } else if (IsLinkFlagged != null && IsLinkFlagged.equalsIgnoreCase("True")) {
-
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + "Flagged Link: " + LinkFlaggedMessage);
             CommonUtils.AlertDialogAutoClose(WelcomeActivity.this, "", LinkFlaggedMessage);
             RestrictHoseSelection("Please try again later");
 
@@ -9411,6 +9431,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                 String IsLinkFlagged = c.getString("IsLinkFlagged");
                                 String LinkFlaggedMessage = c.getString("LinkFlaggedMessage");
                                 String IsResetSwitchTimeBounce = c.getString("IsResetSwitchTimeBounce");
+                                String FirmwareFileName = c.getString("FirmwareFileName");
 
                                 SetBTLinksMacAddress(i, BTMacAddress);
 
@@ -9518,6 +9539,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                 map.put("IsLinkFlagged", IsLinkFlagged);
                                 map.put("LinkFlaggedMessage", LinkFlaggedMessage);
                                 map.put("IsResetSwitchTimeBounce", IsResetSwitchTimeBounce);
+                                map.put("FirmwareFileName", FirmwareFileName);
 
                                 if (ResponceMessage.equalsIgnoreCase("success")) {
 
@@ -9584,6 +9606,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                                 } else {
                                     errMsg = ResponceText;
+                                    if (AppConstants.GenerateLogs)
+                                        AppConstants.WriteinFile(TAG + "GetSSIDUsingLocationOnResume SSIDData (" + WifiSSId + "): " + ResponceText);
                                     AppConstants.AlertDialogFinish(WelcomeActivity.this, ResponceText);
                                 }
                             }
@@ -9800,9 +9824,9 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
 
                     } else if (ResponseMessageSite.equalsIgnoreCase("fail")) {
-
-
                         String ResponseTextSite = jsonObjectSite.getString(AppConstants.RES_TEXT);
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + "GetSSIDUsingLocationOnResume SSIDData response fail. Error: " + ResponseTextSite);
                         AppConstants.AlertDialogBox(WelcomeActivity.this, ResponseTextSite);
 
                     }
@@ -9811,7 +9835,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     if (OfflineConstants.isOfflineAccess(WelcomeActivity.this)) {
                         AppConstants.NETWORK_STRENGTH = false;
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "  Temporary loss of cell service ~Switching to offline mode!!");
+                            AppConstants.WriteinFile(TAG + "Temporary loss of cell service ~Switching to offline mode!!");
                     }
                     new GetOfflineSSIDUsingLocation().execute();
                 }
@@ -10411,6 +10435,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                 String IsLinkFlagged = c.getString("IsLinkFlagged");
                                 String LinkFlaggedMessage = c.getString("LinkFlaggedMessage");
                                 String IsResetSwitchTimeBounce = c.getString("IsResetSwitchTimeBounce");
+                                String FirmwareFileName = c.getString("FirmwareFileName");
 
                                 AppConstants.UP_FilePath = FilePath;
 
@@ -10453,6 +10478,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                 map.put("IsLinkFlagged", IsLinkFlagged);
                                 map.put("LinkFlaggedMessage", LinkFlaggedMessage);
                                 map.put("IsResetSwitchTimeBounce", IsResetSwitchTimeBounce);
+                                map.put("FirmwareFileName", FirmwareFileName);
 
                                 if (ResponceMessage.equalsIgnoreCase("success")) {
 
@@ -10464,6 +10490,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                     }
                                 } else {
                                     errMsg = ResponceText;
+                                    if (AppConstants.GenerateLogs)
+                                        AppConstants.WriteinFile(TAG + "GetSSIDUsingLocationGateHub SSIDData (" + WifiSSId + "): " + ResponceText);
                                     AppConstants.AlertDialogFinish(WelcomeActivity.this, ResponceText);
                                 }
                             }
@@ -10640,13 +10668,14 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         } catch (Exception e) {
                             System.out.println(e);
                             if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(TAG + "  GetSSIDUsingLocationOnResume if only one hose autoselect   --Exception " + e);
+                                AppConstants.WriteinFile(TAG + "GetSSIDUsingLocationGateHub if only one hose autoselect   --Exception " + e);
                         }
 
 
                     } else if (ResponseMessageSite.equalsIgnoreCase("fail")) {
                         String ResponseTextSite = jsonObjectSite.getString(AppConstants.RES_TEXT);
-
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + "GetSSIDUsingLocationGateHub SSIDData response fail. Error: " + ResponseTextSite);
                         AppConstants.AlertDialogBox(WelcomeActivity.this, ResponseTextSite);
 
                     }
@@ -10655,7 +10684,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     if (OfflineConstants.isOfflineAccess(WelcomeActivity.this)) {
                         AppConstants.NETWORK_STRENGTH = false;
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "  Temporary loss of cell service ~Switching to offline mode 2"); // today**
+                            AppConstants.WriteinFile(TAG + "Temporary loss of cell service ~Switching to offline mode 2"); // today**
                     }
 
                     new GetOfflineSSIDUsingLocation().execute();
@@ -10664,9 +10693,9 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
             } catch (Exception e) {
 
-                CommonUtils.LogMessage(TAG, " GetSSIDUsingLocation :" + result, e);
+                CommonUtils.LogMessage(TAG, "GetSSIDUsingLocationGateHub :" + result, e);
                 if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "  GetSSIDUsingLocationOnResume --Exception " + e);
+                    AppConstants.WriteinFile(TAG + "GetSSIDUsingLocationGateHub --Exception " + e);
                 if (OfflineConstants.isOfflineAccess(WelcomeActivity.this)) {
                     AppConstants.NETWORK_STRENGTH = false;
                 }
@@ -10790,6 +10819,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     //HoseList Alert
                     alertSelectHoseList(tvLatLng.getText().toString() + "\n" + "");
                 } else {
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + "Offline SSIDData is Empty. Error: " + R.string.conn_error);
                     AppConstants.AlertDialogBoxCanecl(WelcomeActivity.this, R.string.conn_error);
                 }
 
@@ -10875,6 +10906,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                             String IsLinkFlagged = c.getString("IsLinkFlagged");
                             String LinkFlaggedMessage = c.getString("LinkFlaggedMessage");
                             String IsResetSwitchTimeBounce = c.getString("IsResetSwitchTimeBounce");
+                            String FirmwareFileName = c.getString("FirmwareFileName");
 
                             ///tld upgrade
                             String IsTLDFirmwareUpgrade = c.getString("IsTLDFirmwareUpgrade");
@@ -10924,10 +10956,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                             map.put("IsLinkFlagged", IsLinkFlagged);
                             map.put("LinkFlaggedMessage", LinkFlaggedMessage);
                             map.put("IsResetSwitchTimeBounce", IsResetSwitchTimeBounce);
-
-                            System.out.println("WifiSSId-" + WifiSSId);
-                            System.out.println("IsTLDFirmwareUpgrade-" + IsTLDFirmwareUpgrade);
-                            System.out.println("TLDFirmwareFilePath-" + TLDFirmwareFilePath);
+                            map.put("FirmwareFileName", FirmwareFileName);
 
                             if (IsTLDFirmwareUpgrade.trim().toLowerCase().equalsIgnoreCase("y")) {
                                 downloadTLD_BinFile(i, TLDFirmwareFilePath, TLDFIrmwareVersion);
@@ -10937,10 +10966,11 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                 if (isNotNULL(SiteId) && isNotNULL(HoseId) && isNotNULL(WifiSSId)) {
                                     serverSSIDList.add(map);
                                     AppConstants.DetailsServerSSIDList = serverSSIDList;
-
                                 }
                             } else {
                                 errMsg = ResponceText;
+                                if (AppConstants.GenerateLogs)
+                                    AppConstants.WriteinFile(TAG + "SSIDData (" + WifiSSId + "): " + ResponceText);
                                 AppConstants.AlertDialogFinish(WelcomeActivity.this, ResponceText);
                             }
                         }
@@ -10948,6 +10978,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         //HoseList Alert
                         alertSelectHoseList(tvLatLng.getText().toString() + "\n" + errMsg);
                     } else {
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + "SSIDData is Empty. Error: " + R.string.conn_error);
                         AppConstants.AlertDialogBoxCanecl(WelcomeActivity.this, R.string.conn_error);
                     }
 
@@ -10955,7 +10987,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                 } else if (ResponseMessageSite.equalsIgnoreCase("fail")) {
                     String ResponseTextSite = jsonObjectSite.getString(AppConstants.RES_TEXT);
-
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + "SSIDData response fail. Error: " + ResponseTextSite);
                     AppConstants.AlertDialogBox(WelcomeActivity.this, ResponseTextSite);
                 }
             } else {
@@ -10963,7 +10996,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 if (OfflineConstants.isOfflineAccess(WelcomeActivity.this)) {
                     AppConstants.NETWORK_STRENGTH = false;
                     if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + "  Temporary loss of cell service ~Switching to offline mode 3"); //today***
+                        AppConstants.WriteinFile(TAG + "Temporary loss of cell service ~Switching to offline mode 3"); //today***
 
                     new GetOfflineSSIDUsingLocation().execute();
                 }
@@ -10973,9 +11006,9 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
         } catch (Exception e) {
 
-            CommonUtils.LogMessage(TAG, " GetSSIDUsingLocation :" + result, e);
+            CommonUtils.LogMessage(TAG, "GetSSIDUsingLocation :" + result, e);
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "  GetSSIDUsingLocation onPostExecute --Exception " + e);
+                AppConstants.WriteinFile(TAG + "GetSSIDUsingLocation onPostExecute --Exception " + e);
         }
 
     }
@@ -14058,7 +14091,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         }
     }
 
-    public void SetUpgradeFirmwareDetails(int position, String IsUpgrade, String FirmwareVersion, String selSiteId, String hoseID) {
+    public void SetUpgradeFirmwareDetails(int position, String IsUpgrade, String FirmwareVersion, String FirmwareFileName, String selSiteId, String hoseID) {
         try {
             //Firmware upgrade
             AppConstants.UP_FirmwareVersion = FirmwareVersion;
@@ -14066,7 +14099,11 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 AppConstants.WriteinFile(TAG + "SetUpgradeFirmwareDetails => IsUpgrade: " + IsUpgrade + ";Is BT Link: " + AppConstants.IsBTLinkSelectedCurrently);*/
             if (IsUpgrade.trim().equalsIgnoreCase("Y")) {
                 AppConstants.UP_Upgrade = true;
-                AppConstants.UP_Upgrade_File_name = "user1.2048.new.5." + FirmwareVersion + ".bin";
+                //AppConstants.UP_Upgrade_File_name = "user1.2048.new.5." + FirmwareVersion + ".bin";
+                if (FirmwareFileName.isEmpty()) {
+                    FirmwareFileName = FirmwareVersion + ".bin";
+                }
+                AppConstants.UP_Upgrade_File_name = FirmwareFileName;
             } else {
                 AppConstants.UP_Upgrade = false;
             }

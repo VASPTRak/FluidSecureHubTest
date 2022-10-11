@@ -1670,13 +1670,18 @@ public class CommonUtils {
 
     public static void UpgradeTransactionStatusToSqlite(String TransactionId, String status, Context ctx) {
 
-        DBController controller = new DBController(ctx);
-        HashMap<String, String> mapsts = new HashMap<>();
-        mapsts.put("transId", TransactionId);
-        mapsts.put("transStatus", status);
+        try {
+            if (!TransactionId.isEmpty()) {
+                DBController controller = new DBController(ctx);
+                HashMap<String, String> mapsts = new HashMap<>();
+                mapsts.put("transId", TransactionId);
+                mapsts.put("transStatus", status);
 
-        controller.insertTransStatusWithOnConflict(mapsts);
-
+                controller.insertTransStatusWithOnConflict(mapsts);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public static void enableMobileHotspotmanuallyStartTimer(final Context context) {

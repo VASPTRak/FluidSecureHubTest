@@ -883,7 +883,10 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
             tv_fobkey.setText(fob);
             CommonUtils.PlayBeep(this);
 
-            HashMap<String, String> hmap = getMagneticCardKey(MagCard_vehicle.trim());
+            HashMap<String, String> hmap = new HashMap<>();
+            if (!IsNonValidateVehicle.equalsIgnoreCase("True")) {
+                hmap = getMagneticCardKey(MagCard_vehicle.trim());
+            }
 
             hmapSwitchOffline = hmap;
             offlineVehicleInitialization(hmap);
@@ -924,7 +927,10 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
             tv_fobkey.setText(fob);
             CommonUtils.PlayBeep(this);
 
-            HashMap<String, String> hmap = controller.getVehicleDetailsByFOBNumber(fob.trim());
+            HashMap<String, String> hmap = new HashMap<>();
+            if (!IsNonValidateVehicle.equalsIgnoreCase("True")) {
+                hmap = controller.getVehicleDetailsByFOBNumber(fob.trim());
+            }
             hmapSwitchOffline = hmap;
             offlineVehicleInitialization(hmap);
             AppConstants.NonValidateVehicle_FOB_KEY = fob;
@@ -1521,7 +1527,10 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
         try {
             String V_Number = editVehicleNumber.getText().toString().trim();
             //////////common for online offline///////////////////////////////
-            HashMap<String, String> hmap = controller.getVehicleDetailsByVehicleNumber(V_Number);
+            HashMap<String, String> hmap = new HashMap<>();
+            if (!IsNonValidateVehicle.equalsIgnoreCase("True")) {
+                hmap = controller.getVehicleDetailsByVehicleNumber(V_Number);
+            }
             hmapSwitchOffline = hmap;
             offlineVehicleInitialization(hmap);
 
@@ -1594,7 +1603,10 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
             IsHoursRequire = sharedPrefODO.getString(AppConstants.IsHoursRequire, "");
             IsExtraOther = sharedPrefODO.getString(AppConstants.IsExtraOther, "");
             String V_Number = editVehicleNumber.getText().toString().trim();
-            HashMap<String, String> hmap = controller.getVehicleDetailsByVehicleNumber(V_Number);
+            HashMap<String, String> hmap = new HashMap<>();
+            if (!IsNonValidateVehicle.equalsIgnoreCase("True")) {
+                hmap = controller.getVehicleDetailsByVehicleNumber(V_Number);
+            }
             offlineVehicleInitialization(hmap);
 
             if (!V_Number.isEmpty() || !AppConstants.APDU_FOB_KEY.isEmpty() || !Barcode_val.isEmpty() || !MagCard_vehicle.isEmpty()) {
@@ -1853,10 +1865,6 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                         editor.putString(AppConstants.IsExtraOther, IsExtraOther);
                         editor.putString(AppConstants.ExtraOtherLabel, ExtraOtherLabel);
                         editor.putString(AppConstants.IsHoursRequire, IsHoursRequire);
-                        editor.putString("PreviousOdo", PreviousOdo);
-                        editor.putString("OdoLimit", OdoLimit);
-                        editor.putString("OdometerReasonabilityConditions", OdometerReasonabilityConditions);
-                        editor.putString("CheckOdometerReasonable", CheckOdometerReasonable);
                         editor.putString("PreviousOdo", PreviousOdo);
                         editor.putString("OdoLimit", OdoLimit);
                         editor.putString("OdometerReasonabilityConditions", OdometerReasonabilityConditions);
@@ -2890,7 +2898,10 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(TAG + "Vehicle Barcode read success: " + Barcode_val);
 
-                    HashMap<String, String> hmap = controller.getVehicleDetailsByBarcodeNumber(Barcode_val);
+                    HashMap<String, String> hmap = new HashMap<>();
+                    if (!IsNonValidateVehicle.equalsIgnoreCase("True")) {
+                        hmap = controller.getVehicleDetailsByBarcodeNumber(Barcode_val);
+                    }
                     hmapSwitchOffline = hmap;
                     offlineVehicleInitialization(hmap);
 
@@ -2939,6 +2950,9 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
             String Active = hmap.get("Active");//: "Y"
             String IsExtraOther = hmap.get("IsExtraOther");
             String ExtraOtherLabel = hmap.get("ExtraOtherLabel");
+            String FuelLimitPerDay = hmap.get("FuelLimitPerDay");
+            String CheckFuelLimitPerMonth = hmap.get("CheckFuelLimitPerMonth");
+            String FuelLimitPerMonth = hmap.get("FuelLimitPerMonth");
 
             offlineVehicleInitialization(hmap);
 
@@ -2947,8 +2961,43 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
             editor.putString(AppConstants.IsExtraOther, IsExtraOther);
             editor.putString(AppConstants.ExtraOtherLabel, ExtraOtherLabel);
 
-            if (Active != null)
+            if (Active != null) {
                 if (Active.trim().toLowerCase().equalsIgnoreCase("y")) {
+
+                    try {
+                        if (FuelLimitPerDay != null) {
+                            double vehicleLimitPerDay = Double.parseDouble(FuelLimitPerDay);
+                            if (vehicleLimitPerDay > 0) {
+                                double remainingLimitPerDay = OfflineConstants.getVehicleFuelLimitPerDay(AcceptVehicleActivity_new.this);
+                                if (remainingLimitPerDay <= 0) {
+                                    if (AppConstants.GenerateLogs)
+                                        AppConstants.WriteinFile(TAG + "This vehicle has exceeded the fuel limit for the day.");
+                                    CommonUtils.showCustomMessageDilaog(AcceptVehicleActivity_new.this, "Error", "This " + ScreenNameForVehicle + " has exceeded the fuel limit for the day. Please contact your Manager.");
+                                    return;
+                                }
+                            }
+                        }
+
+                        if (CheckFuelLimitPerMonth != null) {
+                            if (CheckFuelLimitPerMonth.trim().equalsIgnoreCase("true")) {
+                                if (FuelLimitPerMonth != null) {
+                                    double vehicleLimitPerMonth = Double.parseDouble(FuelLimitPerMonth);
+                                    if (vehicleLimitPerMonth > 0) {
+                                        double remainingLimitPerMonth = OfflineConstants.getFuelLimitPerMonth(AcceptVehicleActivity_new.this);
+                                        if (remainingLimitPerMonth <= 0) {
+                                            if (AppConstants.GenerateLogs)
+                                                AppConstants.WriteinFile(TAG + "This vehicle has exceeded the fuel limit for the month.");
+                                            CommonUtils.showCustomMessageDilaog(AcceptVehicleActivity_new.this, "Error", "This " + ScreenNameForVehicle + " has exceeded the fuel limit for the month. Please contact your Manager.");
+                                            return;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+
                     if (!AllowedLinks.isEmpty() || AllowedLinks.contains(",")) {
                         boolean isAllowed = false;
 
@@ -3001,7 +3050,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                     CommonUtils.AutoCloseCustomMessageDilaog(AcceptVehicleActivity_new.this, "Message", ScreenNameForVehicle + " is not active");
                     //AppConstants.colorToastBigFont(getApplicationContext(), "Vehicle is not active", Color.RED);
                 }
-
+            }
         } else {
 
             String validateVehicles = "Yes";
@@ -3094,15 +3143,17 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                 String Active = hmap.get("Active");//: "Y"
                 String IsExtraOther = hmap.get("IsExtraOther");
                 String ExtraOtherLabel = hmap.get("ExtraOtherLabel");
-
                 String CheckOdometerReasonable = hmap.get("CheckOdometerReasonable");
                 String OdometerReasonabilityConditions = hmap.get("OdometerReasonabilityConditions");
                 String OdoLimit = hmap.get("OdoLimit");
                 String HoursLimit = hmap.get("HoursLimit");
+                String CheckFuelLimitPerMonth = hmap.get("CheckFuelLimitPerMonth");
+                String FuelLimitPerMonth = hmap.get("FuelLimitPerMonth");
+                String FuelQuantityOfVehiclePerMonth = hmap.get("FuelQuantityOfVehiclePerMonth");
 
                 OfflineConstants.storeCurrentTransaction(AcceptVehicleActivity_new.this, "", "", VehicleId, "", "", "", "", "", "", "");
 
-                OfflineConstants.storeFuelLimit(AcceptVehicleActivity_new.this, VehicleId, FuelLimitPerTxn, FuelLimitPerDay, "", "", "");
+                OfflineConstants.storeFuelLimit(AcceptVehicleActivity_new.this, VehicleId, FuelLimitPerTxn, FuelLimitPerDay, CheckFuelLimitPerMonth, FuelLimitPerMonth, FuelQuantityOfVehiclePerMonth, "", "", "");
 
                 AppConstants.OFF_VEHICLE_ID = VehicleId;
                 AppConstants.OFF_ODO_REQUIRED = RequireOdometerEntry;
@@ -3203,9 +3254,9 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                 success = folder.mkdirs();
             }
 
-            if (BTConstants.CurrentTransactionIsBT) {
+            /*if (BTConstants.CurrentTransactionIsBT) {
                 AppConstants.UP_Upgrade_File_name = "BT_" + AppConstants.UP_Upgrade_File_name;
-            }
+            }*/
             String LocalPath = binFolderPath + "/" + AppConstants.UP_Upgrade_File_name;
 
             File f = new File(LocalPath);
@@ -3216,6 +3267,8 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
             } else {
                 if (AppConstants.UP_FilePath != null) {
                     //new BackgroundServiceDownloadFirmware.DownloadLinkAndReaderFirmware().execute(AppConstants.UP_FilePath, AppConstants.UP_Upgrade_File_name, "UP_Upgrade");
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + "Downloading link upgrade firmware file (" + AppConstants.UP_Upgrade_File_name + ")");
                     new DownloadFileFromURL().execute(AppConstants.UP_FilePath, binFolderPath, AppConstants.UP_Upgrade_File_name);
                 } else {
                     Log.e(TAG, "Link upgrade File path null");
@@ -3345,7 +3398,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                     if (!Constants.LF_ReaderStatus.equalsIgnoreCase(LFReaderStatus)) {
                         LFReaderStatus = Constants.LF_ReaderStatus;
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "LF Reader Status: " + LFReaderStatus);
+                            AppConstants.WriteinFile(TAG + "<LF Reader Status: " + LFReaderStatus + ">");
                     }
                     if (Constants.LF_ReaderStatus.equals("LF Disconnected") && !AppConstants.showReaderStatus) {
                         retryConnect();
@@ -3371,7 +3424,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                     if (!Constants.HF_ReaderStatus.equalsIgnoreCase(HFReaderStatus)) {
                         HFReaderStatus = Constants.HF_ReaderStatus;
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "HF Reader Status: " + HFReaderStatus);
+                            AppConstants.WriteinFile(TAG + "<HF Reader Status: " + HFReaderStatus + ">");
                     }
                     if (Constants.HF_ReaderStatus.equals("HF Disconnected") && !AppConstants.showReaderStatus) {
                         retryConnect();
@@ -3397,7 +3450,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                     if (!Constants.Mag_ReaderStatus.equalsIgnoreCase(MagReaderStatus)) {
                         MagReaderStatus = Constants.Mag_ReaderStatus;
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "Mag Reader Status: " + MagReaderStatus);
+                            AppConstants.WriteinFile(TAG + "<Mag Reader Status: " + MagReaderStatus + ">");
                     }
                     if (Constants.Mag_ReaderStatus.equals("Mag Disconnected") && !AppConstants.showReaderStatus) {
                         retryConnect();
@@ -3524,7 +3577,10 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
 
                         Barcode_val = newData.trim();
 
-                        HashMap<String, String> hmap = controller.getVehicleDetailsByBarcodeNumber(Barcode_val);
+                        HashMap<String, String> hmap = new HashMap<>();
+                        if (!IsNonValidateVehicle.equalsIgnoreCase("True")) {
+                            hmap = controller.getVehicleDetailsByBarcodeNumber(Barcode_val);
+                        }
                         hmapSwitchOffline = hmap;
                         offlineVehicleInitialization(hmap);
 

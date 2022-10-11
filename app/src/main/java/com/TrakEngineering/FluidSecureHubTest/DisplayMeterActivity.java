@@ -223,7 +223,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
     protected void onPostResume() {
         super.onPostResume();
 
-        if (!CommonUtils.isHotspotEnabled(DisplayMeterActivity.this) && !AppConstants.IsBTLinkSelectedCurrently) {
+        if (!CommonUtils.isHotspotEnabled(DisplayMeterActivity.this) && !BTConstants.CurrentTransactionIsBT) {
 
             btnStart.setText("Please wait..");
             btnStart.setEnabled(false);
@@ -625,7 +625,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
     private void TimeOutDisplayMeterScreen() {
         SharedPreferences sharedPrefODO = DisplayMeterActivity.this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
-        IsOdoMeterRequire = sharedPrefODO.getString(AppConstants.IsOdoMeterRequire, "");
+        //IsOdoMeterRequire = sharedPrefODO.getString(AppConstants.IsOdoMeterRequire, "");
         IsDepartmentRequire = sharedPrefODO.getString(AppConstants.IsDepartmentRequire, "");
         IsPersonnelPINRequire = sharedPrefODO.getString(AppConstants.IsPersonnelPINRequire, "");
         IsOtherRequire = sharedPrefODO.getString(AppConstants.IsOtherRequire, "");
@@ -984,9 +984,9 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
     @SuppressLint("ResourceAsColor")
     public void CompleteTasksbeforeStartbuttonClick() {
 
-        SharedPreferences sharedPrefODO = DisplayMeterActivity.this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
-        IsOdoMeterRequire = sharedPrefODO.getString(AppConstants.IsOdoMeterRequire, "");
-        String HubId = sharedPrefODO.getString(AppConstants.HubId, "");
+        //SharedPreferences sharedPrefODO = DisplayMeterActivity.this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
+        //IsOdoMeterRequire = sharedPrefODO.getString(AppConstants.IsOdoMeterRequire, "");
+        //String HubId = sharedPrefODO.getString(AppConstants.HubId, "");
 
         BtnStartStateChange(false);
         //btnCancel.setClickable(false);
@@ -1071,7 +1071,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                 Thread.sleep(1000);
                 if (AppConstants.GenerateLogs)
                     AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "Sending INFO command to Link: " + LinkName);
-                new CommandsGET_Info().execute(URL_INFO).get();
+                new CommandsGET_Info().execute(URL_INFO); //.get();
 
             } catch (Exception e) {
                 if (AppConstants.GenerateLogs)
@@ -3141,7 +3141,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
     public class CommandsGET_Info extends AsyncTask<String, Void, String> {
 
         ProgressDialog pd;
-        String infourl = "", StatusCOde = "";
+        String infourl = ""; //, StatusCOde = "";
 
         @Override
         protected void onPreExecute() {
@@ -3167,7 +3167,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                 //OkHttpClient client = new OkHttpClient();
                 client.setConnectTimeout(15, TimeUnit.SECONDS);
                 client.setReadTimeout(15, TimeUnit.SECONDS);
-                client.setWriteTimeout(15, TimeUnit.SECONDS);
+                //client.setWriteTimeout(15, TimeUnit.SECONDS);
 
                 Request request = new Request.Builder()
                         .url(param[0])
@@ -3177,9 +3177,9 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
                 Response response = client.newCall(request).execute();
                 resp = response.body().string();
-                response.body().close();
+                //response.body().close();
 
-                StatusCOde = String.valueOf(response.code());
+                //StatusCOde = String.valueOf(response.code());
 
             } catch (SocketException se) {
                 StoreLinkDisconnectInfo(se);
@@ -3217,7 +3217,6 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                         String sdk_version = jsonObject.getString("sdk_version");
                         String mac_address = jsonObject.getString("mac_address");
                         iot_version = jsonObject.getString("iot_version");
-
 
                     } catch (JSONException e) {
                         if (AppConstants.GenerateLogs)
@@ -3262,7 +3261,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                         UpdateDiffStatusMessages("6");
 
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "Link is unavailable>> Info url:" + infourl + "; info cmd response:" + FSStatus + "; StatusCode:" + StatusCOde);
+                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "Link is unavailable>> Info url:" + infourl + "; info cmd response:" + FSStatus); // + "; StatusCode:" + StatusCOde);
                         //AppConstants.colorToastBigFont(DisplayMeterActivity.this, " Link is unavailable", Color.RED);
                         Istimeout_Sec = true;
                         ResetTimeoutDisplayMeterScreen();
@@ -3276,7 +3275,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                         startActivity(intent);
 
                     } else {
-                        Thread.sleep(1000);
+                        //Thread.sleep(1000);
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "Link is unavailable. InfoCmd Retry attempt: " + count_InfoCmd);
                         //AppConstants.colorToastBigFont(DisplayMeterActivity.this, "Link is Unavailable. Retry attempt" + count_InfoCmd, Color.RED);
@@ -3694,7 +3693,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                     } else {
 
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "Link is unavailable. relay status Retry attempt: " + count_InfoCmd);
+                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "Link is unavailable. relay status Retry attempt: " + count_relayCmd);
                         //AppConstants.colorToastBigFont(DisplayMeterActivity.this, "Link is unavailable Retry attempt" + count_relayCmd, Color.RED);
                         Istimeout_Sec = true;
                         ResetTimeoutDisplayMeterScreen();
@@ -3908,7 +3907,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
             System.out.println("TrazComp......" + jsonData);
             String AppInfo = " Version:" + CommonUtils.getVersionCode(DisplayMeterActivity.this) + " " + AppConstants.getDeviceName() + " Android " + android.os.Build.VERSION.RELEASE;
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "Last Transaction saved in local DB. LastTXNid: " + txnid + " Qty: " + Lastqty + "; Pulses: " + Pulses + "; AppInfo:" + AppInfo);
+                AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "<Last Transaction saved in local DB. LastTXNid: " + txnid + " Qty: " + Lastqty + "; Pulses: " + Pulses + "; AppInfo:" + AppInfo + ">");
 
             String userEmail = CommonUtils.getCustomerDetails(DisplayMeterActivity.this).PersonEmail;
 
@@ -4323,6 +4322,11 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
     private void BTServiceSelectionFunction() {
 
         if (BTConstants.CurrentTransactionIsBT) {
+
+            /*if (CommonUtils.isHotspotEnabled(DisplayMeterActivity.this)) {
+                wifiApManager.setWifiApEnabled(null, false);
+            }*/
+
             // BtnStartStateChange(true);
             Log.i(TAG, "BT Link ");
             switch (BTConstants.CurrentSelectedLinkBT) {
@@ -4617,12 +4621,12 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
             if (AppConstants.GenerateLogs)
                 AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "SocketException: " + se);
 
-            if (!TransactionId.equalsIgnoreCase("") && !SiteId.equalsIgnoreCase("")) ;
-            SaveInpreferance(TransactionId, SiteId, position);
+            if (!TransactionId.equalsIgnoreCase("") && !SiteId.equalsIgnoreCase(""))
+                SaveInpreferance(TransactionId, SiteId, position);
 
         } catch (Exception e) {
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + " StoreLinkDisconnectInfo Exception " + e.getMessage());
+                AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "StoreLinkDisconnectInfo Exception " + e.getMessage());
             e.printStackTrace();
         }
     }

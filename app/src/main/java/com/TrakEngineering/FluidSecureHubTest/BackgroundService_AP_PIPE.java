@@ -1066,18 +1066,18 @@ public class BackgroundService_AP_PIPE extends Service {
                             }
 
                             IsFuelingStop = "1";
-                            System.out.println("APFS_PIPE Auto Stop!You reached MAX fuel limit.");
+                            System.out.println("APFS_PIPE Auto Stop! You reached MAX fuel limit.");
                             if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(TAG + "  Link:" + LinkName + " Auto Stop!You reached MAX fuel limit.");
+                                AppConstants.WriteinFile(TAG + "  Link:" + LinkName + " Auto Stop! You reached MAX fuel limit.");
                             AppConstants.DisplayToastmaxlimit = true;
                             AppConstants.MaxlimitMessage = LimitReachedMessage;
                             stopButtonFunctionality();
                         }
                     }else if (minFuelLimit == -1){
                         IsFuelingStop = "1";
-                        System.out.println("APFS_PIPE Auto Stop!You reached MAX fuel limit.");
+                        System.out.println("APFS_PIPE Auto Stop! You reached MAX fuel limit.");
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "  Link:" + LinkName + " Auto Stop!You reached MAX fuel limit.");
+                            AppConstants.WriteinFile(TAG + "  Link:" + LinkName + " Auto Stop! You reached MAX fuel limit.");
                         AppConstants.DisplayToastmaxlimit = true;
                         AppConstants.MaxlimitMessage = LimitReachedMessage;
                         stopButtonFunctionality();

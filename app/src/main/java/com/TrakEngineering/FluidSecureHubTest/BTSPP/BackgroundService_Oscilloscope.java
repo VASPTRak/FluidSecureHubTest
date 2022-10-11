@@ -45,10 +45,10 @@ public class BackgroundService_Oscilloscope extends Service {
                 //broadcastBTLinkOscilloscopeData = new BroadcastBTLinkOscilloscopeData();
                 IntentFilter intentFilter = new IntentFilter("BroadcastBTLinkOscilloscopeData");
                 if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + " Registering Receiver.");
+                    AppConstants.WriteinFile(TAG + " <Registering Receiver.>");
                 registerReceiver(broadcastBTLinkOscilloscopeData, intentFilter);
                 isBroadcastReceiverRegistered = true;
-                AppConstants.WriteinFile(TAG + " Registered successfully. (" + broadcastBTLinkOscilloscopeData + ")");
+                AppConstants.WriteinFile(TAG + " <Registered successfully. (" + broadcastBTLinkOscilloscopeData + ")>");
 
                 if (BTConstants.BTStatusStrOscilloscope.equalsIgnoreCase("Connected")) {
                     scopeONCommand();

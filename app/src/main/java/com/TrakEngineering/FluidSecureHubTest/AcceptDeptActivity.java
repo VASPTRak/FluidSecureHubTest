@@ -538,7 +538,7 @@ public class AcceptDeptActivity extends AppCompatActivity {
                     }
                 }
             } else {
-                Log.i(TAG,"CallSaveButtonValidation Server Response Empty!");
+                Log.i(TAG, "CallSaveButtonValidation Server Response Empty!");
                 if (AppConstants.GenerateLogs)
                     AppConstants.WriteinFile(TAG + "CallSaveButtonValidation  Server Response Empty!");
             }

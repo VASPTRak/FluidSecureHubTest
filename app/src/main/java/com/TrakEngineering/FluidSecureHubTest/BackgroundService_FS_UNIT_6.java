@@ -933,9 +933,9 @@ public class BackgroundService_FS_UNIT_6 extends Service {
                                 Constants.BusyVehicleNumberList.remove(Constants.AccVehicleNumber_FS6);
                             }
                             IsFuelingStop = "1";
-                            System.out.println("APFS_PIPE Auto Stop!You reached MAX fuel limit.");
+                            System.out.println("APFS_PIPE Auto Stop! You reached MAX fuel limit.");
                             if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(TAG + "  Link:" + LinkName + " Auto Stop!You reached MAX fuel limit.");
+                                AppConstants.WriteinFile(TAG + "  Link:" + LinkName + " Auto Stop! You reached MAX fuel limit.");
                             AppConstants.DisplayToastmaxlimit = true;
                             AppConstants.MaxlimitMessage = LimitReachedMessage;
                             stopButtonFunctionality();
@@ -946,9 +946,9 @@ public class BackgroundService_FS_UNIT_6 extends Service {
                             Constants.BusyVehicleNumberList.remove(Constants.AccVehicleNumber_FS6);
                         }
                         IsFuelingStop = "1";
-                        System.out.println("APFS_PIPE Auto Stop!You reached MAX fuel limit.");
+                        System.out.println("APFS_PIPE Auto Stop! You reached MAX fuel limit.");
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "  Link:" + LinkName + " Auto Stop!You reached MAX fuel limit.");
+                            AppConstants.WriteinFile(TAG + "  Link:" + LinkName + " Auto Stop! You reached MAX fuel limit.");
                         AppConstants.DisplayToastmaxlimit = true;
                         AppConstants.MaxlimitMessage = LimitReachedMessage;
                         stopButtonFunctionality();

@@ -2180,10 +2180,28 @@ public class AcceptPinActivity_new extends AppCompatActivity {
 
             String Authorizedlinks = hmap.get("Authorizedlinks");
             String AssignedVehicles = hmap.get("AssignedVehicles");
+            String FuelLimitPerDay = hmap.get("FuelLimitPerDay");
 
             EntityHub obj = controller.getOfflineHubDetails(AcceptPinActivity_new.this);
             IsOffvehicleScreenRequired = obj.VehicleNumberRequired;
             IsNonValidateVehicle = obj.IsNonValidateVehicle;
+
+            try {
+                if (FuelLimitPerDay != null) {
+                    double personLimitPerDay = Double.parseDouble(FuelLimitPerDay);
+                    if (personLimitPerDay > 0) {
+                        double remainingLimitPerDay = OfflineConstants.getPersonFuelLimitPerDay(AcceptPinActivity_new.this);
+                        if (remainingLimitPerDay <= 0) {
+                            if (AppConstants.GenerateLogs)
+                                AppConstants.WriteinFile(TAG + "You have exceeded your fuel limit for the day.");
+                            CommonUtils.showCustomMessageDilaog(AcceptPinActivity_new.this, "Error", "You have exceeded your fuel limit for the day. Please contact your Manager.");
+                            return;
+                        }
+                    }
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
 
             if (!Authorizedlinks.isEmpty() || Authorizedlinks.contains(",")) {
                 boolean isAllowed = false;
@@ -2299,7 +2317,7 @@ public class AcceptPinActivity_new extends AppCompatActivity {
                     } else {
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + "Personnel is not found in offline db.");
-                        CommonUtils.AutoCloseCustomMessageDilaog(AcceptPinActivity_new.this, "Message", "Invalid Number");
+                        CommonUtils.AutoCloseCustomMessageDilaog(AcceptPinActivity_new.this, "Message", "Invalid " + ScreenNameForPersonnel);
                     }
                 }
             }
@@ -2322,7 +2340,7 @@ public class AcceptPinActivity_new extends AppCompatActivity {
 
                 OfflineConstants.storeCurrentTransaction(AcceptPinActivity_new.this, "", "", "", "", "", PersonId, "", "", "", "");
 
-                OfflineConstants.storeFuelLimit(AcceptPinActivity_new.this, "", "", "", PersonId, FuelLimitPerTxn, FuelLimitPerDay);
+                OfflineConstants.storeFuelLimit(AcceptPinActivity_new.this, "", "", "", "", "", "", PersonId, FuelLimitPerTxn, FuelLimitPerDay);
             } else {
 
                 String PinNumber = "";
@@ -2459,9 +2477,9 @@ public class AcceptPinActivity_new extends AppCompatActivity {
                 success = folder.mkdirs();
             }
 
-            if (BTConstants.CurrentTransactionIsBT) {
+            /*if (BTConstants.CurrentTransactionIsBT) {
                 AppConstants.UP_Upgrade_File_name = "BT_" + AppConstants.UP_Upgrade_File_name;
-            }
+            }*/
             String LocalPath = binFolderPath + "/" + AppConstants.UP_Upgrade_File_name;
             File f = new File(LocalPath);
             if (f.exists()) {
@@ -2471,6 +2489,8 @@ public class AcceptPinActivity_new extends AppCompatActivity {
             } else {
                 if (AppConstants.UP_FilePath != null) {
                     //new BackgroundServiceDownloadFirmware.DownloadLinkAndReaderFirmware().execute(AppConstants.UP_FilePath, AppConstants.UP_Upgrade_File_name, "UP_Upgrade");
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + "Downloading link upgrade firmware file (" + AppConstants.UP_Upgrade_File_name + ")");
                     new DownloadFileFromURL().execute(AppConstants.UP_FilePath, binFolderPath, AppConstants.UP_Upgrade_File_name);
                 } else {
                     Log.e(TAG, "Link upgrade File path null");
@@ -2567,7 +2587,7 @@ public class AcceptPinActivity_new extends AppCompatActivity {
                     if (!Constants.LF_ReaderStatus.equalsIgnoreCase(LFReaderStatus)) {
                         LFReaderStatus = Constants.LF_ReaderStatus;
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "LF Reader Status: " + LFReaderStatus);
+                            AppConstants.WriteinFile(TAG + "<LF Reader Status: " + LFReaderStatus + ">");
                     }
                     if (Constants.LF_ReaderStatus.equals("LF Disconnected") && !AppConstants.showReaderStatus) {
                         retryConnect();
@@ -2593,7 +2613,7 @@ public class AcceptPinActivity_new extends AppCompatActivity {
                     if (!Constants.HF_ReaderStatus.equalsIgnoreCase(HFReaderStatus)) {
                         HFReaderStatus = Constants.HF_ReaderStatus;
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "HF Reader Status: " + HFReaderStatus);
+                            AppConstants.WriteinFile(TAG + "<HF Reader Status: " + HFReaderStatus + ">");
                     }
                     if (Constants.HF_ReaderStatus.equals("HF Disconnected") && !AppConstants.showReaderStatus) {
                         retryConnect();
@@ -2619,7 +2639,7 @@ public class AcceptPinActivity_new extends AppCompatActivity {
                     if (!Constants.Mag_ReaderStatus.equalsIgnoreCase(MagReaderStatus)) {
                         MagReaderStatus = Constants.Mag_ReaderStatus;
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "Mag Reader Status: " + MagReaderStatus);
+                            AppConstants.WriteinFile(TAG + "<Mag Reader Status: " + MagReaderStatus + ">");
                     }
                     if (Constants.Mag_ReaderStatus.equals("Mag Disconnected") && !AppConstants.showReaderStatus) {
                         retryConnect();
