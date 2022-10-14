@@ -58,8 +58,6 @@ public class ServerHandler {
     // This post method useful for only post to getting pump numbers and
     public String PostTextData(Context activity, String serverUrl, String JsonData, String authTokan) throws IOException, Exception {
 
-
-
         RequestBody body = RequestBody.create(TEXT, JsonData);
         Request request = new Request.Builder()
                 .url(serverUrl)

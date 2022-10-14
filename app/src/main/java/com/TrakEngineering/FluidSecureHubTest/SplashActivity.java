@@ -696,25 +696,16 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
                                 //finish();
 
                             } else {
-
-
                                 startActivity(new Intent(SplashActivity.this, WelcomeActivity.class));//
                                 finish();
-
                             }
-
                         }
-
                     } else {
-                        CommonUtils.showMessageDilaog(SplashActivity.this, "Error Message", "You are not Approved yet!");
+                        CommonUtils.showMessageDilaog(SplashActivity.this, "Error Message", "Your registration has not been approved. Please contact your Manager.");
                     }
-
-
                 } catch (Exception ex) {
                     CommonUtils.LogMessage(TAG, "Handle user Data", ex);
                 }
-
-
             } else if (ResponceMessage.equalsIgnoreCase("fail")) {
 
                 String ResponceText = jsonObj.getString(AppConstants.RES_TEXT);
@@ -726,7 +717,7 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
 
                 } else if (ResponceText.equalsIgnoreCase("notapproved")) {
 
-                    AlertDialogBox(SplashActivity.this, "Your Registration request is not approved yet.\nIt is marked Inactive in the Company Software.\nPlease contact your companyâ€™s administrator.");
+                    AlertDialogBox(SplashActivity.this, "Your Registration request is not approved yet.\nIt is marked Inactive in the Company Software.\nPlease contact your company administrator.");
 
                 } else if (ResponceText.equalsIgnoreCase("IMEI not exists")) {
 
@@ -792,7 +783,7 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
 
             } catch (Exception e) {
                 e.printStackTrace();
-                AppConstants.WriteinFile(TAG + " Exception in CheckApproved: " + e.getMessage());
+                AppConstants.WriteinFile(TAG + "Exception in CheckApproved: " + e.getMessage());
 
             }
             return resp;
@@ -809,7 +800,7 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
                     if (OfflineConstants.isOfflineAccess(SplashActivity.this)) {
                         AppConstants.NETWORK_STRENGTH = false;
                     }
-                    AppConstants.WriteinFile(TAG + "  Server response null ~Switching to offline mode!!");
+                    AppConstants.WriteinFile(TAG + "Server response null ~Switching to offline mode!!");
                     SharedPreferences sharedPrefODO = SplashActivity.this.getSharedPreferences("UserInfo", Context.MODE_PRIVATE);
                     HubType = sharedPrefODO.getString("HubType", "");
 
@@ -827,7 +818,7 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
                     }
 
                 } else {
-                    AppConstants.WriteinFile(TAG + "Server connection problem. server response: " + response);
+                    AppConstants.WriteinFile(TAG + getResources().getString(R.string.server_connection_problem) + "; response: " + response);
                     RetryAlertDialogButtonClicked(getString(R.string.server_connection_problem));
                 }
 

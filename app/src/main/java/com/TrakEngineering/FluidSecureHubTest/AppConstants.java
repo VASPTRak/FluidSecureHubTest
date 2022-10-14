@@ -64,6 +64,7 @@ public class AppConstants {
     public static final String LOG_TXTN_HTTP = "[TXTN-HTTP]";
     public static final String LOG_MAINTAIN = "[MAINTAIN]";
     public static final String LOG_BACKGROUND = "[BACKGROUND]";
+    public static final String LOG_RECONFIG = "[RECONFIG]";
 
     public static int ScreenResolutionYOffSet = 0;
     public static int COUNT_HOTSPOT_MAIL;
