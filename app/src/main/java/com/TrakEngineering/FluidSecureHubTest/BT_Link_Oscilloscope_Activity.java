@@ -16,6 +16,7 @@ import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
@@ -42,7 +43,7 @@ import java.util.TimerTask;
 
 public class BT_Link_Oscilloscope_Activity extends AppCompatActivity { // implements ServiceConnection
 
-    private static final String TAG = "BT_Link_Oscilloscope_Activity ";
+    private static final String TAG = "BTLink_Oscilloscope ";
 
     private LineChart myChart;
     private Button btnSet, btnStartScope, btnDisplay;
@@ -52,6 +53,7 @@ public class BT_Link_Oscilloscope_Activity extends AppCompatActivity { // implem
     String LinkPosition, WifiSSId;
     int counter = 0;
     public boolean chartBindStarted = false;
+    public Timer timerBtScope;
 
     ArrayList<Entry> yValues = new ArrayList<>();
 
@@ -77,6 +79,8 @@ public class BT_Link_Oscilloscope_Activity extends AppCompatActivity { // implem
         btnSet = findViewById(R.id.btnSet);
         btnStartScope = findViewById(R.id.btnStartScope);
         btnDisplay = findViewById(R.id.btnDisplay);
+        btnDisplay.setAlpha(0.5f);
+        btnDisplay.setEnabled(false);
         rdg_p_type = (RadioGroup) findViewById(R.id.rdg_p_type);
 
         myChart =  findViewById(R.id.lineChart);
@@ -93,6 +97,12 @@ public class BT_Link_Oscilloscope_Activity extends AppCompatActivity { // implem
             @Override
             public void onClick(View v) {
                 try {
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + "Start button clicked");
+                    BTConstants.TerminateReadingProcess = true;
+                    BTConstants.BTLinkVoltageReadings.clear();
+                    btnDisplay.setAlpha(0.5f);
+                    btnDisplay.setEnabled(false);
                     ResetChart();
                     //myChart.getDescription().setText("START");
 
@@ -123,12 +133,17 @@ public class BT_Link_Oscilloscope_Activity extends AppCompatActivity { // implem
             @Override
             public void onClick(View v) {
                 try {
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + "Display button clicked");
                     if (!chartBindStarted) {
+                        BTConstants.TerminateReadingProcess = false;
                         chartBindStarted = true;
                         Toast.makeText(BT_Link_Oscilloscope_Activity.this, "Please wait...", Toast.LENGTH_SHORT).show();
                         scopeReadCommand();
-
-                        Timer timerBtScope = new Timer();
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + "Read started.");
+                        BTConstants.ReadingProcessComplete = false;
+                        timerBtScope = new Timer();
                         TimerTask tt = new TimerTask() {
                             @RequiresApi(api = Build.VERSION_CODES.P)
                             @Override
@@ -141,13 +156,24 @@ public class BT_Link_Oscilloscope_Activity extends AppCompatActivity { // implem
                                 myChart.setVisibleXRange(0, 6);
                                 myChart.moveViewToX(1000 - 6);
                                 if (BTConstants.ScopeStatus.equalsIgnoreCase("DONE")) {
-                                    showToast(BT_Link_Oscilloscope_Activity.this, "done");
+                                    if (AppConstants.GenerateLogs)
+                                        AppConstants.WriteinFile(TAG + "Read end.");
+                                    new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            showToast(BT_Link_Oscilloscope_Activity.this, "done");
+                                        }
+                                    }, 200);
                                     cancel();
                                 }
                             }
                         };
                         timerBtScope.schedule(tt, 1000, 1000);
                     }
+                    /*else {
+                        BTConstants.TerminateReadingProcess = true;
+                        timerBtScope.cancel();
+                    }*/
 
                     /*new Handler().postDelayed(new Runnable() {
                         @Override
@@ -271,10 +297,17 @@ public class BT_Link_Oscilloscope_Activity extends AppCompatActivity { // implem
                 @Override
                 public void run() {
                     if (BTConstants.ScopeStatus.equalsIgnoreCase("START")) {
-                        showToast(BT_Link_Oscilloscope_Activity.this, "start");
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + "Record started.");
+                        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                showToast(BT_Link_Oscilloscope_Activity.this, "start");
+                            }
+                        }, 100);
                     }
                 }
-            }, 1000);
+            }, 2000);
 
             final Handler handler = new Handler();
             final int delay = 10000; // 1000 milliseconds == 1 second
@@ -284,7 +317,17 @@ public class BT_Link_Oscilloscope_Activity extends AppCompatActivity { // implem
                     if (counter < 10) {
                         if (BTConstants.ScopeStatus.equalsIgnoreCase("OVER")) {
                             //myChart.getDescription().setText("OVER");
-                            showToast(BT_Link_Oscilloscope_Activity.this, "over");
+                            if (AppConstants.GenerateLogs)
+                                AppConstants.WriteinFile(TAG + "Record end.");
+                            btnDisplay.setAlpha(1.0f);
+                            btnDisplay.setEnabled(true);
+                            chartBindStarted = false;
+                            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    showToast(BT_Link_Oscilloscope_Activity.this, "over");
+                                }
+                            }, 100);
                         } else {
                             counter++;
                             handler.postDelayed(this, (delay / 10));
@@ -302,6 +345,7 @@ public class BT_Link_Oscilloscope_Activity extends AppCompatActivity { // implem
 
     public void ResetChart() {
         try {
+            chartBindStarted = false;
             yValues.clear();
             if (myChart.getData() != null) {
                 myChart.getData().clearValues();
@@ -375,7 +419,7 @@ public class BT_Link_Oscilloscope_Activity extends AppCompatActivity { // implem
         } catch (Exception e) {
             e.printStackTrace();
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " BTLink 2: CreateDataForChart Exception:>>" + e.getMessage());
+                AppConstants.WriteinFile(TAG + "CreateDataForChart Exception:>>" + e.getMessage());
         }
     }
 
@@ -403,7 +447,17 @@ public class BT_Link_Oscilloscope_Activity extends AppCompatActivity { // implem
         } catch (Exception e) {
             e.printStackTrace();
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " BTLink 2: scopeReadCommand Exception:>>" + e.getMessage());
+                AppConstants.WriteinFile(TAG + "ScopeReadCommand Exception:>>" + e.getMessage());
+        }
+    }
+
+    public void TerminatePreviousReading() {
+        try {
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + "TerminatePreviousReading Exception:>>" + e.getMessage());
         }
     }
 

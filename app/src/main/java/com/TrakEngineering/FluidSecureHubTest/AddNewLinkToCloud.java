@@ -6,6 +6,8 @@ import android.content.DialogInterface;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.text.SpannableString;
+import android.text.method.HideReturnsTransformationMethod;
+import android.text.method.PasswordTransformationMethod;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.RelativeSizeSpan;
 import android.util.Log;
@@ -13,6 +15,8 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
@@ -40,6 +44,7 @@ public class AddNewLinkToCloud extends AppCompatActivity implements LifecycleObs
     private Button btn_cancel,btn_done;
     private String expression  = "^[a-zA-Z0-9-_ ]*$";
     private ProgressDialog pd;
+    private CheckBox chkShowHidePassword;
 
 
     @Override
@@ -47,15 +52,16 @@ public class AddNewLinkToCloud extends AppCompatActivity implements LifecycleObs
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_new_link_to_cloud);
 
-        btn_done = (Button)findViewById(R.id.btn_done);
-        btn_cancel = (Button)findViewById(R.id.btn_cancel);
-        edt_linkname = (EditText)findViewById(R.id.edt_linkname);
-        edt_pumpOnTime = (EditText)findViewById(R.id.edt_pumpOnTime);
-        edt_pumpOffTime = (EditText)findViewById(R.id.edt_pumpOffTime);
-        edt_username = (EditText)findViewById(R.id.edt_username);
-        edt_enter_password = (EditText)findViewById(R.id.edt_enter_password);
-        Spinner_tankNumber = (Spinner)findViewById(R.id.spin_tanknumber);
+        btn_done = (Button) findViewById(R.id.btn_done);
+        btn_cancel = (Button) findViewById(R.id.btn_cancel);
+        edt_linkname = (EditText) findViewById(R.id.edt_linkname);
+        edt_pumpOnTime = (EditText) findViewById(R.id.edt_pumpOnTime);
+        edt_pumpOffTime = (EditText) findViewById(R.id.edt_pumpOffTime);
+        edt_username = (EditText) findViewById(R.id.edt_username);
+        edt_enter_password = (EditText) findViewById(R.id.edt_enter_password);
+        Spinner_tankNumber = (Spinner) findViewById(R.id.spin_tanknumber);
         Spinner_tankNumber.setOnItemSelectedListener(this);
+        chkShowHidePassword = (CheckBox) findViewById(R.id.chkShowHidePassword);
 
         ProcessLifecycleOwner.get().getLifecycle().addObserver(new AddnewLink_ViewModel(getApplication()));
 
@@ -69,7 +75,7 @@ public class AddNewLinkToCloud extends AppCompatActivity implements LifecycleObs
             @Override
             public void onChanged(@Nullable String s) {
                AlertDialogBox(AddNewLinkToCloud.this, s);
-               if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "SaveLinkFromAPP");
+               if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " SaveLinkFromAPP");
             }
         });
 
@@ -92,8 +98,8 @@ public class AddNewLinkToCloud extends AppCompatActivity implements LifecycleObs
         btn_done.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (validateData()){
-                    addnewlinkViewModel.ProcessData(edt_linkname.getText().toString().trim(),edt_pumpOnTime.getText().toString().trim(),edt_pumpOffTime.getText().toString().trim(),edt_username.getText().toString().trim(),edt_enter_password.getText().toString().trim());
+                if (validateData()) {
+                    addnewlinkViewModel.ProcessData(edt_linkname.getText().toString().trim(), edt_pumpOnTime.getText().toString().trim(), edt_pumpOffTime.getText().toString().trim(), edt_username.getText().toString().trim(), edt_enter_password.getText().toString().trim());
                 }
             }
         });
@@ -102,6 +108,19 @@ public class AddNewLinkToCloud extends AppCompatActivity implements LifecycleObs
             @Override
             public void onClick(View v) {
                 finish();
+            }
+        });
+
+        chkShowHidePassword.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    // show password
+                    edt_enter_password.setTransformationMethod(HideReturnsTransformationMethod.getInstance());
+                } else {
+                    // hide password
+                    edt_enter_password.setTransformationMethod(PasswordTransformationMethod.getInstance());
+                }
             }
         });
 
@@ -126,24 +145,24 @@ public class AddNewLinkToCloud extends AppCompatActivity implements LifecycleObs
 
     }
 
-    private boolean validateData(){
+    private boolean validateData() {
 
-        if (edt_linkname.getText().toString().trim().isEmpty()){
+        if (edt_linkname.getText().toString().trim().isEmpty()) {
             edt_linkname.setError("Enter valid data");
             return false;
-        }else if (!edt_linkname.getText().toString().trim().matches(expression)) {
+        } else if (!edt_linkname.getText().toString().trim().matches(expression)) {
             edt_linkname.setError("Enter valid data");
             return false;
-        }else if (edt_pumpOnTime.getText().toString().trim().isEmpty()){
+        } else if (edt_pumpOnTime.getText().toString().trim().isEmpty()) {
             edt_pumpOnTime.setError("Enter valid data");
             return false;
-        }else if (edt_pumpOffTime.getText().toString().trim().isEmpty()){
+        } else if (edt_pumpOffTime.getText().toString().trim().isEmpty()) {
             edt_pumpOffTime.setError("Enter valid data");
             return false;
-        }else if (edt_username.getText().toString().trim().isEmpty()){
+        } else if (edt_username.getText().toString().trim().isEmpty()) {
             edt_username.setError("Enter valid data");
             return false;
-        }else if (edt_enter_password.getText().toString().trim().isEmpty()){
+        } else if (edt_enter_password.getText().toString().trim().isEmpty()) {
             edt_enter_password.setError("Enter valid data");
             return false;
         }

@@ -7610,6 +7610,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 startActivity(intent);
 
             case R.id.mrestartapp:
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + "Restart app.");
                 Intent i = new Intent(WelcomeActivity.this, SplashActivity.class);
                 i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                 startActivity(i);
@@ -10860,7 +10862,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     alertSelectHoseList(tvLatLng.getText().toString() + "\n" + "");
                 } else {
                     if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + "Offline SSIDData is Empty. Error: " + R.string.conn_error);
+                        AppConstants.WriteinFile(TAG + "Offline SSIDData is Empty. Error: " + getResources().getString(R.string.conn_error));
                     AppConstants.AlertDialogBoxCanecl(WelcomeActivity.this, R.string.conn_error);
                 }
 
@@ -11017,7 +11019,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         alertSelectHoseList(tvLatLng.getText().toString() + "\n" + errMsg);
                     } else {
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "SSIDData is Empty. Error: " + R.string.conn_error);
+                            AppConstants.WriteinFile(TAG + "SSIDData is Empty. Error: " + getResources().getString(R.string.conn_error));
                         AppConstants.AlertDialogBoxCanecl(WelcomeActivity.this, R.string.conn_error);
                     }
 
@@ -14294,7 +14296,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     String LinkPosition = BTLinkList.get(position).get("LinkPosition");
 
                     BTConstants.deviceAddressOscilloscope = BTMacAddress.toUpperCase();
-
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + "================ Oscilloscope ================");
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(TAG + "Selected LINK for Oscilloscope: " + WifiSSId);
 
@@ -14427,6 +14430,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         }
                     } else {
                         pd.dismiss();
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + "BT LINK not connected.");
                         Toast.makeText(getApplicationContext(), "BT LINK not connected.", Toast.LENGTH_SHORT).show();
                     }
                 }
@@ -14472,12 +14477,14 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                     }, 1000);
 
                                 } else {
+                                    if (AppConstants.GenerateLogs)
+                                        AppConstants.WriteinFile(TAG + "BTLink 1: Hose is Unavailable.");
                                     if (BTL1State == 0) {
                                         BTL1State = 1;
                                         CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", getResources().getString(R.string.HoseUnavailableMessage));
                                     } else {
-                                        BTL1State = 1;
-                                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", "We are having trouble connecting to the LINK that controls your dispenser. Please locate the power source / emergency stop to reset power to the dispenser. Once this is completed, please wait 30 seconds and try again. If you continue to have issues, please contact Support.");
+                                        BTL1State = 0;
+                                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", getResources().getString(R.string.UnableToConnectToHoseMessage));
                                     }
                                 }
                             }
@@ -14522,12 +14529,14 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                     }, 1000);
 
                                 } else {
+                                    if (AppConstants.GenerateLogs)
+                                        AppConstants.WriteinFile(TAG + "BTLink 2: Hose is Unavailable.");
                                     if (BTL2State == 0) {
                                         BTL2State = 1;
                                         CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", getResources().getString(R.string.HoseUnavailableMessage));
                                     } else {
-                                        BTL2State = 1;
-                                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", "We are having trouble connecting to the LINK that controls your dispenser. Please locate the power source / emergency stop to reset power to the dispenser. Once this is completed, please wait 30 seconds and try again. If you continue to have issues, please contact Support.");
+                                        BTL2State = 0;
+                                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", getResources().getString(R.string.UnableToConnectToHoseMessage));
                                     }
                                 }
                             }
@@ -14573,12 +14582,14 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                     }, 1000);
 
                                 } else {
+                                    if (AppConstants.GenerateLogs)
+                                        AppConstants.WriteinFile(TAG + "BTLink 3: Hose is Unavailable.");
                                     if (BTL3State == 0) {
                                         BTL3State = 1;
                                         CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", getResources().getString(R.string.HoseUnavailableMessage));
                                     } else {
-                                        BTL3State = 1;
-                                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", "We are having trouble connecting to the LINK that controls your dispenser. Please locate the power source / emergency stop to reset power to the dispenser. Once this is completed, please wait 30 seconds and try again. If you continue to have issues, please contact Support.");
+                                        BTL3State = 0;
+                                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", getResources().getString(R.string.UnableToConnectToHoseMessage));
                                     }
                                 }
                             }
@@ -14623,12 +14634,14 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                     }, 1000);
 
                                 } else {
+                                    if (AppConstants.GenerateLogs)
+                                        AppConstants.WriteinFile(TAG + "BTLink 4: Hose is Unavailable.");
                                     if (BTL4State == 0) {
                                         BTL4State = 1;
                                         CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", getResources().getString(R.string.HoseUnavailableMessage));
                                     } else {
-                                        BTL4State = 1;
-                                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", "We are having trouble connecting to the LINK that controls your dispenser. Please locate the power source / emergency stop to reset power to the dispenser. Once this is completed, please wait 30 seconds and try again. If you continue to have issues, please contact Support.");
+                                        BTL4State = 0;
+                                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", getResources().getString(R.string.UnableToConnectToHoseMessage));
                                     }
                                 }
                             }

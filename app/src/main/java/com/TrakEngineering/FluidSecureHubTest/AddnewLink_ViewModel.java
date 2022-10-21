@@ -50,7 +50,7 @@ import static com.google.android.gms.location.LocationServices.getFusedLocationP
 
 public class AddnewLink_ViewModel extends AndroidViewModel implements LifecycleObserver {
 
-    private String TAG = this.getClass().getSimpleName();
+    private String TAG = "AddNewLinkFromApp ";
     private Context ctx;
     private LocationRequest mLocationRequest;
     private FusedLocationProviderClient fusedLocationClient;
@@ -261,7 +261,6 @@ public class AddnewLink_ViewModel extends AndroidViewModel implements LifecycleO
                 client.setReadTimeout(14, TimeUnit.SECONDS);
                 client.setWriteTimeout(14, TimeUnit.SECONDS);
 
-
                 RequestBody body = RequestBody.create(TEXT, params[0]);
                 Request request = new Request.Builder()
                         .url(AppConstants.webURL)
@@ -269,14 +268,15 @@ public class AddnewLink_ViewModel extends AndroidViewModel implements LifecycleO
                         .addHeader("Authorization", authString)
                         .build();
 
-
                 Response response = null;
                 response = client.newCall(request).execute();
                 resp = response.body().string();
 
             } catch (IOException e) {
                 e.printStackTrace();
-                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "Exception DoInBackGround:"+e.toString());
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + "Exception DoInBackGround: " + e.getMessage());
+                IsUpdating.postValue(false);
             }
             return resp;
         }
@@ -295,20 +295,22 @@ public class AddnewLink_ViewModel extends AndroidViewModel implements LifecycleO
                     String ResponseText = jsonObject.getString("ResponseText");
                     myRandomNumber.setValue(ResponseText);
                     if (ResponseMessage.equalsIgnoreCase("success")) {
-                        Log.i(TAG, "Something went wwrong in server call");
-                        if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "successfully added link:"+json);
+                        Log.i(TAG, "Something went wrong in server call");
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + "LINK Added Successfully.");
                     } else {
-                        Log.i(TAG, "Something went wwrong in server call");
-                        if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "ResponseText:"+ResponseText);
+                        Log.i(TAG, "Something went wrong in server call");
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + "ResponseText: " + ResponseText);
                     }
-
                 } else {
-                    Log.i(TAG, "Something went wwrong in server call");
+                    Log.i(TAG, "Something went wrong in server call");
                 }
 
             } catch (Exception e) {
                 e.printStackTrace();
-                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "Exception onPostExecute:"+e.toString());
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + "Exception onPostExecute: " + e.getMessage());
             }
         }
 

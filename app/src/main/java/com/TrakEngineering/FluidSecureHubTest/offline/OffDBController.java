@@ -6,7 +6,6 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.nfc.Tag;
 import android.os.Build;
 import android.util.Log;
 
@@ -81,9 +80,19 @@ public class OffDBController extends SQLiteOpenHelper {
                 Log.w(TAG, " Altering " + TBL_VEHICLE + " for (MagneticCardReaderNumber) column: " + ex.getMessage());
             }
             try {
+                database.execSQL("ALTER TABLE " + TBL_VEHICLE + " ADD COLUMN CheckFuelLimitPerMonth TEXT");
+            } catch (Exception ex) {
+                Log.w(TAG, " Altering " + TBL_VEHICLE + " for (CheckFuelLimitPerMonth) column: " + ex.getMessage());
+            }
+            try {
                 database.execSQL("ALTER TABLE " + TBL_VEHICLE + " ADD COLUMN FuelLimitPerMonth TEXT");
             } catch (Exception ex) {
                 Log.w(TAG, " Altering " + TBL_VEHICLE + " for (FuelLimitPerMonth) column: " + ex.getMessage());
+            }
+            try {
+                database.execSQL("ALTER TABLE " + TBL_VEHICLE + " ADD COLUMN FuelQuantityOfVehiclePerMonth TEXT");
+            } catch (Exception ex) {
+                Log.w(TAG, " Altering " + TBL_VEHICLE + " for (FuelQuantityOfVehiclePerMonth) column: " + ex.getMessage());
             }
             try {
                 database.execSQL("ALTER TABLE " + TBL_TRANSACTION + " ADD COLUMN VehicleNumber TEXT");

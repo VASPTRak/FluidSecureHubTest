@@ -20,7 +20,7 @@ import java.util.Set;
 
 public class PairDeviceActivity extends AppCompatActivity {
 
-    private static final String TAG = "MainActivity";
+    private static final String TAG = "PairDeviceActivity ";
 
     //vars
     private ArrayList<String> mNames = new ArrayList<>();
@@ -117,7 +117,7 @@ public class PairDeviceActivity extends AppCompatActivity {
                 String deviceName = device.getName();
                 String deviceHardwareAddress = device.getAddress(); // MAC address
                 if (deviceName != null) {
-                    if (deviceName.startsWith("FSBT-") || deviceName.startsWith("FSAST-")){
+                    if (deviceName.startsWith("FSBT-") || deviceName.startsWith("FSAST-") || deviceName.startsWith("FSDB-")){
                         mImageUrls.add(deviceHardwareAddress);
                         mNames.add(deviceName);
                         Log.i(TAG, "DeviceName:" + deviceName + "\n" + "MacAddress:" + deviceHardwareAddress);

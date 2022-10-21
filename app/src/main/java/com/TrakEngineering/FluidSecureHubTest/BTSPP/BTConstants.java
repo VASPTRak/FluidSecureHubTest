@@ -30,6 +30,8 @@ public class BTConstants {
     public static String deviceAddress4 = "";
     public static String deviceAddressOscilloscope = "";
     public static boolean forOscilloscope = false;
+    public static boolean TerminateReadingProcess = false;
+    public static boolean ReadingProcessComplete = false;
 
     public static String info_cmd = "LK_COMM=info";
     public static String transaction_id_cmd = "LK_COMM=txtnid:";

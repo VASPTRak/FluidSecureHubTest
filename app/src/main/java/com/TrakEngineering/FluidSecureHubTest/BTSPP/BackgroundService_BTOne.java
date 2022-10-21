@@ -118,6 +118,16 @@ public class BackgroundService_BTOne extends Service {
 
                 if (BTConstants.forOscilloscope) {
                     LinkCommunicationType = "BT";
+
+                    //Register Broadcast reciever
+                    broadcastBlueLinkOneData = new BroadcastBlueLinkOneData();
+                    IntentFilter intentFilter = new IntentFilter("BroadcastBlueLinkOneData");
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + " BTLink 1: <Registering Receiver.>");
+                    registerReceiver(broadcastBlueLinkOneData, intentFilter);
+                    isBroadcastReceiverRegistered = true;
+                    AppConstants.WriteinFile(TAG + " BTLink 1: <Registered successfully. (" + broadcastBlueLinkOneData + ")>");
+
                 } else {
                     Constants.FS_1STATUS = "BUSY";
 
@@ -149,30 +159,30 @@ public class BackgroundService_BTOne extends Service {
 
                     // Offline functionality
                     if (!cd.isConnectingToInternet()) {
-                        if (AppConstants.GenerateLogs) AppConstants.WriteinFile(TAG + " BTLink 2:-Offline mode--");
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + " BTLink 2:-Offline mode--");
                         offlineLogicBT1();
                     }
-                }
 
-                //Register Broadcast reciever
-                broadcastBlueLinkOneData = new BroadcastBlueLinkOneData();
-                IntentFilter intentFilter = new IntentFilter("BroadcastBlueLinkOneData");
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + " BTLink 1: <Registering Receiver.>");
-                registerReceiver(broadcastBlueLinkOneData, intentFilter);
-                isBroadcastReceiverRegistered = true;
-                AppConstants.WriteinFile(TAG + " BTLink 1: <Registered successfully. (" + broadcastBlueLinkOneData + ")>");
+                    //Register Broadcast reciever
+                    broadcastBlueLinkOneData = new BroadcastBlueLinkOneData();
+                    IntentFilter intentFilter = new IntentFilter("BroadcastBlueLinkOneData");
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + " BTLink 1: <Registering Receiver.>");
+                    registerReceiver(broadcastBlueLinkOneData, intentFilter);
+                    isBroadcastReceiverRegistered = true;
+                    AppConstants.WriteinFile(TAG + " BTLink 1: <Registered successfully. (" + broadcastBlueLinkOneData + ")>");
 
-                AppConstants.isRelayON_fs1 = false;
-                LinkName = CommonUtils.getlinkName(0);
-                if (LinkCommunicationType.equalsIgnoreCase("BT")) {
-                    IsThisBTTrnx = true;
+                    AppConstants.isRelayON_fs1 = false;
+                    LinkName = CommonUtils.getlinkName(0);
+                    if (LinkCommunicationType.equalsIgnoreCase("BT")) {
+                        IsThisBTTrnx = true;
 
-                    if (checkBTLinkStatus(false)) { //BTConstants.BTStatusStrOne.equalsIgnoreCase("Connected")
-                        if (!BTConstants.forOscilloscope) {
-                            BTLinkUpgradeCheck(); //infoCommand();
-                        }
-                    } else {
+                        if (checkBTLinkStatus(false)) { //BTConstants.BTStatusStrOne.equalsIgnoreCase("Connected")
+                            if (!BTConstants.forOscilloscope) {
+                                BTLinkUpgradeCheck(); //infoCommand();
+                            }
+                        } else {
                         /*if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + " BTLink 1: Link not connected. Switching to wifi connection...");
 
@@ -187,29 +197,30 @@ public class BackgroundService_BTOne extends Service {
                             }
                         }, 5000);*/ //Uncomment this and comment below code when new BT link version will be provided by Bolong.
 
+                            IsThisBTTrnx = false;
+                            CommonUtils.UpgradeTransactionStatusToSqlite(TransactionId, "6", BackgroundService_BTOne.this);
+                            Log.i(TAG, " BTLink 1: Link not connected. Please try again!");
+                            if (AppConstants.GenerateLogs)
+                                AppConstants.WriteinFile(TAG + " BTLink 1: Link not connected.");
+                            AppConstants.TxnFailedCount1++;
+                            AppConstants.IsTransactionFailed1 = true;
+                            PostTransactionBackgroundTasks();
+                            CloseTransaction();
+                            this.stopSelf();
+                        }
+                    } else if (LinkCommunicationType.equalsIgnoreCase("UDP")) {
                         IsThisBTTrnx = false;
-                        CommonUtils.UpgradeTransactionStatusToSqlite(TransactionId, "6", BackgroundService_BTOne.this);
-                        Log.i(TAG, " BTLink 1: Link not connected. Please try again!");
+                        infoCommand();
+                        //BeginProcessUsingUDP();
+                    } else {
+                        //Something went Wrong in hose selection.
+                        IsThisBTTrnx = false;
+                        Log.i(TAG, " BTLink 1: Something went Wrong in hose selection.");
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + " BTLink 1: Link not connected.");
-                        AppConstants.TxnFailedCount1++;
-                        AppConstants.IsTransactionFailed1 = true;
-                        PostTransactionBackgroundTasks();
+                            AppConstants.WriteinFile(TAG + " BTLink 1: Something went wrong in hose selection.");
                         CloseTransaction();
                         this.stopSelf();
                     }
-                } else if (LinkCommunicationType.equalsIgnoreCase("UDP")) {
-                    IsThisBTTrnx = false;
-                    infoCommand();
-                    //BeginProcessUsingUDP();
-                } else {
-                    //Something went Wrong in hose selection.
-                    IsThisBTTrnx = false;
-                    Log.i(TAG, " BTLink 1: Something went Wrong in hose selection.");
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + " BTLink 1: Something went wrong in hose selection.");
-                    CloseTransaction();
-                    this.stopSelf();
                 }
             }
         } catch (Exception e) {
@@ -726,7 +737,7 @@ public class BackgroundService_BTOne extends Service {
             } catch (Exception e) {
                 e.printStackTrace();
                 if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + " BTLink 1: <Exception occurred while unregistering receiver:>>" + e.getMessage() + " (" + broadcastBlueLinkOneData + ")>");
+                    AppConstants.WriteinFile(TAG + " BTLink 1: <Exception occurred while unregistering receiver: " + e.getMessage() + " (" + broadcastBlueLinkOneData + ")>");
             }
             stopTxtprocess = true;
             BTConstants.isRelayOnAfterReconnect1 = false;
@@ -1025,7 +1036,7 @@ public class BackgroundService_BTOne extends Service {
                         } else if (Response.contains("DONE")) {
                             BTConstants.ScopeStatus = "DONE";
                         } else if (Request.contains(BTConstants.scope_READ_cmd)) {
-                            if (!readScopeLoop_on)
+                            if (!readScopeLoop_on && !BTConstants.ReadingProcessComplete)
                                 ReadScope();
                         }
 
@@ -1410,7 +1421,8 @@ public class BackgroundService_BTOne extends Service {
 
             JSONObject versionJsonArray = jsonObject.getJSONObject("version");
             String version = versionJsonArray.getString("version");
-            AppConstants.WriteinFile(TAG + " BTLink 1: LINK Version >> " + version);
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + " BTLink 1: LINK Version >> " + version);
             storeUpgradeFSVersion(BackgroundService_BTOne.this, AppConstants.UP_HoseId_fs1, version);
 
         } catch (Exception e) {
@@ -1493,7 +1505,8 @@ public class BackgroundService_BTOne extends Service {
                                 version = res.substring(res.indexOf(":") + 1).trim();
                             }
                             if (!version.isEmpty()) {
-                                AppConstants.WriteinFile(TAG + " BTLink 1: LINK Version >> " + version);
+                                if (AppConstants.GenerateLogs)
+                                    AppConstants.WriteinFile(TAG + " BTLink 1: LINK Version >> " + version);
                                 storeUpgradeFSVersion(BackgroundService_BTOne.this, AppConstants.UP_HoseId_fs1, version);
                             }
                         }
@@ -1537,7 +1550,8 @@ public class BackgroundService_BTOne extends Service {
             EnablePrinter = offlineController.getOfflineHubDetails(BackgroundService_BTOne.this).EnablePrinter;
 
             minFuelLimit = OfflineConstants.getFuelLimit(BackgroundService_BTOne.this);
-
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + " BTLink 1: <Fuel Limit: " + minFuelLimit + ">");
             numPulseRatio = Double.parseDouble(PulseRatio);
 
             stopAutoFuelSeconds = Long.parseLong(IntervalToStopFuel);
@@ -1784,7 +1798,8 @@ public class BackgroundService_BTOne extends Service {
                 //----------------------------------------------------------------------------------
 
             } catch (Exception ex) {
-                AppConstants.WriteinFile(TAG + " BTLink 1: UpgradeCurrentVersionWithUpgradableVersion Exception: " + ex.getMessage());
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " BTLink 1: UpgradeCurrentVersionWithUpgradableVersion Exception: " + ex.getMessage());
             }
             return response;
         }
@@ -1800,13 +1815,15 @@ public class BackgroundService_BTOne extends Service {
                     AppConstants.clearSharedPrefByName(BackgroundService_BTOne.this, Constants.PREF_FS_UPGRADE);
                 }
             } catch (Exception e) {
-                AppConstants.WriteinFile(TAG + " BTLink 1: UpgradeCurrentVersionWithUpgradableVersion onPostExecute Exception: " + e.getMessage());
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " BTLink 1: UpgradeCurrentVersionWithUpgradableVersion onPostExecute Exception: " + e.getMessage());
             }
         }
     }
 
     private void ReadScope() {
-        AppConstants.WriteinFile(TAG + " BTLink 1: ReadScope started>>");
+        if (AppConstants.GenerateLogs)
+            AppConstants.WriteinFile(TAG + " BTLink 1: ReadScope started.");
         readScopeLoop_on = true;
         timerBtScope = new Timer();
         TimerList_ReadpulseBT1.add(timerBtScope);
@@ -1823,10 +1840,24 @@ public class BackgroundService_BTOne extends Service {
                 }
 
                 if (scopeCounter > 1000) {
-                    AppConstants.WriteinFile(TAG + " BTLink 1: Readings>>" + BTConstants.BTLinkVoltageReadings.size());
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + " BTLink 1: Readings >> " + BTConstants.BTLinkVoltageReadings.size());
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + " BTLink 1: ReadScope end.");
                     BTConstants.ScopeStatus = "DONE";
+                    BTConstants.ReadingProcessComplete = true;
+                    scopeCounter = 0;
+                    CancelTimer();
                     cancel();
-                    CloseTransaction();
+                    //StopScopeReading();
+                }
+                if (BTConstants.TerminateReadingProcess) {
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + " BTLink 1: Terminate Reading Process.");
+                    BTConstants.ScopeStatus = "";
+                    BTConstants.ReadingProcessComplete = true;
+                    scopeCounter = 0;
+                    cancel();
                 }
 
             }
@@ -1862,4 +1893,32 @@ public class BackgroundService_BTOne extends Service {
             e.printStackTrace();
         }
     }
+
+    private void StopScopeReading() {
+
+        try {
+            try {
+                if (isBroadcastReceiverRegistered) {
+                    unregisterReceiver(broadcastBlueLinkOneData);
+                    isBroadcastReceiverRegistered = false;
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + " BTLink 1: <Receiver unregistered successfully. (" + broadcastBlueLinkOneData + ")>");
+                } else {
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + " BTLink 1: <Receiver is not registered. (" + broadcastBlueLinkOneData + ")>");
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " BTLink 1: <Exception occurred while unregistering receiver: " + e.getMessage() + " (" + broadcastBlueLinkOneData + ")>");
+            }
+            CancelTimer();
+            this.stopSelf();
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + " BTLink 1: StopScopeReading Exception:>>" + e.getMessage());
+        }
+    }
+
 }
