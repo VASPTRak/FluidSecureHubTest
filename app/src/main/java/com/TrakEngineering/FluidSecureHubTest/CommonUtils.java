@@ -11,6 +11,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.graphics.Color;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
@@ -27,6 +29,7 @@ import android.telephony.TelephonyManager;
 import android.text.Editable;
 import android.text.Html;
 import android.text.format.Time;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
@@ -2093,7 +2096,7 @@ public class CommonUtils {
         } catch (Exception e) {
             e.printStackTrace();
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " Exception occurred while getting HUB Number by Name.>>" + e.getMessage());
+                AppConstants.WriteinFile(TAG + "Exception occurred while getting HUB Number by Name.>>" + e.getMessage());
             HUBNumber = hubName;
         }
         return HUBNumber.trim();
@@ -2109,7 +2112,7 @@ public class CommonUtils {
         } catch (Exception e) {
             e.printStackTrace();
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " Exception occurred while getting SPARE HUB Number by Name.>>" + e.getMessage());
+                AppConstants.WriteinFile(TAG + "Exception occurred while getting SPARE HUB Number by Name.>>" + e.getMessage());
             HUBNumber = hubName;
         }
         return HUBNumber.trim();
@@ -2188,7 +2191,7 @@ public class CommonUtils {
         } catch (Exception e) {
             validIpAddress = "";
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " GetAndCheckMacAddressFromInfoCommand Exception >> " + e.getMessage());
+                AppConstants.WriteinFile(TAG + "GetAndCheckMacAddressFromInfoCommand Exception >> " + e.getMessage());
             Log.d("Ex", e.getMessage());
         }
         return validIpAddress;
@@ -2215,11 +2218,42 @@ public class CommonUtils {
 
         } catch (Exception e) {
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " Exception occurred in generateAPMacFromSTAMac: " + e.getMessage());
+                AppConstants.WriteinFile(TAG + "Exception occurred in generateAPMacFromSTAMac: " + e.getMessage());
             Log.e(TAG, "Exception occurred in generateAPMacFromSTAMac: " + e.getMessage());
             apMacAddress = selMacAddress;
         }
         return apMacAddress;
+    }
+
+    public static void StoreLanguageSettings(Activity activity, String language, boolean isRecreate) {
+        try {
+            if (language.trim().equalsIgnoreCase("es"))
+                AppConstants.LANG_PARAM = ":es-ES";
+            else
+                AppConstants.LANG_PARAM = ":en-US";
+
+            Resources res = activity.getResources();
+            DisplayMetrics dm = res.getDisplayMetrics();
+            Configuration conf = res.getConfiguration();
+
+            if (language.trim().equalsIgnoreCase("es"))
+                conf.setLocale(new Locale("es"));
+            else
+                conf.setLocale(Locale.getDefault());
+
+            res.updateConfiguration(conf, dm);
+
+            SharedPreferences sharedPref = activity.getSharedPreferences("LanguageSettings", Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = sharedPref.edit();
+            editor.putString("language", language.trim());
+            editor.apply();
+
+            if (isRecreate)
+                activity.recreate();
+        } catch (Exception e) {
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + "Exception occurred in StoreLanguageSettings: " + e.getMessage());
+        }
     }
 
 }

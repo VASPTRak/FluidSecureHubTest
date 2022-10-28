@@ -89,6 +89,20 @@
             android:textSize="20sp"
             android:layout_marginLeft="20dp"
             android:layout_marginRight="20dp"/>
+
+        <Button
+            android:id="@+id/btnReconnect"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center|center_vertical"
+            android:layout_marginEnd="10dp"
+            android:backgroundTint="@color/colorPrimary"
+            android:hint="Reconnect"
+            android:paddingTop="15dp"
+            android:paddingBottom="15dp"
+            android:text="Reconnect"
+            android:textColor="@color/white"
+            android:textSize="16sp" />
     </LinearLayout>
 
     <LinearLayout

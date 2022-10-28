@@ -3,6 +3,7 @@ package com.TrakEngineering.FluidSecureHubTest;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.content.ComponentName;
 import android.content.Context;
@@ -17,6 +18,9 @@ import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
+import android.text.SpannableString;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.RelativeSizeSpan;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
@@ -46,7 +50,7 @@ public class BT_Link_Oscilloscope_Activity extends AppCompatActivity { // implem
     private static final String TAG = "BTLink_Oscilloscope ";
 
     private LineChart myChart;
-    private Button btnSet, btnStartScope, btnDisplay;
+    private Button btnSet, btnStartScope, btnDisplay, btnReconnect;
     public RadioGroup rdg_p_type;
     public RadioButton rdSelectedType;
     public static SerialServiceOscilloscope serviceOscilloscope;
@@ -56,6 +60,7 @@ public class BT_Link_Oscilloscope_Activity extends AppCompatActivity { // implem
     public Timer timerBtScope;
 
     ArrayList<Entry> yValues = new ArrayList<>();
+    public boolean isScopeRecordStarted = false;
 
     @Override
     protected void onDestroy() {
@@ -82,6 +87,8 @@ public class BT_Link_Oscilloscope_Activity extends AppCompatActivity { // implem
         btnDisplay.setAlpha(0.5f);
         btnDisplay.setEnabled(false);
         rdg_p_type = (RadioGroup) findViewById(R.id.rdg_p_type);
+        btnReconnect = findViewById(R.id.btnReconnect);
+        btnReconnect.setVisibility(View.INVISIBLE);
 
         myChart =  findViewById(R.id.lineChart);
 
@@ -206,6 +213,50 @@ public class BT_Link_Oscilloscope_Activity extends AppCompatActivity { // implem
                 SetP_TypeForLink();
             }
         });
+
+        btnReconnect.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + "Reconnecting... ");
+
+                ProgressDialog pd;
+                String s = "Reconnecting... Please wait...";
+                SpannableString ss2 = new SpannableString(s);
+                ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
+                ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
+                pd = new ProgressDialog(BT_Link_Oscilloscope_Activity.this);
+                pd.setMessage(ss2);
+                pd.setCancelable(true);
+                pd.show();
+
+                BTSPPMain btspp = new BTSPPMain();
+                btspp.activity = BT_Link_Oscilloscope_Activity.this;
+
+                switch (LinkPosition) {
+                    case "0"://Link 1
+                        btspp.connect1();
+                        break;
+                    case "1"://Link 2
+                        btspp.connect2();
+                        break;
+                    case "2"://Link 3
+                        btspp.connect3();
+                        break;
+                    case "3"://Link 4
+                        btspp.connect4();
+                        break;
+                    default://Something went wrong in link selection please try again.
+                        break;
+                }
+                new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        pd.dismiss();
+                    }
+                }, 2000);
+            }
+        });
     }
 
     @Override
@@ -221,6 +272,7 @@ public class BT_Link_Oscilloscope_Activity extends AppCompatActivity { // implem
 
     private void SetP_TypeForLink() {
         try {
+            BTConstants.p_type = "";
             int selectedSize = rdg_p_type.getCheckedRadioButtonId();
             rdSelectedType = (RadioButton) findViewById(selectedSize);
 
@@ -232,6 +284,8 @@ public class BT_Link_Oscilloscope_Activity extends AppCompatActivity { // implem
                 AppConstants.WriteinFile(TAG + "Selected Type: " + selectedType);
 
             if (!selectedType.isEmpty()) {
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + "Sending p_type command to Link: " + WifiSSId);
                 BTSPPMain btspp = new BTSPPMain();
                 switch (LinkPosition) {
                     case "0"://Link 1
@@ -253,7 +307,37 @@ public class BT_Link_Oscilloscope_Activity extends AppCompatActivity { // implem
                 new Handler().postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        Toast.makeText(BT_Link_Oscilloscope_Activity.this, "Pulser Type: " + BTConstants.p_type, Toast.LENGTH_SHORT).show();
+                        if (BTConstants.p_type.isEmpty()) {
+                            if (AppConstants.GenerateLogs)
+                                AppConstants.WriteinFile(TAG + "Unable to set pulser type.");
+                            Toast.makeText(BT_Link_Oscilloscope_Activity.this, "Unable to set pulser type. Please click the Reconnect button and try again.", Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(BT_Link_Oscilloscope_Activity.this, "Pulser Type: " + BTConstants.p_type, Toast.LENGTH_SHORT).show();
+                            if (AppConstants.GenerateLogs)
+                                AppConstants.WriteinFile(TAG + "Pulser type set.");
+                            if (!BTConstants.p_type.isEmpty()) {
+                                BTSPPMain btspp = new BTSPPMain();
+                                btspp.activity = BT_Link_Oscilloscope_Activity.this;
+
+                                switch (LinkPosition) {
+                                    case "0"://Link 1
+                                        btspp.connect1();
+                                        break;
+                                    case "1"://Link 2
+                                        btspp.connect2();
+                                        break;
+                                    case "2"://Link 3
+                                        btspp.connect3();
+                                        break;
+                                    case "3"://Link 4
+                                        btspp.connect4();
+                                        break;
+                                    default://Something went wrong in link selection please try again.
+                                        break;
+                                }
+                            }
+                        }
+                        btnReconnect.setVisibility(View.VISIBLE);
                     }
                 }, 1000);
             } else {
@@ -274,6 +358,9 @@ public class BT_Link_Oscilloscope_Activity extends AppCompatActivity { // implem
 
     private void scopeOnCommand() {
         try {
+            isScopeRecordStarted = false;
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + "Sending scope_ON command to Link: " + WifiSSId);
             //Execute scopeOn Command
             BTSPPMain btspp = new BTSPPMain();
             switch (LinkPosition) {
@@ -297,6 +384,7 @@ public class BT_Link_Oscilloscope_Activity extends AppCompatActivity { // implem
                 @Override
                 public void run() {
                     if (BTConstants.ScopeStatus.equalsIgnoreCase("START")) {
+                        isScopeRecordStarted = true;
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + "Record started.");
                         new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
@@ -304,33 +392,40 @@ public class BT_Link_Oscilloscope_Activity extends AppCompatActivity { // implem
                             public void run() {
                                 showToast(BT_Link_Oscilloscope_Activity.this, "start");
                             }
-                        }, 100);
+                        }, 50);
+                    } else {
+                        Toast.makeText(BT_Link_Oscilloscope_Activity.this, "Failed to start Record. Please click the Reconnect button and try again.", Toast.LENGTH_SHORT).show();
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + "Failed to start Record.");
+                        btnReconnect.setVisibility(View.VISIBLE);
                     }
                 }
-            }, 2000);
+            }, 1000);
 
             final Handler handler = new Handler();
-            final int delay = 10000; // 1000 milliseconds == 1 second
+            final int delay = 11000; // 1000 milliseconds == 1 second
 
             handler.postDelayed(new Runnable() {
                 public void run() {
-                    if (counter < 10) {
-                        if (BTConstants.ScopeStatus.equalsIgnoreCase("OVER")) {
-                            //myChart.getDescription().setText("OVER");
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(TAG + "Record end.");
-                            btnDisplay.setAlpha(1.0f);
-                            btnDisplay.setEnabled(true);
-                            chartBindStarted = false;
-                            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-                                @Override
-                                public void run() {
-                                    showToast(BT_Link_Oscilloscope_Activity.this, "over");
-                                }
-                            }, 100);
-                        } else {
-                            counter++;
-                            handler.postDelayed(this, (delay / 10));
+                    if (isScopeRecordStarted) {
+                        if (counter < 10) {
+                            if (BTConstants.ScopeStatus.equalsIgnoreCase("OVER")) {
+                                //myChart.getDescription().setText("OVER");
+                                if (AppConstants.GenerateLogs)
+                                    AppConstants.WriteinFile(TAG + "Record end.");
+                                btnDisplay.setAlpha(1.0f);
+                                btnDisplay.setEnabled(true);
+                                chartBindStarted = false;
+                                new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        showToast(BT_Link_Oscilloscope_Activity.this, "over");
+                                    }
+                                }, 100);
+                            } else {
+                                counter++;
+                                handler.postDelayed(this, (delay / 10));
+                            }
                         }
                     }
                 }
@@ -339,7 +434,7 @@ public class BT_Link_Oscilloscope_Activity extends AppCompatActivity { // implem
         } catch (Exception e) {
             e.printStackTrace();
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " BTLink 2: scopeOnCommand Exception:>>" + e.getMessage());
+                AppConstants.WriteinFile(TAG + " BTLink: scopeOnCommand Exception:>>" + e.getMessage());
         }
     }
 
@@ -425,6 +520,8 @@ public class BT_Link_Oscilloscope_Activity extends AppCompatActivity { // implem
 
     private void scopeReadCommand() {
         try {
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + "Sending scope_READ command to Link: " + WifiSSId);
             //Execute scopeRead Command
             BTSPPMain btspp = new BTSPPMain();
             switch (LinkPosition) {
@@ -448,16 +545,6 @@ public class BT_Link_Oscilloscope_Activity extends AppCompatActivity { // implem
             e.printStackTrace();
             if (AppConstants.GenerateLogs)
                 AppConstants.WriteinFile(TAG + "ScopeReadCommand Exception:>>" + e.getMessage());
-        }
-    }
-
-    public void TerminatePreviousReading() {
-        try {
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "TerminatePreviousReading Exception:>>" + e.getMessage());
         }
     }
 

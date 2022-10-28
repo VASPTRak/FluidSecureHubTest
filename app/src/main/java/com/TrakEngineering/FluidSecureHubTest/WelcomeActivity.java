@@ -455,7 +455,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         ConnectCount = 0;
         ReConnectBTReader();
 
-        tvSSIDName.setText("Tap here to select hose");
+        tvSSIDName.setText(R.string.selectHose);
         SelectedItemPos = -1;
 
         final IntentFilter intentFilter = new IntentFilter();
@@ -639,6 +639,10 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_welcome);
         //getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
+        //SharedPreferences sharedPref = WelcomeActivity.this.getSharedPreferences("LanguageSettings", Context.MODE_PRIVATE);
+        //String language = sharedPref.getString("language", "");
+        //CommonUtils.StoreLanguageSettings(WelcomeActivity.this, language, false);
 
         SharedPreferences sharedPre2 = WelcomeActivity.this.getSharedPreferences("storeBT_FOBDetails", Context.MODE_PRIVATE);
 
@@ -860,8 +864,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         // set User Information
         UserInfoEntity userInfoEntity = CommonUtils.getCustomerDetails(WelcomeActivity.this);
 
-        AppConstants.Title = "HUB Number: " + CommonUtils.getHUBNumberByName(userInfoEntity.PersonName);//+ "\nMobile : " + userInfoEntity.PhoneNumber + "\nEmail : " + userInfoEntity.PersonEmail
-        AppConstants.SiteName = "Site Name: " + userInfoEntity.FluidSecureSiteName;//+ "\nMobile : " + userInfoEntity.PhoneNumber + "\nEmail : " + userInfoEntity.PersonEmail
+        AppConstants.Title = getResources().getString(R.string.HUBNumber) + " " + CommonUtils.getHUBNumberByName(userInfoEntity.PersonName);//+ "\nMobile : " + userInfoEntity.PhoneNumber + "\nEmail : " + userInfoEntity.PersonEmail
+        AppConstants.SiteName = getResources().getString(R.string.SiteName) + " " + userInfoEntity.FluidSecureSiteName;//+ "\nMobile : " + userInfoEntity.PhoneNumber + "\nEmail : " + userInfoEntity.PersonEmail
         AppConstants.HubName = userInfoEntity.PersonName;
         tvTitle = (TextView) findViewById(textView);
         tv_SiteName = (TextView) findViewById(R.id.tv_SiteName);
@@ -1678,6 +1682,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         qrcodebleServiceOn();
         //launchCamera();     //Calling camera activity for image capture on GO button click
 
+        BTConstants.forOscilloscope = false;
         try {
             if (cd.isConnectingToInternet() && serverSSIDList != null && serverSSIDList.size() == 1) {
                 AppConstants.FS_selected = "0";
@@ -1753,7 +1758,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                 if (AppConstants.GenerateLogs)
                                     AppConstants.WriteinFile(TAG + "The system is low on fuel and must be refilled before fueling can start. Please contact your Manager.");
                                 CommonUtils.AlertDialogAutoClose(WelcomeActivity.this, "", "The system is low on fuel and must be refilled before fueling can start. Please contact your Manager.");
-                                tvSSIDName.setText("Tap here to select hose");
+                                tvSSIDName.setText(R.string.selectHose);
                                 btnGo.setVisibility(View.GONE);
 
                             } else if (ReconfigureLink != null && ReconfigureLink.equalsIgnoreCase("true")) {
@@ -1765,7 +1770,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                 if (AppConstants.GenerateLogs)
                                     AppConstants.WriteinFile(TAG + "Flagged Link: " + LinkFlaggedMessage);
                                 CommonUtils.AlertDialogAutoClose(WelcomeActivity.this, "", LinkFlaggedMessage);
-                                tvSSIDName.setText("Tap here to select hose");
+                                tvSSIDName.setText(R.string.selectHose);
                                 btnGo.setVisibility(View.GONE);
 
                             } else {
@@ -2931,6 +2936,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     IpAddress = "";
                     SelectedItemPos = position;
                     SelectedItemPosFor10Txn = position;
+                    BTConstants.forOscilloscope = false;
 
                     String selSSID = serverSSIDList.get(SelectedItemPos).get("WifiSSId");
                     String selMacAddress = serverSSIDList.get(SelectedItemPos).get("MacAddress");
@@ -2983,7 +2989,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + "The system is low on fuel and must be refilled before fueling can start. Please contact your Manager.");
                         CommonUtils.AlertDialogAutoClose(WelcomeActivity.this, "", "The system is low on fuel and must be refilled before fueling can start. Please contact your Manager.");
-                        tvSSIDName.setText("Tap here to select hose");
+                        tvSSIDName.setText(R.string.selectHose);
                         btnGo.setVisibility(View.GONE);
 
                     } else if (LinkCommunicationType.equalsIgnoreCase("BT")) {
@@ -5859,7 +5865,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             //Set "Tap here to select hose" message
             if (RestHoseinUse_FS1) {
                 RestHoseinUse_FS1 = false;
-                tvSSIDName.setText("Tap here to select hose");
+                tvSSIDName.setText(R.string.selectHose);
                 SelectedItemPos = -1;
                 btnGo.setVisibility(View.VISIBLE);
             }
@@ -5981,7 +5987,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             //Set "Tap here to select hose" message
             if (RestHoseinUse_FS2) {
                 RestHoseinUse_FS2 = false;
-                tvSSIDName.setText("Tap here to select hose");
+                tvSSIDName.setText(R.string.selectHose);
                 SelectedItemPos = -1;
                 btnGo.setVisibility(View.VISIBLE);
             }
@@ -6099,7 +6105,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             //Set "Tap here to select hose" message
             if (RestHoseinUse_FS3) {
                 RestHoseinUse_FS3 = false;
-                tvSSIDName.setText("Tap here to select hose");
+                tvSSIDName.setText(R.string.selectHose);
                 SelectedItemPos = -1;
                 btnGo.setVisibility(View.VISIBLE);
             }
@@ -6220,7 +6226,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             //Set "Tap here to select hose" message
             if (RestHoseinUse_FS4) {
                 RestHoseinUse_FS4 = false;
-                tvSSIDName.setText("Tap here to select hose");
+                tvSSIDName.setText(R.string.selectHose);
                 SelectedItemPos = -1;
                 btnGo.setVisibility(View.VISIBLE);
             }
@@ -6340,7 +6346,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             //Set "Tap here to select hose" message
             if (RestHoseinUse_FS5) {
                 RestHoseinUse_FS5 = false;
-                tvSSIDName.setText("Tap here to select hose");
+                tvSSIDName.setText(R.string.selectHose);
                 SelectedItemPos = -1;
                 btnGo.setVisibility(View.VISIBLE);
             }
@@ -6441,7 +6447,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             //Set "Tap here to select hose" message
             if (RestHoseinUse_FS6) {
                 RestHoseinUse_FS6 = false;
-                tvSSIDName.setText("Tap here to select hose");
+                tvSSIDName.setText(R.string.selectHose);
                 SelectedItemPos = -1;
                 btnGo.setVisibility(View.VISIBLE);
             }
@@ -7581,6 +7587,24 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             menu.findItem(R.id.mofline).setVisible(true);
         }
 
+        /*SharedPreferences sharedPref = WelcomeActivity.this.getSharedPreferences("LanguageSettings", Context.MODE_PRIVATE);
+        String language = sharedPref.getString("language", "");
+
+        MenuItem itemSp = menu.findItem(R.id.menuSpanish);
+        MenuItem itemEng = menu.findItem(R.id.menuEnglish);
+
+        if (language.trim().equalsIgnoreCase("es")) {
+            itemSp.setVisible(false);
+            itemEng.setVisible(true);
+        } else {
+            itemSp.setVisible(true);
+            itemEng.setVisible(false);
+        }*/
+        // Remove below code when uncomment above code
+        MenuItem itemSp = menu.findItem(R.id.menuSpanish);
+        MenuItem itemEng = menu.findItem(R.id.menuEnglish);
+        itemSp.setVisible(false);
+        itemEng.setVisible(false);
         return true;
     }
 
@@ -7626,6 +7650,14 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
             case R.id.btLinkScope:
                 OscilloscopeLinkSelection();
+                break;
+
+            case R.id.menuSpanish:
+                //CommonUtils.StoreLanguageSettings(WelcomeActivity.this, "es", true);
+                break;
+
+            case R.id.menuEnglish:
+                //CommonUtils.StoreLanguageSettings(WelcomeActivity.this, "en", true);
                 break;
 
         }
@@ -12639,19 +12671,13 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         handler.postDelayed(new Runnable() {
                             public void run() {
 
-                                if (checkBTLinkStatus(1)) {
-                                    if (BTConnectionHandler != null) {
-                                        BTConnectionHandler.removeCallbacksAndMessages(null);
-                                    }
-                                    RedirectBtLinkOneToNextScreen(selSSID);
-                                } else {
+                                if (!checkBTLinkStatus(1)) {
                                     retryConnect(1);
-
-                                    if (BTConnectionHandler != null) {
-                                        BTConnectionHandler.removeCallbacksAndMessages(null);
-                                    }
-                                    RedirectBtLinkOneToNextScreen(selSSID);
                                 }
+                                if (BTConnectionHandler != null) {
+                                    BTConnectionHandler.removeCallbacksAndMessages(null);
+                                }
+                                RedirectBtLinkOneToNextScreen(selSSID);
                             }
                         }, delay);
 
@@ -12713,19 +12739,13 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         handler.postDelayed(new Runnable() {
                             public void run() {
 
-                                if (checkBTLinkStatus(2)) {
-                                    if (BTConnectionHandler != null) {
-                                        BTConnectionHandler.removeCallbacksAndMessages(null);
-                                    }
-                                    RedirectBtLinkTwoToNextScreen(selSSID);
-                                } else {
+                                if (!checkBTLinkStatus(2)) {
                                     retryConnect(2);
-
-                                    if (BTConnectionHandler != null) {
-                                        BTConnectionHandler.removeCallbacksAndMessages(null);
-                                    }
-                                    RedirectBtLinkTwoToNextScreen(selSSID);
                                 }
+                                if (BTConnectionHandler != null) {
+                                    BTConnectionHandler.removeCallbacksAndMessages(null);
+                                }
+                                RedirectBtLinkTwoToNextScreen(selSSID);
                             }
                         }, delay);
 
@@ -12788,19 +12808,13 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         handler.postDelayed(new Runnable() {
                             public void run() {
 
-                                if (checkBTLinkStatus(3)) {
-                                    if (BTConnectionHandler != null) {
-                                        BTConnectionHandler.removeCallbacksAndMessages(null);
-                                    }
-                                    RedirectBtLinkThreeToNextScreen(selSSID);
-                                } else {
+                                if (!checkBTLinkStatus(3)) {
                                     retryConnect(3);
-
-                                    if (BTConnectionHandler != null) {
-                                        BTConnectionHandler.removeCallbacksAndMessages(null);
-                                    }
-                                    RedirectBtLinkThreeToNextScreen(selSSID);
                                 }
+                                if (BTConnectionHandler != null) {
+                                    BTConnectionHandler.removeCallbacksAndMessages(null);
+                                }
+                                RedirectBtLinkThreeToNextScreen(selSSID);
                             }
                         }, delay);
 
@@ -12864,19 +12878,13 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         handler.postDelayed(new Runnable() {
                             public void run() {
 
-                                if (checkBTLinkStatus(4)) {
-                                    if (BTConnectionHandler != null) {
-                                        BTConnectionHandler.removeCallbacksAndMessages(null);
-                                    }
-                                    RedirectBtLinkFourToNextScreen(selSSID);
-                                } else {
+                                if (!checkBTLinkStatus(4)) {
                                     retryConnect(4);
-
-                                    if (BTConnectionHandler != null) {
-                                        BTConnectionHandler.removeCallbacksAndMessages(null);
-                                    }
-                                    RedirectBtLinkFourToNextScreen(selSSID);
                                 }
+                                if (BTConnectionHandler != null) {
+                                    BTConnectionHandler.removeCallbacksAndMessages(null);
+                                }
+                                RedirectBtLinkFourToNextScreen(selSSID);
                             }
                         }, delay);
 
@@ -13368,7 +13376,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 @Override
                 public void run() {
                     if (!s.equalsIgnoreCase("Connecting...")) {
-                        tvSSIDName.setText("Tap here to select hose");
+                        tvSSIDName.setText(R.string.selectHose);
                     }
                     btnGo.setVisibility(View.GONE);
                 }
@@ -14455,7 +14463,20 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     if (!BTConstants.deviceAddress1.isEmpty()) {
                         NearByBTDevices.clear();
                         mBluetoothAdapter.startDiscovery();
-                        new Handler().postDelayed(new Runnable() {
+
+                        Handler handler = new Handler();
+                        int delay = 1000;
+                        handler.postDelayed(new Runnable() {
+                            public void run() {
+
+                                if (!checkBTLinkStatus(1)) {
+                                    retryConnect(1);
+                                }
+                                new RedirectToOscilloscope().execute(WifiSSId, LinkPosition);
+                            }
+                        }, delay);
+
+                        /*new Handler().postDelayed(new Runnable() {
                             @Override
                             public void run() {
 
@@ -14488,7 +14509,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                     }
                                 }
                             }
-                        }, 2000);
+                        }, 2000);*/
 
                     } else {
                         AppConstants.colorToast(getApplicationContext(), "Please make sure BT mac is set.", Color.BLUE);
@@ -14507,7 +14528,20 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     if (!BTConstants.deviceAddress2.isEmpty()) {
                         NearByBTDevices.clear();
                         mBluetoothAdapter.startDiscovery();
-                        new Handler().postDelayed(new Runnable() {
+
+                        Handler handler = new Handler();
+                        int delay = 1000;
+                        handler.postDelayed(new Runnable() {
+                            public void run() {
+
+                                if (!checkBTLinkStatus(2)) {
+                                    retryConnect(2);
+                                }
+                                new RedirectToOscilloscope().execute(WifiSSId, LinkPosition);
+                            }
+                        }, delay);
+
+                        /*new Handler().postDelayed(new Runnable() {
                             @Override
                             public void run() {
 
@@ -14540,7 +14574,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                     }
                                 }
                             }
-                        }, 2000);
+                        }, 2000);*/
 
                     } else {
                         AppConstants.colorToast(getApplicationContext(), "Please make sure BT mac is set.", Color.BLUE);
@@ -14560,7 +14594,20 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     if (!BTConstants.deviceAddress3.isEmpty()) {
                         NearByBTDevices.clear();
                         mBluetoothAdapter.startDiscovery();
-                        new Handler().postDelayed(new Runnable() {
+
+                        Handler handler = new Handler();
+                        int delay = 1000;
+                        handler.postDelayed(new Runnable() {
+                            public void run() {
+
+                                if (!checkBTLinkStatus(3)) {
+                                    retryConnect(3);
+                                }
+                                new RedirectToOscilloscope().execute(WifiSSId, LinkPosition);
+                            }
+                        }, delay);
+
+                        /*new Handler().postDelayed(new Runnable() {
                             @Override
                             public void run() {
 
@@ -14593,7 +14640,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                     }
                                 }
                             }
-                        }, 2000);
+                        }, 2000);*/
 
                     } else {
                         AppConstants.colorToast(getApplicationContext(), "Please make sure BT mac is set.", Color.BLUE);
@@ -14612,7 +14659,20 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     if (!BTConstants.deviceAddress4.isEmpty()) {
                         NearByBTDevices.clear();
                         mBluetoothAdapter.startDiscovery();
-                        new Handler().postDelayed(new Runnable() {
+
+                        Handler handler = new Handler();
+                        int delay = 1000;
+                        handler.postDelayed(new Runnable() {
+                            public void run() {
+
+                                if (!checkBTLinkStatus(4)) {
+                                    retryConnect(4);
+                                }
+                                new RedirectToOscilloscope().execute(WifiSSId, LinkPosition);
+                            }
+                        }, delay);
+
+                        /*new Handler().postDelayed(new Runnable() {
                             @Override
                             public void run() {
 
@@ -14645,7 +14705,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                     }
                                 }
                             }
-                        }, 2000);
+                        }, 2000);*/
 
                     } else {
                         AppConstants.colorToast(getApplicationContext(), "Please make sure BT mac is set.", Color.BLUE);

@@ -262,7 +262,7 @@
                     android:onClick="cancelAction"
                     android:layout_weight="1"
                     android:background="@color/backbtn"
-                    android:text="Previous Screen"
+                    android:text="@string/previousScreen"
                     android:textSize="@dimen/previous_button_text"
                     android:textColor="@color/black" />
 

@@ -65,7 +65,7 @@
                 android:layout_gravity="center_horizontal"
                 android:layout_weight="1"
                 android:background="@color/backbtn"
-                android:text="Previous Screen"
+                android:text="@string/previousScreen"
                 android:textColor="@color/black"
                 android:textSize="@dimen/previous_button_text"  />
 

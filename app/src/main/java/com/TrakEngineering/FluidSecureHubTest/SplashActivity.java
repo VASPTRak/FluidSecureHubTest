@@ -106,6 +106,10 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
 
+        //SharedPreferences sharedPref = SplashActivity.this.getSharedPreferences("LanguageSettings", Context.MODE_PRIVATE);
+        //String language = sharedPref.getString("language", "");
+        //CommonUtils.StoreLanguageSettings(SplashActivity.this, language, false);
+
         getSupportActionBar().setTitle("HUB Application");
 
         CommonUtils.LogMessage(TAG, "SplashActivity", null);
