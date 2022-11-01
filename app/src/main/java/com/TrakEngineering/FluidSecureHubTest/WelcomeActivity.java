@@ -91,7 +91,10 @@ import com.TrakEngineering.FluidSecureHubTest.BTSPP.BackgroundService_BTFour;
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.BackgroundService_BTOne;
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.BackgroundService_BTThree;
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.BackgroundService_BTTwo;
+import com.TrakEngineering.FluidSecureHubTest.BTSPP.ClientSendAndListenUDPFour;
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.ClientSendAndListenUDPOne;
+import com.TrakEngineering.FluidSecureHubTest.BTSPP.ClientSendAndListenUDPThree;
+import com.TrakEngineering.FluidSecureHubTest.BTSPP.ClientSendAndListenUDPTwo;
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.CommonFunctions;
 import com.TrakEngineering.FluidSecureHubTest.EddystoneScanner.EddystoneScannerService;
 import com.TrakEngineering.FluidSecureHubTest.EddystoneScanner.SampleBeacon;
@@ -1752,6 +1755,10 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                 if (CommonUtils.isHotspotEnabled(WelcomeActivity.this)) {
                                     wifiApManager.setWifiApEnabled(null, false);
                                 }
+                            } else {
+                                if (!CommonUtils.isHotspotEnabled(WelcomeActivity.this)) {
+                                    wifiApManager.setWifiApEnabled(null, true);
+                                }
                             }*/
 
                             if (IsTankEmpty.equalsIgnoreCase("True")) {
@@ -2349,6 +2356,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
             case R.id.tv_fs1_stop:
 
+                String ipForUDP1 = "192.168.4.1";
                 String selSSID = serverSSIDList.get(0).get("WifiSSId");
                 String LinkCommunicationType = serverSSIDList.get(0).get("LinkCommunicationType");
                 if (Integer.parseInt(Constants.FS_1Pulse) <= 0) {
@@ -2360,11 +2368,17 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "LINK: " + selSSID + ". Stop button pressed");
                     Constants.FS_1STATUS = "FREE";
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "Sending relayOff command to Link: " + selSSID);
-                    BTSPPMain btspp = new BTSPPMain();
-                    btspp.activity = WelcomeActivity.this;
-                    btspp.send1(BTConstants.relay_off_cmd);
+                    if (BTConstants.CurrentTransactionIsBT && !BTConstants.BTLinkOneStatus && AppConstants.isRelayON_fs1 && BTConstants.SwitchedBTToUDP1) {
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "Sending relayOff command (UDP) to Link: " + selSSID);
+                        new Thread(new ClientSendAndListenUDPOne(BTConstants.relay_off_cmd, ipForUDP1, this)).start();
+                    } else {
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "Sending relayOff command to Link: " + selSSID);
+                        BTSPPMain btspp = new BTSPPMain();
+                        btspp.activity = WelcomeActivity.this;
+                        btspp.send1(BTConstants.relay_off_cmd);
+                    }
 
                 } else if (LinkCommunicationType.equalsIgnoreCase("UDP")) {
 
@@ -2425,6 +2439,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
             case R.id.tv_fs2_stop:
 
+                String ipForUDP2 = "192.168.4.1";
                 String selSSID2 = serverSSIDList.get(1).get("WifiSSId");
                 String LType2 = serverSSIDList.get(1).get("LinkCommunicationType");
                 if (Integer.parseInt(Constants.FS_2Pulse) <= 0) {
@@ -2436,11 +2451,17 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "LINK: " + selSSID2 + ". Stop button pressed");
                     Constants.FS_2STATUS = "FREE";
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "Sending relayOff command to Link: " + selSSID2);
-                    BTSPPMain btspp = new BTSPPMain();
-                    btspp.activity = WelcomeActivity.this;
-                    btspp.send2(BTConstants.relay_off_cmd);
+                    if (BTConstants.CurrentTransactionIsBT && !BTConstants.BTLinkTwoStatus && AppConstants.isRelayON_fs2 && BTConstants.SwitchedBTToUDP2) {
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "Sending relayOff command (UDP) to Link: " + selSSID2);
+                        new Thread(new ClientSendAndListenUDPTwo(BTConstants.relay_off_cmd, ipForUDP2, this)).start();
+                    } else {
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "Sending relayOff command to Link: " + selSSID2);
+                        BTSPPMain btspp = new BTSPPMain();
+                        btspp.activity = WelcomeActivity.this;
+                        btspp.send2(BTConstants.relay_off_cmd);
+                    }
 
                 } else if (LType2.equalsIgnoreCase("UDP")) {
 
@@ -2474,6 +2495,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
             case R.id.tv_fs3_stop:
 
+                String ipForUDP3 = "192.168.4.1";
                 String selSSID3 = serverSSIDList.get(2).get("WifiSSId");
                 String LType3 = serverSSIDList.get(2).get("LinkCommunicationType");
                 if (Integer.parseInt(Constants.FS_3Pulse) <= 0) {
@@ -2485,11 +2507,17 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "LINK: " + selSSID3 + ". Stop button pressed");
                     Constants.FS_3STATUS = "FREE";
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "Sending relayOff command to Link: " + selSSID3);
-                    BTSPPMain btspp = new BTSPPMain();
-                    btspp.activity = WelcomeActivity.this;
-                    btspp.send3(BTConstants.relay_off_cmd);
+                    if (BTConstants.CurrentTransactionIsBT && !BTConstants.BTLinkThreeStatus && AppConstants.isRelayON_fs3 && BTConstants.SwitchedBTToUDP3) {
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "Sending relayOff command (UDP) to Link: " + selSSID3);
+                        new Thread(new ClientSendAndListenUDPThree(BTConstants.relay_off_cmd, ipForUDP3, this)).start();
+                    } else {
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "Sending relayOff command to Link: " + selSSID3);
+                        BTSPPMain btspp = new BTSPPMain();
+                        btspp.activity = WelcomeActivity.this;
+                        btspp.send3(BTConstants.relay_off_cmd);
+                    }
 
                 } else if (LType3.equalsIgnoreCase("UDP")) {
                     //pending
@@ -2505,6 +2533,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
             case R.id.tv_fs4_stop:
 
+                String ipForUDP4 = "192.168.4.1";
                 String selSSID4 = serverSSIDList.get(3).get("WifiSSId");
                 String LType4 = serverSSIDList.get(3).get("LinkCommunicationType");
                 if (Integer.parseInt(Constants.FS_4Pulse) <= 0) {
@@ -2516,11 +2545,17 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "LINK: " + selSSID4 + ". Stop button pressed");
                     Constants.FS_4STATUS = "FREE";
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "Sending relayOff command to Link: " + selSSID4);
-                    BTSPPMain btspp = new BTSPPMain();
-                    btspp.activity = WelcomeActivity.this;
-                    btspp.send4(BTConstants.relay_off_cmd);
+                    if (BTConstants.CurrentTransactionIsBT && !BTConstants.BTLinkFourStatus && AppConstants.isRelayON_fs4 && BTConstants.SwitchedBTToUDP4) {
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "Sending relayOff command (UDP) to Link: " + selSSID4);
+                        new Thread(new ClientSendAndListenUDPFour(BTConstants.relay_off_cmd, ipForUDP4, this)).start();
+                    } else {
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "Sending relayOff command to Link: " + selSSID4);
+                        BTSPPMain btspp = new BTSPPMain();
+                        btspp.activity = WelcomeActivity.this;
+                        btspp.send4(BTConstants.relay_off_cmd);
+                    }
 
                 } else if (LType4.equalsIgnoreCase("UDP")) {
 
@@ -5945,7 +5980,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 fs1Cnt5Sec++;
             }
 
-            if (BTConstants.CurrentTransactionIsBT && !BTConstants.BTLinkOneStatus && AppConstants.isRelayON_fs1) {
+            if (BTConstants.CurrentTransactionIsBT && !BTConstants.BTLinkOneStatus && AppConstants.isRelayON_fs1 && !BTConstants.SwitchedBTToUDP1) {
                 if (CountBeforeReconnectRelay1 >= 1) {
                     if (BTConstants.BTStatusStrOne.equalsIgnoreCase("Disconnect") && !BTConstants.isUpgradeInProgress_BT1) {
                         SaveLastQtyInSharedPref(1, Constants.FS_1Pulse);
@@ -6064,7 +6099,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 fs2Cnt5Sec++;
             }
 
-            if (BTConstants.CurrentTransactionIsBT && !BTConstants.BTLinkTwoStatus && AppConstants.isRelayON_fs2) {
+            if (BTConstants.CurrentTransactionIsBT && !BTConstants.BTLinkTwoStatus && AppConstants.isRelayON_fs2 && !BTConstants.SwitchedBTToUDP2) {
                 if (CountBeforeReconnectRelay2 >= 1) {
                     if (BTConstants.BTStatusStrTwo.equalsIgnoreCase("Disconnect") && !BTConstants.isUpgradeInProgress_BT2) {
                         SaveLastQtyInSharedPref(2, Constants.FS_2Pulse);
@@ -6185,7 +6220,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 fs3Cnt5Sec++;
             }
 
-            if (BTConstants.CurrentTransactionIsBT && !BTConstants.BTLinkThreeStatus && AppConstants.isRelayON_fs3) {
+            if (BTConstants.CurrentTransactionIsBT && !BTConstants.BTLinkThreeStatus && AppConstants.isRelayON_fs3 && !BTConstants.SwitchedBTToUDP3) {
                 if (CountBeforeReconnectRelay3 >= 1) {
                     if (BTConstants.BTStatusStrThree.equalsIgnoreCase("Disconnect") && !BTConstants.isUpgradeInProgress_BT3) {
                         SaveLastQtyInSharedPref(3, Constants.FS_3Pulse);
@@ -6304,7 +6339,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 fs4Cnt5Sec++;
             }
 
-            if (BTConstants.CurrentTransactionIsBT && !BTConstants.BTLinkFourStatus && AppConstants.isRelayON_fs4) {
+            if (BTConstants.CurrentTransactionIsBT && !BTConstants.BTLinkFourStatus && AppConstants.isRelayON_fs4 && !BTConstants.SwitchedBTToUDP4) {
                 if (CountBeforeReconnectRelay4 >= 1) {
                     if (BTConstants.BTStatusStrFour.equalsIgnoreCase("Disconnect") && !BTConstants.isUpgradeInProgress_BT4) {
                         SaveLastQtyInSharedPref(4, Constants.FS_4Pulse);
@@ -13213,6 +13248,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 SetBTLinksMacAddress(0, BTselMacAddress);
                 tvSSIDName.setText(selSSID);
                 OnHoseSelected_OnClick(Integer.toString(0));
+            } else {
+                tvSSIDName.setText(R.string.selectHose);
             }
         } catch (Exception e) {
             if (AppConstants.GenerateLogs)

@@ -40,9 +40,10 @@ public class AddNewLinkToCloud extends AppCompatActivity implements LifecycleObs
     private AddnewLink_ViewModel addnewlinkViewModel;
     private String TAG = this.getClass().getSimpleName();
     private Spinner Spinner_tankNumber;
-    private EditText edt_linkname,edt_pumpOnTime,edt_pumpOffTime,edt_username,edt_enter_password;
-    private Button btn_cancel,btn_done;
-    private String expression  = "^[a-zA-Z0-9-_ ]*$";
+    private EditText edt_linkname, edt_pumpOnTime, edt_pumpOffTime, edt_username, edt_enter_password;
+    private EditText edt_LinkNewName, edt_UnitsMeasured, edt_Pulses;
+    private Button btn_cancel, btn_done;
+    private String expression = "^[a-zA-Z0-9-_ ]*$";
     private ProgressDialog pd;
     private CheckBox chkShowHidePassword;
 
@@ -62,6 +63,9 @@ public class AddNewLinkToCloud extends AppCompatActivity implements LifecycleObs
         Spinner_tankNumber = (Spinner) findViewById(R.id.spin_tanknumber);
         Spinner_tankNumber.setOnItemSelectedListener(this);
         chkShowHidePassword = (CheckBox) findViewById(R.id.chkShowHidePassword);
+        edt_LinkNewName = (EditText) findViewById(R.id.edt_LinkNewName);
+        edt_UnitsMeasured = (EditText) findViewById(R.id.edt_UnitsMeasured);
+        edt_Pulses = (EditText) findViewById(R.id.edt_Pulses);
 
         ProcessLifecycleOwner.get().getLifecycle().addObserver(new AddnewLink_ViewModel(getApplication()));
 
@@ -75,7 +79,8 @@ public class AddNewLinkToCloud extends AppCompatActivity implements LifecycleObs
             @Override
             public void onChanged(@Nullable String s) {
                AlertDialogBox(AddNewLinkToCloud.this, s);
-               if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " SaveLinkFromAPP");
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " SaveLinkFromAPP Response: " + s);
             }
         });
 
@@ -91,7 +96,7 @@ public class AddNewLinkToCloud extends AppCompatActivity implements LifecycleObs
             }
         });
 
-        ArrayAdapter aa = new ArrayAdapter(this,android.R.layout.simple_spinner_dropdown_item,addnewlinkViewModel.getSpinnerList());
+        ArrayAdapter aa = new ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, addnewlinkViewModel.getSpinnerList());
         aa.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         Spinner_tankNumber.setAdapter(aa);
 
@@ -99,7 +104,9 @@ public class AddNewLinkToCloud extends AppCompatActivity implements LifecycleObs
             @Override
             public void onClick(View v) {
                 if (validateData()) {
-                    addnewlinkViewModel.ProcessData(edt_linkname.getText().toString().trim(), edt_pumpOnTime.getText().toString().trim(), edt_pumpOffTime.getText().toString().trim(), edt_username.getText().toString().trim(), edt_enter_password.getText().toString().trim());
+                    addnewlinkViewModel.ProcessData(edt_linkname.getText().toString().trim(), edt_pumpOnTime.getText().toString().trim(),
+                            edt_pumpOffTime.getText().toString().trim(), edt_username.getText().toString().trim(), edt_enter_password.getText().toString().trim(),
+                            edt_LinkNewName.getText().toString().trim(), edt_UnitsMeasured.getText().toString().trim(), edt_Pulses.getText().toString().trim());
                 }
             }
         });
@@ -165,6 +172,17 @@ public class AddNewLinkToCloud extends AppCompatActivity implements LifecycleObs
         } else if (edt_enter_password.getText().toString().trim().isEmpty()) {
             edt_enter_password.setError("Enter valid data");
             return false;
+        } else if (edt_UnitsMeasured.getText().toString().trim().isEmpty()) {
+            edt_UnitsMeasured.setError("Enter valid data");
+            return false;
+        } else if (edt_Pulses.getText().toString().trim().isEmpty()) {
+            edt_Pulses.setError("Enter valid data");
+            return false;
+        } else if (!edt_LinkNewName.getText().toString().trim().isEmpty()) {
+            if (!edt_LinkNewName.getText().toString().trim().matches(expression)) {
+                edt_LinkNewName.setError("Enter valid data");
+                return false;
+            }
         }
         return true;
     }

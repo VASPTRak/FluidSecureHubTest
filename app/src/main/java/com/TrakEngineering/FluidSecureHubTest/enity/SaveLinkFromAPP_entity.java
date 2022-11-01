@@ -12,5 +12,8 @@ public class SaveLinkFromAPP_entity {
     public String TankId;
     public String userName;
     public String password;
+    public String NewName;
+    public String UnitsMeasure;
+    public String Pulses;
 
 }

@@ -14,23 +14,23 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 
-public class ClientSendAndListenUDPOne implements Runnable {
+public class ClientSendAndListenUDPTwo implements Runnable {
 
-    private static final String TAG = "UDP_Act_One ";
+    private static final String TAG = "UDP_Act_Two ";
     String strcmd = "";
     String SERVER_IP = "";
     Context ct;
 
-    public ClientSendAndListenUDPOne(String str_cmd, String server_ip, Context ctx) {
+    public ClientSendAndListenUDPTwo(String str_cmd, String server_ip, Context ctx) {
 
-         strcmd = str_cmd;
-         SERVER_IP = server_ip;
-         ct = ctx;
+        strcmd = str_cmd;
+        SERVER_IP = server_ip;
+        ct = ctx;
     }
 
     @Override
     public void run() {
-        StringBuilder sb1 = new StringBuilder();
+        StringBuilder sb2 = new StringBuilder();
         boolean run = true;
         try {
 
@@ -51,11 +51,11 @@ public class ClientSendAndListenUDPOne implements Runnable {
                     String Response = new String(message, 0, p.getLength());
                     //SpannableStringBuilder spn = new SpannableStringBuilder(Response + '\n');
                     Log.d("Received text", Response);
-                    //AppConstants.WriteinFile(TAG + " Link 1: Received text: " + Response);
+                    //AppConstants.WriteinFile(TAG + " Link 2: Received text: " + Response);
                     //run = false;
 
                     if (strcmd.equalsIgnoreCase(BTConstants.info_cmd) && Response.contains("records")) {
-                        BTConstants.isNewVersionLinkOne = true;
+                        BTConstants.isNewVersionLinkTwo = true;
                     }
 
                     if (Response.contains("$$")) {
@@ -64,17 +64,17 @@ public class ClientSendAndListenUDPOne implements Runnable {
                             res = res.substring(0, (res.lastIndexOf("}") + 1)); // To remove extra characters after the last curly bracket (if any)
                         }
                         if (!res.trim().isEmpty()) {
-                            sb1.append(res.trim());
+                            sb2.append(res.trim());
                         }
-                        sendBroadcastIntentFromLinkOne(sb1.toString());
-                        sb1.setLength(0);
+                        sendBroadcastIntentFromLinkTwo(sb2.toString());
+                        sb2.setLength(0);
                     } else {
-                        if (BTConstants.isNewVersionLinkOne) {
-                            sb1.append(Response);
+                        if (BTConstants.isNewVersionLinkTwo) {
+                            sb2.append(Response);
                         } else {
                             // For old version Link response
-                            sb1.setLength(0);
-                            sendBroadcastIntentFromLinkOne(Response + '\n');
+                            sb2.setLength(0);
+                            sendBroadcastIntentFromLinkTwo(Response + '\n');
                         }
                     }
 
@@ -91,13 +91,13 @@ public class ClientSendAndListenUDPOne implements Runnable {
         }
     }
 
-    public void sendBroadcastIntentFromLinkOne(String resp) {
-        //AppConstants.WriteinFile(TAG + " Link 1: Final Response: " + resp);
+    public void sendBroadcastIntentFromLinkTwo(String resp) {
+        //AppConstants.WriteinFile(TAG + " Link 2: Final Response: " + resp);
         Intent broadcastIntent = new Intent();
-        broadcastIntent.setAction("BroadcastBlueLinkOneData");
+        broadcastIntent.setAction("BroadcastBlueLinkTwoData");
         broadcastIntent.putExtra("Request", strcmd);
         broadcastIntent.putExtra("Response", resp);
-        broadcastIntent.putExtra("Action", "BlueLinkOne");
+        broadcastIntent.putExtra("Action", "BlueLinkTwo");
         ct.sendBroadcast(broadcastIntent);
     }
 

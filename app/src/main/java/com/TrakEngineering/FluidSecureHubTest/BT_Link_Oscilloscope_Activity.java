@@ -31,7 +31,6 @@ import android.widget.Toast;
 
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTConstants;
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPPMain;
-import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_Oscilloscope.SerialServiceOscilloscope;
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
@@ -53,7 +52,6 @@ public class BT_Link_Oscilloscope_Activity extends AppCompatActivity { // implem
     private Button btnSet, btnStartScope, btnDisplay, btnReconnect;
     public RadioGroup rdg_p_type;
     public RadioButton rdSelectedType;
-    public static SerialServiceOscilloscope serviceOscilloscope;
     String LinkPosition, WifiSSId;
     int counter = 0;
     public boolean chartBindStarted = false;

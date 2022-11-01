@@ -40,7 +40,6 @@
                     android:id="@+id/tv_hours"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-
                     android:gravity="left"
                     android:text="Enter the Hour No Tenths:"
                     android:textAppearance="?android:attr/textAppearanceLarge"
@@ -104,7 +103,7 @@
                     android:layout_weight="1"
                     android:background="@color/colorFluid"
                     android:onClick="saveButtonAction"
-                    android:text="Enter"
+                    android:text="@string/GO"
                     android:textColor="@color/white"
                     android:textSize="@dimen/go_button_text" />
             </LinearLayout>

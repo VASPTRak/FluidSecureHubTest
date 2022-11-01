@@ -19,16 +19,13 @@ import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkThree.SerialListen
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkThree.SerialSocketThree;
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkFour.SerialListenerFour;
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkFour.SerialSocketFour;
-import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_Oscilloscope.SerialListenerOscilloscope;
-import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_Oscilloscope.SerialSocketOscilloscope;
 
 import static com.TrakEngineering.FluidSecureHubTest.WelcomeActivity.service1;
 import static com.TrakEngineering.FluidSecureHubTest.WelcomeActivity.service2;
 import static com.TrakEngineering.FluidSecureHubTest.WelcomeActivity.service3;
 import static com.TrakEngineering.FluidSecureHubTest.WelcomeActivity.service4;
-import static com.TrakEngineering.FluidSecureHubTest.BT_Link_Oscilloscope_Activity.serviceOscilloscope;
 
-public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialListenerThree , SerialListenerFour, SerialListenerOscilloscope {
+public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialListenerThree , SerialListenerFour {
 
     public Activity activity;
     private static final String TAG = AppConstants.LOG_TXTN_BT + "-"; //BTSPPMain.class.getSimpleName();
@@ -631,107 +628,4 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
     }
     //endregion
 
-    //region BT_Link_Oscilloscope
-
-    @Override
-    public void onSerialConnectOscilloscope() {
-        BTConstants.BTLinkOscilloscopeStatus = true;
-        statusOscilloscope("Connected");
-    }
-
-    @Override
-    public void onSerialConnectErrorOscilloscope(Exception e) {
-        BTConstants.BTLinkOscilloscopeStatus = false;
-        statusOscilloscope("Disconnect");
-        e.printStackTrace();
-        AppConstants.WriteinFile(TAG + " onSerialConnectErrorOscilloscope Status: " + e.getMessage());
-    }
-
-    @Override
-    public void onSerialReadOscilloscope(byte[] data) {
-        receiveOscilloscope(data);
-    }
-
-    @Override
-    public void onSerialIoErrorOscilloscope(Exception e) {
-        BTConstants.BTLinkOscilloscopeStatus = false;
-        statusOscilloscope("Disconnect");
-        e.printStackTrace();
-        AppConstants.WriteinFile(TAG + " onSerialIoErrorOscilloscope Status: " + e.getMessage());
-    }
-
-    public void connectOscilloscope() {
-        try {
-
-            if (BTConstants.deviceAddressOscilloscope != null || !BTConstants.deviceAddressOscilloscope.isEmpty()) {
-                BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-                BluetoothDevice device = bluetoothAdapter.getRemoteDevice(BTConstants.deviceAddressOscilloscope);
-                statusOscilloscope("Connecting...");
-                SerialSocketOscilloscope socket = new SerialSocketOscilloscope(activity.getApplicationContext(), device);
-                serviceOscilloscope.connect(socket);
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void sendOscilloscope(String str) {
-        if (!BTConstants.BTLinkOscilloscopeStatus) {
-            BTConstants.CurrentCommand_LinkOscilloscope = "";
-            Log.i(TAG, "BTLink Oscilloscope: Link not connected");
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " BTLink Oscilloscope: Link not connected");
-            return;
-        }
-        try {
-            //Log command sent:str
-            BTConstants.CurrentCommand_LinkOscilloscope = str;
-            Log.i(TAG, "BTLink Oscilloscope: Requesting..." + str);
-            byte[] data = (str + newline).getBytes();
-            serviceOscilloscope.write(data);
-        } catch (Exception e) {
-            onSerialIoErrorOscilloscope(e);
-        }
-    }
-
-    public void receiveOscilloscope(byte[] data) {
-        String Response = new String(data);
-        SpannableStringBuilder spn = new SpannableStringBuilder(Response + '\n');
-        Log.i(TAG, "BTLink Oscilloscope: Request>>" + BTConstants.CurrentCommand_LinkOscilloscope);
-        Log.i(TAG, "BTLink Oscilloscope: Response>>" + spn.toString());
-
-        //==========================================
-        /*if (BTConstants.CurrentCommand_LinkFour.equalsIgnoreCase("LK_COMM=info") && Response.contains("records")) {
-            BTConstants.isNewVersionLinkFour = true;
-        }
-        if (Response.contains("$$")) {
-            sendBroadcastIntentFromLinkFour(sb4.toString());
-            sb4.setLength(0);
-        } else {
-            if (BTConstants.isNewVersionLinkFour) {
-                sb4.append(Response);
-            } else {
-                // For old version Link response
-                sb4.setLength(0);
-                sendBroadcastIntentFromLinkFour(spn.toString());
-            }
-        }*/
-        sendBroadcastIntentFromLinkOscilloscope(spn.toString());
-    }
-
-    public void sendBroadcastIntentFromLinkOscilloscope(String spn) {
-        Intent broadcastIntent = new Intent();
-        broadcastIntent.setAction("BroadcastBTLinkOscilloscopeData");
-        broadcastIntent.putExtra("Request", BTConstants.CurrentCommand_LinkOscilloscope);
-        broadcastIntent.putExtra("Response", spn);
-        broadcastIntent.putExtra("Action", "BTLinkOscilloscope");
-        activity.sendBroadcast(broadcastIntent);
-    }
-
-    public void statusOscilloscope(String str) {
-        Log.i(TAG, "StatusOscilloscope:" + str);
-        BTConstants.BTStatusStrOscilloscope = str;
-    }
-    //endregion
 }

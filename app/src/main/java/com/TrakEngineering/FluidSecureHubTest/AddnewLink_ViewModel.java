@@ -217,7 +217,7 @@ public class AddnewLink_ViewModel extends AndroidViewModel implements LifecycleO
         return IsUpdating;
     }
 
-    public void ProcessData(String linkName, String pon, String poff, String username, String pass) {
+    public void ProcessData(String linkName, String pon, String poff, String username, String pass, String LinkNewName, String UnitsMeasured, String Pulses) {
 
         IsUpdating.setValue(true);
         try {
@@ -232,6 +232,9 @@ public class AddnewLink_ViewModel extends AndroidViewModel implements LifecycleO
             obj.TankId = getTankid();
             obj.userName = username;
             obj.password = pass;
+            obj.NewName = LinkNewName;
+            obj.UnitsMeasure = UnitsMeasured;
+            obj.Pulses = Pulses;
 
             Gson gson = new Gson();
             String jsonString = gson.toJson(obj);

@@ -37,7 +37,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="5dp"
                 android:background="@drawable/layout_border"
-                android:hint=" Enter LINK Name here"
+                android:hint="LINK Name"
                 android:imeOptions="actionNext"
                 android:inputType="text"
                 android:padding="5dp"
@@ -49,12 +49,38 @@
         </TableRow>
 
 
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" >
+
+            <TextView
+                android:id="@+id/textView3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="New Name:"
+                android:textColor="#444"
+                android:textSize="22sp" />
+
+            <EditText
+                android:id="@+id/edt_LinkNewName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="5dp"
+                android:background="@drawable/layout_border"
+                android:hint="New Name"
+                android:imeOptions="actionNext"
+                android:inputType="text"
+                android:padding="5dp"
+                android:textSize="22sp" />
+        </TableRow>
+
         <TableRow>
 
             <TextView
                 android:id="@+id/textView5"
                 android:layout_width="158dp"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
                 android:text="Select Tank:"
                 android:textColor="#444"
                 android:textSize="22sp"
@@ -86,7 +112,7 @@
             <EditText
                 android:id="@+id/edt_pumpOnTime"
                 android:layout_width="wrap_content"
-                android:layout_height="46dp"
+                android:layout_height="wrap_content"
                 android:layout_marginStart="5dp"
                 android:inputType="number"
                 android:maxLength="4"
@@ -125,7 +151,52 @@
 
         </TableRow>
 
-        <TableRow android:layout_marginTop="50dp">
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" >
+
+            <TextView
+                android:id="@+id/textView4"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Units measured:"
+                android:textColor="#444"
+                android:textSize="22sp" />
+
+            <EditText
+                android:id="@+id/edt_UnitsMeasured"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="5dp"
+                android:inputType="number"
+                android:text="1"
+                android:textSize="22sp" />
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" >
+
+            <TextView
+                android:id="@+id/textView6"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Pulses:"
+                android:textColor="#444"
+                android:textSize="22sp" />
+
+            <EditText
+                android:id="@+id/edt_Pulses"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="5dp"
+                android:inputType="number"
+                android:maxLength="5"
+                android:text="20"
+                android:textSize="22sp" />
+        </TableRow>
+
+        <TableRow android:layout_marginTop="40dp">
 
             <TextView
                 android:id="@+id/tv_username"

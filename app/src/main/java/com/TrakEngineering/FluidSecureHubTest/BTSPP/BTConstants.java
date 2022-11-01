@@ -13,17 +13,14 @@ public class BTConstants {
     public static boolean BTLinkTwoStatus = false;
     public static boolean BTLinkThreeStatus = false;
     public static boolean BTLinkFourStatus = false;
-    public static boolean BTLinkOscilloscopeStatus = false;
     public static String BTStatusStrOne = "";
     public static String BTStatusStrTwo = "";
     public static String BTStatusStrThree = "";
     public static String BTStatusStrFour = "";
-    public static String BTStatusStrOscilloscope = "";
     public static String CurrentCommand_LinkOne = "";
     public static String CurrentCommand_LinkTwo = "";
     public static String CurrentCommand_LinkThree = "";
     public static String CurrentCommand_LinkFour = "";
-    public static String CurrentCommand_LinkOscilloscope = "";
     public static String deviceAddress1 = "";//80:7D:3A:A4:67:22
     public static String deviceAddress2 = "";//80:7D:3A:A4:67:22
     public static String deviceAddress3 = "";
@@ -32,6 +29,11 @@ public class BTConstants {
     public static boolean forOscilloscope = false;
     public static boolean TerminateReadingProcess = false;
     public static boolean ReadingProcessComplete = false;
+    public static boolean SwitchedBTToUDP1 = false;
+    public static boolean SwitchedBTToUDP2 = false;
+    public static boolean SwitchedBTToUDP3 = false;
+    public static boolean SwitchedBTToUDP4 = false;
+    public static boolean isHotspotDisabled = false;
 
     public static String info_cmd = "LK_COMM=info";
     public static String transaction_id_cmd = "LK_COMM=txtnid:";

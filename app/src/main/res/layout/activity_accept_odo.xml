@@ -100,7 +100,7 @@
                     android:layout_weight="1"
                     android:background="@color/colorFluid"
                     android:onClick="saveButtonAction"
-                    android:text="Go"
+                    android:text="@string/GO"
                     android:textColor="@color/white"
                     android:textSize="@dimen/go_button_text" />
             </LinearLayout>

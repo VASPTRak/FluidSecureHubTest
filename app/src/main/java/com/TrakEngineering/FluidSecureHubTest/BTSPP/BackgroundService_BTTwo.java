@@ -6,6 +6,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -14,6 +16,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.TrakEngineering.FluidSecureHubTest.AppConstants;
 import com.TrakEngineering.FluidSecureHubTest.BackgroundService;
@@ -30,6 +33,7 @@ import com.TrakEngineering.FluidSecureHubTest.offline.OffDBController;
 import com.TrakEngineering.FluidSecureHubTest.offline.OffTranzSyncService;
 import com.TrakEngineering.FluidSecureHubTest.offline.OfflineConstants;
 import com.TrakEngineering.FluidSecureHubTest.server.ServerHandler;
+import com.TrakEngineering.FluidSecureHubTest.WifiHotspot.WifiApManager;
 import com.google.gson.Gson;
 
 import java.io.File;
@@ -79,6 +83,7 @@ public class BackgroundService_BTTwo extends Service {
     String OffLastTXNid = "0";
     ConnectionDetector cd = new ConnectionDetector(BackgroundService_BTTwo.this);
     OffDBController offlineController = new OffDBController(BackgroundService_BTTwo.this);
+    String ipForUDP = "192.168.4.1";
 
     SimpleDateFormat sdformat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
     ArrayList<HashMap<String, String>> quantityRecords = new ArrayList<>();
@@ -105,7 +110,7 @@ public class BackgroundService_BTTwo extends Service {
                 Request = "";
                 stopCount = 0;
                 Log.i(TAG, "-Started-");
-                if (AppConstants.GenerateLogs) AppConstants.WriteinFile(TAG + " BTLink 2:-Started-");
+                if (AppConstants.GenerateLogs) AppConstants.WriteinFile(TAG + " BTLink 2: -Started-");
 
                 if (BTConstants.forOscilloscope) {
                     LinkCommunicationType = "BT";
@@ -174,7 +179,23 @@ public class BackgroundService_BTTwo extends Service {
                                 BTLinkUpgradeCheck(); //infoCommand();
                             }
                         } else {
-                            IsThisBTTrnx = false;
+                            if (AppConstants.GenerateLogs)
+                                AppConstants.WriteinFile(TAG + " BTLink 2: Link not connected. Switching to wifi connection...");
+
+                            // Enable Wi-Fi
+                            WifiManager wifiManagerMM = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
+                            wifiManagerMM.setWifiEnabled(true);
+
+                            new Handler().postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    IsThisBTTrnx = false;
+                                    BTConstants.SwitchedBTToUDP2 = true;
+                                    BeginProcessUsingUDP();
+                                }
+                            }, 5000); //Comment this and uncomment below code to terminate BT transaction.
+
+                            /*IsThisBTTrnx = false;
                             CommonUtils.UpgradeTransactionStatusToSqlite(TransactionId, "6", BackgroundService_BTTwo.this);
                             Log.i(TAG, " BTLink 2: Link not connected. Please try again!");
                             if (AppConstants.GenerateLogs)
@@ -183,7 +204,7 @@ public class BackgroundService_BTTwo extends Service {
                             AppConstants.IsTransactionFailed2 = true;
                             PostTransactionBackgroundTasks();
                             CloseTransaction();
-                            this.stopSelf();
+                            this.stopSelf();*/
                         }
                     } else if (LinkCommunicationType.equalsIgnoreCase("UDP")) {
                         IsThisBTTrnx = false;
@@ -205,6 +226,90 @@ public class BackgroundService_BTTwo extends Service {
         }
 
         return Service.START_NOT_STICKY;
+    }
+
+    private void BeginProcessUsingUDP() {
+        try {
+            /*String s = "Connecting to wifi please wait..";
+            SpannableString ss2 = new SpannableString(s);
+            ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
+            ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
+            ProgressDialog loading = new ProgressDialog(this);
+            loading.setMessage(ss2);
+
+            loading.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+            loading.show();*/
+            Toast.makeText(BackgroundService_BTTwo.this, "Connecting to wifi please wait..", Toast.LENGTH_SHORT).show();
+
+            new CountDownTimer(12000, 1000) {
+                @Override
+                public void onTick(long millisUntilFinished) {
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + " BTLink 2: Connecting to wifi...");
+                    WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+                    String ssid = "";
+                    if (wifiManager.isWifiEnabled()) {
+                        WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+                        ssid = wifiInfo.getSSID();
+                    }
+
+                    ssid = ssid.replace("\"", "");
+
+                    if (ssid.equalsIgnoreCase(LinkName)) {
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + " BTLink 2: Connected to WiFi " + ssid);
+                        proceedToInfoCommand(false);
+                        //loading.cancel();
+                        cancel();
+                    }
+                }
+
+                @Override
+                public void onFinish() {
+                    //loading.dismiss();
+                    WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+                    WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+                    String ssid = wifiInfo.getSSID();
+
+                    ssid = ssid.replace("\"", "");
+                    if (ssid.equalsIgnoreCase(LinkName)) {
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + " BTLink 2: Connected to WiFi " + ssid);
+                        proceedToInfoCommand(false);
+                        //loading.cancel();
+                        cancel();
+                    } else {
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + " BTLink 2: Unable to connect to Wifi.");
+                        TerminateBTTransaction();
+                    }
+                }
+            }.start();
+            //proceedToInfoCommand(false);
+        } catch (Exception e) {
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + " BTLink 2: Exception in BeginProcessUsingUDP: " + e.getMessage());
+            TerminateBTTransaction();
+            e.printStackTrace();
+        }
+    }
+
+    private void TerminateBTTransaction() {
+        try {
+            IsThisBTTrnx = false;
+            CommonUtils.UpgradeTransactionStatusToSqlite(TransactionId, "6", BackgroundService_BTTwo.this);
+            Log.i(TAG, " BTLink 2: Link not connected. Please try again!");
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + " BTLink 2: Link not connected.");
+            AppConstants.TxnFailedCount2++;
+            AppConstants.IsTransactionFailed2 = true;
+            PostTransactionBackgroundTasks();
+            CloseTransaction();
+            this.stopSelf();
+        } catch (Exception e) {
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + " BTLink 2: Exception in TerminateBTTransaction: " + e.getMessage());
+        }
     }
 
     public void proceedToInfoCommand(boolean proceedAfterUpgrade) {
@@ -297,13 +402,15 @@ public class BackgroundService_BTTwo extends Service {
             //Execute info command
             Request = "";
             Response = "";
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " BTLink 2: Sending Info command to Link: " + LinkName);
             if (IsThisBTTrnx) {
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " BTLink 2: Sending Info command to Link: " + LinkName);
                 BTSPPMain btspp = new BTSPPMain();
                 btspp.send2(BTConstants.info_cmd);
             } else {
-                new Thread(new ClientSendAndListenUDPOne(BTConstants.info_cmd, SERVER_IP, this)).start();
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " BTLink 2: Sending Info command (UDP) to Link: " + LinkName);
+                new Thread(new ClientSendAndListenUDPTwo(BTConstants.info_cmd, ipForUDP, this)).start();
             }
             //Thread.sleep(1000);
             new CountDownTimer(5000, 1000) {
@@ -415,13 +522,15 @@ public class BackgroundService_BTTwo extends Service {
                 transaction_id_cmd = transaction_id_cmd + transactionId;
             }
 
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " BTLink 2: Sending transactionId command to Link: " + LinkName);
             if (IsThisBTTrnx) {
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " BTLink 2: Sending transactionId command to Link: " + LinkName);
                 BTSPPMain btspp = new BTSPPMain();
                 btspp.send2(transaction_id_cmd);
             } else {
-                new Thread(new ClientSendAndListenUDPOne(transaction_id_cmd, SERVER_IP, this)).start();
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " BTLink 2: Sending transactionId command (UDP) to Link: " + LinkName);
+                new Thread(new ClientSendAndListenUDPTwo(transaction_id_cmd, ipForUDP, this)).start();
             }
             Thread.sleep(1000);
             new CountDownTimer(4000, 1000) {
@@ -497,13 +606,16 @@ public class BackgroundService_BTTwo extends Service {
             //Execute relayOn Command
             Request = "";
             Response = "";
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " BTLink 2: Sending relayOn command to Link: " + LinkName);
+
             if (IsThisBTTrnx) {
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " BTLink 2: Sending relayOn command to Link: " + LinkName);
                 BTSPPMain btspp = new BTSPPMain();
                 btspp.send2(BTConstants.relay_on_cmd);
             } else {
-                new Thread(new ClientSendAndListenUDPOne(BTConstants.relay_on_cmd, SERVER_IP, this)).start();
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " BTLink 2: Sending relayOn command (UDP) to Link: " + LinkName);
+                new Thread(new ClientSendAndListenUDPTwo(BTConstants.relay_on_cmd, ipForUDP, this)).start();
             }
 
             if (!isAfterReconnect) {
@@ -548,6 +660,8 @@ public class BackgroundService_BTTwo extends Service {
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + " BTLink 2: Checking relayOn command response. Response: false");
                         relayOffCommand(); //RelayOff
+                        TransactionCompleteFunction();
+                        CloseTransaction();
                     }
                 }
 
@@ -580,13 +694,15 @@ public class BackgroundService_BTTwo extends Service {
             //Execute relayOff Command
             Request = "";
             Response = "";
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " BTLink 2: Sending relayOff command to Link: " + LinkName);
             if (IsThisBTTrnx) {
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " BTLink 2: Sending relayOff command to Link: " + LinkName);
                 BTSPPMain btspp = new BTSPPMain();
                 btspp.send2(BTConstants.relay_off_cmd);
             } else {
-                new Thread(new ClientSendAndListenUDPOne(BTConstants.relay_off_cmd, SERVER_IP, this)).start();
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " BTLink 2: Sending relayOff command (UDP) to Link: " + LinkName);
+                new Thread(new ClientSendAndListenUDPTwo(BTConstants.relay_off_cmd, ipForUDP, this)).start();
             }
 
             new CountDownTimer(4000, 1000) {
@@ -611,7 +727,6 @@ public class BackgroundService_BTTwo extends Service {
                 public void onFinish() {
 
                     if (!RelayStatus) {
-                        //Info command success.
                         Log.i(TAG, "BTLink 2: relayOff Command Response success 2:>>" + Response);
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + " BTLink 2: Checking relayOff command response. Response:>>" + Response.trim());
@@ -620,7 +735,7 @@ public class BackgroundService_BTTwo extends Service {
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + " BTLink 2: Checking relayOff command response. Response: false");
                         PostTransactionBackgroundTasks();
-                        CloseTransaction();
+                        //CloseTransaction();
                     }
                 }
             }.start();
@@ -656,6 +771,8 @@ public class BackgroundService_BTTwo extends Service {
             CommonUtils.AddRemovecurrentTransactionList(false, TransactionId);
             Constants.FS_2STATUS = "FREE";
             Constants.FS_2Pulse = "00";
+            BTConstants.SwitchedBTToUDP2 = false;
+            DisableWifiConnection();
             CancelTimer();
             if (AppConstants.GenerateLogs)
                 AppConstants.WriteinFile(TAG + " BTLink 2: Transaction stopped.");
@@ -684,13 +801,16 @@ public class BackgroundService_BTTwo extends Service {
             //Execute rename Command
             Request = "";
             Response = "";
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " BTLink 2: Sending rename command to Link: " + LinkName);
+
             if (IsThisBTTrnx) {
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " BTLink 2: Sending rename command to Link: " + LinkName);
                 BTSPPMain btspp = new BTSPPMain();
                 btspp.send2(BTConstants.namecommand + BTConstants.BT2REPLACEBLE_WIFI_NAME);
             } else {
-                new Thread(new ClientSendAndListenUDPOne(BTConstants.namecommand + BTConstants.BT2REPLACEBLE_WIFI_NAME, SERVER_IP, this)).start();
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " BTLink 2: Sending rename command (UDP) to Link: " + LinkName);
+                new Thread(new ClientSendAndListenUDPTwo(BTConstants.namecommand + BTConstants.BT2REPLACEBLE_WIFI_NAME, ipForUDP, this)).start();
             }
 
             String userEmail = CommonUtils.getCustomerDetails_backgroundServiceBT(BackgroundService_BTTwo.this).PersonEmail;
@@ -813,21 +933,65 @@ public class BackgroundService_BTTwo extends Service {
                         /*Log.i(TAG, "BTLink 2: Transaction stopped.");
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + " BTLink 2: Transaction stopped.");*/
+
+                        int delay = 100;
                         cancel();
-                        TransactionCompleteFunction();
-                        CloseTransaction();
+                        if (BTConstants.SwitchedBTToUDP2) {
+                            DisableWifiConnection();
+                            BTConstants.SwitchedBTToUDP2 = false;
+                            delay = 1000;
+                        }
+                        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                TransactionCompleteFunction();
+                                CloseTransaction();
+                            }
+                        }, delay);
 
                     } else {
                         pulseCount++;
+                        pulseCount();
                         Log.i(TAG, "BTLink 2: Check pulse");
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + " BTLink 2: Check pulse >> Response: " + Response.trim());
-                        pulseCount();
                     }
                 }
             }
         };
         timerBt2.schedule(tt, 1000, 1000);
+    }
+
+    private void DisableWifiConnection() {
+        try {
+            //Disable wifi connection
+            WifiManager wifiManagerMM = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
+            if (wifiManagerMM.isWifiEnabled()) {
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " <Disabling wifi.>");
+                wifiManagerMM.setWifiEnabled(false);
+            }
+            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    if (BTConstants.isHotspotDisabled) {
+                        //Enable Hotspot
+                        WifiApManager wifiApManager = new WifiApManager(BackgroundService_BTTwo.this);
+                        if (!CommonUtils.isHotspotEnabled(BackgroundService_BTTwo.this)) {
+                            wifiApManager.setWifiApEnabled(null, true);
+                            BTConstants.isHotspotDisabled = false;
+                        }
+                    }
+                    boolean BSRunning = CommonUtils.checkServiceRunning(BackgroundService_BTTwo.this, AppConstants.PACKAGE_BACKGROUND_SERVICE);
+                    if (!BSRunning) {
+                        startService(new Intent(BackgroundService_BTTwo.this, BackgroundService.class));
+                    }
+                }
+            }, 2000);
+        } catch (Exception e) {
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + "BTLink 2: DisableWifiConnection Exception>> " + e.getMessage());
+        }
     }
 
     private void pulseCount() {
@@ -863,7 +1027,7 @@ public class BackgroundService_BTTwo extends Service {
             Constants.FS_2Gallons = (precision.format(fillqty));
             Constants.FS_2Pulse = outputQuantity;
 
-            if (cd.isConnectingToInternet()) {
+            if (cd.isConnectingToInternet() || BTConstants.SwitchedBTToUDP2) {
                 UpdatetransactionToSqlite(outputQuantity);
             } else {
                 if (fillqty > 0) {
@@ -959,8 +1123,9 @@ public class BackgroundService_BTTwo extends Service {
                             //AppConstants.WriteinFile(TAG + " BTLink 2: onReceive Response:" + Response.trim() + "; ReadPulse: " + redpulseloop_on);
                             RelayStatus = true;
                             AppConstants.isRelayON_fs2 = true;
-                            if (!redpulseloop_on)
+                            if (!redpulseloop_on) {
                                 ReadPulse();
+                            }
                         }
                     }
                 }
@@ -1097,7 +1262,6 @@ public class BackgroundService_BTTwo extends Service {
         } else {
             PostTransactionBackgroundTasks();
         }
-
     }
 
     private void PostTransactionBackgroundTasks() {
@@ -1252,11 +1416,11 @@ public class BackgroundService_BTTwo extends Service {
     private void fdCheckCommand() {
         try {
             //Execute FD_check Command
-            Request = "";
-            Response = "";
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " BTLink 2: Sending FD_check command to Link: " + LinkName);
             if (IsThisBTTrnx) {
+                Request = "";
+                Response = "";
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " BTLink 2: Sending FD_check command to Link: " + LinkName);
                 BTSPPMain btspp = new BTSPPMain();
                 btspp.send2(BTConstants.fdcheckcommand);
             }

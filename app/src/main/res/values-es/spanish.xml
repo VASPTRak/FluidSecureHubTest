@@ -26,6 +26,8 @@
     <string name="Cancel">Cancelar</string>
     <string name="previousScreen">Pantalla anterior</string>
     <string name="LinkIsConnecting">Conectando...</string>
+    <string name="EnterDeptNumber">Ingrese el número de departamento</string>
+    <string name="EnterOdoManually">Introducir odómetro manualmente</string>
 
     <string name="permission_camera_rationale">Access to the camera is needed for detection</string>
     <string name="no_camera_permission">This application cannot run because it does not have the camera permission.  The application will now exit.</string>

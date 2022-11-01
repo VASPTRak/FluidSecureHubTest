@@ -318,7 +318,6 @@
             android:configChanges="keyboard|keyboardHidden|screenLayout|screenSize|orientation"
             android:fitsSystemWindows="true"
             android:windowSoftInputMode="adjustResize" />
-        <activity android:name=".AcceptCheckAll" />
         <activity
             android:name=".AcceptHoursAcitvity"
             android:configChanges="keyboard|keyboardHidden|screenLayout|screenSize|orientation"
@@ -333,7 +332,6 @@
         <service android:name=".BTSPP.BTSPP_LinkTwo.SerialServiceTwo" />
         <service android:name=".BTSPP.BTSPP_LinkThree.SerialServiceThree" />
         <service android:name=".BTSPP.BTSPP_LinkFour.SerialServiceFour" />
-        <service android:name=".BTSPP.BTSPP_Oscilloscope.SerialServiceOscilloscope" />
         <service
             android:name=".EddystoneScanner.FStagScannerService"
             android:enabled="true"

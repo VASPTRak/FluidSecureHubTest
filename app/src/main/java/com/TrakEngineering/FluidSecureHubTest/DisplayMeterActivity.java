@@ -196,14 +196,11 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
     double CurrentLat = 0, CurrentLng = 0;
 
-
     TextView tvWifiList;
-
 
     int timeThanks = 6;
     Timer tThanks;
     TimerTask taskThanks;
-
 
     // int timeFirst = 60;
     Timer tFirst;
@@ -216,8 +213,8 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
     OffDBController offlineController = new OffDBController(DisplayMeterActivity.this);
 
     long sqlite_id = 0;
-
     Timer ScreenOutTime;
+    public boolean onResumeAlreadyCalled = false;
 
     @Override
     protected void onPostResume() {
@@ -230,7 +227,6 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
             wifiApManager.setWifiApEnabled(null, true);  //Hotspot enabled
             AppConstants.colorToastBigFont(DisplayMeterActivity.this, "Connecting to hotspot, please wait", Color.RED);
 
-
             new Handler().postDelayed(new Runnable() {
                 @Override
                 public void run() {
@@ -238,7 +234,6 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                     btnStart.setEnabled(true);
                 }
             }, 10000);
-
         }
 
     }
@@ -372,6 +367,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
             offcontroller.insertOfflineTransactions(off);
         }*/
 
+        onResumeAlreadyCalled = false;
         LinkCommunicationType = "";
         LinkName = "";
         try {
@@ -381,6 +377,15 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
             ex.printStackTrace();
             LinkCommunicationType = "";
             LinkName = "";
+        }
+
+        if (LinkCommunicationType.equalsIgnoreCase("BT") || BTConstants.CurrentTransactionIsBT) {
+            if (CommonUtils.isHotspotEnabled(DisplayMeterActivity.this)) {
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + "<Disabling hotspot.>");
+                wifiApManager.setWifiApEnabled(null, false);
+                BTConstants.isHotspotDisabled = true;
+            }
         }
 
         //offline-----------start
@@ -4443,8 +4448,10 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
     private void proceedToPostResume() {
 
         if (LinkCommunicationType.equalsIgnoreCase("BT")) {
-            new CheckBTConnection().execute();
-
+            if (!onResumeAlreadyCalled) {
+                onResumeAlreadyCalled = true;
+                new CheckBTConnection().execute();
+            }
         } else if (LinkCommunicationType.equalsIgnoreCase("UDP")) {
             //cHECK UDP INFO COMMAND HERE
         } else if (LinkCommunicationType.equalsIgnoreCase("HTTP")) {
