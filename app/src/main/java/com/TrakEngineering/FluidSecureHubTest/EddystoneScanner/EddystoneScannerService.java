@@ -636,7 +636,7 @@ public class EddystoneScannerService extends Service {
                                             SelectedHose = String.valueOf(p);
                                             Constants.FA_Message = RespMsg + " " + RespTxt + " " + fsnpName;
                                             if (WelcomeActivity.FA_DebugWindow)
-                                                AppConstants.colorToastBigFont(EddystoneScannerService.this, RespTxt + " " + fsnpName, Color.RED);
+                                                AppConstants.colorToastBigFont(EddystoneScannerService.this, RespTxt + " " + fsnpName, Color.BLUE);
 
 
 

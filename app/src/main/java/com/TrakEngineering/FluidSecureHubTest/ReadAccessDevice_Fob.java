@@ -242,7 +242,7 @@ public class ReadAccessDevice_Fob extends AppCompatActivity {
         } else if (FobKey != null && !FobKey.isEmpty()) {
             Log.i(TAG, "FobreadSuccess FobKey" + FobKey);
         } else {
-            //AppConstants.colorToastBigFont(getApplicationContext(), "Access Device not found", Color.RED);
+            //AppConstants.colorToastBigFont(getApplicationContext(), "Access Device not found", Color.BLUE);
             AppConstants.WriteinFile(TAG + " Access Device not found");
         }
     }

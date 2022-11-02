@@ -75,7 +75,7 @@ public class NetworkReceiver extends BroadcastReceiver {
             Log.i(TAG, "Network Switched:" + AppConstants.IS_MOBILE_ON + " CurrentNetworkType: " + Constants.CurrentNetworkType + "~~~" + Constants.CurrentSignalStrength);
             if (AppConstants.GenerateLogs)
                 AppConstants.WriteinFile(TAG + "Status >> Mobile_Data:" + MobileDataStatus + "; CurrentNetworkType: " + Constants.CurrentNetworkType + "~~~" + Constants.CurrentSignalStrength);
-            //AppConstants.colorToastBigFont(context, "Network Switched", Color.RED);
+            //AppConstants.colorToastBigFont(context, "Network Switched", Color.BLUE);
             //context.startService(new Intent(context, StopRunningTransactionBackgroundService.class));
         }
 

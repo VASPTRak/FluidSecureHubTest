@@ -369,7 +369,7 @@ public class AcceptPinActivity_new extends AppCompatActivity {
                                 }
                             }
                         } else {
-                            AppConstants.colorToastBigFont(getApplicationContext(), "Please check Internet connection", Color.RED);
+                            AppConstants.colorToastBigFont(getApplicationContext(), "Please check Internet connection", Color.BLUE);
                         }
 
                     } else if (pin.equalsIgnoreCase("") && !FKey.equalsIgnoreCase("")) {
@@ -379,7 +379,7 @@ public class AcceptPinActivity_new extends AppCompatActivity {
                                 new GetPinNuOnFobKeyDetection().execute();
                             }
                         } else {
-                            AppConstants.colorToastBigFont(getApplicationContext(), "Please check Internet connection", Color.RED);
+                            AppConstants.colorToastBigFont(getApplicationContext(), "Please check Internet connection", Color.BLUE);
                         }
 
                     } else if (!pin.equalsIgnoreCase("") && !FKey.equalsIgnoreCase("")) {
@@ -390,7 +390,7 @@ public class AcceptPinActivity_new extends AppCompatActivity {
                                 new GetPinNuOnFobKeyDetection().execute();
                             }
                         } else {
-                            AppConstants.colorToastBigFont(getApplicationContext(), "Please check Internet connection", Color.RED);
+                            AppConstants.colorToastBigFont(getApplicationContext(), "Please check Internet connection", Color.BLUE);
                         }
                     }
                 } else {
@@ -1038,7 +1038,7 @@ public class AcceptPinActivity_new extends AppCompatActivity {
                     }
 
                 } else {
-                    AppConstants.colorToastBigFont(getApplicationContext(), "Access Device not found", Color.RED);
+                    AppConstants.colorToastBigFont(getApplicationContext(), "Access Device not found", Color.BLUE);
                 }
 
             }
@@ -1511,7 +1511,7 @@ public class AcceptPinActivity_new extends AppCompatActivity {
                                 Constants.AccPersonnelPIN_FS6 = "";
                             }
 
-                            //AppConstants.colorToastBigFont(AcceptPinActivity_new.this, ResponceText, Color.RED);
+                            //AppConstants.colorToastBigFont(AcceptPinActivity_new.this, ResponceText, Color.BLUE);
                             //CommonUtils.AlertDialogAutoClose(AcceptPinActivity_new.this, "Message", ResponceText);
                             if (AppConstants.GenerateLogs)
                                 AppConstants.WriteinFile(TAG + "ValidateFor Pin: " + ResponceText);
@@ -1520,7 +1520,7 @@ public class AcceptPinActivity_new extends AppCompatActivity {
 
                         } else if (ValidationFailFor.equalsIgnoreCase("Vehicle")) {
 
-                            AppConstants.colorToastBigFont(AcceptPinActivity_new.this, ResponceText, Color.RED);
+                            AppConstants.colorToastBigFont(AcceptPinActivity_new.this, ResponceText, Color.BLUE);
                             //CommonUtils.AutoCloseCustomMessageDilaog(AcceptPinActivity_new.this, "Message", ResponceText);
                             if (AppConstants.GenerateLogs)
                                 AppConstants.WriteinFile(TAG + "ValidateFor Vehicle: " + ResponceText);
@@ -1532,12 +1532,12 @@ public class AcceptPinActivity_new extends AppCompatActivity {
 
                         } else {
 
-                            //AppConstants.colorToastBigFont(AcceptPinActivity_new.this, ResponceText, Color.RED);
+                            //AppConstants.colorToastBigFont(AcceptPinActivity_new.this, ResponceText, Color.BLUE);
                             CommonUtils.AutoCloseCustomMessageDilaog(AcceptPinActivity_new.this, "Message", ResponceText);
                             if (AppConstants.GenerateLogs)
                                 AppConstants.WriteinFile(TAG + "ValidateFor Else: " + ResponceText);
 
-                            /*AppConstants.colorToastBigFont(this, "Some thing went wrong Please try again..\n"+ResponceText, Color.RED);
+                            /*AppConstants.colorToastBigFont(this, "Some thing went wrong Please try again..\n"+ResponceText, Color.BLUE);
                              if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG+" Some thing went wrong Please try again..(~else~)\n"+ResponceText);
                             AppConstants.ClearEdittextFielsOnBack(DeviceControlActivity_fsnp.this); //Clear EditText on move to welcome activity.
                             Intent intent = new Intent(DeviceControlActivity_fsnp.this, WelcomeActivity.class);
@@ -2254,7 +2254,7 @@ public class AcceptPinActivity_new extends AppCompatActivity {
                             if (AppConstants.GenerateLogs)
                                 AppConstants.WriteinFile(TAG + "Vehicle is not assigned for this PIN");
                             CommonUtils.AutoCloseCustomMessageDilaog(AcceptPinActivity_new.this, "Message", ScreenNameForVehicle + " not assigned for this PIN");
-                            //AppConstants.colorToastBigFont(getApplicationContext(), "Vehicle is not assigned for this PIN", Color.RED);
+                            //AppConstants.colorToastBigFont(getApplicationContext(), "Vehicle is not assigned for this PIN", Color.BLUE);
                         }
 
 
@@ -2390,7 +2390,7 @@ public class AcceptPinActivity_new extends AppCompatActivity {
     public void GetBackToWelcomeActivity() {
 
 
-        //AppConstants.colorToast(getApplicationContext(), "Something went wrong, Please try again", Color.RED);
+        //AppConstants.colorToast(getApplicationContext(), "Something went wrong, Please try again", Color.BLUE);
 
         Istimeout_Sec = false;
         AppConstants.ClearEdittextFielsOnBack(AcceptPinActivity_new.this);

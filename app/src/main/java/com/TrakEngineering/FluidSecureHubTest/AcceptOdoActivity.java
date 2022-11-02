@@ -527,7 +527,7 @@ public class AcceptOdoActivity extends AppCompatActivity {
                                                 if (AppConstants.GenerateLogs)
                                                     AppConstants.WriteinFile(TAG + "Please enter Correct " + ScreenNameForOdometer);
                                                 CommonUtils.showMessageDilaog(AcceptOdoActivity.this, "Message", "Please enter Correct " + ScreenNameForOdometer);
-                                                //AppConstants.colorToastBigFont(getApplicationContext(),"Please enter Correct Odometer",Color.RED);
+                                                //AppConstants.colorToastBigFont(getApplicationContext(),"Please enter Correct Odometer", Color.BLUE);
                                             }
                                         }
                                     } else {
@@ -545,7 +545,7 @@ public class AcceptOdoActivity extends AppCompatActivity {
                                             if (AppConstants.GenerateLogs)
                                                 AppConstants.WriteinFile(TAG + "Please enter Correct " + ScreenNameForOdometer);
                                             CommonUtils.showMessageDilaog(AcceptOdoActivity.this, "Message", "Please enter Correct " + ScreenNameForOdometer);
-                                            //AppConstants.colorToastBigFont(getApplicationContext(),"Please enter Correct Odometer",Color.RED);
+                                            //AppConstants.colorToastBigFont(getApplicationContext(),"Please enter Correct Odometer", Color.BLUE);
                                         }
 
                                     }

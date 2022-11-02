@@ -491,7 +491,7 @@ public class AcceptHoursAcitvity extends AppCompatActivity {
                                             if (AppConstants.GenerateLogs)
                                                 AppConstants.WriteinFile(TAG + "Please enter Correct " + ScreenNameForHours);
                                             CommonUtils.showMessageDilaog(AcceptHoursAcitvity.this, "Message", "Please enter Correct " + ScreenNameForHours);
-                                            //AppConstants.colorToastBigFont(getApplicationContext(), AppConstants.OFF1, Color.RED);
+                                            //AppConstants.colorToastBigFont(getApplicationContext(), AppConstants.OFF1, Color.BLUE);
                                             Istimeout_Sec = true;
                                             ResetTimeoutHoursScreen();
                                         }
@@ -511,7 +511,7 @@ public class AcceptHoursAcitvity extends AppCompatActivity {
                                         if (AppConstants.GenerateLogs)
                                             AppConstants.WriteinFile(TAG + "Please enter Correct " + ScreenNameForHours);
                                         CommonUtils.showMessageDilaog(AcceptHoursAcitvity.this, "Message", "Please enter Correct " + ScreenNameForHours);
-                                        //AppConstants.colorToastBigFont(getApplicationContext(), AppConstants.OFF1, Color.RED);
+                                        //AppConstants.colorToastBigFont(getApplicationContext(), AppConstants.OFF1, Color.BLUE);
                                         Istimeout_Sec = true;
                                         ResetTimeoutHoursScreen();
                                     }

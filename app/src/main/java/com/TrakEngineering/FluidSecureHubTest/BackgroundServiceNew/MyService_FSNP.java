@@ -1228,7 +1228,7 @@ public class MyService_FSNP extends Service {
                                         }
 
                                         if (ps < 3) {
-                                            AppConstants.colorToast(MyService_FSNP.this, RespMsg + " " + RespTxt + " " + fsnpName, Color.RED);
+                                            AppConstants.colorToast(MyService_FSNP.this, RespMsg + " " + RespTxt + " " + fsnpName, Color.BLUE);
                                             ps++;
                                         }
 

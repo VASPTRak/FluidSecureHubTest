@@ -694,7 +694,7 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
                                 startActivity(new Intent(SplashActivity.this, ActivitySparehub.class));
                                 finish();
                             }else if (BluetoothCardReader != null && BluetoothCardReaderMacAddress.equals("") && !BluetoothCardReader.isEmpty()) {
-                                //AppConstants.colorToastBigFont(SplashActivity.this, " Device reader needs its MAC to be entered in the Cloud. Please call Customer Support for assistance.", Color.RED); // Changed message as per #1828
+                                //AppConstants.colorToastBigFont(SplashActivity.this, " Device reader needs its MAC to be entered in the Cloud. Please call Customer Support for assistance.", Color.BLUE); // Changed message as per #1828
                                 showCustomMessageForMACDilaog(SplashActivity.this, "Message", "Device reader needs its MAC to be entered in the Cloud. Please call Customer Support for assistance.");
                                 //startActivity(new Intent(SplashActivity.this, WelcomeActivity.class));//
                                 //finish();

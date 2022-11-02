@@ -254,7 +254,6 @@ public class AddnewLink_ViewModel extends AndroidViewModel implements LifecycleO
         protected String doInBackground(String... params) {
 
             try {
-
                 json = params[0];
                 String userEmail = CommonUtils.getCustomerDetailsCC(getApplication()).PersonEmail;
                 String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(getApplication()) + ":" + userEmail + ":" + "SaveLinkFromAPP");

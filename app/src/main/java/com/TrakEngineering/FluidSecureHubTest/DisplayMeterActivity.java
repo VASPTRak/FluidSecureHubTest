@@ -225,7 +225,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
             btnStart.setText("Please wait..");
             btnStart.setEnabled(false);
             wifiApManager.setWifiApEnabled(null, true);  //Hotspot enabled
-            AppConstants.colorToastBigFont(DisplayMeterActivity.this, "Connecting to hotspot, please wait", Color.RED);
+            AppConstants.colorToastBigFont(DisplayMeterActivity.this, "Connecting to hotspot, please wait", Color.BLUE);
 
             new Handler().postDelayed(new Runnable() {
                 @Override
@@ -323,7 +323,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
         if (AppConstants.IsFirstTimeUse.equalsIgnoreCase("True")) {
             AppConstants.IsFirstTimeUse = "False";
-            firstTimeUseWarningDilaog(DisplayMeterActivity.this);
+            firstTimeUseWarningDialog(DisplayMeterActivity.this);
         } else {
             proceedToPostResume();
         }
@@ -920,7 +920,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                         } else {
                             if (AppConstants.GenerateLogs)
                                 AppConstants.WriteinFile(TAG + "Offline Access not granted to this HUB.");
-                            AppConstants.colorToastBigFont(getApplicationContext(), AppConstants.OFF1, Color.RED);
+                            AppConstants.colorToastBigFont(getApplicationContext(), AppConstants.OFF1, Color.BLUE);
                             Istimeout_Sec = true;
                             ResetTimeoutDisplayMeterScreen();
                         }
@@ -1120,7 +1120,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                 }*/
             }
         } else {
-            AppConstants.colorToastBigFont(getApplicationContext(), "Please check Internet connection", Color.RED);
+            AppConstants.colorToastBigFont(getApplicationContext(), "Please check Internet connection", Color.BLUE);
             Istimeout_Sec = true;
             ResetTimeoutDisplayMeterScreen();
         }
@@ -1142,7 +1142,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
         if (cd.isConnectingToInternet() && AppConstants.NETWORK_STRENGTH)
             new GetUpgradeFirmwareStatus().execute(FS_selected, jsonData, authString);
         else {
-            AppConstants.colorToastBigFont(getApplicationContext(), "Please check Internet connection", Color.RED);
+            AppConstants.colorToastBigFont(getApplicationContext(), "Please check Internet connection", Color.BLUE);
             Istimeout_Sec = true;
             ResetTimeoutDisplayMeterScreen();
         }
@@ -3267,7 +3267,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "Link is unavailable>> Info url:" + infourl + "; info cmd response:" + FSStatus); // + "; StatusCode:" + StatusCOde);
-                        //AppConstants.colorToastBigFont(DisplayMeterActivity.this, " Link is unavailable", Color.RED);
+                        //AppConstants.colorToastBigFont(DisplayMeterActivity.this, " Link is unavailable", Color.BLUE);
                         Istimeout_Sec = true;
                         ResetTimeoutDisplayMeterScreen();
                         AppConstants.ClearEdittextFielsOnBack(DisplayMeterActivity.this); //Clear EditText on move to welcome activity.
@@ -3283,7 +3283,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                         //Thread.sleep(1000);
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "Link is unavailable. InfoCmd Retry attempt: " + count_InfoCmd);
-                        //AppConstants.colorToastBigFont(DisplayMeterActivity.this, "Link is Unavailable. Retry attempt" + count_InfoCmd, Color.RED);
+                        //AppConstants.colorToastBigFont(DisplayMeterActivity.this, "Link is Unavailable. Retry attempt" + count_InfoCmd, Color.BLUE);
                         Istimeout_Sec = true;
                         ResetTimeoutDisplayMeterScreen();
                         getListOfConnectedDevice();
@@ -3640,7 +3640,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                             pd.dismiss();
                             //unable to start (start never appeared): Potential Wifi Connection Issue = 6
                             UpdateDiffStatusMessages("6");
-                            AppConstants.colorToastBigFont(DisplayMeterActivity.this, "The link is busy, please try after some time.", Color.RED);
+                            AppConstants.colorToastBigFont(DisplayMeterActivity.this, "The link is busy, please try after some time.", Color.BLUE);
                             Istimeout_Sec = true;
                             ResetTimeoutDisplayMeterScreen();
                             AppConstants.ClearEdittextFielsOnBack(DisplayMeterActivity.this); //Clear EditText on move to welcome activity.
@@ -3681,7 +3681,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "Link is unavailable while checking relay status.");
-                        //AppConstants.colorToastBigFont(DisplayMeterActivity.this, " Link is unavailable", Color.RED);
+                        //AppConstants.colorToastBigFont(DisplayMeterActivity.this, " Link is unavailable", Color.BLUE);
                         Istimeout_Sec = true;
                         ResetTimeoutDisplayMeterScreen();
 
@@ -3699,7 +3699,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "Link is unavailable. relay status Retry attempt: " + count_relayCmd);
-                        //AppConstants.colorToastBigFont(DisplayMeterActivity.this, "Link is unavailable Retry attempt" + count_relayCmd, Color.RED);
+                        //AppConstants.colorToastBigFont(DisplayMeterActivity.this, "Link is unavailable Retry attempt" + count_relayCmd, Color.BLUE);
                         Istimeout_Sec = true;
                         ResetTimeoutDisplayMeterScreen();
                         new Handler().postDelayed(new Runnable() {
@@ -4432,7 +4432,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
             btnStart.setText("Please wait..");
             btnStart.setEnabled(false);
             wifiApManager.setWifiApEnabled(null, true);  //Hotspot enabled
-            //AppConstants.colorToastBigFont(DisplayMeterActivity.this, "Connecting to hotspot, please wait", Color.RED);
+            //AppConstants.colorToastBigFont(DisplayMeterActivity.this, "Connecting to hotspot, please wait", Color.BLUE);
 
             new Handler().postDelayed(new Runnable() {
                 @Override
@@ -4551,7 +4551,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
         }
     }
 
-    public void firstTimeUseWarningDilaog(final Activity context) {
+    public void firstTimeUseWarningDialog(final Activity context) {
 
         //Declare timer
         CountDownTimer cTimer = null;

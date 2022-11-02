@@ -307,7 +307,7 @@ public class AcceptFieldActivity extends AppCompatActivity {
                                 CommonUtils.showNoInternetDialog(AcceptFieldActivity.this);
                             }
                         } else
-                            AppConstants.colorToast(AcceptFieldActivity.this, "Please check Internet Connection.", Color.RED);
+                            AppConstants.colorToast(AcceptFieldActivity.this, "Please check Internet Connection.", Color.BLUE);
 
 
                     }

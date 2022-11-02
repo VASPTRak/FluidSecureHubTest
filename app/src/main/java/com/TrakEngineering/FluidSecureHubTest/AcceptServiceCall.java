@@ -809,7 +809,7 @@ public class AcceptServiceCall {
                         AppConstants.AUTH_CALL_SUCCESS = false;
 
                         if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " ServerCall ValidationFailFor " + ValidationFailFor + " ResponceText:" + ResponceText);
-                        AppConstants.colorToastBigFont(activity, ResponceText, Color.RED);
+                        AppConstants.colorToastBigFont(activity, ResponceText, Color.BLUE);
 
                         if (ValidationFailFor.equalsIgnoreCase("Vehicle")) {
 
@@ -950,7 +950,7 @@ public class AcceptServiceCall {
                         //IF relay status zero go back to dashboard
                         if (status.equalsIgnoreCase("1")) {
 
-                            AppConstants.colorToastBigFont(activity, "The link is busy, please try after some time.", Color.RED);
+                            AppConstants.colorToastBigFont(activity, "The link is busy, please try after some time.", Color.BLUE);
                             AppConstants.ClearEdittextFielsOnBack(activity); //Clear EditText on move to welcome activity.
                             Intent intent = new Intent(activity, WelcomeActivity.class);
                             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -1005,7 +1005,7 @@ public class AcceptServiceCall {
                     //Relay command else commented
                     if (AppConstants.GenerateLogs)
                     AppConstants.WriteinFile(TAG + "  Link is unavailable relay");
-                    AppConstants.colorToastBigFont(activity, " Link is unavailable", Color.RED);
+                    AppConstants.colorToastBigFont(activity, " Link is unavailable", Color.BLUE);
                     AppConstants.ClearEdittextFielsOnBack(activity); //Clear EditText on move to welcome activity.
                     BackgroundServiceKeepDataTransferAlive.IstoggleRequired_DA = true;
                     Intent intent = new Intent(activity, WelcomeActivity.class);
@@ -1193,7 +1193,7 @@ public class AcceptServiceCall {
 
                 } else {
 
-                    AppConstants.colorToastBigFont(activity, "The link is busy, please try after some time.", Color.RED);
+                    AppConstants.colorToastBigFont(activity, "The link is busy, please try after some time.", Color.BLUE);
                     AppConstants.ClearEdittextFielsOnBack(activity); //Clear EditText on move to welcome activity.
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(TAG + " CommandsGET_Info: info command response is empty. Redirecting to welcome activity.");

@@ -964,7 +964,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
             }
 
         } else {
-            AppConstants.colorToastBigFont(getApplicationContext(), "Access Device not found", Color.RED);
+            AppConstants.colorToastBigFont(getApplicationContext(), "Access Device not found", Color.BLUE);
         }
     }
 
@@ -1430,7 +1430,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
 
                         } else if (ValidationFailFor.equalsIgnoreCase("Pin")) {
 
-                            //AppConstants.colorToastBigFont(AcceptVehicleActivity_new.this, ResponceText, Color.RED);
+                            //AppConstants.colorToastBigFont(AcceptVehicleActivity_new.this, ResponceText, Color.BLUE);
                             if (AppConstants.GenerateLogs)
                                 AppConstants.WriteinFile(TAG + "Vehicle Activity ValidationFor Pin" + ResponceText);
 
@@ -1933,13 +1933,13 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
 
                        /* if (ValidationFailFor.equalsIgnoreCase("Pin")) {
 
-                            AppConstants.colorToastBigFont(AcceptVehicleActivity_new.this, ResponceText, Color.RED);
+                            AppConstants.colorToastBigFont(AcceptVehicleActivity_new.this, ResponceText, Color.BLUE);
                             Intent i = new Intent(AcceptVehicleActivity_new.this, WelcomeActivity.class);
                             startActivity(i);
 
                         } else if (ValidationFailFor.equalsIgnoreCase("invalidfob")) {
 
-                            AppConstants.colorToastBigFont(AcceptVehicleActivity_new.this, ResponceText, Color.RED);
+                            AppConstants.colorToastBigFont(AcceptVehicleActivity_new.this, ResponceText, Color.BLUE);
                             CommonUtils.showCustomMessageDilaog(AcceptVehicleActivity_new.this, "Message", ResponceText);
                             Intent i = new Intent(AcceptVehicleActivity_new.this, WelcomeActivity.class);
                             startActivity(i);
@@ -2591,7 +2591,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                     } else {
                         RestTimeoutVehicleScreen();
                         CommonUtils.showCustomMessageDilaog(AcceptVehicleActivity_new.this, "Message", ResponceText);
-                        //AppConstants.colorToastBigFont(AcceptVehicleActivity_new.this, ResponceText, Color.RED);
+                        //AppConstants.colorToastBigFont(AcceptVehicleActivity_new.this, ResponceText, Color.BLUE);
                     }
 
 
@@ -2710,7 +2710,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
     public void GetBackToWelcomeActivity() {
 
 
-        //AppConstants.colorToast(getApplicationContext(), "Something went wrong, Please try again", Color.RED);
+        //AppConstants.colorToast(getApplicationContext(), "Something went wrong, Please try again", Color.BLUE);
 
         Istimeout_Sec = false;
         AppConstants.ClearEdittextFielsOnBack(AcceptVehicleActivity_new.this);
@@ -2785,7 +2785,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                             new GetVehicleByFSTagMacAddress().execute();
                         }
                     } else {
-                        AppConstants.colorToastBigFont(getApplicationContext(), "Please check Internet connection", Color.RED);
+                        AppConstants.colorToastBigFont(getApplicationContext(), "Please check Internet connection", Color.BLUE);
                     }
 
 
@@ -3038,7 +3038,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                             if (AppConstants.GenerateLogs)
                                 AppConstants.WriteinFile(TAG + "Vehicle is not allowed for selected Link");
                             CommonUtils.AutoCloseCustomMessageDilaog(AcceptVehicleActivity_new.this, "Message", ScreenNameForVehicle + " is not allowed for selected Link");
-                            //AppConstants.colorToastBigFont(getApplicationContext(), "Vehicle is not allowed for selected Link", Color.RED);
+                            //AppConstants.colorToastBigFont(getApplicationContext(), "Vehicle is not allowed for selected Link", Color.BLUE);
                         }
 
                     }
@@ -3048,7 +3048,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(TAG + "Vehicle is not active");
                     CommonUtils.AutoCloseCustomMessageDilaog(AcceptVehicleActivity_new.this, "Message", ScreenNameForVehicle + " is not active");
-                    //AppConstants.colorToastBigFont(getApplicationContext(), "Vehicle is not active", Color.RED);
+                    //AppConstants.colorToastBigFont(getApplicationContext(), "Vehicle is not active", Color.BLUE);
                 }
             }
         } else {

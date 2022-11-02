@@ -512,7 +512,7 @@ public class AcceptPinActivity extends AppCompatActivity {
                         String ValidationFailFor = jsonObject.getString("ValidationFailFor");
 
                         if (ValidationFailFor.equalsIgnoreCase("Pin")) {
-                            AppConstants.colorToastBigFont(this, ResponceText, Color.RED);
+                            AppConstants.colorToastBigFont(this, ResponceText, Color.BLUE);
                             etPersonnelPin.setText("");
                             recreate();
 
@@ -523,7 +523,7 @@ public class AcceptPinActivity extends AppCompatActivity {
                             startActivity(i);
 
                         } else {
-                            AppConstants.colorToastBigFont(this, ResponceText, Color.RED);
+                            AppConstants.colorToastBigFont(this, ResponceText, Color.BLUE);
                             etPersonnelPin.setText("");
                             recreate();
                         }

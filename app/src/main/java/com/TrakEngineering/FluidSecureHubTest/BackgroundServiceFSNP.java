@@ -1054,7 +1054,7 @@ public class BackgroundServiceFSNP extends BackgroundService {
                                         }
 
                                         if (ps < 3) {
-                                            AppConstants.colorToast(BackgroundServiceFSNP.this, RespMsg + " " + RespTxt + " " + fsnpName, Color.RED);
+                                            AppConstants.colorToast(BackgroundServiceFSNP.this, RespMsg + " " + RespTxt + " " + fsnpName, Color.BLUE);
                                             ps++;
                                         }
 

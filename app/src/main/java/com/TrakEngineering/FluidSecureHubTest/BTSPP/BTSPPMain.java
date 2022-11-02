@@ -19,13 +19,19 @@ import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkThree.SerialListen
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkThree.SerialSocketThree;
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkFour.SerialListenerFour;
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkFour.SerialSocketFour;
+import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkFive.SerialListenerFive;
+import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkFive.SerialSocketFive;
+import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkSix.SerialListenerSix;
+import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkSix.SerialSocketSix;
 
 import static com.TrakEngineering.FluidSecureHubTest.WelcomeActivity.service1;
 import static com.TrakEngineering.FluidSecureHubTest.WelcomeActivity.service2;
 import static com.TrakEngineering.FluidSecureHubTest.WelcomeActivity.service3;
 import static com.TrakEngineering.FluidSecureHubTest.WelcomeActivity.service4;
+import static com.TrakEngineering.FluidSecureHubTest.WelcomeActivity.service5;
+import static com.TrakEngineering.FluidSecureHubTest.WelcomeActivity.service6;
 
-public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialListenerThree , SerialListenerFour {
+public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialListenerThree , SerialListenerFour, SerialListenerFive, SerialListenerSix {
 
     public Activity activity;
     private static final String TAG = AppConstants.LOG_TXTN_BT + "-"; //BTSPPMain.class.getSimpleName();
@@ -36,6 +42,8 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
     StringBuilder sb2 = new StringBuilder();
     StringBuilder sb3 = new StringBuilder();
     StringBuilder sb4 = new StringBuilder();
+    StringBuilder sb5 = new StringBuilder();
+    StringBuilder sb6 = new StringBuilder();
 
     public void CheckForStoredMacAddress() {
 
@@ -626,6 +634,314 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         Log.i(TAG, "Status4:" + str);
         BTConstants.BTStatusStrFour = str;
     }
+    //endregion
+
+    //region Link Five code
+    //Link Five code begins....
+    @Override
+    public void onSerialConnectFive() {
+        BTConstants.BTLinkFiveStatus = true;
+        status5("Connected");
+    }
+
+    @Override
+    public void onSerialConnectErrorFive(Exception e) {
+        BTConstants.BTLinkFiveStatus = false;
+        status5("Disconnect");
+        e.printStackTrace();
+        if (BTConstants.IsFileUploadCompleted) {
+            try {
+                connect5();
+            } catch (Exception ex) {
+                Log.e("Error: ", ex.getMessage());
+            }
+        }
+        //AppConstants.WriteinFile(TAG + " onSerialConnectErrorFive Status: " + e.getMessage());
+    }
+
+    @Override
+    public void onSerialReadFive(byte[] data) {
+        receive5(data);
+    }
+
+    @Override
+    public void onSerialIoErrorFive(Exception e) {
+        BTConstants.BTLinkFiveStatus = false;
+        status5("Disconnect");
+        e.printStackTrace();
+        if (BTConstants.IsFileUploadCompleted) {
+            try {
+                connect5();
+            } catch (Exception ex) {
+                Log.e("Error: ", ex.getMessage());
+            }
+        }
+        //AppConstants.WriteinFile(TAG + " onSerialIoErrorFive Status: " + e.getMessage());
+    }
+
+    public void connect5() {
+        try {
+
+            if (BTConstants.deviceAddress5 != null && !BTConstants.deviceAddress5.isEmpty()) {
+                BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+                BluetoothDevice device = bluetoothAdapter.getRemoteDevice(BTConstants.deviceAddress5);
+                status5("Connecting...");
+                //BTConstants.BTLinkFiveStatus = false;
+                SerialSocketFive socket = new SerialSocketFive(activity.getApplicationContext(), device);
+                service5.connect(socket);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void send5(String str) {
+        if (!BTConstants.BTLinkFiveStatus) {
+            BTConstants.CurrentCommand_LinkFive = "";
+            Log.i(TAG, "BTLink 5: Link not connected");
+            //Toast.makeText(activity, "BTLink 5: Link not connected", Toast.LENGTH_SHORT).show();
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + " BTLink 5: Link not connected");
+            return;
+        }
+        try {
+            //Log command sent:str
+            BTConstants.CurrentCommand_LinkFive = str;
+            Log.i(TAG, "BTLink 5: Requesting..." + str);
+            byte[] data = (str + newline).getBytes();
+            service5.write(data);
+        } catch (Exception e) {
+            onSerialIoErrorFive(e);
+        }
+    }
+
+    public void sendBytes5(byte[] data) {
+        if (!BTConstants.BTLinkFiveStatus) {
+            BTConstants.CurrentCommand_LinkFive = "";
+            Log.i(TAG, "BTLink 5: Link not connected");
+            //Toast.makeText(activity, "BTLink 5: Link not connected", Toast.LENGTH_SHORT).show();
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + " BTLink 5: Link not connected");
+            return;
+        }
+        try {
+            service5.write(data);
+        } catch (Exception e) {
+            onSerialIoErrorFive(e);
+        }
+    }
+
+    public void readPulse5() {
+        if (!BTConstants.BTLinkFiveStatus) {
+            BTConstants.CurrentCommand_LinkFive = "";
+            Log.i(TAG, "BTLink 5: Link not connected");
+            //Toast.makeText(activity, "BTLink 5: Link not connected", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        try {
+            service5.readPulse();
+        } catch (Exception e) {
+            onSerialIoErrorFive(e);
+        }
+    }
+
+    public void receive5(byte[] data) {
+        String Response = new String(data);
+        SpannableStringBuilder spn = new SpannableStringBuilder(Response + '\n');
+        Log.i(TAG, "BTLink 5: Request>>" + BTConstants.CurrentCommand_LinkFive);
+        Log.i(TAG, "BTLink 5: Response>>" + spn.toString());
+
+        //==========================================
+        if (BTConstants.CurrentCommand_LinkFive.equalsIgnoreCase(BTConstants.info_cmd) && Response.contains("records")) {
+            BTConstants.isNewVersionLinkFive = true;
+        }
+        if (Response.contains("$$")) {
+            String res = Response.replace("$$", "");
+            if (!res.trim().isEmpty()) {
+                sb5.append(res.trim());
+            }
+            sendBroadcastIntentFromLinkFive(sb5.toString());
+            sb5.setLength(0);
+        } else {
+            if (BTConstants.isNewVersionLinkFive || BTConstants.forOscilloscope) {
+                sb5.append(Response);
+            } else {
+                // For old version Link response
+                sb5.setLength(0);
+                sendBroadcastIntentFromLinkFive(spn.toString());
+            }
+        }
+    }
+
+    public void sendBroadcastIntentFromLinkFive(String spn) {
+        Intent broadcastIntent = new Intent();
+        broadcastIntent.setAction("BroadcastBlueLinkFiveData");
+        broadcastIntent.putExtra("Request", BTConstants.CurrentCommand_LinkFive);
+        broadcastIntent.putExtra("Response", spn);
+        broadcastIntent.putExtra("Action", "BlueLinkFive");
+        activity.sendBroadcast(broadcastIntent);
+    }
+
+    public void status5(String str) {
+        Log.i(TAG, "Status5:" + str);
+        BTConstants.BTStatusStrFive = str;
+    }
+    //Link Five code ends.......
+    //endregion
+
+    //region Link Six code
+    //Link Six code begins....
+    @Override
+    public void onSerialConnectSix() {
+        BTConstants.BTLinkSixStatus = true;
+        status6("Connected");
+    }
+
+    @Override
+    public void onSerialConnectErrorSix(Exception e) {
+        BTConstants.BTLinkSixStatus = false;
+        status6("Disconnect");
+        e.printStackTrace();
+        if (BTConstants.IsFileUploadCompleted) {
+            try {
+                connect6();
+            } catch (Exception ex) {
+                Log.e("Error: ", ex.getMessage());
+            }
+        }
+        //AppConstants.WriteinFile(TAG + " onSerialConnectErrorSix Status: " + e.getMessage());
+    }
+
+    @Override
+    public void onSerialReadSix(byte[] data) {
+        receive6(data);
+    }
+
+    @Override
+    public void onSerialIoErrorSix(Exception e) {
+        BTConstants.BTLinkSixStatus = false;
+        status6("Disconnect");
+        e.printStackTrace();
+        if (BTConstants.IsFileUploadCompleted) {
+            try {
+                connect6();
+            } catch (Exception ex) {
+                Log.e("Error: ", ex.getMessage());
+            }
+        }
+        //AppConstants.WriteinFile(TAG + " onSerialIoErrorSix Status: " + e.getMessage());
+    }
+
+    public void connect6() {
+        try {
+
+            if (BTConstants.deviceAddress6 != null && !BTConstants.deviceAddress6.isEmpty()) {
+                BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+                BluetoothDevice device = bluetoothAdapter.getRemoteDevice(BTConstants.deviceAddress6);
+                status6("Connecting...");
+                //BTConstants.BTLinkSixStatus = false;
+                SerialSocketSix socket = new SerialSocketSix(activity.getApplicationContext(), device);
+                service6.connect(socket);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void send6(String str) {
+        if (!BTConstants.BTLinkSixStatus) {
+            BTConstants.CurrentCommand_LinkSix = "";
+            Log.i(TAG, "BTLink 6: Link not connected");
+            //Toast.makeText(activity, "BTLink 6: Link not connected", Toast.LENGTH_SHORT).show();
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + " BTLink 6: Link not connected");
+            return;
+        }
+        try {
+            //Log command sent:str
+            BTConstants.CurrentCommand_LinkSix = str;
+            Log.i(TAG, "BTLink 6: Requesting..." + str);
+            byte[] data = (str + newline).getBytes();
+            service6.write(data);
+        } catch (Exception e) {
+            onSerialIoErrorSix(e);
+        }
+    }
+
+    public void sendBytes6(byte[] data) {
+        if (!BTConstants.BTLinkSixStatus) {
+            BTConstants.CurrentCommand_LinkSix = "";
+            Log.i(TAG, "BTLink 6: Link not connected");
+            //Toast.makeText(activity, "BTLink 6: Link not connected", Toast.LENGTH_SHORT).show();
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + " BTLink 6: Link not connected");
+            return;
+        }
+        try {
+            service6.write(data);
+        } catch (Exception e) {
+            onSerialIoErrorSix(e);
+        }
+    }
+
+    public void readPulse6() {
+        if (!BTConstants.BTLinkSixStatus) {
+            BTConstants.CurrentCommand_LinkSix = "";
+            Log.i(TAG, "BTLink 6: Link not connected");
+            //Toast.makeText(activity, "BTLink 6: Link not connected", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        try {
+            service6.readPulse();
+        } catch (Exception e) {
+            onSerialIoErrorSix(e);
+        }
+    }
+
+    public void receive6(byte[] data) {
+        String Response = new String(data);
+        SpannableStringBuilder spn = new SpannableStringBuilder(Response + '\n');
+        Log.i(TAG, "BTLink 6: Request>>" + BTConstants.CurrentCommand_LinkSix);
+        Log.i(TAG, "BTLink 6: Response>>" + spn.toString());
+
+        //==========================================
+        if (BTConstants.CurrentCommand_LinkSix.equalsIgnoreCase(BTConstants.info_cmd) && Response.contains("records")) {
+            BTConstants.isNewVersionLinkSix = true;
+        }
+        if (Response.contains("$$")) {
+            String res = Response.replace("$$", "");
+            if (!res.trim().isEmpty()) {
+                sb6.append(res.trim());
+            }
+            sendBroadcastIntentFromLinkSix(sb6.toString());
+            sb6.setLength(0);
+        } else {
+            if (BTConstants.isNewVersionLinkSix || BTConstants.forOscilloscope) {
+                sb6.append(Response);
+            } else {
+                // For old version Link response
+                sb6.setLength(0);
+                sendBroadcastIntentFromLinkSix(spn.toString());
+            }
+        }
+    }
+
+    public void sendBroadcastIntentFromLinkSix(String spn) {
+        Intent broadcastIntent = new Intent();
+        broadcastIntent.setAction("BroadcastBlueLinkSixData");
+        broadcastIntent.putExtra("Request", BTConstants.CurrentCommand_LinkSix);
+        broadcastIntent.putExtra("Response", spn);
+        broadcastIntent.putExtra("Action", "BlueLinkSix");
+        activity.sendBroadcast(broadcastIntent);
+    }
+
+    public void status6(String str) {
+        Log.i(TAG, "Status6:" + str);
+        BTConstants.BTStatusStrSix = str;
+    }
+    //Link Six code ends.......
     //endregion
 
 }

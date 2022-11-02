@@ -83,18 +83,20 @@ import androidx.core.content.ContextCompat;
 
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTConstants;
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPPMain;
-import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkFour.SerialServiceFour;
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkOne.SerialServiceOne;
-import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkThree.SerialServiceThree;
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkTwo.SerialServiceTwo;
-import com.TrakEngineering.FluidSecureHubTest.BTSPP.BackgroundService_BTFour;
+import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkThree.SerialServiceThree;
+import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkFour.SerialServiceFour;
+import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkFive.SerialServiceFive;
+import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkSix.SerialServiceSix;
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.BackgroundService_BTOne;
-import com.TrakEngineering.FluidSecureHubTest.BTSPP.BackgroundService_BTThree;
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.BackgroundService_BTTwo;
-import com.TrakEngineering.FluidSecureHubTest.BTSPP.ClientSendAndListenUDPFour;
+import com.TrakEngineering.FluidSecureHubTest.BTSPP.BackgroundService_BTThree;
+import com.TrakEngineering.FluidSecureHubTest.BTSPP.BackgroundService_BTFour;
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.ClientSendAndListenUDPOne;
-import com.TrakEngineering.FluidSecureHubTest.BTSPP.ClientSendAndListenUDPThree;
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.ClientSendAndListenUDPTwo;
+import com.TrakEngineering.FluidSecureHubTest.BTSPP.ClientSendAndListenUDPThree;
+import com.TrakEngineering.FluidSecureHubTest.BTSPP.ClientSendAndListenUDPFour;
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.CommonFunctions;
 import com.TrakEngineering.FluidSecureHubTest.EddystoneScanner.EddystoneScannerService;
 import com.TrakEngineering.FluidSecureHubTest.EddystoneScanner.SampleBeacon;
@@ -198,6 +200,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     public static SerialServiceTwo service2;
     public static SerialServiceThree service3;
     public static SerialServiceFour service4;
+    public static SerialServiceFive service5;
+    public static SerialServiceSix service6;
     private boolean initialStart = true;
     public int count_uithread = 0;
     CountDownTimer countDownTimerForReconfigure = null;
@@ -499,7 +503,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             if (OfflineConstants.isOfflineAccess(WelcomeActivity.this)) {
                 new GetOfflineSSIDUsingLocationOnResume().execute();
             } else {
-                AppConstants.colorToastBigFont(getApplicationContext(), AppConstants.OFF1, Color.RED);
+                AppConstants.colorToastBigFont(getApplicationContext(), AppConstants.OFF1, Color.BLUE);
             }
         }
 
@@ -1902,7 +1906,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                                     }
                                 } else {
-                                    AppConstants.colorToastBigFont(getApplicationContext(), "Unauthorised day or timings", Color.RED);
+                                    AppConstants.colorToastBigFont(getApplicationContext(), "Unauthorised day or timings", Color.BLUE);
                                     if (AppConstants.GenerateLogs)
                                         AppConstants.WriteinFile(TAG + "Unauthorised day or timings");
                                 }
@@ -1930,7 +1934,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 }
 
             } else {
-                AppConstants.colorToastBigFont(getApplicationContext(), AppConstants.OFF1, Color.RED);
+                AppConstants.colorToastBigFont(getApplicationContext(), AppConstants.OFF1, Color.BLUE);
             }
         }
     }
@@ -2763,7 +2767,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
             } else {
                 hoseClicked = false;
-                AppConstants.colorToastBigFont(getApplicationContext(), AppConstants.OFF1, Color.RED);
+                AppConstants.colorToastBigFont(getApplicationContext(), AppConstants.OFF1, Color.BLUE);
             }
         }
     }
@@ -3052,14 +3056,14 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                             CheckBTConnection(SelectedItemPos, selSSID, BTselMacAddress);
                         } else {
-                            //AppConstants.colorToastBigFont(getApplicationContext(), "Selected Link not in BT paired list", Color.RED);
+                            //AppConstants.colorToastBigFont(getApplicationContext(), "Selected Link not in BT paired list", Color.BLUE);
                             CommonUtils.AutoCloseBTLinkMessage(WelcomeActivity.this, "", getResources().getString(R.string.BTLinkNotInPairList));
                             BTConstants.CurrentSelectedLinkBT = 0;
                             RestrictHoseSelection("Pairing Mode..."); //"Please try again later" changed as per #1899.
                         }
                     } else if (LinkCommunicationType.equalsIgnoreCase("UDP")) {
 
-                        AppConstants.colorToastBigFont(getApplicationContext(), "UDP Link Selected", Color.RED);
+                        AppConstants.colorToastBigFont(getApplicationContext(), "UDP Link Selected", Color.BLUE);
                         tvSSIDName.setText("Please try again later");
                         BTConstants.CurrentSelectedLinkBT = 0;
                         btnGo.setVisibility(View.GONE);
@@ -3184,7 +3188,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                             }
 
                                         } else {
-                                            AppConstants.colorToastBigFont(getApplicationContext(), "Can't reconfigure hose is busy", Color.RED);
+                                            AppConstants.colorToastBigFont(getApplicationContext(), "Can't reconfigure hose is busy", Color.BLUE);
                                         }
                                     } else if (IsLinkFlagged != null && IsLinkFlagged.equalsIgnoreCase("True")) {
                                         if (AppConstants.GenerateLogs)
@@ -3924,7 +3928,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             try {
                 if (result.equalsIgnoreCase("exception")) {
                     ChangeWifiState(false);//turn wifi off
-                    AppConstants.colorToastBigFont(getApplicationContext(), "Step2 Failed while changing Hotspot Settings Please try again..", Color.RED);
+                    AppConstants.colorToastBigFont(getApplicationContext(), "Step2 Failed while changing Hotspot Settings Please try again..", Color.BLUE);
                     Log.i(TAG, "Step2 Failed while changing Hotspot Settings Please try again.. exception:" + result);
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Step2 Failed while changing Hotspot Settings Please try again.. exception: " + result);
@@ -3994,7 +3998,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                 } else {
                                     if (AppConstants.GenerateLogs)
                                         AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Please check Internet Connection.");
-                                    AppConstants.colorToast(WelcomeActivity.this, "Please check Internet Connection and retry.", Color.RED);
+                                    AppConstants.colorToast(WelcomeActivity.this, "Please check Internet Connection and retry.", Color.BLUE);
                                     if (loading != null)
                                         loading.dismiss();
                                 }
@@ -4099,7 +4103,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                             Constants.hotspotstayOn = true;//Enable hotspot flag
                                             if (AppConstants.GenerateLogs)
                                                 AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Reconfiguration process fail. Could not get mac address.");
-                                            AppConstants.colorToastBigFont(WelcomeActivity.this, "Reconfiguration process fail.\nCould not get mac address.", Color.RED);
+                                            AppConstants.colorToastBigFont(WelcomeActivity.this, "Reconfiguration process fail.\nCould not get mac address.", Color.BLUE);
 
                                             //Disable wifi connection
                                             WifiManager wifiManagerMM = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
@@ -4197,7 +4201,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                                         } else {
                                                             if (AppConstants.GenerateLogs)
                                                                 AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Please check Internet Connection.");
-                                                            AppConstants.colorToast(WelcomeActivity.this, "Please check Internet Connection and retry.", Color.RED);
+                                                            AppConstants.colorToast(WelcomeActivity.this, "Please check Internet Connection and retry.", Color.BLUE);
                                                             if (loading != null)
                                                                 loading.dismiss();
                                                         }
@@ -4217,7 +4221,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                         Constants.hotspotstayOn = true;//Enable hotspot flag
                                         if (AppConstants.GenerateLogs)
                                             AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Reconfiguration process fail.");
-                                        AppConstants.colorToastBigFont(WelcomeActivity.this, "Reconfiguration process fail.\nPlease retry.", Color.RED);
+                                        AppConstants.colorToastBigFont(WelcomeActivity.this, "Reconfiguration process fail.\nPlease retry.", Color.BLUE);
 
                                         //Disable wifi connection
                                         WifiManager wifiManagerMM = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
@@ -4362,7 +4366,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         if (loading != null)
                             loading.dismiss();
                         Constants.hotspotstayOn = true;
-                        AppConstants.colorToastBigFont(WelcomeActivity.this, " MAC address could not be updated ", Color.RED);
+                        AppConstants.colorToastBigFont(WelcomeActivity.this, " MAC address could not be updated ", Color.BLUE);
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "MAC address could not be updated.");
                         wifiApManager.setWifiApEnabled(null, true);
@@ -5880,7 +5884,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
         //Display MAX fuel limit message on screen
         if (AppConstants.DisplayToastmaxlimit && !AppConstants.MaxlimitMessage.isEmpty()) {
-            //AppConstants.colorToastBigFont(this, AppConstants.MaxlimitMessage, Color.RED);
+            //AppConstants.colorToastBigFont(this, AppConstants.MaxlimitMessage, Color.BLUE);
             CommonUtils.AutoCloseCustomMessageDilaog(WelcomeActivity.this, "Message", AppConstants.MaxlimitMessage);
             AppConstants.DisplayToastmaxlimit = false;
             AppConstants.MaxlimitMessage = "";
@@ -6749,7 +6753,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     System.out.println("eeee1" + ResponceText);
                     if (ResponceText.equalsIgnoreCase("Y")) {
                         flagGoBtn = true;//Enable go button
-                        // AppConstants.colorToastBigFont(WelcomeActivity.this, "Hose in use", Color.RED);
+                        // AppConstants.colorToastBigFont(WelcomeActivity.this, "Hose in use", Color.BLUE);
                         CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", "Hose In Use. Please retry once the ongoing transaction has been completed.");
 
                         String txtnTypeForLog = "";
@@ -6919,7 +6923,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             } else {
                 if (AppConstants.GenerateLogs)
                     AppConstants.WriteinFile(TAG + "Can't update mac address,Hose is busy please retry later.");
-                AppConstants.colorToastBigFont(WelcomeActivity.this, "Can't update mac address,Hose is busy please retry later.", Color.RED);
+                AppConstants.colorToastBigFont(WelcomeActivity.this, "Can't update mac address,Hose is busy please retry later.", Color.BLUE);
                 btnGo.setVisibility(View.GONE);
             }
 
@@ -10135,7 +10139,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         AppConstants.ManuallReconfigure = true;
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Unable to auto connect to " + AppConstants.CURRENT_SELECTED_SSID +". Started manual process..");
-                        AppConstants.colorToastBigFont(WelcomeActivity.this, "Unable to auto connect to " + AppConstants.CURRENT_SELECTED_SSID +". Started manual process..", Color.RED);
+                        AppConstants.colorToastBigFont(WelcomeActivity.this, "Unable to auto connect to " + AppConstants.CURRENT_SELECTED_SSID +". Started manual process..", Color.BLUE);
                         LinkReConfigurationProcessStep1();//onfinish
 
                     }
@@ -10169,7 +10173,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
             } else {
 
-                AppConstants.colorToastBigFont(getApplicationContext(), "Connected to wrong Wifi Please try again..", Color.RED);
+                AppConstants.colorToastBigFont(getApplicationContext(), "Connected to wrong Wifi Please try again..", Color.BLUE);
 
             }
 
@@ -10177,7 +10181,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
 
             AppConstants.ManuallReconfigure = false;
-            AppConstants.colorToastBigFont(getApplicationContext(), "Connecting to " + AppConstants.CURRENT_SELECTED_SSID + " Attempt " + 2, Color.RED);
+            AppConstants.colorToastBigFont(getApplicationContext(), "Connecting to " + AppConstants.CURRENT_SELECTED_SSID + " Attempt " + 2, Color.BLUE);
             connectWiFiLibrary2Attempt();
 
 
@@ -10246,7 +10250,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
             } else {
 
-                AppConstants.colorToastBigFont(getApplicationContext(), "Connected to wrong Wifi Please try again..", Color.RED);
+                AppConstants.colorToastBigFont(getApplicationContext(), "Connected to wrong Wifi Please try again..", Color.BLUE);
 
             }
 
@@ -10254,7 +10258,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
 
             AppConstants.ManuallReconfigure = false;
-            AppConstants.colorToastBigFont(getApplicationContext(), "Connecting to " + AppConstants.CURRENT_SELECTED_SSID + " Attempt 3", Color.RED);
+            AppConstants.colorToastBigFont(getApplicationContext(), "Connecting to " + AppConstants.CURRENT_SELECTED_SSID + " Attempt 3", Color.BLUE);
             connectWiFiLibrary3Attempt();
 
 
@@ -10323,7 +10327,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
             } else {
 
-                AppConstants.colorToastBigFont(getApplicationContext(), "Connected to wrong Wifi Please try again..", Color.RED);
+                AppConstants.colorToastBigFont(getApplicationContext(), "Connected to wrong Wifi Please try again..", Color.BLUE);
 
             }
 
@@ -10333,7 +10337,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             Constants.hotspotstayOn = false;
             AppConstants.ManuallReconfigure = true;
 
-            AppConstants.colorToastBigFont(getApplicationContext(), "Connect manually to: " + AppConstants.CURRENT_SELECTED_SSID, Color.RED);
+            AppConstants.colorToastBigFont(getApplicationContext(), "Connect manually to: " + AppConstants.CURRENT_SELECTED_SSID, Color.BLUE);
             if (AppConstants.GenerateLogs)
                 AppConstants.WriteinFile(TAG + "Connect manually to: " + AppConstants.CURRENT_SELECTED_SSID + " and try..!! ");
 
@@ -11273,7 +11277,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             startService(serviceIntent);
 
         } else {
-            AppConstants.colorToastBigFont(getApplicationContext(), "Please select link and try..", Color.RED);
+            AppConstants.colorToastBigFont(getApplicationContext(), "Please select link and try..", Color.BLUE);
             if (AppConstants.GenerateLogs)
                 AppConstants.WriteinFile(TAG + "ConfigureTld Please select link and try..");
         }
@@ -11465,7 +11469,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 int diff = Integer.parseInt(BackgroundServiceKeepDataTransferAlive.DefectiveLinks.get(i).get("diff_min"));
 
                 if (selSSID.equals(selssid) && diff > 60) {
-                    AppConstants.colorToastBigFont(WelcomeActivity.this, " Inability To Connect Link. \nPlease call customer support for assistance", Color.RED);
+                    AppConstants.colorToastBigFont(WelcomeActivity.this, " Inability To Connect Link. \nPlease call customer support for assistance", Color.BLUE);
                     linkDefective = true;
                     break;
                 } else {
@@ -11753,7 +11757,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             }
 
         } else {
-            AppConstants.colorToastBigFont(WelcomeActivity.this, "Can't update mac address, Hose is busy please retry later.", Color.RED);
+            AppConstants.colorToastBigFont(WelcomeActivity.this, "Can't update mac address, Hose is busy please retry later.", Color.BLUE);
             if (AppConstants.GenerateLogs)
                 AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Can't update mac address, Hose is busy please retry later.");
             btnGo.setVisibility(View.GONE);
@@ -11800,7 +11804,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                             AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Step1 Link ReConfiguration enable wifi manually.");
 
                         AppConstants.SELECTED_SSID_FOR_MANUALL = AppConstants.CURRENT_SELECTED_SSID; //ReconfigSSID;
-                        AppConstants.colorToastBigFont(getApplicationContext(), "Enable Wifi Manually and Connect to " + AppConstants.SELECTED_SSID_FOR_MANUALL + " using wifi list", Color.RED);
+                        AppConstants.colorToastBigFont(getApplicationContext(), "Enable Wifi Manually and Connect to " + AppConstants.SELECTED_SSID_FOR_MANUALL + " using wifi list", Color.BLUE);
                         startActivity(new Intent(Settings.ACTION_WIFI_SETTINGS));
                         ConfigurationStep1IsInProgress = true;
                         //mjconf
@@ -11873,7 +11877,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             }
         } else {
             ConfigurationStep1IsInProgress = false;
-            AppConstants.colorToastBigFont(WelcomeActivity.this, "Can't update mac address,Hose is busy please retry later.", Color.RED);
+            AppConstants.colorToastBigFont(WelcomeActivity.this, "Can't update mac address,Hose is busy please retry later.", Color.BLUE);
             if (AppConstants.GenerateLogs)
                 AppConstants.WriteinFile(TAG + "Can't update mac address,Hose is busy please retry later.");
             btnGo.setVisibility(View.GONE);
@@ -11906,7 +11910,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                 if (mac_address.equals("")) {
 
-                    AppConstants.colorToastBigFont(WelcomeActivity.this, "Reconfiguration process fail..\nCould not get mac address", Color.RED);
+                    AppConstants.colorToastBigFont(WelcomeActivity.this, "Reconfiguration process fail..\nCould not get mac address", Color.BLUE);
                     Log.i(TAG, "Step2 Reconfiguration process fail.. Could not get mac address Info command result:" + result);
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Step2 Reconfiguration process fail.. Could not get mac address. InfoCommand result >> " + result);
@@ -12043,7 +12047,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             /*Log.i(TAG, "Step3 Enable hotspot manually");
             if (AppConstants.GenerateLogs)
                 AppConstants.WriteinFile(TAG + "Step3 Enable hotspot manually");
-            //AppConstants.colorToastHotspotOn(context, "Enable Mobile Hotspot Manually..", Color.RED);
+            //AppConstants.colorToastHotspotOn(context, "Enable Mobile Hotspot Manually..", Color.BLUE);
             Intent tetherSettings = new Intent();//com.smartcom
             tetherSettings.setClassName("com.android.settings", "com.android.settings.TetherSettings");
             context.startActivity(tetherSettings);
@@ -12070,7 +12074,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                     } else {
                         if (millisUntilFinished > 5000)
-                            //AppConstants.colorToastHotspotOn(context, "Please press  Mobile      ^     \nHotspot button.", Color.RED);  //\nWaiting seconds..." + millisUntilFinished / 1000
+                            //AppConstants.colorToastHotspotOn(context, "Please press  Mobile      ^     \nHotspot button.", Color.BLUE);  //\nWaiting seconds..." + millisUntilFinished / 1000
                             AppConstants.colorToastHotspotOn(context, "Please press  Mobile      ^     \nHotspot button.", ContextCompat.getColor(WelcomeActivity.this, R.color.HotspotOnToastColor), Color.BLACK);
                     }
                 }
@@ -12136,7 +12140,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
             } else {
                 Constants.hotspotstayOn = true;
-                AppConstants.colorToastBigFont(WelcomeActivity.this, "No Internet while updating MacAddress to server. Please retry again.", Color.RED);
+                AppConstants.colorToastBigFont(WelcomeActivity.this, "No Internet while updating MacAddress to server. Please retry again.", Color.BLUE);
                 Log.i(TAG, "Step4 No Internet while updating MacAddress to server. Please retry again.");
                 if (AppConstants.GenerateLogs)
                     AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Step4 No Internet while updating MacAddress to server. Please retry again.");
@@ -12192,7 +12196,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 if (result.equalsIgnoreCase("exception")) {
 
                     ChangeWifiState(false);//turn wifi off
-                    AppConstants.colorToastBigFont(getApplicationContext(), "Step2 Failed while changing Hotspot Settings Please try again..", Color.RED);
+                    AppConstants.colorToastBigFont(getApplicationContext(), "Step2 Failed while changing Hotspot Settings Please try again..", Color.BLUE);
                     Log.i(TAG, "Step2 Failed while changing Hotspot Settings Please try again.. exception:" + result);
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Step2 Failed while changing Hotspot Settings aboveAndroid9.");
@@ -12280,7 +12284,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     } else if (ResponceMessage.equalsIgnoreCase("fail")) {
 
                         Constants.hotspotstayOn = true;
-                        AppConstants.colorToastBigFont(WelcomeActivity.this, " MAC address could not be updated ", Color.RED);
+                        AppConstants.colorToastBigFont(WelcomeActivity.this, " MAC address could not be updated ", Color.BLUE);
                         Log.i(TAG, "Step4 MAC address could not be updated");
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Step4 MAC address could not be updated");
@@ -12323,7 +12327,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                             AppConstants.WriteinFile(TAG + "Step1 UDP Link ReConfiguration enable wifi manually.");
 
                         AppConstants.SELECTED_SSID_FOR_MANUALL = AppConstants.CURRENT_SELECTED_SSID;//ReconfigSSID;
-                        AppConstants.colorToastBigFont(getApplicationContext(), "Enable Wifi Manually and Connect to " + AppConstants.SELECTED_SSID_FOR_MANUALL + " using wifi list", Color.RED);
+                        AppConstants.colorToastBigFont(getApplicationContext(), "Enable Wifi Manually and Connect to " + AppConstants.SELECTED_SSID_FOR_MANUALL + " using wifi list", Color.BLUE);
                         startActivity(new Intent(Settings.ACTION_WIFI_SETTINGS));
 
                         new CountDownTimer(180000, 2000) {
@@ -12371,7 +12375,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                                 ChangeWifiState(false);
                                 Log.i(TAG, "Step1 onFinish ssid Not connected. Please try again..");
-                                AppConstants.colorToastBigFont(getApplicationContext(), "Failed to connect to " + AppConstants.SELECTED_SSID_FOR_MANUALL + " Please try again..", Color.RED);
+                                AppConstants.colorToastBigFont(getApplicationContext(), "Failed to connect to " + AppConstants.SELECTED_SSID_FOR_MANUALL + " Please try again..", Color.BLUE);
                                 Log.i(TAG, "Step1 Failed to connect to " + AppConstants.SELECTED_SSID_FOR_MANUALL + " Please try again..");
                                 if (AppConstants.GenerateLogs)
                                     AppConstants.WriteinFile(TAG + "Step1 Failed to connect to " + AppConstants.SELECTED_SSID_FOR_MANUALL + " Please try again..");
@@ -12395,7 +12399,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     AppConstants.WriteinFile(TAG + "Link ReConfiguration process -Step 1 Exception" + e);
             }
         } else {
-            AppConstants.colorToastBigFont(WelcomeActivity.this, "Can't update mac address,Hose is busy please retry later.", Color.RED);
+            AppConstants.colorToastBigFont(WelcomeActivity.this, "Can't update mac address,Hose is busy please retry later.", Color.BLUE);
             if (AppConstants.GenerateLogs)
                 AppConstants.WriteinFile(TAG + "Can't update mac address,Hose is busy please retry later.");
             btnGo.setVisibility(View.GONE);
@@ -12424,7 +12428,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                 if (mac_address.equals("")) {
 
-                    AppConstants.colorToastBigFont(WelcomeActivity.this, "Reconfiguration process fail..\nCould not get mac address", Color.RED);
+                    AppConstants.colorToastBigFont(WelcomeActivity.this, "Reconfiguration process fail..\nCould not get mac address", Color.BLUE);
                     Log.i(TAG, "Step2 UDP Reconfiguration process fail.. Could not get mac address Info command result:" + info_result);
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(TAG + "Step2 UDP Reconfiguration process fail.. Could not get mac address Info command result:" + info_result);
@@ -12475,7 +12479,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                     } else {
                         ChangeWifiState(false);//turn wifi off
-                        AppConstants.colorToastBigFont(getApplicationContext(), "Step2 Failed while changing Hotspot Settings Please try again..", Color.RED);
+                        AppConstants.colorToastBigFont(getApplicationContext(), "Step2 Failed while changing Hotspot Settings Please try again..", Color.BLUE);
                         Log.i(TAG, "Step2 Failed while changing Hotspot Settings Please try again.. exception:" + linkstation_response);
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + "Step2 Failed while changing Hotspot Settings UDPLink. exception: " + linkstation_response);

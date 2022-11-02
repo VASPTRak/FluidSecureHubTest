@@ -194,16 +194,14 @@ public class AddNewLinkToCloud extends AppCompatActivity implements LifecycleObs
         alertDialogBuilder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int arg1) {
-                        if (message.contains("success")){
+                        if (message.contains("success")) {
                             dialog.dismiss();
                             finish();
-                        }else{
+                        } else {
                             dialog.dismiss();
                         }
                     }
                 }
-
-
         );
 
         AlertDialog alertDialog = alertDialogBuilder.create();

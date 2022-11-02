@@ -1742,7 +1742,7 @@ public class CommonUtils {
 
                 }else{
 
-                    //AppConstants.colorToastHotspotOn(context, "Enable Mobile Hotspot Manually..", Color.RED);
+                    //AppConstants.colorToastHotspotOn(context, "Enable Mobile Hotspot Manually..", Color.BLUE);
                     Intent tetherSettings = new Intent();//com.smartcom
                     tetherSettings.setClassName("com.android.settings", "com.android.settings.TetherSettings");
                     context.startActivity(tetherSettings);
@@ -1765,7 +1765,7 @@ public class CommonUtils {
 
                         } else {
                             //if (millisUntilFinished / 1000 <= 13)
-                            //AppConstants.colorToastHotspotOn(context, "Please press  Mobile      ^     \nHotspot button. \nWaiting seconds..." + millisUntilFinished / 1000, Color.RED);
+                            //AppConstants.colorToastHotspotOn(context, "Please press  Mobile      ^     \nHotspot button. \nWaiting seconds..." + millisUntilFinished / 1000, Color.BLUE);
                             if (tick_count[0] > 2 && !WelcomeActivity.OnWelcomeActivity)
                                 AppConstants.colorToastHotspotOn(context, "We have detected that        " + context.getString(R.string.arrow_uni_code) + "   Mobile Hotpot is off. \n\nPlease press the Hotspot Toggle above.", Color.WHITE);
                         }
@@ -1831,7 +1831,7 @@ public class CommonUtils {
 
             }else{
 
-                //AppConstants.colorToastHotspotOn(context, "Enable Mobile Hotspot Manually..", Color.RED);
+                //AppConstants.colorToastHotspotOn(context, "Enable Mobile Hotspot Manually..", Color.BLUE);
                 Intent tetherSettings = new Intent();//com.smartcom
                 tetherSettings.setClassName("com.android.settings", "com.android.settings.TetherSettings");
                 context.startActivity(tetherSettings);
@@ -1854,7 +1854,7 @@ public class CommonUtils {
 
                     } else {
                         //if (millisUntilFinished / 1000 <= 13)
-                        //AppConstants.colorToastHotspotOn(context, "Please press  Mobile      ^     \nHotspot button. \nWaiting seconds..." + millisUntilFinished / 1000, Color.RED);
+                        //AppConstants.colorToastHotspotOn(context, "Please press  Mobile      ^     \nHotspot button. \nWaiting seconds..." + millisUntilFinished / 1000, Color.BLUE);
                         /*if (tick_count[0] > 2 && WelcomeActivity.OnWelcomeActivity == false)
                             AppConstants.colorToastHotspotOn(context, "We have detected that        " + context.getString(R.string.arrow_uni_code) + "   Mobile Hotspot is off. \n\nPlease press the Hotspot Toggle above.", Color.WHITE, Color.BLUE);*/
                     }

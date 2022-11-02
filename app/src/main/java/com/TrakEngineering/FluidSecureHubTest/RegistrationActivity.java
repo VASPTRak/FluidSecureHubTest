@@ -243,7 +243,7 @@ public class RegistrationActivity extends AppCompatActivity {
 
     public static void redToast(Context ctx, String MSg) {
         Toast toast = Toast.makeText(ctx, " " + MSg + " ", Toast.LENGTH_LONG);
-        toast.getView().setBackgroundColor(Color.RED);
+        toast.getView().setBackgroundColor(Color.BLUE); // Changed RED to BLUE because Eva doesn't want any red message
         toast.setGravity(Gravity.CENTER,0,0);
         toast.show();
     }

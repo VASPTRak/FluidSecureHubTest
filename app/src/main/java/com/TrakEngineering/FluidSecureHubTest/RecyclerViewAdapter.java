@@ -164,7 +164,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + " "+ResponceText);
                         AppConstants.clearSharedPrefByName(mContext, Constants.MAC_ADDR_RECONFIGURE);
-                        AppConstants.colorToastBigFont(mContext, " "+ResponceText, Color.RED);
+                        AppConstants.colorToastBigFont(mContext, " "+ResponceText, Color.BLUE);
                     }
                 }
             } catch (Exception e) {

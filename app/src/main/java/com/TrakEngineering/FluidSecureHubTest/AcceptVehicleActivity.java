@@ -514,7 +514,7 @@ public class AcceptVehicleActivity extends AppCompatActivity {
 
                         String ValidationFailFor = jsonObject.getString("ValidationFailFor");
                         if (ValidationFailFor.equalsIgnoreCase("Pin")) {
-                            AppConstants.colorToastBigFont(this, ResponceText, Color.RED);
+                            AppConstants.colorToastBigFont(this, ResponceText, Color.BLUE);
                             Intent i = new Intent(this, AcceptPinActivity.class);
                             startActivity(i);
 
@@ -652,7 +652,7 @@ public class AcceptVehicleActivity extends AppCompatActivity {
                     String ResponceText = jsonObject.getString("ResponceText");
                     String ValidationFailFor = jsonObject.getString("ValidationFailFor");
                     if (ValidationFailFor.equalsIgnoreCase("Pin")) {
-                        AppConstants.colorToastBigFont(this, ResponceText, Color.RED);
+                        AppConstants.colorToastBigFont(this, ResponceText, Color.BLUE);
                         Intent i = new Intent(this, AcceptPinActivity.class);
                         startActivity(i);
 

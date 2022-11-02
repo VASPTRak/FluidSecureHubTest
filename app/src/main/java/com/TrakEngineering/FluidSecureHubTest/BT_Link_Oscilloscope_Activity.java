@@ -252,7 +252,7 @@ public class BT_Link_Oscilloscope_Activity extends AppCompatActivity { // implem
                     public void run() {
                         pd.dismiss();
                     }
-                }, 2000);
+                }, 5000);
             }
         });
     }
@@ -406,7 +406,7 @@ public class BT_Link_Oscilloscope_Activity extends AppCompatActivity { // implem
             handler.postDelayed(new Runnable() {
                 public void run() {
                     if (isScopeRecordStarted) {
-                        if (counter < 10) {
+                        if (counter < 30) {
                             if (BTConstants.ScopeStatus.equalsIgnoreCase("OVER")) {
                                 //myChart.getDescription().setText("OVER");
                                 if (AppConstants.GenerateLogs)
@@ -422,7 +422,7 @@ public class BT_Link_Oscilloscope_Activity extends AppCompatActivity { // implem
                                 }, 100);
                             } else {
                                 counter++;
-                                handler.postDelayed(this, (delay / 10));
+                                handler.postDelayed(this, (delay / 11));
                             }
                         }
                     }
