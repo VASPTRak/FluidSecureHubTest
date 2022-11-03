@@ -93,10 +93,14 @@ import com.TrakEngineering.FluidSecureHubTest.BTSPP.BackgroundService_BTOne;
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.BackgroundService_BTTwo;
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.BackgroundService_BTThree;
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.BackgroundService_BTFour;
+import com.TrakEngineering.FluidSecureHubTest.BTSPP.BackgroundService_BTFive;
+import com.TrakEngineering.FluidSecureHubTest.BTSPP.BackgroundService_BTSix;
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.ClientSendAndListenUDPOne;
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.ClientSendAndListenUDPTwo;
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.ClientSendAndListenUDPThree;
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.ClientSendAndListenUDPFour;
+import com.TrakEngineering.FluidSecureHubTest.BTSPP.ClientSendAndListenUDPFive;
+import com.TrakEngineering.FluidSecureHubTest.BTSPP.ClientSendAndListenUDPSix;
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.CommonFunctions;
 import com.TrakEngineering.FluidSecureHubTest.EddystoneScanner.EddystoneScannerService;
 import com.TrakEngineering.FluidSecureHubTest.EddystoneScanner.SampleBeacon;
@@ -274,12 +278,15 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     public static int CountBeforeReconnectRelay2 = 0;
     public static int CountBeforeReconnectRelay3 = 0;
     public static int CountBeforeReconnectRelay4 = 0;
+    public static int CountBeforeReconnectRelay5 = 0;
+    public static int CountBeforeReconnectRelay6 = 0;
 
     public static boolean FA_DebugWindow = false;
 
     private static final int EXPIRE_TIMEOUT = 5000;
     private static final int EXPIRE_TASK_PERIOD = 1000;
-    private int BTL1State = 0, BTL2State = 0, BTL3State = 0, BTL4State = 0, NL1State = 0, NL2State = 0, NL3State = 0, NL4State = 0, NL5State = 0, NL6State = 0;
+    private int BTL1State = 0, BTL2State = 0, BTL3State = 0, BTL4State = 0, BTL5State = 0, BTL6State = 0;
+    private int NL1State = 0, NL2State = 0, NL3State = 0, NL4State = 0, NL5State = 0, NL6State = 0;
     private int BTL1counter = 0, BTL2counter = 0, BTL3counter = 0, BTL4counter = 0;
 
     //EddystoneScannerService
@@ -2386,7 +2393,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                 } else if (LinkCommunicationType.equalsIgnoreCase("UDP")) {
 
-                    try {
+                    /*try {
                         String MacAddress = WelcomeActivity.serverSSIDList.get(0).get("MacAddress");
                         String Serverip = "";
 
@@ -2396,8 +2403,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                 String ConnectedMacAddress = AppConstants.DetailsListOfConnectedDevices.get(i).get("macAddress");
 
                                 if (MacAddress.equalsIgnoreCase(ConnectedMacAddress)) {
-                                    /*if (AppConstants.GenerateLogs)
-                                        AppConstants.WriteinFile(TAG + "Selected LINK (" + selSSID + " <==> " + MacAddress + ") is connected to hotspot.");*/
+                                    *//*if (AppConstants.GenerateLogs)
+                                        AppConstants.WriteinFile(TAG + "Selected LINK (" + selSSID + " <==> " + MacAddress + ") is connected to hotspot.");*//*
                                     Serverip = AppConstants.DetailsListOfConnectedDevices.get(i).get("ipAddress");
                                     //isMacConnected = true;
                                     break;
@@ -2405,7 +2412,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                             }
                         }
 
-                        /*if (!isMacConnected) {
+                        *//*if (!isMacConnected) {
                             if (AppConstants.GenerateLogs)
                                 AppConstants.WriteinFile(TAG + "Selected LINK (" + selSSID + " <==> " + MacAddress + ") is not found in connected devices. " + AppConstants.DetailsListOfConnectedDevices);
                             for (int i = 0; i < AppConstants.DetailsListOfConnectedDevices.size(); i++) {
@@ -2424,20 +2431,18 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                 if (AppConstants.GenerateLogs)
                                     AppConstants.WriteinFile("===================================================================");
                             }
-                        }*/
+                        }*//*
                         new Thread(new ClientSendAndListenUDPOne(BTConstants.relay_off_cmd, Serverip, this)).start();
 
                     } catch (Exception e) {
                         e.printStackTrace();
-                    }
+                    }*/
 
                 } else if (LinkCommunicationType.equalsIgnoreCase("HTTP")) {
                     Log.i(TAG, "on~Click tv_fs1_stop pressed");
                     tv_fs1_stop.setClickable(false);
                     button1ClickCode();
 
-                } else {
-                    //Something went wrong in hose selection
                 }
                 break;
 
@@ -2492,8 +2497,6 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     tv_fs2_stop.setClickable(false);
                     button2ClickCode();
 
-                } else {
-                    //Something went wrong in hose selection
                 }
                 break;
 
@@ -2530,8 +2533,6 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     Log.i(TAG, "on~Click tv_fs3_stop pressed");
                     tv_fs3_stop.setClickable(false);
                     button3ClickCode();
-                } else {
-                    //Something went wrong..
                 }
                 break;
 
@@ -2570,25 +2571,83 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     tv_fs4_stop.setClickable(false);
                     button4ClickCode();
 
-                } else {
-                    //Something went wrong in hose selection
                 }
                 break;
 
             case R.id.tv_fs5_stop:
 
+                String ipForUDP5 = "192.168.4.1";
+                String selSSID5 = serverSSIDList.get(4).get("WifiSSId");
+                String LType5 = serverSSIDList.get(4).get("LinkCommunicationType");
                 if (Integer.parseInt(Constants.FS_5Pulse) <= 0) {
                     UpdateDiffStatusMessages("4");
                 }
-                button5ClickCode();
+
+                if (LType5.equalsIgnoreCase("BT")) {
+
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "LINK: " + selSSID5 + ". Stop button pressed");
+                    Constants.FS_5STATUS = "FREE";
+                    if (BTConstants.CurrentTransactionIsBT && !BTConstants.BTLinkFiveStatus && AppConstants.isRelayON_fs5 && BTConstants.SwitchedBTToUDP5) {
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "Sending relayOff command (UDP) to Link: " + selSSID5);
+                        new Thread(new ClientSendAndListenUDPFive(BTConstants.relay_off_cmd, ipForUDP5, this)).start();
+                    } else {
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "Sending relayOff command to Link: " + selSSID5);
+                        BTSPPMain btspp = new BTSPPMain();
+                        btspp.activity = WelcomeActivity.this;
+                        btspp.send5(BTConstants.relay_off_cmd);
+                    }
+
+                } else if (LType5.equalsIgnoreCase("UDP")) {
+
+                    //pending..
+
+                } else if (LType5.equalsIgnoreCase("HTTP")) {
+                    Log.i(TAG, "on~Click tv_fs5_stop pressed");
+                    tv_fs5_stop.setClickable(false);
+                    button5ClickCode();
+
+                }
                 break;
 
             case R.id.tv_fs6_stop:
 
+                String ipForUDP6 = "192.168.4.1";
+                String selSSID6 = serverSSIDList.get(5).get("WifiSSId");
+                String LType6 = serverSSIDList.get(5).get("LinkCommunicationType");
                 if (Integer.parseInt(Constants.FS_6Pulse) <= 0) {
                     UpdateDiffStatusMessages("5");
                 }
-                button6ClickCode();
+
+                if (LType6.equalsIgnoreCase("BT")) {
+
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "LINK: " + selSSID6 + ". Stop button pressed");
+                    Constants.FS_6STATUS = "FREE";
+                    if (BTConstants.CurrentTransactionIsBT && !BTConstants.BTLinkSixStatus && AppConstants.isRelayON_fs6 && BTConstants.SwitchedBTToUDP6) {
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "Sending relayOff command (UDP) to Link: " + selSSID6);
+                        new Thread(new ClientSendAndListenUDPSix(BTConstants.relay_off_cmd, ipForUDP6, this)).start();
+                    } else {
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "Sending relayOff command to Link: " + selSSID6);
+                        BTSPPMain btspp = new BTSPPMain();
+                        btspp.activity = WelcomeActivity.this;
+                        btspp.send6(BTConstants.relay_off_cmd);
+                    }
+
+                } else if (LType6.equalsIgnoreCase("UDP")) {
+
+                    //pending..
+
+                } else if (LType6.equalsIgnoreCase("HTTP")) {
+                    Log.i(TAG, "on~Click tv_fs6_stop pressed");
+                    tv_fs6_stop.setClickable(false);
+                    button6ClickCode();
+
+                }
                 break;
         }
     }
@@ -2646,6 +2705,24 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             initialStart = false;
             btspp.connect4();
 
+        } else if (className.equalsIgnoreCase("com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkFive.SerialServiceFive")) {
+
+            BTSPPMain btspp = new BTSPPMain();
+            btspp.activity = WelcomeActivity.this;
+            service5 = ((SerialServiceFive.SerialBinder) service).getService();
+            service5.attach(btspp);
+            initialStart = false;
+            btspp.connect5();
+
+        } else if (className.equalsIgnoreCase("com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkSix.SerialServiceSix")) {
+
+            BTSPPMain btspp = new BTSPPMain();
+            btspp.activity = WelcomeActivity.this;
+            service6 = ((SerialServiceSix.SerialBinder) service).getService();
+            service6.attach(btspp);
+            initialStart = false;
+            btspp.connect6();
+
         } else {
             Log.d(TAG, "Connected to Reader service");
             mService = ((EddystoneScannerService.LocalBinder) service).getService();
@@ -2665,6 +2742,10 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             service3 = null;
         } else if (className.equalsIgnoreCase("com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkFour.SerialServiceFour")) {
             service4 = null;
+        } else if (className.equalsIgnoreCase("com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkFive.SerialServiceFive")) {
+            service5 = null;
+        } else if (className.equalsIgnoreCase("com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkSix.SerialServiceSix")) {
+            service6 = null;
         } else {
             Log.d(TAG, "Disconnected from Reader service");
             mService = null;
@@ -5687,7 +5768,9 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                 AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-"+ TAG + "BTLink 1: Upgrade Completed. Connecting to LINK: " + AppConstants.CURRENT_SELECTED_SSID + " (" + BTConstants.deviceAddress1 + ")");
                             BTConstants.UpgradeStatusBT1 = "";
 
-                            pdUpgradeProcess.setMessage(GetSpinnerMessage("Connecting to LINK.\nPlease wait several seconds... "));
+                            if (pdUpgradeProcess != null) {
+                                pdUpgradeProcess.setMessage(GetSpinnerMessage("Connecting to LINK.\nPlease wait several seconds... "));
+                            }
 
                             startBTSppMain(1);
 
@@ -5703,7 +5786,9 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         if (BTConstants.UpgradeStatusBT1.equalsIgnoreCase("Incomplete")) {
                             BTConstants.isUpgradeInProgress_BT1 = false;
                             showUpgradeSpinnerMessage = false;
-                            pdUpgradeProcess.setMessage(GetSpinnerMessage("LINK connection lost.\nPlease try again later!"));
+                            if (pdUpgradeProcess != null) {
+                                pdUpgradeProcess.setMessage(GetSpinnerMessage("LINK connection lost.\nPlease try again later!"));
+                            }
 
                             startBTSppMain(1);
 
@@ -5736,7 +5821,9 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                 AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-"+ TAG + "BTLink 2: Upgrade Completed. Connecting to LINK: " + AppConstants.CURRENT_SELECTED_SSID + " (" + BTConstants.deviceAddress2 + ")");
                             BTConstants.UpgradeStatusBT2 = "";
 
-                            pdUpgradeProcess.setMessage(GetSpinnerMessage("Connecting to LINK.\nPlease wait several seconds... "));
+                            if (pdUpgradeProcess != null) {
+                                pdUpgradeProcess.setMessage(GetSpinnerMessage("Connecting to LINK.\nPlease wait several seconds... "));
+                            }
 
                             startBTSppMain(2);
 
@@ -5752,7 +5839,9 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         if (BTConstants.UpgradeStatusBT2.equalsIgnoreCase("Incomplete")) {
                             BTConstants.isUpgradeInProgress_BT2 = false;
                             showUpgradeSpinnerMessage = false;
-                            pdUpgradeProcess.setMessage(GetSpinnerMessage("LINK connection lost.\nPlease try again later!"));
+                            if (pdUpgradeProcess != null) {
+                                pdUpgradeProcess.setMessage(GetSpinnerMessage("LINK connection lost.\nPlease try again later!"));
+                            }
                             BTConstants.UpgradeStatusBT2 = "";
 
                             startBTSppMain(2);
@@ -5785,7 +5874,9 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                 AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-"+ TAG + "BTLink 3: Upgrade Completed. Connecting to LINK: " + AppConstants.CURRENT_SELECTED_SSID + " (" + BTConstants.deviceAddress3 + ")");
                             BTConstants.UpgradeStatusBT3 = "";
 
-                            pdUpgradeProcess.setMessage(GetSpinnerMessage("Connecting to LINK.\nPlease wait several seconds... "));
+                            if (pdUpgradeProcess != null) {
+                                pdUpgradeProcess.setMessage(GetSpinnerMessage("Connecting to LINK.\nPlease wait several seconds... "));
+                            }
 
                             startBTSppMain(3);
 
@@ -5801,7 +5892,9 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         if (BTConstants.UpgradeStatusBT3.equalsIgnoreCase("Incomplete")) {
                             BTConstants.isUpgradeInProgress_BT3 = false;
                             showUpgradeSpinnerMessage = false;
-                            pdUpgradeProcess.setMessage(GetSpinnerMessage("LINK connection lost.\nPlease try again later!"));
+                            if (pdUpgradeProcess != null) {
+                                pdUpgradeProcess.setMessage(GetSpinnerMessage("LINK connection lost.\nPlease try again later!"));
+                            }
                             BTConstants.UpgradeStatusBT3 = "";
 
                             startBTSppMain(3);
@@ -5834,7 +5927,9 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                 AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-"+ TAG + "BTLink 4 Upgrade Completed. Connecting to LINK: " + AppConstants.CURRENT_SELECTED_SSID + " (" + BTConstants.deviceAddress4 + ")");
                             BTConstants.UpgradeStatusBT4 = "";
 
-                            pdUpgradeProcess.setMessage(GetSpinnerMessage("Connecting to LINK.\nPlease wait several seconds... "));
+                            if (pdUpgradeProcess != null) {
+                                pdUpgradeProcess.setMessage(GetSpinnerMessage("Connecting to LINK.\nPlease wait several seconds... "));
+                            }
 
                             startBTSppMain(4);
 
@@ -5850,10 +5945,118 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         if (BTConstants.UpgradeStatusBT4.equalsIgnoreCase("Incomplete")) {
                             BTConstants.isUpgradeInProgress_BT4 = false;
                             showUpgradeSpinnerMessage = false;
-                            pdUpgradeProcess.setMessage(GetSpinnerMessage("LINK connection lost.\nPlease try again later!"));
+                            if (pdUpgradeProcess != null) {
+                                pdUpgradeProcess.setMessage(GetSpinnerMessage("LINK connection lost.\nPlease try again later!"));
+                            }
                             BTConstants.UpgradeStatusBT4 = "";
 
                             startBTSppMain(4);
+
+                            if (pdUpgradeProcess != null) {
+                                new Handler().postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        pdUpgradeProcess.dismiss();
+                                    }
+                                }, 3000);
+                            }
+                        }
+                        break;
+                    case 5://Link 5
+
+                        if (AppConstants.UP_Upgrade_fs5) {
+                            if (pdOnResume != null) {
+                                pdOnResume.dismiss();
+                            }
+                            if (pdUpgradeProcess != null & showUpgradeSpinnerMessage) {
+                                //pdUpgradeProcess.setProgress(Integer.parseInt(BTConstants.upgradeProgress));
+                                pdUpgradeProcess.setMessage(GetSpinnerMessage("Software update in progress.\nPlease wait several seconds... " + BTConstants.upgradeProgress));
+                            }
+                        }
+                        if (BTConstants.UpgradeStatusBT5.equalsIgnoreCase("Completed")) {
+                            BTConstants.isUpgradeInProgress_BT5 = false;
+                            showUpgradeSpinnerMessage = false;
+                            if (AppConstants.GenerateLogs)
+                                AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-"+ TAG + "BTLink 5 Upgrade Completed. Connecting to LINK: " + AppConstants.CURRENT_SELECTED_SSID + " (" + BTConstants.deviceAddress5 + ")");
+                            BTConstants.UpgradeStatusBT5 = "";
+
+                            if (pdUpgradeProcess != null) {
+                                pdUpgradeProcess.setMessage(GetSpinnerMessage("Connecting to LINK.\nPlease wait several seconds... "));
+                            }
+
+                            startBTSppMain(5);
+
+                            if (pdUpgradeProcess != null) {
+                                new Handler().postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        pdUpgradeProcess.dismiss();
+                                    }
+                                }, 10000);
+                            }
+                        }
+                        if (BTConstants.UpgradeStatusBT5.equalsIgnoreCase("Incomplete")) {
+                            BTConstants.isUpgradeInProgress_BT5 = false;
+                            showUpgradeSpinnerMessage = false;
+                            if (pdUpgradeProcess != null) {
+                                pdUpgradeProcess.setMessage(GetSpinnerMessage("LINK connection lost.\nPlease try again later!"));
+                            }
+                            BTConstants.UpgradeStatusBT5 = "";
+
+                            startBTSppMain(5);
+
+                            if (pdUpgradeProcess != null) {
+                                new Handler().postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        pdUpgradeProcess.dismiss();
+                                    }
+                                }, 3000);
+                            }
+                        }
+                        break;
+                    case 6://Link 6
+
+                        if (AppConstants.UP_Upgrade_fs6) {
+                            if (pdOnResume != null) {
+                                pdOnResume.dismiss();
+                            }
+                            if (pdUpgradeProcess != null & showUpgradeSpinnerMessage) {
+                                //pdUpgradeProcess.setProgress(Integer.parseInt(BTConstants.upgradeProgress));
+                                pdUpgradeProcess.setMessage(GetSpinnerMessage("Software update in progress.\nPlease wait several seconds... " + BTConstants.upgradeProgress));
+                            }
+                        }
+                        if (BTConstants.UpgradeStatusBT6.equalsIgnoreCase("Completed")) {
+                            BTConstants.isUpgradeInProgress_BT6 = false;
+                            showUpgradeSpinnerMessage = false;
+                            if (AppConstants.GenerateLogs)
+                                AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-"+ TAG + "BTLink 6 Upgrade Completed. Connecting to LINK: " + AppConstants.CURRENT_SELECTED_SSID + " (" + BTConstants.deviceAddress6 + ")");
+                            BTConstants.UpgradeStatusBT6 = "";
+
+                            if (pdUpgradeProcess != null) {
+                                pdUpgradeProcess.setMessage(GetSpinnerMessage("Connecting to LINK.\nPlease wait several seconds... "));
+                            }
+
+                            startBTSppMain(6);
+
+                            if (pdUpgradeProcess != null) {
+                                new Handler().postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        pdUpgradeProcess.dismiss();
+                                    }
+                                }, 10000);
+                            }
+                        }
+                        if (BTConstants.UpgradeStatusBT6.equalsIgnoreCase("Incomplete")) {
+                            BTConstants.isUpgradeInProgress_BT6 = false;
+                            showUpgradeSpinnerMessage = false;
+                            if (pdUpgradeProcess != null) {
+                                pdUpgradeProcess.setMessage(GetSpinnerMessage("LINK connection lost.\nPlease try again later!"));
+                            }
+                            BTConstants.UpgradeStatusBT6 = "";
+
+                            startBTSppMain(6);
 
                             if (pdUpgradeProcess != null) {
                                 new Handler().postDelayed(new Runnable() {
@@ -6409,6 +6612,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
             Fs5_beginFuel.setVisibility(View.GONE); //Disable begin fueling message
             fs5Cnt5Sec = 0;
+            CountBeforeReconnectRelay5 = 0;
 
             tv_fs5_Qty.setText(Constants.FS_5Gallons);
             tv_fs5_Pulse.setText(Constants.FS_5Pulse);
@@ -6463,6 +6667,24 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 fs5Cnt5Sec++;
             }
 
+            if (BTConstants.CurrentTransactionIsBT && !BTConstants.BTLinkFiveStatus && AppConstants.isRelayON_fs5 && !BTConstants.SwitchedBTToUDP5) {
+                if (CountBeforeReconnectRelay5 >= 1) {
+                    if (BTConstants.BTStatusStrFive.equalsIgnoreCase("Disconnect") && !BTConstants.isUpgradeInProgress_BT5) {
+                        SaveLastQtyInSharedPref(5, Constants.FS_5Pulse);
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink 5: Retrying to Connect");
+                        BTConstants.isRelayOnAfterReconnect5 = false;
+                        //Retrying to connect to link
+                        BTSPPMain btspp = new BTSPPMain();
+                        btspp.activity = WelcomeActivity.this;
+                        btspp.connect5();
+                        BTConstants.isReconnectCalled5= true;
+                    }
+                } else {
+                    CountBeforeReconnectRelay5++;
+                }
+            }
+
             tv_fs5_Qty.setText(Constants.FS_5Gallons);
             tv_fs5_Pulse.setText(Constants.FS_5Pulse);
             linear_fs_5.setBackgroundResource(R.color.colorPrimary);
@@ -6510,6 +6732,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
             Fs6_beginFuel.setVisibility(View.GONE); //Disable begin fueling message
             fs6Cnt5Sec = 0;
+            CountBeforeReconnectRelay6 = 0;
 
             tv_fs6_Qty.setText(Constants.FS_6Gallons);
             tv_fs6_Pulse.setText(Constants.FS_6Pulse);
@@ -6564,6 +6787,24 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 fs6Cnt5Sec++;
             }
 
+            if (BTConstants.CurrentTransactionIsBT && !BTConstants.BTLinkSixStatus && AppConstants.isRelayON_fs6 && !BTConstants.SwitchedBTToUDP6) {
+                if (CountBeforeReconnectRelay6 >= 1) {
+                    if (BTConstants.BTStatusStrSix.equalsIgnoreCase("Disconnect") && !BTConstants.isUpgradeInProgress_BT6) {
+                        SaveLastQtyInSharedPref(6, Constants.FS_6Pulse);
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink 6: Retrying to Connect");
+                        BTConstants.isRelayOnAfterReconnect6 = false;
+                        //Retrying to connect to link
+                        BTSPPMain btspp = new BTSPPMain();
+                        btspp.activity = WelcomeActivity.this;
+                        btspp.connect6();
+                        BTConstants.isReconnectCalled6= true;
+                    }
+                } else {
+                    CountBeforeReconnectRelay6++;
+                }
+            }
+
             tv_fs6_Qty.setText(Constants.FS_6Gallons);
             tv_fs6_Pulse.setText(Constants.FS_6Pulse);
             linear_fs_6.setBackgroundResource(R.color.colorPrimary);
@@ -6614,6 +6855,20 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 SharedPreferences.Editor editorQty4 = sharedPrefLastQty4.edit();
                 editorQty4.putLong("Last_Quantity", current_count4);
                 editorQty4.commit();
+                break;
+            case 5:
+                SharedPreferences sharedPrefLastQty5 = this.getSharedPreferences("LastQuantity_BT5", Context.MODE_PRIVATE);
+                long current_count5 = Long.parseLong(String.valueOf(Pulses));
+                SharedPreferences.Editor editorQty5 = sharedPrefLastQty5.edit();
+                editorQty5.putLong("Last_Quantity", current_count5);
+                editorQty5.commit();
+                break;
+            case 6:
+                SharedPreferences sharedPrefLastQty6 = this.getSharedPreferences("LastQuantity_BT6", Context.MODE_PRIVATE);
+                long current_count6 = Long.parseLong(String.valueOf(Pulses));
+                SharedPreferences.Editor editorQty6 = sharedPrefLastQty6.edit();
+                editorQty6.putLong("Last_Quantity", current_count6);
+                editorQty6.commit();
                 break;
         }
     }
@@ -10383,11 +10638,11 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             download_now = true;
             editor.putString("3", UP_TLD_Version);
 
-        } else if (linkNumber == 4 && !link3Version.trim().equalsIgnoreCase(UP_TLD_Version)) {
+        } else if (linkNumber == 4 && !link4Version.trim().equalsIgnoreCase(UP_TLD_Version)) {
             download_now = true;
             editor.putString("4", UP_TLD_Version);
 
-        } else if (linkNumber == 5 && !link3Version.trim().equalsIgnoreCase(UP_TLD_Version)) {
+        } else if (linkNumber == 5 && !link5Version.trim().equalsIgnoreCase(UP_TLD_Version)) {
             download_now = true;
             editor.putString("5", UP_TLD_Version);
 
@@ -11638,6 +11893,10 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 TransactionId_US = sharedPref.getString("TransactionId_FS3", "");
             } else if (stopButtonSequence.equalsIgnoreCase("3")) {
                 TransactionId_US = sharedPref.getString("TransactionId_FS4", "");
+            } else if (stopButtonSequence.equalsIgnoreCase("4")) {
+                TransactionId_US = sharedPref.getString("TransactionId_FS5", "");
+            } else if (stopButtonSequence.equalsIgnoreCase("5")) {
+                TransactionId_US = sharedPref.getString("TransactionId_FS6", "");
             } else {
                 //Something went wrong in link selection
                 Log.i(TAG, "Something went wrong in link selection");
@@ -12544,6 +12803,19 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 Log.i(TAG, "BTLink 4: startBTSppMain");
             }
 
+            //Link 5
+            if (serviceIndex == 0 || serviceIndex == 5) {
+                WelcomeActivity.this.startService(new Intent(this, SerialServiceFive.class));
+                WelcomeActivity.this.bindService(new Intent(this, SerialServiceFive.class), this, Context.BIND_AUTO_CREATE);
+                Log.i(TAG, "BTLink 5: startBTSppMain");
+            }
+
+            //Link 6
+            if (serviceIndex == 0 || serviceIndex == 6) {
+                WelcomeActivity.this.startService(new Intent(this, SerialServiceSix.class));
+                WelcomeActivity.this.bindService(new Intent(this, SerialServiceSix.class), this, Context.BIND_AUTO_CREATE);
+                Log.i(TAG, "BTLink 6: startBTSppMain");
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -12565,6 +12837,14 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         //Link 4
         WelcomeActivity.this.stopService(new Intent(this, SerialServiceFour.class));
         Log.i(TAG, "BTLink 4: closeBTSppMain");
+
+        //Link 5
+        WelcomeActivity.this.stopService(new Intent(this, SerialServiceFive.class));
+        Log.i(TAG, "BTLink 5: closeBTSppMain");
+
+        //Link 6
+        WelcomeActivity.this.stopService(new Intent(this, SerialServiceSix.class));
+        Log.i(TAG, "BTLink 6: closeBTSppMain");
     }
 
     private boolean checkBTLinkStatus(int position) {
@@ -12605,6 +12885,24 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     if (isConnected) {
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink 4: Link is connected.");
+                    }
+                    break;
+                case 5:
+                    if (BTConstants.BTStatusStrFive.equalsIgnoreCase("Connected")) {
+                        isConnected = true;
+                    }
+                    if (isConnected) {
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink 5: Link is connected.");
+                    }
+                    break;
+                case 6:
+                    if (BTConstants.BTStatusStrSix.equalsIgnoreCase("Connected")) {
+                        isConnected = true;
+                    }
+                    if (isConnected) {
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink 6: Link is connected.");
                     }
                     break;
             }
@@ -12668,6 +12966,32 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         BTSPPMain btspp = new BTSPPMain();
                         btspp.activity = WelcomeActivity.this;
                         btspp.connect4();
+                        BTConstants.CurrentTransactionIsBT = false;
+                    }
+                    break;
+                case 5:
+                    if (BTConstants.BTStatusStrFive.equalsIgnoreCase("Connecting...")) {
+                        BTConstants.CurrentTransactionIsBT = false;
+                    } else {
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink 5: Retrying to Connect");
+                        //Retrying to connect to link
+                        BTSPPMain btspp = new BTSPPMain();
+                        btspp.activity = WelcomeActivity.this;
+                        btspp.connect5();
+                        BTConstants.CurrentTransactionIsBT = false;
+                    }
+                    break;
+                case 6:
+                    if (BTConstants.BTStatusStrSix.equalsIgnoreCase("Connecting...")) {
+                        BTConstants.CurrentTransactionIsBT = false;
+                    } else {
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink 6: Retrying to Connect");
+                        //Retrying to connect to link
+                        BTSPPMain btspp = new BTSPPMain();
+                        btspp.activity = WelcomeActivity.this;
+                        btspp.connect6();
                         BTConstants.CurrentTransactionIsBT = false;
                     }
                     break;
@@ -12927,32 +13251,89 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                             }
                         }, delay);
 
-                        /*handler.postDelayed(new Runnable() {
+                    } else {
+                        AppConstants.colorToast(getApplicationContext(), "Please make sure BT mac is set.", Color.BLUE);
+                    }
+                }
+                break;
+            case 4://Link Five
+
+                if (BTConstants.BTLinkFiveStatus) {
+
+                    if (Constants.FS_5STATUS.equalsIgnoreCase("FREE")) {
+
+                        AppConstants.FS_selected = String.valueOf(selectedItemPos);
+                        RedirectBtLinkFiveToNextScreen(selSSID);
+
+                    } else {
+                        BTL5State = 0;
+                        BTConstants.CurrentSelectedLinkBT = 0;
+                        RestrictHoseSelection("Hose in use.\nPlease try again later");
+                    }
+
+                } else {
+
+                    if (!BTConstants.deviceAddress5.isEmpty()) {
+                        NearByBTDevices.clear();
+                        mBluetoothAdapter.startDiscovery();
+                        RestrictHoseSelection("Connecting...");
+
+                        Handler handler = new Handler();
+                        int delay = 1000;
+                        handler.postDelayed(new Runnable() {
                             public void run() {
 
-                                if (checkBTLinkStatus(4)) {
-                                    if (BTConnectionHandler != null) {
-                                        BTConnectionHandler.removeCallbacksAndMessages(null);
-                                    }
-                                    RedirectBtLinkFourToNextScreen(selSSID);
-                                } else {
-                                    if (BTL4counter == 0) {
-                                        BTL4counter++;
-
-                                        retryConnect(4);
-
-                                        handler.postDelayed(this, delay);
-                                    } else {
-                                        BTL4counter = 0;
-                                        BTConstants.CurrentTransactionIsBT = false;
-                                        if (BTConnectionHandler != null) {
-                                            BTConnectionHandler.removeCallbacksAndMessages(null);
-                                        }
-                                        RedirectBtLinkFourToNextScreen(selSSID);
-                                    }
+                                if (!checkBTLinkStatus(5)) {
+                                    retryConnect(5);
                                 }
+                                if (BTConnectionHandler != null) {
+                                    BTConnectionHandler.removeCallbacksAndMessages(null);
+                                }
+                                RedirectBtLinkFiveToNextScreen(selSSID);
                             }
-                        }, delay);*/
+                        }, delay);
+
+                    } else {
+                        AppConstants.colorToast(getApplicationContext(), "Please make sure BT mac is set.", Color.BLUE);
+                    }
+                }
+                break;
+            case 5://Link Six
+
+                if (BTConstants.BTLinkSixStatus) {
+
+                    if (Constants.FS_6STATUS.equalsIgnoreCase("FREE")) {
+
+                        AppConstants.FS_selected = String.valueOf(selectedItemPos);
+                        RedirectBtLinkSixToNextScreen(selSSID);
+
+                    } else {
+                        BTL6State = 0;
+                        BTConstants.CurrentSelectedLinkBT = 0;
+                        RestrictHoseSelection("Hose in use.\nPlease try again later");
+                    }
+
+                } else {
+
+                    if (!BTConstants.deviceAddress6.isEmpty()) {
+                        NearByBTDevices.clear();
+                        mBluetoothAdapter.startDiscovery();
+                        RestrictHoseSelection("Connecting...");
+
+                        Handler handler = new Handler();
+                        int delay = 1000;
+                        handler.postDelayed(new Runnable() {
+                            public void run() {
+
+                                if (!checkBTLinkStatus(6)) {
+                                    retryConnect(6);
+                                }
+                                if (BTConnectionHandler != null) {
+                                    BTConnectionHandler.removeCallbacksAndMessages(null);
+                                }
+                                RedirectBtLinkSixToNextScreen(selSSID);
+                            }
+                        }, delay);
 
                     } else {
                         AppConstants.colorToast(getApplicationContext(), "Please make sure BT mac is set.", Color.BLUE);
@@ -13139,6 +13520,12 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     break;
                 case 3://Link Four
                     BTConstants.deviceAddress4 = BTMacAddress.toUpperCase();
+                    break;
+                case 4://Link Five
+                    BTConstants.deviceAddress5 = BTMacAddress.toUpperCase();
+                    break;
+                case 5://Link Six
+                    BTConstants.deviceAddress6 = BTMacAddress.toUpperCase();
                     break;
                 default://Something went wrong in link selection please try again.
                     break;
@@ -13451,7 +13838,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
     private void RedirectBtLinkOneToNextScreen(String selSSID) {
 
-        BTLinkReGainConnectio(0);
+        BTLinkReGainConnection(0);
         // linear_fs_1.setBackgroundColor(getResources().getColor(android.R.color.holo_red_light));
         Constants.AccPersonnelPIN = "";
         tvSSIDName.setText(selSSID);
@@ -13495,7 +13882,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
     private void RedirectBtLinkTwoToNextScreen(String selSSID) {
 
-        BTLinkReGainConnectio(1);
+        BTLinkReGainConnection(1);
         // linear_fs_1.setBackgroundColor(getResources().getColor(android.R.color.holo_red_light));
         Constants.AccPersonnelPIN = "";
         tvSSIDName.setText(selSSID);
@@ -13538,7 +13925,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
     private void RedirectBtLinkThreeToNextScreen(String selSSID) {
 
-        BTLinkReGainConnectio(2);
+        BTLinkReGainConnection(2);
         // linear_fs_1.setBackgroundColor(getResources().getColor(android.R.color.holo_red_light));
         Constants.AccPersonnelPIN = "";
         tvSSIDName.setText(selSSID);
@@ -13580,7 +13967,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
     private void RedirectBtLinkFourToNextScreen(String selSSID) {
 
-        BTLinkReGainConnectio(3);
+        BTLinkReGainConnection(3);
         // linear_fs_1.setBackgroundColor(getResources().getColor(android.R.color.holo_red_light));
         Constants.AccPersonnelPIN = "";
         tvSSIDName.setText(selSSID);
@@ -13620,7 +14007,89 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
     }
 
-    private void BTLinkReGainConnectio(int position) {
+    private void RedirectBtLinkFiveToNextScreen(String selSSID) {
+
+        BTLinkReGainConnection(4);
+        Constants.AccPersonnelPIN = "";
+        tvSSIDName.setText(selSSID);
+        AppConstants.FS5_CONNECTED_SSID = selSSID;
+        Constants.CurrentSelectedHose = "FS5";
+        BTConstants.CurrentTransactionIsBT = true;
+        BTConstants.CurrentSelectedLinkBT = 5;
+        String ReplaceableHoseName = "";
+
+        try {
+            ReplaceableHoseName = serverSSIDList.get(4).get("ReplaceableHoseName");
+            if (ReplaceableHoseName == null) {
+                ReplaceableHoseName = "";
+            }
+        } catch (Exception e) {
+            ReplaceableHoseName = "";
+        }
+
+        String IsHoseNameReplaced = serverSSIDList.get(4).get("IsHoseNameReplaced");
+        String SiteId = serverSSIDList.get(4).get("SiteId");
+        String HoseId = serverSSIDList.get(4).get("HoseId");
+
+        if (IsHoseNameReplaced != null && IsHoseNameReplaced.equalsIgnoreCase("Y")) {
+            BTConstants.BT5NeedRename = false;
+            BTConstants.BT5REPLACEBLE_WIFI_NAME = "";
+            BTConstants.BT5HOSE_ID = "";
+            BTConstants.BT5SITE_ID = "";
+        } else {
+            BTConstants.BT5NeedRename = true;
+            BTConstants.BT5REPLACEBLE_WIFI_NAME = ReplaceableHoseName;
+            BTConstants.BT5HOSE_ID = HoseId;
+            BTConstants.BT5SITE_ID = SiteId;
+        }
+
+        btnGo.setVisibility(View.VISIBLE);
+        goButtonAction(null);
+
+    }
+
+    private void RedirectBtLinkSixToNextScreen(String selSSID) {
+
+        BTLinkReGainConnection(5);
+        Constants.AccPersonnelPIN = "";
+        tvSSIDName.setText(selSSID);
+        AppConstants.FS6_CONNECTED_SSID = selSSID;
+        Constants.CurrentSelectedHose = "FS6";
+        BTConstants.CurrentTransactionIsBT = true;
+        BTConstants.CurrentSelectedLinkBT = 6;
+        String ReplaceableHoseName = "";
+
+        try {
+            ReplaceableHoseName = serverSSIDList.get(5).get("ReplaceableHoseName");
+            if (ReplaceableHoseName == null) {
+                ReplaceableHoseName = "";
+            }
+        } catch (Exception e) {
+            ReplaceableHoseName = "";
+        }
+
+        String IsHoseNameReplaced = serverSSIDList.get(5).get("IsHoseNameReplaced");
+        String SiteId = serverSSIDList.get(5).get("SiteId");
+        String HoseId = serverSSIDList.get(5).get("HoseId");
+
+        if (IsHoseNameReplaced != null && IsHoseNameReplaced.equalsIgnoreCase("Y")) {
+            BTConstants.BT6NeedRename = false;
+            BTConstants.BT6REPLACEBLE_WIFI_NAME = "";
+            BTConstants.BT6HOSE_ID = "";
+            BTConstants.BT6SITE_ID = "";
+        } else {
+            BTConstants.BT6NeedRename = true;
+            BTConstants.BT6REPLACEBLE_WIFI_NAME = ReplaceableHoseName;
+            BTConstants.BT6HOSE_ID = HoseId;
+            BTConstants.BT6SITE_ID = SiteId;
+        }
+
+        btnGo.setVisibility(View.VISIBLE);
+        goButtonAction(null);
+
+    }
+
+    private void BTLinkReGainConnection(int position) {
 
         try {
 
@@ -13647,6 +14116,18 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 case 3:
                     if (BTL4State > 9) {
                         BTL4State = 0;
+                        new LinkReconnectionEmail().execute(); //send an email to support@fluidsecure.com
+                    }
+                    break;
+                case 4:
+                    if (BTL5State > 9) {
+                        BTL5State = 0;
+                        new LinkReconnectionEmail().execute(); //send an email to support@fluidsecure.com
+                    }
+                    break;
+                case 5:
+                    if (BTL6State > 9) {
+                        BTL6State = 0;
                         new LinkReconnectionEmail().execute(); //send an email to support@fluidsecure.com
                     }
                     break;
@@ -14409,6 +14890,22 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 startService(serviceIntent4);
 
                 break;
+            case "4"://Link 5
+                Log.i(TAG, "BTServiceSelected Five>>");
+                Intent serviceIntent5 = new Intent(WelcomeActivity.this, BackgroundService_BTFive.class);
+                serviceIntent5.putExtra("SERVER_IP", "");
+                serviceIntent5.putExtra("sqlite_id", sqlite_id);
+                startService(serviceIntent5);
+
+                break;
+            case "5"://Link 6
+                Log.i(TAG, "BTServiceSelected Six>>");
+                Intent serviceIntent6 = new Intent(WelcomeActivity.this, BackgroundService_BTSix.class);
+                serviceIntent6.putExtra("SERVER_IP", "");
+                serviceIntent6.putExtra("sqlite_id", sqlite_id);
+                startService(serviceIntent6);
+
+                break;
             default://Something went wrong in link selection please try again.
                 break;
         }
@@ -14465,6 +14962,12 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                             case "3"://Link 4
                                 BTStatus = BTConstants.BTStatusStrFour;
                                 break;
+                            case "4"://Link 5
+                                BTStatus = BTConstants.BTStatusStrFive;
+                                break;
+                            case "5"://Link 6
+                                BTStatus = BTConstants.BTStatusStrSix;
+                                break;
                             default://Something went wrong in link selection please try again.
                                 break;
                         }
@@ -14517,41 +15020,6 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                             }
                         }, delay);
 
-                        /*new Handler().postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-
-                                if (NearByBTDevices.contains(BTConstants.deviceAddress1)) {
-
-                                    if (BTConstants.BTStatusStrOne.equalsIgnoreCase("Connecting...")) {
-                                        Log.i(TAG, "BTLink 1 msg Connecting...");
-                                    } else {
-                                        //Retrying to connect to link
-                                        BTSPPMain btspp = new BTSPPMain();
-                                        btspp.activity = WelcomeActivity.this;
-                                        btspp.connect1();
-                                    }
-                                    new Handler().postDelayed(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            new RedirectToOscilloscope().execute(WifiSSId, LinkPosition);
-                                        }
-                                    }, 1000);
-
-                                } else {
-                                    if (AppConstants.GenerateLogs)
-                                        AppConstants.WriteinFile(TAG + "BTLink 1: Hose is Unavailable.");
-                                    if (BTL1State == 0) {
-                                        BTL1State = 1;
-                                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", getResources().getString(R.string.HoseUnavailableMessage));
-                                    } else {
-                                        BTL1State = 0;
-                                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", getResources().getString(R.string.UnableToConnectToHoseMessage));
-                                    }
-                                }
-                            }
-                        }, 2000);*/
-
                     } else {
                         AppConstants.colorToast(getApplicationContext(), "Please make sure BT mac is set.", Color.BLUE);
                     }
@@ -14581,41 +15049,6 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                 new RedirectToOscilloscope().execute(WifiSSId, LinkPosition);
                             }
                         }, delay);
-
-                        /*new Handler().postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-
-                                if (NearByBTDevices.contains(BTConstants.deviceAddress2)) {
-
-                                    if (BTConstants.BTStatusStrTwo.equalsIgnoreCase("Connecting...")) {
-                                        Log.i(TAG, "BTLink 2 msg Connecting...");
-                                    } else {
-                                        //Retrying to connect to link
-                                        BTSPPMain btspp = new BTSPPMain();
-                                        btspp.activity = WelcomeActivity.this;
-                                        btspp.connect2();
-                                    }
-                                    new Handler().postDelayed(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            new RedirectToOscilloscope().execute(WifiSSId, LinkPosition);
-                                        }
-                                    }, 1000);
-
-                                } else {
-                                    if (AppConstants.GenerateLogs)
-                                        AppConstants.WriteinFile(TAG + "BTLink 2: Hose is Unavailable.");
-                                    if (BTL2State == 0) {
-                                        BTL2State = 1;
-                                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", getResources().getString(R.string.HoseUnavailableMessage));
-                                    } else {
-                                        BTL2State = 0;
-                                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", getResources().getString(R.string.UnableToConnectToHoseMessage));
-                                    }
-                                }
-                            }
-                        }, 2000);*/
 
                     } else {
                         AppConstants.colorToast(getApplicationContext(), "Please make sure BT mac is set.", Color.BLUE);
@@ -14648,41 +15081,6 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                             }
                         }, delay);
 
-                        /*new Handler().postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-
-                                if (NearByBTDevices.contains(BTConstants.deviceAddress3)) {
-
-                                    if (BTConstants.BTStatusStrThree.equalsIgnoreCase("Connecting...")) {
-                                        Log.i(TAG, "BTLink 3 msg Connecting...");
-                                    } else {
-                                        //Retrying to connect to link
-                                        BTSPPMain btspp = new BTSPPMain();
-                                        btspp.activity = WelcomeActivity.this;
-                                        btspp.connect3();
-                                    }
-                                    new Handler().postDelayed(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            new RedirectToOscilloscope().execute(WifiSSId, LinkPosition);
-                                        }
-                                    }, 1000);
-
-                                } else {
-                                    if (AppConstants.GenerateLogs)
-                                        AppConstants.WriteinFile(TAG + "BTLink 3: Hose is Unavailable.");
-                                    if (BTL3State == 0) {
-                                        BTL3State = 1;
-                                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", getResources().getString(R.string.HoseUnavailableMessage));
-                                    } else {
-                                        BTL3State = 0;
-                                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", getResources().getString(R.string.UnableToConnectToHoseMessage));
-                                    }
-                                }
-                            }
-                        }, 2000);*/
-
                     } else {
                         AppConstants.colorToast(getApplicationContext(), "Please make sure BT mac is set.", Color.BLUE);
                     }
@@ -14713,40 +15111,65 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                             }
                         }, delay);
 
-                        /*new Handler().postDelayed(new Runnable() {
-                            @Override
+                    } else {
+                        AppConstants.colorToast(getApplicationContext(), "Please make sure BT mac is set.", Color.BLUE);
+                    }
+                }
+                break;
+            case "4"://Link Five
+
+                if (BTConstants.BTLinkFiveStatus) {
+                    if (Constants.FS_5STATUS.equalsIgnoreCase("FREE")) {
+                        new RedirectToOscilloscope().execute(WifiSSId, LinkPosition);
+                    } else {
+                        BTL5State = 0;
+                    }
+                } else {
+                    if (!BTConstants.deviceAddress5.isEmpty()) {
+                        NearByBTDevices.clear();
+                        mBluetoothAdapter.startDiscovery();
+
+                        Handler handler = new Handler();
+                        int delay = 1000;
+                        handler.postDelayed(new Runnable() {
                             public void run() {
 
-                                if (NearByBTDevices.contains(BTConstants.deviceAddress4)) {
-
-                                    if (BTConstants.BTStatusStrFour.equalsIgnoreCase("Connecting...")) {
-                                        Log.i(TAG, "BTLink 4 msg Connecting...");
-                                    } else {
-                                        //Retrying to connect to link
-                                        BTSPPMain btspp = new BTSPPMain();
-                                        btspp.activity = WelcomeActivity.this;
-                                        btspp.connect4();
-                                    }
-                                    new Handler().postDelayed(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            new RedirectToOscilloscope().execute(WifiSSId, LinkPosition);
-                                        }
-                                    }, 1000);
-
-                                } else {
-                                    if (AppConstants.GenerateLogs)
-                                        AppConstants.WriteinFile(TAG + "BTLink 4: Hose is Unavailable.");
-                                    if (BTL4State == 0) {
-                                        BTL4State = 1;
-                                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", getResources().getString(R.string.HoseUnavailableMessage));
-                                    } else {
-                                        BTL4State = 0;
-                                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", getResources().getString(R.string.UnableToConnectToHoseMessage));
-                                    }
+                                if (!checkBTLinkStatus(5)) {
+                                    retryConnect(5);
                                 }
+                                new RedirectToOscilloscope().execute(WifiSSId, LinkPosition);
                             }
-                        }, 2000);*/
+                        }, delay);
+
+                    } else {
+                        AppConstants.colorToast(getApplicationContext(), "Please make sure BT mac is set.", Color.BLUE);
+                    }
+                }
+                break;
+            case "5"://Link Six
+
+                if (BTConstants.BTLinkSixStatus) {
+                    if (Constants.FS_6STATUS.equalsIgnoreCase("FREE")) {
+                        new RedirectToOscilloscope().execute(WifiSSId, LinkPosition);
+                    } else {
+                        BTL6State = 0;
+                    }
+                } else {
+                    if (!BTConstants.deviceAddress6.isEmpty()) {
+                        NearByBTDevices.clear();
+                        mBluetoothAdapter.startDiscovery();
+
+                        Handler handler = new Handler();
+                        int delay = 1000;
+                        handler.postDelayed(new Runnable() {
+                            public void run() {
+
+                                if (!checkBTLinkStatus(6)) {
+                                    retryConnect(6);
+                                }
+                                new RedirectToOscilloscope().execute(WifiSSId, LinkPosition);
+                            }
+                        }, delay);
 
                     } else {
                         AppConstants.colorToast(getApplicationContext(), "Please make sure BT mac is set.", Color.BLUE);

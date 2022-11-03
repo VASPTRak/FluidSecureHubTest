@@ -115,7 +115,7 @@ public class BackgroundService_BTOne extends Service {
                 if (BTConstants.forOscilloscope) {
                     LinkCommunicationType = "BT";
 
-                    //Register Broadcast reciever
+                    //Register Broadcast receiver
                     broadcastBlueLinkOneData = new BroadcastBlueLinkOneData();
                     IntentFilter intentFilter = new IntentFilter("BroadcastBlueLinkOneData");
                     if (AppConstants.GenerateLogs)
@@ -160,7 +160,7 @@ public class BackgroundService_BTOne extends Service {
                         offlineLogicBT1();
                     }
 
-                    //Register Broadcast reciever
+                    //Register Broadcast receiver
                     broadcastBlueLinkOneData = new BroadcastBlueLinkOneData();
                     IntentFilter intentFilter = new IntentFilter("BroadcastBlueLinkOneData");
                     if (AppConstants.GenerateLogs)

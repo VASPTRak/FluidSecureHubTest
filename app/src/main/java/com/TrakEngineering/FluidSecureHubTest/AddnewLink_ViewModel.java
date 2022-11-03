@@ -259,9 +259,9 @@ public class AddnewLink_ViewModel extends AndroidViewModel implements LifecycleO
                 String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(getApplication()) + ":" + userEmail + ":" + "SaveLinkFromAPP");
 
                 OkHttpClient client = new OkHttpClient();
-                client.setConnectTimeout(14, TimeUnit.SECONDS);
-                client.setReadTimeout(14, TimeUnit.SECONDS);
-                client.setWriteTimeout(14, TimeUnit.SECONDS);
+                client.setConnectTimeout(30, TimeUnit.SECONDS);
+                client.setReadTimeout(30, TimeUnit.SECONDS);
+                ////client.setWriteTimeout(30, TimeUnit.SECONDS);
 
                 RequestBody body = RequestBody.create(TEXT, params[0]);
                 Request request = new Request.Builder()

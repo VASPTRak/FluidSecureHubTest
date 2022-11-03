@@ -43,10 +43,12 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTConstants;
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPPMain;
-import com.TrakEngineering.FluidSecureHubTest.BTSPP.BackgroundService_BTFour;
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.BackgroundService_BTOne;
-import com.TrakEngineering.FluidSecureHubTest.BTSPP.BackgroundService_BTThree;
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.BackgroundService_BTTwo;
+import com.TrakEngineering.FluidSecureHubTest.BTSPP.BackgroundService_BTThree;
+import com.TrakEngineering.FluidSecureHubTest.BTSPP.BackgroundService_BTFour;
+import com.TrakEngineering.FluidSecureHubTest.BTSPP.BackgroundService_BTFive;
+import com.TrakEngineering.FluidSecureHubTest.BTSPP.BackgroundService_BTSix;
 import com.TrakEngineering.FluidSecureHubTest.enity.RenameHose;
 import com.TrakEngineering.FluidSecureHubTest.enity.SocketErrorEntityClass;
 import com.TrakEngineering.FluidSecureHubTest.enity.StatusForUpgradeVersionEntity;
@@ -634,7 +636,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
         IsDepartmentRequire = sharedPrefODO.getString(AppConstants.IsDepartmentRequire, "");
         IsPersonnelPINRequire = sharedPrefODO.getString(AppConstants.IsPersonnelPINRequire, "");
         IsOtherRequire = sharedPrefODO.getString(AppConstants.IsOtherRequire, "");
-        TimeOutinMinute = sharedPrefODO.getString(AppConstants.TimeOut, "1");
+        //TimeOutinMinute = sharedPrefODO.getString(AppConstants.TimeOut, "1");
 
         TimeOutinMinute = sharedPrefODO.getString(AppConstants.TimeOut, "1");
         //long screenTimeOut= (long) (Double.parseDouble(TimeOutinMinute) *60000);
@@ -4321,6 +4323,40 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                     e.printStackTrace();
                 }
                 break;
+            case 4://Link 5
+                try {
+                    String Qty = sharedPref.getString("LinkSeq_five", "0");
+                    Pulses = Integer.parseInt(Qty);
+                    fillqty = Double.parseDouble(Qty);
+                    fillqty = fillqty / numPulseRatio;//convert to gallons
+                    fillqty = AppConstants.roundNumber(fillqty, 2);
+                    OverrideQuantity = String.valueOf(fillqty);
+                    OverridePulse = String.valueOf(Pulses);
+                    Log.i(TAG, "LinkSeq:5 final OverrideQuantity:" + OverrideQuantity + " OverridePulse:" + OverridePulse);
+
+                } catch (Exception e) {
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + " SetOverrideQty Link 5 Exception " + e.getMessage());
+                    e.printStackTrace();
+                }
+                break;
+            case 5://Link 6
+                try {
+                    String Qty = sharedPref.getString("LinkSeq_six", "0");
+                    Pulses = Integer.parseInt(Qty);
+                    fillqty = Double.parseDouble(Qty);
+                    fillqty = fillqty / numPulseRatio;//convert to gallons
+                    fillqty = AppConstants.roundNumber(fillqty, 2);
+                    OverrideQuantity = String.valueOf(fillqty);
+                    OverridePulse = String.valueOf(Pulses);
+                    Log.i(TAG, "LinkSeq:6 final OverrideQuantity:" + OverrideQuantity + " OverridePulse:" + OverridePulse);
+
+                } catch (Exception e) {
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + " SetOverrideQty Link 6 Exception " + e.getMessage());
+                    e.printStackTrace();
+                }
+                break;
         }
     }
 
@@ -4381,6 +4417,28 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
                     BackToWelcomeActivity();
                     break;
+                case 5://Link 5
+                    // BtnStartStateChange(true);
+                    Log.i(TAG, "BTServiceSelected Five>>");
+                    /// BtnStartStateChange(false);
+                    Intent serviceIntent5 = new Intent(DisplayMeterActivity.this, BackgroundService_BTFive.class);
+                    serviceIntent5.putExtra("SERVER_IP", SERVERIP);
+                    serviceIntent5.putExtra("sqlite_id", sqlite_id);
+                    startService(serviceIntent5);
+
+                    BackToWelcomeActivity();
+                    break;
+                case 6://Link 6
+                    // BtnStartStateChange(true);
+                    Log.i(TAG, "BTServiceSelected Six>>");
+                    /// BtnStartStateChange(false);
+                    Intent serviceIntent6 = new Intent(DisplayMeterActivity.this, BackgroundService_BTSix.class);
+                    serviceIntent6.putExtra("SERVER_IP", SERVERIP);
+                    serviceIntent6.putExtra("sqlite_id", sqlite_id);
+                    startService(serviceIntent6);
+
+                    BackToWelcomeActivity();
+                    break;
                 default://Something went wrong in link selection please try again.
                     break;
             }
@@ -4401,18 +4459,62 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                 case 0://Link 1
 
                     BtnStartStateChange(false);
-                    Intent serviceIntent = new Intent(DisplayMeterActivity.this, BackgroundService_BTOne.class);
-                    serviceIntent.putExtra("SERVER_IP", SERVERIP);
-                    serviceIntent.putExtra("sqlite_id", sqlite_id);
-                    startService(serviceIntent);
+                    Intent serviceIntent1 = new Intent(DisplayMeterActivity.this, BackgroundService_BTOne.class);
+                    serviceIntent1.putExtra("SERVER_IP", SERVERIP);
+                    serviceIntent1.putExtra("sqlite_id", sqlite_id);
+                    startService(serviceIntent1);
 
                     BackToWelcomeActivity();
                     break;
                 case 1://Link 2
+
+                    BtnStartStateChange(false);
+                    Intent serviceIntent2 = new Intent(DisplayMeterActivity.this, BackgroundService_BTTwo.class);
+                    serviceIntent2.putExtra("SERVER_IP", SERVERIP);
+                    serviceIntent2.putExtra("sqlite_id", sqlite_id);
+                    startService(serviceIntent2);
+
+                    BackToWelcomeActivity();
                     break;
                 case 2://Link 3
+
+                    BtnStartStateChange(false);
+                    Intent serviceIntent3 = new Intent(DisplayMeterActivity.this, BackgroundService_BTThree.class);
+                    serviceIntent3.putExtra("SERVER_IP", SERVERIP);
+                    serviceIntent3.putExtra("sqlite_id", sqlite_id);
+                    startService(serviceIntent3);
+
+                    BackToWelcomeActivity();
                     break;
                 case 3://Link 4
+
+                    BtnStartStateChange(false);
+                    Intent serviceIntent4 = new Intent(DisplayMeterActivity.this, BackgroundService_BTFour.class);
+                    serviceIntent4.putExtra("SERVER_IP", SERVERIP);
+                    serviceIntent4.putExtra("sqlite_id", sqlite_id);
+                    startService(serviceIntent4);
+
+                    BackToWelcomeActivity();
+                    break;
+                case 4://Link 5
+
+                    BtnStartStateChange(false);
+                    Intent serviceIntent5 = new Intent(DisplayMeterActivity.this, BackgroundService_BTFive.class);
+                    serviceIntent5.putExtra("SERVER_IP", SERVERIP);
+                    serviceIntent5.putExtra("sqlite_id", sqlite_id);
+                    startService(serviceIntent5);
+
+                    BackToWelcomeActivity();
+                    break;
+                case 5://Link 6
+
+                    BtnStartStateChange(false);
+                    Intent serviceIntent6 = new Intent(DisplayMeterActivity.this, BackgroundService_BTSix.class);
+                    serviceIntent6.putExtra("SERVER_IP", SERVERIP);
+                    serviceIntent6.putExtra("sqlite_id", sqlite_id);
+                    startService(serviceIntent6);
+
+                    BackToWelcomeActivity();
                     break;
                 default://Something went wrong in link selection please try again.
                     break;
@@ -4485,7 +4587,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
             try {
                 switch (WelcomeActivity.SelectedItemPos) {
-                    case 0:
+                    case 0: // Link 1
                         if (!BTConstants.BTStatusStrOne.equalsIgnoreCase("Connected")) {
                             if (AppConstants.GenerateLogs)
                                 AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink 1: Retrying to Connect");
@@ -4495,7 +4597,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                             btspp.connect1();
                         }
                         break;
-                    case 1:
+                    case 1: // Link 2
                         if (!BTConstants.BTStatusStrTwo.equalsIgnoreCase("Connected")) {
                             if (AppConstants.GenerateLogs)
                                 AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink 2: Retrying to Connect");
@@ -4505,7 +4607,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                             btspp.connect2();
                         }
                         break;
-                    case 2:
+                    case 2: // Link 3
                         if (!BTConstants.BTStatusStrThree.equalsIgnoreCase("Connected")) {
                             if (AppConstants.GenerateLogs)
                                 AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink 3: Retrying to Connect");
@@ -4515,7 +4617,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                             btspp.connect3();
                         }
                         break;
-                    case 3:
+                    case 3: // Link 4
                         if (!BTConstants.BTStatusStrFour.equalsIgnoreCase("Connected")) {
                             if (AppConstants.GenerateLogs)
                                 AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink 4: Retrying to Connect");
@@ -4523,6 +4625,26 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                             BTSPPMain btspp = new BTSPPMain();
                             btspp.activity = DisplayMeterActivity.this;
                             btspp.connect4();
+                        }
+                        break;
+                    case 4: // Link 5
+                        if (!BTConstants.BTStatusStrFive.equalsIgnoreCase("Connected")) {
+                            if (AppConstants.GenerateLogs)
+                                AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink 5: Retrying to Connect");
+                            //Retrying to connect to link
+                            BTSPPMain btspp = new BTSPPMain();
+                            btspp.activity = DisplayMeterActivity.this;
+                            btspp.connect5();
+                        }
+                        break;
+                    case 5: // Link 6
+                        if (!BTConstants.BTStatusStrSix.equalsIgnoreCase("Connected")) {
+                            if (AppConstants.GenerateLogs)
+                                AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink 6: Retrying to Connect");
+                            //Retrying to connect to link
+                            BTSPPMain btspp = new BTSPPMain();
+                            btspp.activity = DisplayMeterActivity.this;
+                            btspp.connect6();
                         }
                         break;
                 }

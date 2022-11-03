@@ -244,6 +244,12 @@ public class BT_Link_Oscilloscope_Activity extends AppCompatActivity { // implem
                     case "3"://Link 4
                         btspp.connect4();
                         break;
+                    case "4"://Link 5
+                        btspp.connect5();
+                        break;
+                    case "5"://Link 6
+                        btspp.connect6();
+                        break;
                     default://Something went wrong in link selection please try again.
                         break;
                 }
@@ -298,6 +304,12 @@ public class BT_Link_Oscilloscope_Activity extends AppCompatActivity { // implem
                     case "3"://Link 4
                         btspp.send4(BTConstants.p_type_command + selectedType);
                         break;
+                    case "4"://Link 5
+                        btspp.send5(BTConstants.p_type_command + selectedType);
+                        break;
+                    case "5"://Link 6
+                        btspp.send6(BTConstants.p_type_command + selectedType);
+                        break;
                     default://Something went wrong in link selection please try again.
                         break;
                 }
@@ -329,6 +341,12 @@ public class BT_Link_Oscilloscope_Activity extends AppCompatActivity { // implem
                                         break;
                                     case "3"://Link 4
                                         btspp.connect4();
+                                        break;
+                                    case "4"://Link 5
+                                        btspp.connect5();
+                                        break;
+                                    case "5"://Link 6
+                                        btspp.connect6();
                                         break;
                                     default://Something went wrong in link selection please try again.
                                         break;
@@ -373,6 +391,12 @@ public class BT_Link_Oscilloscope_Activity extends AppCompatActivity { // implem
                     break;
                 case "3"://Link 4
                     btspp.send4(BTConstants.scope_ON_cmd);
+                    break;
+                case "4"://Link 5
+                    btspp.send5(BTConstants.scope_ON_cmd);
+                    break;
+                case "5"://Link 6
+                    btspp.send6(BTConstants.scope_ON_cmd);
                     break;
                 default://Something went wrong in link selection please try again.
                     break;
@@ -534,6 +558,12 @@ public class BT_Link_Oscilloscope_Activity extends AppCompatActivity { // implem
                     break;
                 case "3"://Link 4
                     btspp.send4(BTConstants.scope_READ_cmd);
+                    break;
+                case "4"://Link 5
+                    btspp.send5(BTConstants.scope_READ_cmd);
+                    break;
+                case "5"://Link 6
+                    btspp.send6(BTConstants.scope_READ_cmd);
                     break;
                 default://Something went wrong in link selection please try again.
                     break;

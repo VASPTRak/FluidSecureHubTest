@@ -115,8 +115,8 @@ public class BackgroundService_BTTwo extends Service {
                 if (BTConstants.forOscilloscope) {
                     LinkCommunicationType = "BT";
 
-                    //Register Broadcast reciever
-                    broadcastBlueLinkTwoData = new BackgroundService_BTTwo.BroadcastBlueLinkTwoData();
+                    //Register Broadcast receiver
+                    broadcastBlueLinkTwoData = new BroadcastBlueLinkTwoData();
                     IntentFilter intentFilter = new IntentFilter("BroadcastBlueLinkTwoData");
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(TAG + " BTLink 2: <Registering Receiver.>");
@@ -160,8 +160,8 @@ public class BackgroundService_BTTwo extends Service {
                         offlineLogicBT2();
                     }
 
-                    //Register Broadcast reciever
-                    broadcastBlueLinkTwoData = new BackgroundService_BTTwo.BroadcastBlueLinkTwoData();
+                    //Register Broadcast receiver
+                    broadcastBlueLinkTwoData = new BroadcastBlueLinkTwoData();
                     IntentFilter intentFilter = new IntentFilter("BroadcastBlueLinkTwoData");
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(TAG + " BTLink 2: <Registering Receiver.>");

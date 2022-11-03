@@ -60,7 +60,7 @@ public class BackgroundService_BTFour extends Service {
     private static final String TAG = AppConstants.LOG_TXTN_BT + "-"; // + BackgroundService_BTFour.class.getSimpleName();
     public long sqlite_id = 0;
     String TransactionId, VehicleId, PhoneNumber, PersonId, PulseRatio, MinLimit, FuelTypeId, ServerDate, IntervalToStopFuel, IsTLDCall, EnablePrinter, PumpOnTime,VehicleNumber,TransactionDateWithFormat;
-    public BackgroundService_BTFour.BroadcastBlueLinkFourData broadcastBlueLinkFourData = null;
+    public BroadcastBlueLinkFourData broadcastBlueLinkFourData = null;
     String Request = "", Response = "";
     String FDRequest = "", FDResponse = "";
     int PreviousRes = 0;
@@ -115,8 +115,8 @@ public class BackgroundService_BTFour extends Service {
                 if (BTConstants.forOscilloscope) {
                     LinkCommunicationType = "BT";
 
-                    //Register Broadcast reciever
-                    broadcastBlueLinkFourData = new BackgroundService_BTFour.BroadcastBlueLinkFourData();
+                    //Register Broadcast receiver
+                    broadcastBlueLinkFourData = new BroadcastBlueLinkFourData();
                     IntentFilter intentFilter = new IntentFilter("BroadcastBlueLinkFourData");
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(TAG + " BTLink 4: <Registering Receiver.>");
@@ -160,8 +160,8 @@ public class BackgroundService_BTFour extends Service {
                         offlineLogicBT4();
                     }
 
-                    //Register Broadcast reciever
-                    broadcastBlueLinkFourData = new BackgroundService_BTFour.BroadcastBlueLinkFourData();
+                    //Register Broadcast receiver
+                    broadcastBlueLinkFourData = new BroadcastBlueLinkFourData();
                     IntentFilter intentFilter = new IntentFilter("BroadcastBlueLinkFourData");
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(TAG + " BTLink 4: <Registering Receiver.>");
@@ -601,7 +601,7 @@ public class BackgroundService_BTFour extends Service {
     private void relayOnCommand(boolean isAfterReconnect) {
         try {
             if (isAfterReconnect) {
-                BTConstants.isReconnectCalled2 = false;
+                BTConstants.isReconnectCalled4 = false;
             }
             //Execute relayOn Command
             Request = "";
