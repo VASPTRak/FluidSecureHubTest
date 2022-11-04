@@ -14947,7 +14947,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
             handler.postDelayed(new Runnable() {
                 public void run() {
-                    if (counter < 5) {
+                    if (counter < 10) {
                         String BTStatus = "";
                         switch (LinkPosition) {
                             case "0"://Link 1
@@ -14984,7 +14984,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         pd.dismiss();
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + "BT LINK not connected.");
-                        Toast.makeText(getApplicationContext(), "BT LINK not connected.", Toast.LENGTH_SHORT).show();
+                        //Toast.makeText(getApplicationContext(), "BT LINK not connected.", Toast.LENGTH_SHORT).show();
+                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", getResources().getString(R.string.UnableToConnectToHoseMessage));
                     }
                 }
             }, delay);

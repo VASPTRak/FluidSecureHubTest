@@ -189,6 +189,9 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         }
         if (Response.contains("$$")) {
             String res = Response.replace("$$", "");
+            if (res.contains("}")) {
+                res = res.substring(0, (res.lastIndexOf("}") + 1)); // To remove extra characters after the last curly bracket (if any)
+            }
             if (!res.trim().isEmpty()) {
                 sb1.append(res.trim());
             }
@@ -209,7 +212,7 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         Intent broadcastIntent = new Intent();
         broadcastIntent.setAction("BroadcastBlueLinkOneData");
         broadcastIntent.putExtra("Request", BTConstants.CurrentCommand_LinkOne);
-        broadcastIntent.putExtra("Response", spn);
+        broadcastIntent.putExtra("Response", spn.trim());
         broadcastIntent.putExtra("Action", "BlueLinkOne");
         activity.sendBroadcast(broadcastIntent);
     }
@@ -328,6 +331,9 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         }
         if (Response.contains("$$")) {
             String res = Response.replace("$$", "");
+            if (res.contains("}")) {
+                res = res.substring(0, (res.lastIndexOf("}") + 1)); // To remove extra characters after the last curly bracket (if any)
+            }
             if (!res.trim().isEmpty()) {
                 sb2.append(res.trim());
             }
@@ -348,7 +354,7 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         Intent broadcastIntent = new Intent();
         broadcastIntent.setAction("BroadcastBlueLinkTwoData");
         broadcastIntent.putExtra("Request", BTConstants.CurrentCommand_LinkTwo);
-        broadcastIntent.putExtra("Response", spn);
+        broadcastIntent.putExtra("Response", spn.trim());
         broadcastIntent.putExtra("Action", "BlueLinkTwo");
         activity.sendBroadcast(broadcastIntent);
     }
@@ -466,6 +472,9 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         }
         if (Response.contains("$$")) {
             String res = Response.replace("$$", "");
+            if (res.contains("}")) {
+                res = res.substring(0, (res.lastIndexOf("}") + 1)); // To remove extra characters after the last curly bracket (if any)
+            }
             if (!res.trim().isEmpty()) {
                 sb3.append(res.trim());
             }
@@ -486,7 +495,7 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         Intent broadcastIntent = new Intent();
         broadcastIntent.setAction("BroadcastBlueLinkThreeData");
         broadcastIntent.putExtra("Request", BTConstants.CurrentCommand_LinkThree);
-        broadcastIntent.putExtra("Response", spn);
+        broadcastIntent.putExtra("Response", spn.trim());
         broadcastIntent.putExtra("Action", "BlueLinkThree");
         activity.sendBroadcast(broadcastIntent);
     }
@@ -605,6 +614,9 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         }
         if (Response.contains("$$")) {
             String res = Response.replace("$$", "");
+            if (res.contains("}")) {
+                res = res.substring(0, (res.lastIndexOf("}") + 1)); // To remove extra characters after the last curly bracket (if any)
+            }
             if (!res.trim().isEmpty()) {
                 sb4.append(res.trim());
             }
@@ -625,7 +637,7 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         Intent broadcastIntent = new Intent();
         broadcastIntent.setAction("BroadcastBlueLinkFourData");
         broadcastIntent.putExtra("Request", BTConstants.CurrentCommand_LinkFour);
-        broadcastIntent.putExtra("Response", spn);
+        broadcastIntent.putExtra("Response", spn.trim());
         broadcastIntent.putExtra("Action", "BlueLinkFour");
         activity.sendBroadcast(broadcastIntent);
     }
@@ -758,6 +770,9 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         }
         if (Response.contains("$$")) {
             String res = Response.replace("$$", "");
+            if (res.contains("}")) {
+                res = res.substring(0, (res.lastIndexOf("}") + 1)); // To remove extra characters after the last curly bracket (if any)
+            }
             if (!res.trim().isEmpty()) {
                 sb5.append(res.trim());
             }
@@ -778,7 +793,7 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         Intent broadcastIntent = new Intent();
         broadcastIntent.setAction("BroadcastBlueLinkFiveData");
         broadcastIntent.putExtra("Request", BTConstants.CurrentCommand_LinkFive);
-        broadcastIntent.putExtra("Response", spn);
+        broadcastIntent.putExtra("Response", spn.trim());
         broadcastIntent.putExtra("Action", "BlueLinkFive");
         activity.sendBroadcast(broadcastIntent);
     }
@@ -912,6 +927,9 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         }
         if (Response.contains("$$")) {
             String res = Response.replace("$$", "");
+            if (res.contains("}")) {
+                res = res.substring(0, (res.lastIndexOf("}") + 1)); // To remove extra characters after the last curly bracket (if any)
+            }
             if (!res.trim().isEmpty()) {
                 sb6.append(res.trim());
             }
@@ -932,7 +950,7 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         Intent broadcastIntent = new Intent();
         broadcastIntent.setAction("BroadcastBlueLinkSixData");
         broadcastIntent.putExtra("Request", BTConstants.CurrentCommand_LinkSix);
-        broadcastIntent.putExtra("Response", spn);
+        broadcastIntent.putExtra("Response", spn.trim());
         broadcastIntent.putExtra("Action", "BlueLinkSix");
         activity.sendBroadcast(broadcastIntent);
     }

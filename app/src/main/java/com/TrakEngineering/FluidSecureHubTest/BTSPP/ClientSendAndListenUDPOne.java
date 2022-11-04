@@ -96,7 +96,7 @@ public class ClientSendAndListenUDPOne implements Runnable {
         Intent broadcastIntent = new Intent();
         broadcastIntent.setAction("BroadcastBlueLinkOneData");
         broadcastIntent.putExtra("Request", strcmd);
-        broadcastIntent.putExtra("Response", resp);
+        broadcastIntent.putExtra("Response", resp.trim());
         broadcastIntent.putExtra("Action", "BlueLinkOne");
         ct.sendBroadcast(broadcastIntent);
     }

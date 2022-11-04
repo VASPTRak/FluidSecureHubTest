@@ -21,6 +21,7 @@ import android.widget.Toast;
 import androidx.annotation.RequiresApi;
 
 import com.TrakEngineering.FluidSecureHubTest.AppConstants;
+import com.TrakEngineering.FluidSecureHubTest.BT_Link_Oscilloscope_Activity;
 import com.TrakEngineering.FluidSecureHubTest.BackgroundService;
 import com.TrakEngineering.FluidSecureHubTest.CommonUtils;
 import com.TrakEngineering.FluidSecureHubTest.ConnectionDetector;
@@ -35,6 +36,8 @@ import com.TrakEngineering.FluidSecureHubTest.offline.OffDBController;
 import com.TrakEngineering.FluidSecureHubTest.offline.OffTranzSyncService;
 import com.TrakEngineering.FluidSecureHubTest.offline.OfflineConstants;
 import com.TrakEngineering.FluidSecureHubTest.server.ServerHandler;
+import com.TrakEngineering.FluidSecureHubTest.WifiHotspot.WifiApManager;
+import com.github.mikephil.charting.data.Entry;
 import com.google.gson.Gson;
 
 import org.json.JSONArray;
@@ -974,7 +977,7 @@ public class BackgroundService_BTFive extends Service {
                 public void run() {
                     if (BTConstants.isHotspotDisabled) {
                         //Enable Hotspot
-                        com.TrakEngineering.FluidSecureHubTest.WifiHotspot.WifiApManager wifiApManager = new com.TrakEngineering.FluidSecureHubTest.WifiHotspot.WifiApManager(BackgroundService_BTFive.this);
+                        WifiApManager wifiApManager = new WifiApManager(BackgroundService_BTFive.this);
                         if (!CommonUtils.isHotspotEnabled(BackgroundService_BTFive.this)) {
                             wifiApManager.setWifiApEnabled(null, true);
                             BTConstants.isHotspotDisabled = false;
@@ -1108,8 +1111,9 @@ public class BackgroundService_BTFive extends Service {
                         } else if (Response.contains("DONE")) {
                             BTConstants.ScopeStatus = "DONE";
                         } else if (Request.contains(BTConstants.scope_READ_cmd)) {
-                            if (!readScopeLoop_on && !BTConstants.ReadingProcessComplete)
+                            if (!readScopeLoop_on && !BTConstants.ReadingProcessComplete) {
                                 ReadScope();
+                            }
                         }
 
                     } else {
@@ -1888,6 +1892,7 @@ public class BackgroundService_BTFive extends Service {
         if (AppConstants.GenerateLogs)
             AppConstants.WriteinFile(TAG + " BTLink 5: ReadScope started.");
         readScopeLoop_on = true;
+        scopeCounter = 0;
         timerBtScope = new Timer();
         TimerList_ReadpulseBT5.add(timerBtScope);
         TimerTask tt = new TimerTask() {
@@ -1897,9 +1902,10 @@ public class BackgroundService_BTFive extends Service {
                 Log.i(TAG, "BTLink 5: Timer count..");
                 scopeCounter++;
                 if (Response.contains("scope") && BTConstants.ScopeStatus.equalsIgnoreCase("OVER")) {
-                    scopeCount(Response);
+                    scopeCount(Response, scopeCounter);
                 } else {
                     BTConstants.BTLinkVoltageReadings.add(0);
+                    BT_Link_Oscilloscope_Activity.yValues.add(new Entry(0, 0));
                 }
 
                 if (scopeCounter > 1000) {
@@ -1920,6 +1926,7 @@ public class BackgroundService_BTFive extends Service {
                     BTConstants.ScopeStatus = "";
                     BTConstants.ReadingProcessComplete = true;
                     scopeCounter = 0;
+                    CancelTimer();
                     cancel();
                 }
 
@@ -1928,7 +1935,7 @@ public class BackgroundService_BTFive extends Service {
         timerBtScope.schedule(tt, 1000, 1000);
     }
 
-    private void scopeCount(String response) {
+    private void scopeCount(String response, int scopeCounter) {
         try {
             String scope;
 
@@ -1937,6 +1944,7 @@ public class BackgroundService_BTFive extends Service {
                 scope = jsonObj.getString("scope");
 
                 BTConstants.BTLinkVoltageReadings.add(Integer.parseInt(scope));
+                BT_Link_Oscilloscope_Activity.yValues.add(new Entry(scopeCounter, Integer.parseInt(scope)));
             }
         } catch (Exception e) {
             e.printStackTrace();

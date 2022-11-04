@@ -94,7 +94,7 @@ public class ClientSendAndListenUDPFive implements Runnable {
         Intent broadcastIntent = new Intent();
         broadcastIntent.setAction("BroadcastBlueLinkFiveData");
         broadcastIntent.putExtra("Request", strcmd);
-        broadcastIntent.putExtra("Response", resp);
+        broadcastIntent.putExtra("Response", resp.trim());
         broadcastIntent.putExtra("Action", "BlueLinkFive");
         ct.sendBroadcast(broadcastIntent);
     }

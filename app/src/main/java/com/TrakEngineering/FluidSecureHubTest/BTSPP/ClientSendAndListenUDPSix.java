@@ -94,7 +94,7 @@ public class ClientSendAndListenUDPSix implements Runnable {
         Intent broadcastIntent = new Intent();
         broadcastIntent.setAction("BroadcastBlueLinkSixData");
         broadcastIntent.putExtra("Request", strcmd);
-        broadcastIntent.putExtra("Response", resp);
+        broadcastIntent.putExtra("Response", resp.trim());
         broadcastIntent.putExtra("Action", "BlueLinkSix");
         ct.sendBroadcast(broadcastIntent);
     }

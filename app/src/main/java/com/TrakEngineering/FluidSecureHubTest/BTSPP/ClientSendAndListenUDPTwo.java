@@ -96,7 +96,7 @@ public class ClientSendAndListenUDPTwo implements Runnable {
         Intent broadcastIntent = new Intent();
         broadcastIntent.setAction("BroadcastBlueLinkTwoData");
         broadcastIntent.putExtra("Request", strcmd);
-        broadcastIntent.putExtra("Response", resp);
+        broadcastIntent.putExtra("Response", resp.trim());
         broadcastIntent.putExtra("Action", "BlueLinkTwo");
         ct.sendBroadcast(broadcastIntent);
     }

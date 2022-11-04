@@ -96,7 +96,7 @@ public class ClientSendAndListenUDPThree implements Runnable {
         Intent broadcastIntent = new Intent();
         broadcastIntent.setAction("BroadcastBlueLinkThreeData");
         broadcastIntent.putExtra("Request", strcmd);
-        broadcastIntent.putExtra("Response", resp);
+        broadcastIntent.putExtra("Response", resp.trim());
         broadcastIntent.putExtra("Action", "BlueLinkThree");
         ct.sendBroadcast(broadcastIntent);
     }
