@@ -246,7 +246,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
 
 
                 pd = new ProgressDialog(MainActivity.this);
-                pd.setMessage("Please wait..");
+                pd.setMessage(getResources().getString(R.string.PleaseWait));
                 pd.show();
 
                 new android.os.Handler().postDelayed(new Runnable() {

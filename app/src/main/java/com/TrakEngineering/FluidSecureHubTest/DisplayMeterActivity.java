@@ -224,7 +224,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
         if (!CommonUtils.isHotspotEnabled(DisplayMeterActivity.this) && !BTConstants.CurrentTransactionIsBT) {
 
-            btnStart.setText("Please wait..");
+            btnStart.setText(getResources().getString(R.string.PleaseWait));
             btnStart.setEnabled(false);
             wifiApManager.setWifiApEnabled(null, true);  //Hotspot enabled
             AppConstants.colorToastBigFont(DisplayMeterActivity.this, "Connecting to hotspot, please wait", Color.BLUE);
@@ -232,7 +232,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
             new Handler().postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    btnStart.setText("START");
+                    btnStart.setText(getResources().getString(R.string.StartBtn));
                     btnStart.setEnabled(true);
                 }
             }, 10000);
@@ -978,7 +978,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
     public void ShowLoader() {
 
-        String s = "Please wait...";
+        String s = getResources().getString(R.string.PleaseWait);
         SpannableString ss2 = new SpannableString(s);
         ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
         ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
@@ -1162,7 +1162,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
         @Override
         protected void onPreExecute() {
 
-            String s = "Please wait...";
+            String s = getResources().getString(R.string.PleaseWait);
             SpannableString ss2 = new SpannableString(s);
             ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
             ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
@@ -1866,8 +1866,8 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
         fillqty = AppConstants.roundNumber(fillqty, 2);
 
 
-        tvCounts.setText("Pulse: " + outputQuantity);
-        tvGallons.setText("Quantity: " + (fillqty));
+        tvCounts.setText(getResources().getString(R.string.Pulse) + " " + outputQuantity);
+        tvGallons.setText(getResources().getString(R.string.Quantity) + " " + AppConstants.spanishNumberSystem("" + fillqty));
 
     }
 
@@ -1935,7 +1935,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
         @Override
         protected void onPreExecute() {
 
-            String s = "Please wait...";
+            String s = getResources().getString(R.string.PleaseWait);
             SpannableString ss2 = new SpannableString(s);
             ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
             ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
@@ -3154,7 +3154,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
         protected void onPreExecute() {
 
             AppConstants.excption_caught = false;
-            String s = "Please wait...";
+            String s = getResources().getString(R.string.PleaseWait);
             SpannableString ss2 = new SpannableString(s);
             ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
             ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
@@ -3343,7 +3343,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
         @Override
         protected void onPreExecute() {
 
-            String s = "Please wait...";
+            String s = getResources().getString(R.string.PleaseWait);
             SpannableString ss2 = new SpannableString(s);
             ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
             ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
@@ -3425,7 +3425,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
         @Override
         protected void onPreExecute() {
 
-            String s = "Please wait...";
+            String s = getResources().getString(R.string.PleaseWait);
             SpannableString ss2 = new SpannableString(s);
             ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
             ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
@@ -3582,7 +3582,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
         @Override
         protected void onPreExecute() {
 
-            String s = "Please wait...";
+            String s = getResources().getString(R.string.PleaseWait);
             SpannableString ss2 = new SpannableString(s);
             ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
             ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
@@ -4531,7 +4531,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
     private void AttemptHotspotEnable() {
         if (!CommonUtils.isHotspotEnabled(DisplayMeterActivity.this)) {
 
-            btnStart.setText("Please wait..");
+            btnStart.setText(getResources().getString(R.string.PleaseWait));
             btnStart.setEnabled(false);
             wifiApManager.setWifiApEnabled(null, true);  //Hotspot enabled
             //AppConstants.colorToastBigFont(DisplayMeterActivity.this, "Connecting to hotspot, please wait", Color.BLUE);
@@ -4539,7 +4539,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
             new Handler().postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    btnStart.setText("START");
+                    btnStart.setText(getResources().getString(R.string.StartBtn));
                     btnStart.setEnabled(true);
                 }
             }, 10000);
@@ -4572,7 +4572,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
         @Override
         protected void onPreExecute() {
 
-            String s = "Please wait...";
+            String s = getResources().getString(R.string.PleaseWait);
             SpannableString ss2 = new SpannableString(s);
             ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
             ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
@@ -4683,7 +4683,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
         dialogBus.setContentView(R.layout.custom_alertdialouge);
         dialogBus.show();
 
-        String newString = "This is the first time you are using the system. Please be sure the quantity shown on the display matches the final quantity on the dispenser. If not, please be sure to call in to Support";
+        String newString = getResources().getString(R.string.firstTimeUseMessage);
 
         TextView edt_message = (TextView) dialogBus.findViewById(R.id.edt_message);
         Button btnAllow = (Button) dialogBus.findViewById(R.id.btnAllow);

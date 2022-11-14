@@ -654,9 +654,9 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         setContentView(R.layout.activity_welcome);
         //getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-        //SharedPreferences sharedPref = WelcomeActivity.this.getSharedPreferences("LanguageSettings", Context.MODE_PRIVATE);
-        //String language = sharedPref.getString("language", "");
-        //CommonUtils.StoreLanguageSettings(WelcomeActivity.this, language, false);
+        SharedPreferences sharedPref = WelcomeActivity.this.getSharedPreferences("LanguageSettings", Context.MODE_PRIVATE);
+        String language = sharedPref.getString("language", "");
+        CommonUtils.StoreLanguageSettings(WelcomeActivity.this, language, false);
 
         SharedPreferences sharedPre2 = WelcomeActivity.this.getSharedPreferences("storeBT_FOBDetails", Context.MODE_PRIVATE);
 
@@ -695,7 +695,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         density = getResources().getDisplayMetrics().density;
 
         TextView tvVersionNum = (TextView) findViewById(R.id.tvVersionNum);
-        tvVersionNum.setText("Version " + CommonUtils.getVersionCode(WelcomeActivity.this));
+        String versionNumber = getResources().getString(R.string.VersionHeading) + ": " + CommonUtils.getVersionCode(WelcomeActivity.this);
+        tvVersionNum.setText(versionNumber);
 
         mHandler = new Handler();
         // Initializes a Bluetooth adapter.  For API level 18 and above, get a reference to
@@ -1842,10 +1843,14 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         } else {
                             flagGoBtn = true;
                             CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", "Unable to get hose list from server");
+                            if (AppConstants.GenerateLogs)
+                                AppConstants.WriteinFile(TAG + "Unable to get hose list from server");
                         }
                     } else {
                         flagGoBtn = true;
-                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", "Please select Hose");
+                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.SelectHoseAlert));
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + "Please select Hose");
                     }
 
 
@@ -1926,7 +1931,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                             }
                         } else {
                             flagGoBtn = true;
-                            CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", "Please select Hose");
+                            CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.SelectHoseAlert));
                             if (AppConstants.GenerateLogs)
                                 AppConstants.WriteinFile(TAG + "Please select Hose");
                         }
@@ -1959,7 +1964,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         @Override
         protected void onPreExecute() {
 
-            String s = "Please wait...";
+            String s = getResources().getString(R.string.PleaseWait);
             SpannableString ss2 = new SpannableString(s);
             ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
             ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
@@ -2781,7 +2786,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         protected void onPreExecute() {
             super.onPreExecute();
 
-            String s = "Please wait...";
+            String s = getResources().getString(R.string.PleaseWait);
             SpannableString ss2 = new SpannableString(s);
             ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
             ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
@@ -2906,7 +2911,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         @Override
         protected void onPreExecute() {
 
-            String s = "Please wait..";
+            String s = getResources().getString(R.string.PleaseWait);
             SpannableString ss2 = new SpannableString(s);
             ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
             ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
@@ -3140,7 +3145,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                             //AppConstants.colorToastBigFont(getApplicationContext(), "Selected Link not in BT paired list", Color.BLUE);
                             CommonUtils.AutoCloseBTLinkMessage(WelcomeActivity.this, "", getResources().getString(R.string.BTLinkNotInPairList));
                             BTConstants.CurrentSelectedLinkBT = 0;
-                            RestrictHoseSelection("Pairing Mode..."); //"Please try again later" changed as per #1899.
+                            RestrictHoseSelection(getResources().getString(R.string.PairingMode)); //"Please try again later" changed as per #1899.
                         }
                     } else if (LinkCommunicationType.equalsIgnoreCase("UDP")) {
 
@@ -3379,7 +3384,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                             } else {
                                                 //NL1State = 0;
                                                 RestHoseinUse_FS1 = true;
-                                                RestrictHoseSelection("Hose in use.\nPlease try again later");
+                                                RestrictHoseSelection(getResources().getString(R.string.HoseInUse));
 
                                             }
 
@@ -3407,7 +3412,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                             } else {
                                                 //NL2State = 0;
                                                 RestHoseinUse_FS2 = true;
-                                                RestrictHoseSelection("Hose in use.\nPlease try again later");
+                                                RestrictHoseSelection(getResources().getString(R.string.HoseInUse));
                                             }
 
                                         } else if (String.valueOf(position).equalsIgnoreCase("2") && !IsUpgradeInprogress_FS3) {
@@ -3434,7 +3439,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                             } else {
                                                 //NL3State = 0;
                                                 RestHoseinUse_FS3 = true;
-                                                RestrictHoseSelection("Hose in use.\nPlease try again later");
+                                                RestrictHoseSelection(getResources().getString(R.string.HoseInUse));
                                             }
 
 
@@ -3460,7 +3465,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                                 goButtonAction(null);
                                             } else {
                                                 //NL4State = 0;
-                                                RestrictHoseSelection("Hose in use.\nPlease try again later");
+                                                RestrictHoseSelection(getResources().getString(R.string.HoseInUse));
                                             }
                                         } else if (String.valueOf(position).equalsIgnoreCase("4") && !IsUpgradeInprogress_FS5) {
 
@@ -3484,7 +3489,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                                 btnGo.setVisibility(View.VISIBLE);
                                             } else {
                                                 //NL5State = 0;
-                                                RestrictHoseSelection("Hose in use.\nPlease try again later");
+                                                RestrictHoseSelection(getResources().getString(R.string.HoseInUse));
                                             }
 
                                         } else if (String.valueOf(position).equalsIgnoreCase("5") && !IsUpgradeInprogress_FS6) {
@@ -3508,7 +3513,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                                 goButtonAction(null);
                                             } else {
                                                 //NL6State = 0;
-                                                RestrictHoseSelection("Hose in use.\nPlease try again later");
+                                                RestrictHoseSelection(getResources().getString(R.string.HoseInUse));
                                             }
                                         } else {
 
@@ -3614,7 +3619,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                         btnGo.setVisibility(View.VISIBLE);
                                         goButtonAction(null);
                                     } else {
-                                        RestrictHoseSelection("Hose in use.\nPlease try again later");
+                                        RestrictHoseSelection(getResources().getString(R.string.HoseInUse));
 
                                     }
                                 } else if (String.valueOf(position).equalsIgnoreCase("1") && !IsUpgradeInprogress_FS2) {
@@ -3631,7 +3636,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                         btnGo.setVisibility(View.VISIBLE);
                                         goButtonAction(null);
                                     } else {
-                                        RestrictHoseSelection("Hose in use.\nPlease try again later");
+                                        RestrictHoseSelection(getResources().getString(R.string.HoseInUse));
                                     }
 
                                 } else if (String.valueOf(position).equalsIgnoreCase("2") && !IsUpgradeInprogress_FS3) {
@@ -3648,7 +3653,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                         btnGo.setVisibility(View.VISIBLE);
                                         goButtonAction(null);
                                     } else {
-                                        RestrictHoseSelection("Hose in use.\nPlease try again later");
+                                        RestrictHoseSelection(getResources().getString(R.string.HoseInUse));
                                     }
 
 
@@ -3666,7 +3671,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                         btnGo.setVisibility(View.VISIBLE);
                                         goButtonAction(null);
                                     } else {
-                                        RestrictHoseSelection("Hose in use.\nPlease try again later");
+                                        RestrictHoseSelection(getResources().getString(R.string.HoseInUse));
                                     }
                                 } else {
 
@@ -4710,7 +4715,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         @Override
         protected void onPreExecute() {
 
-            String s = "Please wait...";
+            String s = getResources().getString(R.string.PleaseWait);
             SpannableString ss2 = new SpannableString(s);
             ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
             ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
@@ -4890,7 +4895,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         @Override
         protected void onPreExecute() {
 
-            String s = "Please wait...";
+            String s = getResources().getString(R.string.PleaseWait);
             SpannableString ss2 = new SpannableString(s);
             ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
             ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
@@ -5071,7 +5076,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         @Override
         protected void onPreExecute() {
 
-            String s = "Please wait...";
+            String s = getResources().getString(R.string.PleaseWait);
             SpannableString ss2 = new SpannableString(s);
             ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
             ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
@@ -5252,7 +5257,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         @Override
         protected void onPreExecute() {
 
-            String s = "Please wait...";
+            String s = getResources().getString(R.string.PleaseWait);
             SpannableString ss2 = new SpannableString(s);
             ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
             ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
@@ -5433,7 +5438,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         @Override
         protected void onPreExecute() {
 
-            String s = "Please wait...";
+            String s = getResources().getString(R.string.PleaseWait);
             SpannableString ss2 = new SpannableString(s);
             ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
             ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
@@ -5615,7 +5620,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         @Override
         protected void onPreExecute() {
 
-            String s = "Please wait...";
+            String s = getResources().getString(R.string.PleaseWait);
             SpannableString ss2 = new SpannableString(s);
             ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
             ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
@@ -6135,7 +6140,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
             //Update FA Message on dashboard
             tv_FA_message.setText(Constants.FA_Message);
-            tv_fs1_Qty.setText(Constants.FS_1Gallons);
+            tv_fs1_Qty.setText(AppConstants.spanishNumberSystem(Constants.FS_1Gallons));
             tv_fs1_Pulse.setText(Constants.FS_1Pulse);
             tv_fs1_stop.setClickable(false);
             FS1_Stpflag = true;
@@ -6206,7 +6211,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             }
 
             //----------------------------------------
-            tv_fs1_Qty.setText(Constants.FS_1Gallons);
+            tv_fs1_Qty.setText(AppConstants.spanishNumberSystem(Constants.FS_1Gallons));
             tv_fs1_Pulse.setText(Constants.FS_1Pulse);
             linear_fs_1.setBackgroundResource(R.color.colorPrimary);
             tv_fs1_stop.setBackgroundResource(R.drawable.selector_button);
@@ -6255,7 +6260,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             fs2Cnt5Sec = 0;
             CountBeforeReconnectRelay2 = 0;
 
-            tv_fs2_Qty.setText(Constants.FS_2Gallons);
+            tv_fs2_Qty.setText(AppConstants.spanishNumberSystem(Constants.FS_2Gallons));
             tv_fs2_Pulse.setText(Constants.FS_2Pulse);
             tv_fs2_stop.setClickable(false);
             FS2_Stpflag = true;
@@ -6324,7 +6329,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 }
             }
 
-            tv_fs2_Qty.setText(Constants.FS_2Gallons);
+            tv_fs2_Qty.setText(AppConstants.spanishNumberSystem(Constants.FS_2Gallons));
             tv_fs2_Pulse.setText(Constants.FS_2Pulse);
             linear_fs_2.setBackgroundResource(R.color.colorPrimary);
             tv_fs2_stop.setBackgroundResource(R.drawable.selector_button);
@@ -6373,7 +6378,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             fs3Cnt5Sec = 0;
             CountBeforeReconnectRelay3 = 0;
 
-            tv_fs3_Qty.setText(Constants.FS_3Gallons);
+            tv_fs3_Qty.setText(AppConstants.spanishNumberSystem(Constants.FS_3Gallons));
             tv_fs3_Pulse.setText(Constants.FS_3Pulse);
             tv_fs3_stop.setClickable(false);
             FS3_Stpflag = true;
@@ -6445,7 +6450,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 }
             }
 
-            tv_fs3_Qty.setText(Constants.FS_3Gallons);
+            tv_fs3_Qty.setText(AppConstants.spanishNumberSystem(Constants.FS_3Gallons));
             tv_fs3_Pulse.setText(Constants.FS_3Pulse);
             linear_fs_3.setBackgroundResource(R.color.colorPrimary);
             tv_fs3_stop.setBackgroundResource(R.drawable.selector_button);
@@ -6494,7 +6499,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             fs4Cnt5Sec = 0;
             CountBeforeReconnectRelay4 = 0;
 
-            tv_fs4_Qty.setText(Constants.FS_4Gallons);
+            tv_fs4_Qty.setText(AppConstants.spanishNumberSystem(Constants.FS_4Gallons));
             tv_fs4_Pulse.setText(Constants.FS_4Pulse);
             tv_fs4_stop.setClickable(false);
             FS4_Stpflag = true;
@@ -6564,7 +6569,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 }
             }
 
-            tv_fs4_Qty.setText(Constants.FS_4Gallons);
+            tv_fs4_Qty.setText(AppConstants.spanishNumberSystem(Constants.FS_4Gallons));
             tv_fs4_Pulse.setText(Constants.FS_4Pulse);
             linear_fs_4.setBackgroundResource(R.color.colorPrimary);
             tv_fs4_stop.setBackgroundResource(R.drawable.selector_button);
@@ -6614,7 +6619,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             fs5Cnt5Sec = 0;
             CountBeforeReconnectRelay5 = 0;
 
-            tv_fs5_Qty.setText(Constants.FS_5Gallons);
+            tv_fs5_Qty.setText(AppConstants.spanishNumberSystem(Constants.FS_5Gallons));
             tv_fs5_Pulse.setText(Constants.FS_5Pulse);
             tv_fs5_stop.setClickable(false);
             FS5_Stpflag = true;
@@ -6685,7 +6690,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 }
             }
 
-            tv_fs5_Qty.setText(Constants.FS_5Gallons);
+            tv_fs5_Qty.setText(AppConstants.spanishNumberSystem(Constants.FS_5Gallons));
             tv_fs5_Pulse.setText(Constants.FS_5Pulse);
             linear_fs_5.setBackgroundResource(R.color.colorPrimary);
             tv_fs5_stop.setBackgroundResource(R.drawable.selector_button);
@@ -6734,7 +6739,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             fs6Cnt5Sec = 0;
             CountBeforeReconnectRelay6 = 0;
 
-            tv_fs6_Qty.setText(Constants.FS_6Gallons);
+            tv_fs6_Qty.setText(AppConstants.spanishNumberSystem(Constants.FS_6Gallons));
             tv_fs6_Pulse.setText(Constants.FS_6Pulse);
             tv_fs6_stop.setClickable(false);
             FS6_Stpflag = true;
@@ -6805,7 +6810,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 }
             }
 
-            tv_fs6_Qty.setText(Constants.FS_6Gallons);
+            tv_fs6_Qty.setText(AppConstants.spanishNumberSystem(Constants.FS_6Gallons));
             tv_fs6_Pulse.setText(Constants.FS_6Pulse);
             linear_fs_6.setBackgroundResource(R.color.colorPrimary);
             tv_fs6_stop.setBackgroundResource(R.drawable.selector_button);
@@ -6941,7 +6946,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         @Override
         protected void onPreExecute() {
 
-            String s = "Please wait...";
+            String s = getResources().getString(R.string.PleaseWait);
             SpannableString ss2 = new SpannableString(s);
             ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
             ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
@@ -7278,7 +7283,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     btnGo.setVisibility(View.VISIBLE);
                     //goButtonAction(null);
                 } else {
-                    RestrictHoseSelection("Hose in use.\nPlease try again later");
+                    RestrictHoseSelection(getResources().getString(R.string.HoseInUse));
 
                 }
             } else if (String.valueOf(position).equalsIgnoreCase("1")) {
@@ -7300,7 +7305,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     Constants.CurrentSelectedHose = "FS2";
                     btnGo.setVisibility(View.VISIBLE);
                 } else {
-                    RestrictHoseSelection("Hose in use.\nPlease try again later");
+                    RestrictHoseSelection(getResources().getString(R.string.HoseInUse));
                 }
 
             } else if (String.valueOf(position).equalsIgnoreCase("2")) {
@@ -7324,7 +7329,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     Constants.CurrentSelectedHose = "FS3";
                     btnGo.setVisibility(View.VISIBLE);
                 } else {
-                    RestrictHoseSelection("Hose in use.\nPlease try again later");
+                    RestrictHoseSelection(getResources().getString(R.string.HoseInUse));
                 }
 
 
@@ -7348,7 +7353,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     Constants.CurrentSelectedHose = "FS4";
                     btnGo.setVisibility(View.VISIBLE);
                 } else {
-                    RestrictHoseSelection("Hose in use.\nPlease try again later");
+                    RestrictHoseSelection(getResources().getString(R.string.HoseInUse));
                 }
             } else if (String.valueOf(position).equalsIgnoreCase("4")) {
 
@@ -7369,7 +7374,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     Constants.CurrentSelectedHose = "FS5";
                     btnGo.setVisibility(View.VISIBLE);
                 } else {
-                    RestrictHoseSelection("Hose in use.\nPlease try again later");
+                    RestrictHoseSelection(getResources().getString(R.string.HoseInUse));
                 }
             } else if (String.valueOf(position).equalsIgnoreCase("5")) {
 
@@ -7390,7 +7395,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     Constants.CurrentSelectedHose = "FS6";
                     btnGo.setVisibility(View.VISIBLE);
                 } else {
-                    RestrictHoseSelection("Hose in use.\nPlease try again later");
+                    RestrictHoseSelection(getResources().getString(R.string.HoseInUse));
                 }
             } else {
 
@@ -7881,7 +7886,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             menu.findItem(R.id.mofline).setVisible(true);
         }
 
-        /*SharedPreferences sharedPref = WelcomeActivity.this.getSharedPreferences("LanguageSettings", Context.MODE_PRIVATE);
+        SharedPreferences sharedPref = WelcomeActivity.this.getSharedPreferences("LanguageSettings", Context.MODE_PRIVATE);
         String language = sharedPref.getString("language", "");
 
         MenuItem itemSp = menu.findItem(R.id.menuSpanish);
@@ -7893,12 +7898,13 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         } else {
             itemSp.setVisible(true);
             itemEng.setVisible(false);
-        }*/
-        // Remove below code when uncomment above code
-        MenuItem itemSp = menu.findItem(R.id.menuSpanish);
+        }
+        // Comment below code when uncomment above code
+        /*MenuItem itemSp = menu.findItem(R.id.menuSpanish);
         MenuItem itemEng = menu.findItem(R.id.menuEnglish);
         itemSp.setVisible(false);
-        itemEng.setVisible(false);
+        itemEng.setVisible(false);*/
+
         return true;
     }
 
@@ -7947,11 +7953,23 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 break;
 
             case R.id.menuSpanish:
-                //CommonUtils.StoreLanguageSettings(WelcomeActivity.this, "es", true);
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " Spanish language selected.");
+                if (AppConstants.IsHoseBusyCheckLocally()) {
+                    CommonUtils.StoreLanguageSettings(WelcomeActivity.this, "es", true);
+                } else {
+                    Toast.makeText(getApplicationContext(), "One of the hose is busy, please try again later.", Toast.LENGTH_SHORT).show();
+                }
                 break;
 
             case R.id.menuEnglish:
-                //CommonUtils.StoreLanguageSettings(WelcomeActivity.this, "en", true);
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " English language selected.");
+                if (AppConstants.IsHoseBusyCheckLocally()) {
+                    CommonUtils.StoreLanguageSettings(WelcomeActivity.this, "en", true);
+                } else {
+                    Toast.makeText(getApplicationContext(), "One of the hose is busy, please try again later.", Toast.LENGTH_SHORT).show();
+                }
                 break;
 
         }
@@ -9654,7 +9672,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         @Override
         protected void onPreExecute() {
 
-            String s = "Please wait...";
+            String s = getResources().getString(R.string.PleaseWait);
             SpannableString ss2 = new SpannableString(s);
             ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
             ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
@@ -11140,7 +11158,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         protected void onPreExecute() {
 
 
-            String s = "Please wait...";
+            String s = getResources().getString(R.string.PleaseWait);
             SpannableString ss2 = new SpannableString(s);
             ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
             ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
@@ -11471,7 +11489,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         @Override
         protected void onPreExecute() {
 
-            String s = "Please wait...";
+            String s = getResources().getString(R.string.PleaseWait);
             SpannableString ss2 = new SpannableString(s);
             ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
             ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
@@ -13019,7 +13037,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     } else {
                         BTL1State = 0;
                         BTConstants.CurrentSelectedLinkBT = 0;
-                        RestrictHoseSelection("Hose in use.\nPlease try again later");
+                        RestrictHoseSelection(getResources().getString(R.string.HoseInUse));
                     }
 
                 } else {
@@ -13027,7 +13045,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     if (!BTConstants.deviceAddress1.isEmpty()) {
                         NearByBTDevices.clear();
                         mBluetoothAdapter.startDiscovery();
-                        RestrictHoseSelection("Connecting...");
+                        RestrictHoseSelection(getResources().getString(R.string.ConnectingStatus));
 
                         Handler handler = new Handler();
                         int delay = 1000;
@@ -13087,7 +13105,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     } else {
                         BTL2State = 0;
                         BTConstants.CurrentSelectedLinkBT = 0;
-                        RestrictHoseSelection("Hose in use.\nPlease try again later");
+                        RestrictHoseSelection(getResources().getString(R.string.HoseInUse));
                     }
 
                 } else {
@@ -13095,7 +13113,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     if (!BTConstants.deviceAddress2.isEmpty()) {
                         NearByBTDevices.clear();
                         mBluetoothAdapter.startDiscovery();
-                        RestrictHoseSelection("Connecting...");
+                        RestrictHoseSelection(getResources().getString(R.string.ConnectingStatus));
 
                         Handler handler = new Handler();
                         int delay = 1000;
@@ -13156,7 +13174,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     } else {
                         BTL3State = 0;
                         BTConstants.CurrentSelectedLinkBT = 0;
-                        RestrictHoseSelection("Hose in use.\nPlease try again later");
+                        RestrictHoseSelection(getResources().getString(R.string.HoseInUse));
                     }
 
                 } else {
@@ -13164,7 +13182,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     if (!BTConstants.deviceAddress3.isEmpty()) {
                         NearByBTDevices.clear();
                         mBluetoothAdapter.startDiscovery();
-                        RestrictHoseSelection("Connecting...");
+                        RestrictHoseSelection(getResources().getString(R.string.ConnectingStatus));
 
                         Handler handler = new Handler();
                         int delay = 1000;
@@ -13226,7 +13244,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     } else {
                         BTL4State = 0;
                         BTConstants.CurrentSelectedLinkBT = 0;
-                        RestrictHoseSelection("Hose in use.\nPlease try again later");
+                        RestrictHoseSelection(getResources().getString(R.string.HoseInUse));
                     }
 
                 } else {
@@ -13234,7 +13252,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     if (!BTConstants.deviceAddress4.isEmpty()) {
                         NearByBTDevices.clear();
                         mBluetoothAdapter.startDiscovery();
-                        RestrictHoseSelection("Connecting...");
+                        RestrictHoseSelection(getResources().getString(R.string.ConnectingStatus));
 
                         Handler handler = new Handler();
                         int delay = 1000;
@@ -13268,7 +13286,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     } else {
                         BTL5State = 0;
                         BTConstants.CurrentSelectedLinkBT = 0;
-                        RestrictHoseSelection("Hose in use.\nPlease try again later");
+                        RestrictHoseSelection(getResources().getString(R.string.HoseInUse));
                     }
 
                 } else {
@@ -13276,7 +13294,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     if (!BTConstants.deviceAddress5.isEmpty()) {
                         NearByBTDevices.clear();
                         mBluetoothAdapter.startDiscovery();
-                        RestrictHoseSelection("Connecting...");
+                        RestrictHoseSelection(getResources().getString(R.string.ConnectingStatus));
 
                         Handler handler = new Handler();
                         int delay = 1000;
@@ -13310,7 +13328,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     } else {
                         BTL6State = 0;
                         BTConstants.CurrentSelectedLinkBT = 0;
-                        RestrictHoseSelection("Hose in use.\nPlease try again later");
+                        RestrictHoseSelection(getResources().getString(R.string.HoseInUse));
                     }
 
                 } else {
@@ -13318,7 +13336,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     if (!BTConstants.deviceAddress6.isEmpty()) {
                         NearByBTDevices.clear();
                         mBluetoothAdapter.startDiscovery();
-                        RestrictHoseSelection("Connecting...");
+                        RestrictHoseSelection(getResources().getString(R.string.ConnectingStatus));
 
                         Handler handler = new Handler();
                         int delay = 1000;
@@ -14298,7 +14316,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         @Override
         protected void onPreExecute() {
 
-            String s = "Please wait...";
+            String s = getResources().getString(R.string.PleaseWait);
             SpannableString ss2 = new SpannableString(s);
             ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
             ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
@@ -14383,7 +14401,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         @Override
         protected void onPreExecute() {
 
-            String s = "Please wait...";
+            String s = getResources().getString(R.string.PleaseWait);
             SpannableString ss2 = new SpannableString(s);
             ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
             ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
@@ -14825,6 +14843,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     String BTMacAddress = BTLinkList.get(position).get("BTMacAddress");
                     String LinkPosition = BTLinkList.get(position).get("LinkPosition");
 
+                    SetBTLinksMacAddress(Integer.parseInt(LinkPosition), BTMacAddress);
                     BTConstants.deviceAddressOscilloscope = BTMacAddress.toUpperCase();
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(TAG + "================ Oscilloscope ================");
@@ -14919,7 +14938,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
         @Override
         protected void onPreExecute() {
-            String st = "Please wait...";
+            String st = getResources().getString(R.string.PleaseWait);
             SpannableString ss2 = new SpannableString(st);
             ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
             ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);

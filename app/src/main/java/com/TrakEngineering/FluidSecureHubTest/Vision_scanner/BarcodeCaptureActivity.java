@@ -162,16 +162,21 @@ public final class BarcodeCaptureActivity extends AppCompatActivity implements B
         boolean BarcodeStatus = sharedPref.getBoolean(AppConstants.UseBarcode, false);
         int CameraFacing = sharedPref.getInt(AppConstants.CAMERA_FACING, 1);
 
-        if (!BarcodeStatus){
+        if (!BarcodeStatus) {
             menu.findItem(R.id.mcamera_back).setVisible(false);
             menu.findItem(R.id.mcamera_front).setVisible(false);
-        }else if (CameraFacing == 1){
+        } else if (CameraFacing == 1) {
             menu.findItem(R.id.mcamera_back).setVisible(true);
             menu.findItem(R.id.mcamera_front).setVisible(false);
-        }else{
+        } else {
             menu.findItem(R.id.mcamera_back).setVisible(false);
             menu.findItem(R.id.mcamera_front).setVisible(true);
         }
+
+        MenuItem itemSp = menu.findItem(R.id.menuSpanish);
+        MenuItem itemEng = menu.findItem(R.id.menuEnglish);
+        itemSp.setVisible(false);
+        itemEng.setVisible(false);
 
         return true;
     }

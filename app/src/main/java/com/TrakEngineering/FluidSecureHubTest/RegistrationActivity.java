@@ -25,6 +25,8 @@ import android.telephony.TelephonyManager;
 import android.text.Html;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -77,11 +79,16 @@ public class RegistrationActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_registration);
+
+        SharedPreferences sharedPref = RegistrationActivity.this.getSharedPreferences("LanguageSettings", Context.MODE_PRIVATE);
+        String language = sharedPref.getString("language", "");
+        CommonUtils.StoreLanguageSettings(RegistrationActivity.this, language, false);
+
         // ----------------------------------------------------------------------------------------------
         this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
         // ----------------------------------------------------------------------------------------------
 
-        getSupportActionBar().setTitle("New HUB Registration");
+        getSupportActionBar().setTitle(getResources().getString(R.string.NewHUBRegistration));
 
         edt_password = (EditText) findViewById(R.id.edt_password);
         edt_username = (EditText) findViewById(R.id.edt_username);
@@ -96,10 +103,10 @@ public class RegistrationActivity extends AppCompatActivity {
         tv_enter_username = (TextView)findViewById(R.id.tv_enter_username);
         tv_enter_password = (TextView)findViewById(R.id.tv_enter_password);
         TextView tvVersionNum = (TextView) findViewById(R.id.tvVersionNum);
-        tvVersionNum.setText("Version " + CommonUtils.getVersionCode(RegistrationActivity.this));
+        tvVersionNum.setText(getResources().getString(R.string.VersionHeading) + ": " + CommonUtils.getVersionCode(RegistrationActivity.this));
         AppConstants.WriteinFile(TAG + " App Version: " + CommonUtils.getVersionCode(RegistrationActivity.this) + " " + AppConstants.getDeviceName() + " Android " + Build.VERSION.RELEASE + " ");
 
-        String content = "HINT: Your HUB Name will consist of the words HUB followed by 8 numbers.  <i>Example:</i> HUB00000903";
+        String content = getResources().getString(R.string.HubNameHint) + " <i>" + getResources().getString(R.string.Example) + ":</i> HUB00000903";
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             tv_hint.setText(Html.fromHtml(content, Html.FROM_HTML_MODE_LEGACY));
@@ -140,12 +147,18 @@ public class RegistrationActivity extends AppCompatActivity {
             public void onClick(View v) {
 
                 if (edt_username.getText().toString().trim().isEmpty()) {
-                    redToast(RegistrationActivity.this, "Please Enter User Name");
+                    //redToast(RegistrationActivity.this, "Please Enter User Name");
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + "Please enter User Name");
+                    CommonUtils.showMessageDilaog(RegistrationActivity.this, "Error Message", getResources().getString(R.string.RequiredUserName));
                     edt_username.requestFocus();
-                }else if (edt_password.getText().toString().trim().isEmpty()){
-                    redToast(RegistrationActivity.this, "Please Enter Password");
+                } else if (edt_password.getText().toString().trim().isEmpty()) {
+                    //redToast(RegistrationActivity.this, "Please Enter Password");
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + "Please enter Password");
+                    CommonUtils.showMessageDilaog(RegistrationActivity.this, "Error Message", getResources().getString(R.string.RequiredUserPassword));
                     edt_password.requestFocus();
-                }else{
+                } else {
 
                     String hubName = etFName.getText().toString().trim();
                     String userName = edt_username.getText().toString().trim();
@@ -178,7 +191,10 @@ public class RegistrationActivity extends AppCompatActivity {
 
 
                 if (etFName.getText().toString().trim().isEmpty()) {
-                    redToast(RegistrationActivity.this, "Please enter HUB Name");
+                    //redToast(RegistrationActivity.this, "Please enter HUB Name");
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + "Please enter HUB Name");
+                    CommonUtils.showMessageDilaog(RegistrationActivity.this, "Error Message", getResources().getString(R.string.HUBNameRequired));
                     etFName.requestFocus();
                 }/* else if (etMobile.getText().toString().trim().isEmpty()) {
                     redToast(RegistrationActivity.this, "Please enter Mobile");
@@ -230,6 +246,75 @@ public class RegistrationActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.reader, menu);
+
+        menu.findItem(R.id.mreboot_reader).setVisible(false);
+        menu.findItem(R.id.mreconnect_ble_readers).setVisible(false);
+        menu.findItem(R.id.mcamera_back).setVisible(false);
+        menu.findItem(R.id.mcamera_front).setVisible(false);
+        menu.findItem(R.id.mreload).setVisible(false);
+        menu.findItem(R.id.btLinkScope).setVisible(false);
+        menu.findItem(R.id.monline).setVisible(false);
+        menu.findItem(R.id.mofline).setVisible(false);
+        menu.findItem(R.id.mclose).setVisible(false);
+        menu.findItem(R.id.mconfigure_tld).setVisible(false);
+        menu.findItem(R.id.enable_debug_window).setVisible(false);
+        menu.findItem(R.id.madd_link).setVisible(false);
+
+        SharedPreferences sharedPref = RegistrationActivity.this.getSharedPreferences("LanguageSettings", Context.MODE_PRIVATE);
+        String language = sharedPref.getString("language", "");
+
+        MenuItem itemSp = menu.findItem(R.id.menuSpanish);
+        MenuItem itemEng = menu.findItem(R.id.menuEnglish);
+
+        if (language.trim().equalsIgnoreCase("es")) {
+            itemSp.setVisible(false);
+            itemEng.setVisible(true);
+        } else {
+            itemSp.setVisible(true);
+            itemEng.setVisible(false);
+        }
+        // Comment below code when uncomment above code
+        /*MenuItem itemSp = menu.findItem(R.id.menuSpanish);
+        MenuItem itemEng = menu.findItem(R.id.menuEnglish);
+        itemSp.setVisible(false);
+        itemEng.setVisible(false);*/
+
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+
+        switch (item.getItemId()) {
+
+            case R.id.mrestartapp:
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " Restart app.");
+                Intent i = new Intent(RegistrationActivity.this, SplashActivity.class);
+                i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(i);
+                break;
+
+            case R.id.menuSpanish:
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " Spanish language selected.");
+                CommonUtils.StoreLanguageSettings(RegistrationActivity.this, "es", true);
+                break;
+
+            case R.id.menuEnglish:
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " English language selected.");
+                CommonUtils.StoreLanguageSettings(RegistrationActivity.this, "en", true);
+                break;
+
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     private boolean checkPermission(Activity context, String permission) {
@@ -322,7 +407,7 @@ public class RegistrationActivity extends AppCompatActivity {
         @Override
         protected void onPreExecute() {
             pd = new ProgressDialog(RegistrationActivity.this);
-            pd.setMessage("Please wait...");
+            pd.setMessage(getResources().getString(R.string.PleaseWait));
             pd.setCancelable(false);
             pd.show();
 
@@ -336,7 +421,7 @@ public class RegistrationActivity extends AppCompatActivity {
                 // String sendData = userName + "#:#" + userMobile + "#:#" + userEmail + "#:#" + imeiNumber + "#:#" + deviceType + "#:#" + userCompany + "#:#" + "AP";
                 String sendData = userName + "#:#" + userMobile + "#:#" + "" + "#:#" + imeiNumber + "#:#" + deviceType + "#:#" + "" + "#:#" + "AP";
                 AppConstants.WriteinFile(TAG + " Registration details => (" + sendData + ")");
-                String AUTH_TOKEN = "Basic " + AppConstants.convertStingToBase64("123:abc:Register");
+                String AUTH_TOKEN = "Basic " + AppConstants.convertStingToBase64("123:abc:Register" + AppConstants.LANG_PARAM);
                 ServerHandler serverHandler = new ServerHandler();
 
                 resp = serverHandler.PostTextData(RegistrationActivity.this, AppConstants.webURL, sendData, AUTH_TOKEN);
@@ -368,7 +453,7 @@ public class RegistrationActivity extends AppCompatActivity {
                             IsVehicleNumberRequire, Integer.parseInt(WifiChannelToUse), "", "", "", "",
                             "", "", "");
 
-                    AlertDialogBox(RegistrationActivity.this, "Thank you for registering. \n\nYour request has been sent for the approval. You will be able to proceed with the application after your request has been approved by the administrator.");
+                    AlertDialogBox(RegistrationActivity.this, getResources().getString(R.string.RegistrationSuccess));
                 } else if (ResponceMessage.equalsIgnoreCase("fail")) {
                     String ResponseText = jsonObj.getString(AppConstants.RES_TEXT);
                     String ValidationFailFor = jsonObj.getString(AppConstants.VALIDATION_FOR_TEXT);
@@ -456,7 +541,7 @@ public class RegistrationActivity extends AppCompatActivity {
         @Override
         protected void onPreExecute() {
             pd = new ProgressDialog(RegistrationActivity.this);
-            pd.setMessage("Please wait...");
+            pd.setMessage(getResources().getString(R.string.PleaseWait));
             pd.setCancelable(false);
             pd.show();
 
@@ -482,7 +567,7 @@ public class RegistrationActivity extends AppCompatActivity {
                 String jsonData = gson.toJson(objEntityClass);
                 String userEmail = CommonUtils.getCustomerDetails(RegistrationActivity.this).PersonEmail;
 
-                String authString = "Basic " + AppConstants.convertStingToBase64(objEntityClass.deviceId + ":" + userEmail + ":" + "ReplaceHUBFromApp");
+                String authString = "Basic " + AppConstants.convertStingToBase64(objEntityClass.deviceId + ":" + userEmail + ":" + "ReplaceHUBFromApp" + AppConstants.LANG_PARAM);
 
                 RequestBody body = RequestBody.create(TEXT, jsonData);
                 Request request = new Request.Builder()
@@ -514,7 +599,7 @@ public class RegistrationActivity extends AppCompatActivity {
 
                 if (ResponceMessage.equalsIgnoreCase("success")) {
                     //CommonUtils.SaveUserInPref(RegistrationActivity.this, userName, userMobile, userEmail, "","","","","", "", "","","", FluidSecureSiteName,ISVehicleHasFob, IsPersonHasFob,IsVehicleNumberRequire, Integer.parseInt(WifiChannelToUse),"","","");
-                    AlertDialogBox(RegistrationActivity.this, "Thank you for registering.");
+                    AlertDialogBox(RegistrationActivity.this, getResources().getString(R.string.regiThankYou));
                 } else if (ResponceMessage.equalsIgnoreCase("fail")) {
                     String ResponseText = jsonObj.getString("ResponseText");
                     AppConstants.AlertDialogBox(RegistrationActivity.this, ResponseText);

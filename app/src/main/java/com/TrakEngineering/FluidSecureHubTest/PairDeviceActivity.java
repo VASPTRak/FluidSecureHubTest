@@ -90,6 +90,11 @@ public class PairDeviceActivity extends AppCompatActivity {
             menu.findItem(R.id.mofline).setVisible(true);
         }
 
+        MenuItem itemSp = menu.findItem(R.id.menuSpanish);
+        MenuItem itemEng = menu.findItem(R.id.menuEnglish);
+        itemSp.setVisible(false);
+        itemEng.setVisible(false);
+
         return true;
     }
 

@@ -28,6 +28,13 @@
     <string name="LinkIsConnecting">Conectando...</string>
     <string name="EnterDeptNumber">Ingrese el número de departamento</string>
     <string name="EnterOdoManually">Introducir odómetro manualmente</string>
+    <string name="PressFor123">Presiona para 123</string>
+    <string name="PressForABC">Presione para ABC</string>
+    <string name="ReturnBtn">Devolver</string>
+    <string name="BeforeStartFueling">USTED PUEDE EMPEZAR A CARGAR COMBUSTIBLE</string>
+    <string name="OdometerEntry">Entrada de odómetro:</string>
+    <string name="StartBtn">EMPEZAR</string>
+    <string name="firstTimeUseMessage">Esta es la primera vez que utiliza el sistema. Asegúrese de que la cantidad que se muestra en la pantalla coincida con la cantidad final en el dispensador. De lo contrario, asegúrese de llamar a Soporte</string>
 
     <string name="permission_camera_rationale">Access to the camera is needed for detection</string>
     <string name="no_camera_permission">This application cannot run because it does not have the camera permission.  The application will now exit.</string>
@@ -261,14 +268,20 @@
     <string name="Mobile">Mobile</string>
     <string name="Email">Email</string>
     <string name="SiteName">Nombre del sitio:</string>
+    <string name="HUBName">HUB Nombre:</string>
     <string name="HUBNumber">HUB número:</string>
+    <string name="VersionHeading">Versión</string>
+    <string name="ConnectingStatus">Conectando...</string>
+    <string name="HoseInUse">Manguera en uso.</string>
+    <string name="PairingMode">modo de emparejamiento...</string>
+    <string name="SelectHoseAlert">Por favor, seleccione Manguera</string>
 
     <string name="Quantity">Cantidad:</string>
     <string name="Pulse">pulso:</string>
     <string name="StopBtn">Detenerse</string>
 
     <string name="BtnScanBarcode">Escanear código de barras</string>
-    <string name="BtnReadAccessDevice">Presentar el dispositivo de acceso a la lectora.</string>
+    <string name="BtnReadAccessDevice">Presentar el dispositivo de acceso a la lectora</string>
     <string name="BtnReadAccessDeviceV">Presentar el dispositivo de acceso al vehículo al lector</string>
     <string name="BtnReadAccessDeviceP">Presentar el dispositivo de acceso de persona al lector</string>
     <string name="FobAssignButtonVehicle">Toque aquí para asignar un dispositivo\n para Vehículo</string>
@@ -288,4 +301,66 @@
     <string name="lessThanPrevReadingMsg">Ha ingresado una lectura que es menor que la ingresada previamente. Por favor revisa e intenta de nuevo.</string>
     <string name="UnableToConnectToHoseMessage">Pedimos disculpas por las molestias, no pudimos establecer una conexión con el ENLACE. Por favor, intenta de nuevo.</string>
     <string name="HoseUnavailableMessage">La manguera no está disponible. reajustar la energía al dispensador que está controlando la manguera. Esto se puede hacer disparando el interruptor principal o la parada de emergencia. Una vez que se restablece la alimentación, espere 30 segundos y vuelva a intentarlo.</string>
+
+    <!-- Vehicle Screen -->
+    <string name="vehicleIdentification">IDENTIFICACIÓN DEL VEHÍCULO</string>
+    <string name="PresentVehicleAccessDevice">Presente el dispositivo de acceso de su vehículo a continuación</string>
+    <string name="OR">U</string>
+    <string name="EnterVehicleId">Ingrese la identificación de su vehículo en el cuadro verde a continuación</string>
+    <string name="VehicleNumberHeading">Número de vehículo:</string>
+    <string name="EnterBtn">Ingrese</string>
+    <string name="UseFSTag">Usar FSTag</string>
+    <string name="UseOnScreenBarcode">Toque para usar el código de barras en pantalla</string>
+    <string name="PleaseWait">Espere por favor...</string>
+    <string name="ReadAccessDeviceAgain">Haga clic para leer Dispositivo de acceso nuevamente</string>
+
+    <!-- Odometer Screen -->
+    <string name="EnterOdometerHeading">Ingrese el odómetro (sin décimos)</string>
+    <string name="peOdo">Ingrese Odómetro e inténtelo de nuevo.</string>
+    <string name="OdoNotInReasonability">El Odómetro que ingresó no está dentro de la razonabilidad que se ha establecido para este Vehículo. Póngase en contacto con su Gerente.</string>
+    <string name="IncorrectOdo">Por favor, introduzca el odómetro correcto.</string>
+
+    <!-- Hours Screen -->
+    <string name="EnterHoursHeading">Ingresar Horas (sin décimos)</string>
+    <string name="peHours">Ingrese Horas y vuelva a intentarlo.</string>
+    <string name="HoursNotInReasonability">Las Horas que ha ingresado no están dentro de la razonabilidad que se ha establecido para este Vehículo. Por favor contacte a su Gerente.</string>
+    <string name="IncorrectHours">Por favor, introduzca las horas correctas.</string>
+
+    <!-- PIN Screen -->
+    <string name="PersonnelIdentification">IDENTIFICACIÓN DEL PERSONAL</string>
+    <string name="PresentPersonAccessDevice">Presente su dispositivo de acceso personal a continuación</string>
+    <string name="EnterPersonnelId">Ingrese su PERSONAL en el cuadro verde a continuación</string>
+    <string name="PersonnelNumberHeading">Número personal:</string>
+    <string name="EnterBarcodeNumber">Ingrese el número de código de barras a continuación</string>
+
+    <!-- Department Screen -->
+    <string name="RequireDeptNumber">Ingrese el número de departamento e inténtelo de nuevo.</string>
+
+    <!-- Other Screen -->
+    <string name="EnterHeading">Ingresar</string>
+    <string name="RequiredOther">Ingrese Otro e inténtelo de nuevo.</string>
+
+    <!-- Registration Screen -->
+    <string name="RegisterBtn">Registro</string>
+    <string name="SubmitBtn">Someter</string>
+    <string name="UserName">Nombre de usuario:</string>
+    <string name="UserPassword">Contraseña de usuario:</string>
+    <string name="RequiredUserName">Por favor, introduzca el nombre de usuario</string>
+    <string name="RequiredUserPassword">Por favor ingrese la contraseña de usuario</string>
+    <string name="NewHUBRegistration">Registro nuevo HUB</string>
+    <string name="HubNameHint">INSINUACIÓN: Su nombre HUB consistirá en las palabras HUB seguidas de 8 números.</string>
+    <string name="Example">Ejemplo</string>
+    <string name="HUBNameRequired">Ingrese el nombre del HUB</string>
+    <string name="regiThankYou">Gracias por registrarte.</string>
+    <string name="RegistrationSuccess">Gracias por registrarte. \n\nSu solicitud ha sido enviada para su aprobación. Podrá continuar con la aplicación después de que el administrador haya aprobado su solicitud.</string>
+    <string name="regiNotApproved">Su solicitud de registro aún no ha sido aprobada.\nEstá marcado como Inactivo en el Software de la empresa.\nPóngase en contacto con el administrador de su empresa.</string>
+
+    <!-- Access Device Assignment -->
+    <string name="CompanyName">Nombre de empresa:</string>
+    <string name="SaveBtn">Salvar</string>
+    <string name="EnterVehicle">Ingrese la identificación del vehículo</string>
+    <string name="BarcodeReadSuccessMessage">Código de barras escaneado con éxito</string>
+    <string name="EnterPersonnelPIN">Ingrese el PIN de persona que se asignó a este usuario en la nube</string>
+    <string name="TryAgain">¿Le gustaría volver a intentarlo?</string>
+    <string name="ExistingAccessDeviceReplace">El Personal que has ingresado ya tiene asignado un Dispositivo de Acceso. ¿Le gustaría eliminar el dispositivo existente que tenemos registrado y usar esto como un reemplazo?</string>
 </resources>

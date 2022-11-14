@@ -75,7 +75,7 @@ public class Login extends AppCompatActivity {
         @Override
         protected void onPreExecute() {
             pd = new ProgressDialog(Login.this);
-            pd.setMessage("Please wait...");
+            pd.setMessage(getResources().getString(R.string.PleaseWait));
             pd.setCancelable(false);
         }
 

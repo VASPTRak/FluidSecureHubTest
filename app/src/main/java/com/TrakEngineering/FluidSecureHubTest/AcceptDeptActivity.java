@@ -105,8 +105,8 @@ public class AcceptDeptActivity extends AppCompatActivity {
         if (ScreenNameForDepartment.trim().isEmpty())
             ScreenNameForDepartment = "Department";
 
-        tv_DeptNumberHeader.setText("Enter " + ScreenNameForDepartment + " Number");
-        etDeptNumber.setHint(" Enter " + ScreenNameForDepartment + " Number");
+        tv_DeptNumberHeader.setText(getResources().getString(R.string.EnterDeptNumber).replace("Department", ScreenNameForDepartment));
+        etDeptNumber.setHint(getResources().getString(R.string.EnterDeptNumber).replace("Department", ScreenNameForDepartment));
 
         etDeptNumber.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
@@ -201,7 +201,7 @@ public class AcceptDeptActivity extends AppCompatActivity {
                     ResetTimeoutDeptScreen();
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(TAG + "Please enter " + ScreenNameForDepartment + " Number, and try again.");
-                    CommonUtils.showMessageDilaog(AcceptDeptActivity.this, "Error Message", "Please enter " + ScreenNameForDepartment + " Number, and try again.");
+                    CommonUtils.showMessageDilaog(AcceptDeptActivity.this, "Error Message", getResources().getString(R.string.RequireDeptNumber).replace("Department", ScreenNameForDepartment));
                 }
 
             }
@@ -224,11 +224,11 @@ public class AcceptDeptActivity extends AppCompatActivity {
                 int InputTyp = etDeptNumber.getInputType();
                 if (InputTyp == 2) {
                     etDeptNumber.setInputType(InputType.TYPE_CLASS_TEXT);
-                    tv_swipekeybord.setText("Press for 123");
+                    tv_swipekeybord.setText(getResources().getString(R.string.PressFor123));
                 } else {
 
                     etDeptNumber.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_CLASS_TEXT);
-                    tv_swipekeybord.setText("Press for ABC");
+                    tv_swipekeybord.setText(getResources().getString(R.string.PressForABC));
                 }
 
             }
@@ -255,15 +255,21 @@ public class AcceptDeptActivity extends AppCompatActivity {
         menu.findItem(R.id.mcamera_back).setVisible(false);
         menu.findItem(R.id.mcamera_front).setVisible(false);
 
-        if (cd.isConnectingToInternet() && AppConstants.NETWORK_STRENGTH){
+        if (cd.isConnectingToInternet() && AppConstants.NETWORK_STRENGTH) {
 
             menu.findItem(R.id.monline).setVisible(true);
             menu.findItem(R.id.mofline).setVisible(false);
 
-        }else{
+        } else {
             menu.findItem(R.id.monline).setVisible(false);
             menu.findItem(R.id.mofline).setVisible(true);
         }
+
+        MenuItem itemSp = menu.findItem(R.id.menuSpanish);
+        MenuItem itemEng = menu.findItem(R.id.menuEnglish);
+        itemSp.setVisible(false);
+        itemEng.setVisible(false);
+
         return true;
     }
 
@@ -397,7 +403,7 @@ public class AcceptDeptActivity extends AppCompatActivity {
         @Override
         protected void onPreExecute() {
 
-            String s= "Please wait...";
+            String s = getResources().getString(R.string.PleaseWait);
             SpannableString ss2=  new SpannableString(s);
             ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
             ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
@@ -446,7 +452,7 @@ public class AcceptDeptActivity extends AppCompatActivity {
 
                 System.out.println("jsonDatajsonDatajsonData" + jsonData);
                 //----------------------------------------------------------------------------------
-                String authString = "Basic " + AppConstants.convertStingToBase64(objEntityClass.IMEIUDID + ":" + userEmail + ":" + "ValidateDepartmentNumber");
+                String authString = "Basic " + AppConstants.convertStingToBase64(objEntityClass.IMEIUDID + ":" + userEmail + ":" + "ValidateDepartmentNumber" + AppConstants.LANG_PARAM);
 
                 OkHttpClient client = new OkHttpClient();
                 client.setConnectTimeout(4, TimeUnit.SECONDS);
@@ -552,7 +558,7 @@ public class AcceptDeptActivity extends AppCompatActivity {
                 public void run() {
 
                     new AlertDialog.Builder(context)
-                            .setTitle(title)
+                            //.setTitle(title)
                             .setMessage(message)
                             .setCancelable(false)
                             .setPositiveButton("Ok", new DialogInterface.OnClickListener() {

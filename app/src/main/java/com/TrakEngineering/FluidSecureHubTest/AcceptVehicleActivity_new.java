@@ -309,11 +309,11 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                 int InputTyp = editVehicleNumber.getInputType();
                 if (InputTyp == 2) {
                     editVehicleNumber.setInputType(InputType.TYPE_CLASS_TEXT);
-                    tv_swipekeybord.setText("Press for 123");
+                    tv_swipekeybord.setText(getResources().getString(R.string.PressFor123));
                 } else {
 
                     editVehicleNumber.setInputType(InputType.TYPE_CLASS_NUMBER);//| InputType.TYPE_CLASS_TEXT
-                    tv_swipekeybord.setText("Press for ABC");
+                    tv_swipekeybord.setText(getResources().getString(R.string.PressForABC));
                 }
 
             }
@@ -527,6 +527,11 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
             menu.findItem(R.id.monline).setVisible(false);
             menu.findItem(R.id.mofline).setVisible(true);
         }
+
+        MenuItem itemSp = menu.findItem(R.id.menuSpanish);
+        MenuItem itemEng = menu.findItem(R.id.menuEnglish);
+        itemSp.setVisible(false);
+        itemEng.setVisible(false);
 
         return true;
     }
@@ -829,7 +834,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
         SharedPreferences sharedPref = this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
         String userEmail = sharedPref.getString(AppConstants.USER_EMAIL, "");
 
-        String authStringDefTire = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(this) + ":" + userEmail + ":" + "CheckCurrentBLEVersionOnDemand");
+        String authStringDefTire = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(this) + ":" + userEmail + ":" + "CheckCurrentBLEVersionOnDemand" + AppConstants.LANG_PARAM);
         BleVersionData bleVersionData = new BleVersionData();
         bleVersionData.BLEType = bleType;
         if (bleType.equals("HF")) {
@@ -1045,8 +1050,8 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
         tv_enter_vehicle_no = (TextView) findViewById(R.id.tv_enter_vehicle_no);
         tv_dont_have_fob = (TextView) findViewById(R.id.tv_dont_have_fob);
 
-
-        String content = "Enter your <br><b>" + ScreenNameForVehicle + "</b> in<br> the green box below";
+        //String content = "Enter your <br><b>" + ScreenNameForVehicle + "</b> in<br> the green box below";
+        String content = getResources().getString(R.string.EnterVehicleId).replace("vehicle", "<br><b>" + ScreenNameForVehicle + "</b><br>");
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             tv_dont_have_fob.setText(Html.fromHtml(content, Html.FROM_HTML_MODE_LEGACY));
@@ -1065,9 +1070,9 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
 
         tv_title = (TextView) findViewById(R.id.tv_title);
 
-        tv_title.setText(ScreenNameForVehicle.toUpperCase() + " IDENTIFICATION");
-        tv_fob_Reader.setText("Present your " + ScreenNameForVehicle + " Access Device Below");
-        tv_vehicle_no_below.setText(ScreenNameForVehicle + " Number:");
+        tv_title.setText(getResources().getString(R.string.vehicleIdentification).replace("VEHICLE", ScreenNameForVehicle.toUpperCase()));
+        tv_fob_Reader.setText(getResources().getString(R.string.PresentVehicleAccessDevice).replace("vehicle", ScreenNameForVehicle));
+        tv_vehicle_no_below.setText(getResources().getString(R.string.VehicleNumberHeading).replace("Vehicle", ScreenNameForVehicle));
 
     }
 
@@ -1108,7 +1113,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
         protected void onPreExecute() {
 
             try {
-                String s = "Please wait...";
+                String s = getResources().getString(R.string.PleaseWait);
                 SpannableString ss2 = new SpannableString(s);
                 ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
                 ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
@@ -1231,7 +1236,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
 
                     System.out.println("jsonDatajsonDatajsonData" + jsonData);
                     //----------------------------------------------------------------------------------
-                    String authString = "Basic " + AppConstants.convertStingToBase64(objEntityClass.IMEIUDID + ":" + userEmail + ":" + "CheckVehicleRequireOdometerEntryAndRequireHourEntry");
+                    String authString = "Basic " + AppConstants.convertStingToBase64(objEntityClass.IMEIUDID + ":" + userEmail + ":" + "CheckVehicleRequireOdometerEntryAndRequireHourEntry" + AppConstants.LANG_PARAM);
 
                     OkHttpClient client = new OkHttpClient();
                     client.setConnectTimeout(4, TimeUnit.SECONDS);
@@ -1469,6 +1474,8 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                             IsNewFobVar = true;
                             btnSave.setEnabled(true);
                             AppConstants.APDU_FOB_KEY = "";
+                            Barcode_val = "";
+                            MagCard_vehicle = "";
                             onResume();
                             //Empty Fob key & enable edit text and Enter button
                             // AppConstants.FOB_KEY_VEHICLE = "";
@@ -1726,7 +1733,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
         @Override
         protected void onPreExecute() {
 
-            String text = "Please wait..";
+            String text = getResources().getString(R.string.PleaseWait);
             SpannableStringBuilder biggerText = new SpannableStringBuilder(text);
             biggerText.setSpan(new RelativeSizeSpan(2.00f), 0, text.length(), 0);
             Toast.makeText(getApplicationContext(), biggerText, Toast.LENGTH_LONG).show();
@@ -1789,7 +1796,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
 
                 System.out.println("jsonDatajsonDatajsonData" + jsonData);
                 //----------------------------------------------------------------------------------
-                String authString = "Basic " + AppConstants.convertStingToBase64(objEntityClass.IMEIUDID + ":" + userEmail + ":" + "CheckVehicleRequireOdometerEntryAndRequireHourEntry");
+                String authString = "Basic " + AppConstants.convertStingToBase64(objEntityClass.IMEIUDID + ":" + userEmail + ":" + "CheckVehicleRequireOdometerEntryAndRequireHourEntry" + AppConstants.LANG_PARAM);
 
                 OkHttpClient client = new OkHttpClient();
                 client.setConnectTimeout(10, TimeUnit.SECONDS);
@@ -1839,7 +1846,6 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
 
                     String ResponceMessage = jsonObject.getString("ResponceMessage");
                     System.out.println("ResponceMessage...." + ResponceMessage);
-
 
                     if (ResponceMessage.equalsIgnoreCase("success")) {
 
@@ -1901,11 +1907,11 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
 
                         tv_vehicle_no_below.setText(ScreenNameForVehicle + ": " + VehicleNumber);
                         if (!AppConstants.APDU_FOB_KEY.isEmpty()) {
-                            tv_fob_number.setText("Access Device No:" + AppConstants.APDU_FOB_KEY);
+                            tv_fob_number.setText("Access Device No: " + AppConstants.APDU_FOB_KEY);
                         } else if (!Barcode_val.isEmpty()) {
                             tv_fob_number.setText("Barcode No: " + Barcode_val);
                         } else if (!MagCard_vehicle.isEmpty()) {
-                            tv_fob_number.setText("MagCard_No" + MagCard_vehicle);
+                            tv_fob_number.setText("MagCard_No: " + MagCard_vehicle);
                         }
 
                         Log.i("ps_Vechile no", "Step 1:" + VehicleNumber);
@@ -2001,11 +2007,11 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
 
                             //tv_vehicle_no_below.setText(ScreenNameForVehicle + ": " + fob);
                             if (!AppConstants.APDU_FOB_KEY.isEmpty()) {
-                                tv_fob_number.setText("Access Device No:" + AppConstants.APDU_FOB_KEY);
+                                tv_fob_number.setText("Access Device No: " + AppConstants.APDU_FOB_KEY);
                             } else if (!Barcode_val.isEmpty()) {
                                 tv_fob_number.setText("Barcode No: " + Barcode_val);
                             } else if (!MagCard_vehicle.isEmpty()) {
-                                tv_fob_number.setText("MagCard_No" + MagCard_vehicle);
+                                tv_fob_number.setText("MagCard_No: " + MagCard_vehicle);
                             }
 
                             DisplayScreenFobReadSuccess();
@@ -2083,7 +2089,8 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
 
                             tv_dont_have_fob.setVisibility(View.VISIBLE);
                             btnSave.setVisibility(View.VISIBLE);
-                            String content = "Enter your <br><b>" + ScreenNameForVehicle + "</b> in<br> the green box below";
+                            //String content = "Enter your <br><b>" + ScreenNameForVehicle + "</b> in<br> the green box below";
+                            String content = getResources().getString(R.string.EnterVehicleId).replace("vehicle", "<br><b>" + ScreenNameForVehicle + "</b><br>");
 
                             int width = ActionBar.LayoutParams.MATCH_PARENT;
                             int height = ActionBar.LayoutParams.WRAP_CONTENT;
@@ -2107,6 +2114,8 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                             IsNewFobVar = true;
                             btnSave.setEnabled(true);
                             AppConstants.APDU_FOB_KEY = "";
+                            Barcode_val = "";
+                            MagCard_vehicle = "";
                             onResume();
                             //Empty Fob key & enable edit text and Enter button
                             // AppConstants.FOB_KEY_VEHICLE = "";
@@ -2169,6 +2178,8 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
         AppConstants.ClearEdittextFielsOnBack(AcceptVehicleActivity_new.this);
         Istimeout_Sec = false;
         AppConstants.APDU_FOB_KEY = "";
+        Barcode_val = "";
+        MagCard_vehicle = "";
         AppConstants.NonValidateVehicle_FOB_KEY = "";
         AppConstants.VehicleLocal_FOB_KEY = "";
         if (IsGateHub.equalsIgnoreCase("True")) {
@@ -2470,7 +2481,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
         @Override
         protected void onPreExecute() {
 
-            String s = "Please wait...";
+            String s = getResources().getString(R.string.PleaseWait);
             SpannableString ss2 = new SpannableString(s);
             ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
             ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
@@ -2495,7 +2506,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
 
                 Gson gson = new Gson();
                 String jsonData = gson.toJson(objEntityClass);
-                String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(AcceptVehicleActivity_new.this) + ":" + CommonUtils.getCustomerDetails(AcceptVehicleActivity_new.this).PersonEmail + ":" + "GetVehicleByFSTagMacAddress");
+                String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(AcceptVehicleActivity_new.this) + ":" + CommonUtils.getCustomerDetails(AcceptVehicleActivity_new.this).PersonEmail + ":" + "GetVehicleByFSTagMacAddress" + AppConstants.LANG_PARAM);
 
 
                 //resp = serverHandler.PostTextData(WelcomeActivity.this, AppConstants.webURL, parm2, authString);
@@ -2729,7 +2740,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
         @Override
         protected void onPreExecute() {
 
-            String s = "Please wait...";
+            String s = getResources().getString(R.string.PleaseWait);
             SpannableString ss2 = new SpannableString(s);
             ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
             ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
@@ -3121,6 +3132,8 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
 
             AppConstants.VehicleLocal_FOB_KEY = "";
             AppConstants.APDU_FOB_KEY = "";
+            Barcode_val = "";
+            MagCard_vehicle = "";
             onResume();
         }
 

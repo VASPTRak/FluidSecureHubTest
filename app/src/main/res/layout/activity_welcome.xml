@@ -369,7 +369,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginRight="20dp"
                     android:gravity="right"
-                    android:text="Version: "
+                    android:text="@string/VersionHeading"
                     android:textAppearance="?android:attr/textAppearanceLarge"
                     android:textColor="#fff"
                     android:textSize="18sp" />
@@ -631,7 +631,7 @@
                                 android:background="@color/Red"
                                 android:gravity="center"
                                 android:padding="5dp"
-                                android:text="YOU MAY BEGIN FUELING"
+                                android:text="@string/BeforeStartFueling"
                                 android:textColor="@color/white"
                                 android:textSize="25dp" />
 
@@ -763,7 +763,7 @@
                                 android:background="@color/Red"
                                 android:gravity="center"
                                 android:padding="5dp"
-                                android:text="YOU MAY BEGIN FUELING"
+                                android:text="@string/BeforeStartFueling"
                                 android:textColor="@color/white"
                                 android:textSize="25dp" />
 
@@ -903,7 +903,7 @@
                                 android:background="@color/Red"
                                 android:gravity="center"
                                 android:padding="5dp"
-                                android:text="YOU MAY BEGIN FUELING"
+                                android:text="@string/BeforeStartFueling"
                                 android:textColor="@color/white"
                                 android:textSize="25dp" />
 
@@ -1035,7 +1035,7 @@
                                 android:background="@color/Red"
                                 android:gravity="center"
                                 android:padding="5dp"
-                                android:text="YOU MAY BEGIN FUELING"
+                                android:text="@string/BeforeStartFueling"
                                 android:textColor="@color/white"
                                 android:textSize="25dp" />
 
@@ -1157,7 +1157,7 @@
                         android:orientation="vertical">
 
 
-                        <!--Hose Three Fake Message-->
+                        <!--Hose Five Fake Message-->
                         <LinearLayout
                             android:id="@+id/Fs5_beginFuel"
                             android:layout_width="match_parent"
@@ -1173,7 +1173,7 @@
                                 android:background="@color/Red"
                                 android:gravity="center"
                                 android:padding="5dp"
-                                android:text="YOU MAY BEGIN FUELING"
+                                android:text="@string/BeforeStartFueling"
                                 android:textColor="@color/white"
                                 android:textSize="25dp" />
 
@@ -1202,7 +1202,7 @@
                                         android:id="@+id/tv_FS5_hoseName"
                                         style="@style/TextViewStyleDashboard"
                                         android:layout_width="wrap_content"
-                                        android:text="Hose Three"
+                                        android:text="Hose Five"
                                         android:textColor="@color/black" />
 
                                     <TextView
@@ -1289,7 +1289,7 @@
                         android:orientation="vertical">
 
 
-                        <!--Hose Four Fake Message-->
+                        <!--Hose Six Fake Message-->
                         <LinearLayout
                             android:id="@+id/Fs6_beginFuel"
                             android:layout_width="match_parent"
@@ -1305,7 +1305,7 @@
                                 android:background="@color/Red"
                                 android:gravity="center"
                                 android:padding="5dp"
-                                android:text="YOU MAY BEGIN FUELING"
+                                android:text="@string/BeforeStartFueling"
                                 android:textColor="@color/white"
                                 android:textSize="25dp" />
 
@@ -1333,7 +1333,7 @@
                                         android:id="@+id/tv_FS6_hoseName"
                                         style="@style/TextViewStyleDashboard"
                                         android:layout_width="wrap_content"
-                                        android:text="Hose Four"
+                                        android:text="Hose Six"
                                         android:textColor="@color/black" />
 
                                     <TextView

@@ -101,7 +101,7 @@ public class AcceptServiceCall {
         @Override
         protected void onPreExecute() {
 
-            String s= "Please wait...";
+            String s = activity.getResources().getString(R.string.PleaseWait);
             SpannableString ss2=  new SpannableString(s);
             ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
             ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
@@ -268,13 +268,12 @@ public class AcceptServiceCall {
 
                 //if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " Authorization Sequence Data: " + jsonData);
 
-                String authString = "Basic " + AppConstants.convertStingToBase64(authEntityClass.IMEIUDID + ":" + CommonUtils.getCustomerDetails(activity).Email + ":" + "AuthorizationSequence");
+                String authString = "Basic " + AppConstants.convertStingToBase64(authEntityClass.IMEIUDID + ":" + CommonUtils.getCustomerDetails(activity).Email + ":" + "AuthorizationSequence" + AppConstants.LANG_PARAM);
 
                 OkHttpClient client = new OkHttpClient();
                 client.setConnectTimeout(15, TimeUnit.SECONDS);
                 client.setReadTimeout(15, TimeUnit.SECONDS);
                 client.setWriteTimeout(15, TimeUnit.SECONDS);
-
 
                 RequestBody body = RequestBody.create(TEXT, jsonData);
                 Request request = new Request.Builder()
@@ -283,12 +282,9 @@ public class AcceptServiceCall {
                         .addHeader("Authorization", authString)
                         .build();
 
-
                 Response response = null;
                 response = client.newCall(request).execute();
                 resp = response.body().string();
-
-
 
             } catch (IOException e) {
                 AppConstants.serverCallInProgress =  false;
@@ -297,7 +293,6 @@ public class AcceptServiceCall {
             }
             return resp;
         }
-
 
         @Override
         protected void onPostExecute(String serverRes) {
@@ -1128,7 +1123,7 @@ public class AcceptServiceCall {
         @Override
         protected void onPreExecute() {
 
-            String s= "Please wait...";
+            String s = activity.getResources().getString(R.string.PleaseWait);
             SpannableString ss2=  new SpannableString(s);
             ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
             ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
@@ -1225,7 +1220,7 @@ public class AcceptServiceCall {
         @Override
         protected void onPreExecute() {
 
-            String s= "Please wait...";
+            String s = activity.getResources().getString(R.string.PleaseWait);
             SpannableString ss2=  new SpannableString(s);
             ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
             ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
@@ -1286,7 +1281,7 @@ public class AcceptServiceCall {
         @Override
         protected void onPreExecute() {
 
-            String s= "Please wait...";
+            String s = activity.getResources().getString(R.string.PleaseWait);
             SpannableString ss2=  new SpannableString(s);
             ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
             ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);

@@ -13,16 +13,6 @@
         android:title="DebugWindow"
         app:showAsAction="never" />
 
-    <item android:id="@+id/menuEnglish"
-        android:orderInCategory="102"
-        android:title="English"
-        app:showAsAction="never"/>
-
-    <item android:id="@+id/menuSpanish"
-        android:orderInCategory="102"
-        android:title="Spanish"
-        app:showAsAction="never"/>
-
     <item android:id="@+id/mreload"
         android:orderInCategory="104"
         android:icon="@drawable/reload"
@@ -82,6 +72,19 @@
         android:title="Scope"
         android:visible="false"
         app:showAsAction="never" />
+
+    <item
+        android:id="@+id/menuEnglish"
+        android:orderInCategory="100"
+        android:title="English"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/menuSpanish"
+        android:orderInCategory="100"
+        android:title="Spanish"
+        app:showAsAction="ifRoom" />
+
     <item
         android:id="@+id/mrestartapp"
         android:orderInCategory="100"

@@ -528,7 +528,7 @@ public class SelectFSActivity extends AppCompatActivity implements GoogleApiClie
                     case Activity.RESULT_OK:
                         Log.i("Splash", "User agreed to make required location settings changes.");
 
-                        AppConstants.colorToast(getApplicationContext(), "Please wait...", Color.BLACK);
+                        AppConstants.colorToast(getApplicationContext(), getResources().getString(R.string.PleaseWait), Color.BLACK);
 
 
                         goButtonAction(null);
@@ -554,7 +554,7 @@ public class SelectFSActivity extends AppCompatActivity implements GoogleApiClie
         @Override
         protected void onPreExecute() {
             pd = new ProgressDialog(SelectFSActivity.this);
-            pd.setMessage("Please wait...");
+            pd.setMessage(getResources().getString(R.string.PleaseWait));
             pd.setCancelable(true);
             pd.show();
 

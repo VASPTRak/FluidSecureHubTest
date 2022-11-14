@@ -252,9 +252,10 @@ public class AcceptPinActivity_new extends AppCompatActivity {
         tv_fob_Reader = (TextView) findViewById(R.id.tv_fob_Reader);
         tv_or = (TextView) findViewById(R.id.tv_or);
 
-        tv_title.setText(ScreenNameForPersonnel.toUpperCase() + " IDENTIFICATION");
-        tv_fob_Reader.setText("Present your " + ScreenNameForPersonnel + " Access Device Below");
-        String content = "Enter your<br> <b>" + ScreenNameForPersonnel + "</b> in<br> the green box below";
+        tv_title.setText(getResources().getString(R.string.PersonnelIdentification).replace("PERSONNEL", ScreenNameForPersonnel.toUpperCase()));
+        tv_fob_Reader.setText(getResources().getString(R.string.PresentPersonAccessDevice).replace("personnel", ScreenNameForPersonnel));
+        //String content = "Enter your<br> <b>" + ScreenNameForPersonnel + "</b> in<br> the green box below";
+        String content = getResources().getString(R.string.EnterPersonnelId).replace("PERSONNEL", "<br><b>" + ScreenNameForPersonnel + "</b><br>");
         etPersonnelPin.setText("");
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             tv_dont_have_fob.setText(Html.fromHtml(content, Html.FROM_HTML_MODE_LEGACY));
@@ -264,7 +265,7 @@ public class AcceptPinActivity_new extends AppCompatActivity {
             System.out.println(Html.fromHtml(content));
         }
 
-        tv_enter_pin_no.setText(ScreenNameForPersonnel + " Number:");
+        tv_enter_pin_no.setText(getResources().getString(R.string.PersonnelNumberHeading).replace("Personnel", ScreenNameForPersonnel));
 
         //BLE upgrade
         SharedPreferences myPrefslo = this.getSharedPreferences("BLEUpgradeInfo", 0);
@@ -466,12 +467,12 @@ public class AcceptPinActivity_new extends AppCompatActivity {
                 if (InputTyp == 2) {
                     etBarcode.setInputType(InputType.TYPE_CLASS_TEXT);
                     etPersonnelPin.setInputType(InputType.TYPE_CLASS_TEXT);
-                    tv_swipekeybord.setText("Press for 123");
+                    tv_swipekeybord.setText(getResources().getString(R.string.PressFor123));
                 } else {
 
                     etBarcode.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_CLASS_TEXT);
                     etPersonnelPin.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_CLASS_TEXT);
-                    tv_swipekeybord.setText("Press for ABC");
+                    tv_swipekeybord.setText(getResources().getString(R.string.PressForABC));
                 }
 
             }
@@ -639,6 +640,11 @@ public class AcceptPinActivity_new extends AppCompatActivity {
             menu.findItem(R.id.monline).setVisible(false);
             menu.findItem(R.id.mofline).setVisible(true);
         }
+
+        MenuItem itemSp = menu.findItem(R.id.menuSpanish);
+        MenuItem itemEng = menu.findItem(R.id.menuEnglish);
+        itemSp.setVisible(false);
+        itemEng.setVisible(false);
 
         return true;
     }
@@ -917,7 +923,7 @@ public class AcceptPinActivity_new extends AppCompatActivity {
         SharedPreferences sharedPref = this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
         String userEmail = sharedPref.getString(AppConstants.USER_EMAIL, "");
 
-        String authStringDefTire = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(this) + ":" + userEmail + ":" + "CheckCurrentBLEVersionOnDemand");
+        String authStringDefTire = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(this) + ":" + userEmail + ":" + "CheckCurrentBLEVersionOnDemand" + AppConstants.LANG_PARAM);
         BleVersionData bleVersionData = new BleVersionData();
         bleVersionData.BLEType = BLEType;
         if (BLEType.equals("HF"))
@@ -1277,7 +1283,7 @@ public class AcceptPinActivity_new extends AppCompatActivity {
         @Override
         protected void onPreExecute() {
 
-            String s = "Please wait...";
+            String s = getResources().getString(R.string.PleaseWait);
             SpannableString ss2 = new SpannableString(s);
             ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
             ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
@@ -1388,7 +1394,7 @@ public class AcceptPinActivity_new extends AppCompatActivity {
 
                     System.out.println("jsonDatajsonDatajsonData" + jsonData);
                     //----------------------------------------------------------------------------------
-                    String authString = "Basic " + AppConstants.convertStingToBase64(objEntityClass.IMEIUDID + ":" + userEmail + ":" + "CheckVehicleRequireOdometerEntryAndRequireHourEntry");
+                    String authString = "Basic " + AppConstants.convertStingToBase64(objEntityClass.IMEIUDID + ":" + userEmail + ":" + "CheckVehicleRequireOdometerEntryAndRequireHourEntry" + AppConstants.LANG_PARAM);
 
                     OkHttpClient client = new OkHttpClient();
                     client.setConnectTimeout(4, TimeUnit.SECONDS);
@@ -1584,7 +1590,7 @@ public class AcceptPinActivity_new extends AppCompatActivity {
 
             InScrverCall = true;
 
-            String text = "Please wait..";
+            String text = getResources().getString(R.string.PleaseWait);
             SpannableStringBuilder biggerText = new SpannableStringBuilder(text);
             biggerText.setSpan(new RelativeSizeSpan(2.00f), 0, text.length(), 0);
             Toast.makeText(getApplicationContext(), biggerText, Toast.LENGTH_LONG).show();
@@ -1647,7 +1653,7 @@ public class AcceptPinActivity_new extends AppCompatActivity {
 
                 System.out.println("jsonData123" + jsonData);
                 //----------------------------------------------------------------------------------
-                String authString = "Basic " + AppConstants.convertStingToBase64(objEntityClass.IMEIUDID + ":" + userEmail + ":" + "CheckValidPinOrFOBNUmber");
+                String authString = "Basic " + AppConstants.convertStingToBase64(objEntityClass.IMEIUDID + ":" + userEmail + ":" + "CheckValidPinOrFOBNUmber" + AppConstants.LANG_PARAM);
 
                 OkHttpClient client = new OkHttpClient();
                 client.setConnectTimeout(10, TimeUnit.SECONDS);
@@ -1719,7 +1725,7 @@ public class AcceptPinActivity_new extends AppCompatActivity {
                     if (ResponceMessage.equalsIgnoreCase("success")) {
 
                         DisplayScreenFobReadSuccess();
-                        tv_enter_pin_no.setText(ScreenNameForPersonnel + " Number:" + "****");//PersonPIN fob replace by asterisk for password
+                        tv_enter_pin_no.setText(getResources().getString(R.string.PersonnelNumberHeading).replace("Personnel", ScreenNameForPersonnel) + " ****");//PersonPIN fob replace by asterisk for password
                         System.out.println("PersonFOBNumber.." + PersonFOBNumber + "PersonPin" + PersonPIN);
                         etPersonnelPin.setText(PersonPIN);
 
@@ -1735,7 +1741,7 @@ public class AcceptPinActivity_new extends AppCompatActivity {
                     } else {
 
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "PIN rejected. Error: " + ResponceMessage);
+                            AppConstants.WriteinFile(TAG + "Person Fob Read Fail. Error: " + ResponceMessage);
 
                         ////////////////
 
@@ -1773,7 +1779,7 @@ public class AcceptPinActivity_new extends AppCompatActivity {
                                     CommonUtils.AutoCloseCustomMessageDilaog(AcceptPinActivity_new.this, "Message", "Same access device is scanned again. Please check.");
                                 } else {
 
-                                    tv_enter_pin_no.setText(ScreenNameForPersonnel + " Number:" + "****");//fob replace by asterisk for password
+                                    tv_enter_pin_no.setText(getResources().getString(R.string.PersonnelNumberHeading).replace("Personnel", ScreenNameForPersonnel) + " ****");//fob replace by asterisk for password
                                     etPersonnelPin.setText(fob);
 
                                     if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS1")) {
@@ -1921,7 +1927,8 @@ public class AcceptPinActivity_new extends AppCompatActivity {
                         tv_fob_number.setVisibility(View.GONE);
                         tv_or.setVisibility(View.GONE);
                         tv_dont_have_fob.setVisibility(View.VISIBLE);
-                        String content = "Enter your<br> <b>" + ScreenNameForPersonnel + "</b> in<br> the green box below";
+                        //String content = "Enter your<br> <b>" + ScreenNameForPersonnel + "</b> in<br> the green box below";
+                        String content = getResources().getString(R.string.EnterPersonnelId).replace("PERSONNEL", "<br><b>" + ScreenNameForPersonnel + "</b><br>");
 
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                             tv_dont_have_fob.setText(Html.fromHtml(content, Html.FROM_HTML_MODE_LEGACY));
@@ -2929,7 +2936,7 @@ public class AcceptPinActivity_new extends AppCompatActivity {
                     Barcode_pin_val = data.getStringExtra("Barcode").trim();
 
                     if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + " Pin Barcode scan value: " + Barcode_pin_val);
+                        AppConstants.WriteinFile(TAG + "Pin Barcode scan value: " + Barcode_pin_val);
 
                     if (cd.isConnectingToInternet()) {
                         new GetPinNuOnFobKeyDetection().execute();

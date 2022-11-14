@@ -87,6 +87,11 @@ public class AcceptHoursAcitvity extends AppCompatActivity {
             menu.findItem(R.id.mofline).setVisible(true);
         }
 
+        MenuItem itemSp = menu.findItem(R.id.menuSpanish);
+        MenuItem itemEng = menu.findItem(R.id.menuEnglish);
+        itemSp.setVisible(false);
+        itemEng.setVisible(false);
+
         return true;
     }
 
@@ -189,8 +194,8 @@ public class AcceptHoursAcitvity extends AppCompatActivity {
         if (ScreenNameForHours.trim().isEmpty())
             ScreenNameForHours = "Hour";
 
-        tv_hours.setText("Enter the " + ScreenNameForHours + " No Tenths");
-        etHours.setHint("Enter the " + ScreenNameForHours + " No Tenths");
+        tv_hours.setText(getResources().getString(R.string.EnterHoursHeading).replace("Hours", ScreenNameForHours));
+        etHours.setHint(getResources().getString(R.string.EnterHoursHeading).replace("Hours", ScreenNameForHours));
 
         /*SharedPreferences sharedPrefODO = AcceptHoursAcitvity.this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
         IsOdoMeterRequire = sharedPrefODO.getString(AppConstants.IsOdoMeterRequire, "");
@@ -241,11 +246,11 @@ public class AcceptHoursAcitvity extends AppCompatActivity {
                 int InputTyp = etHours.getInputType();
                 if (InputTyp == 2) {
                     etHours.setInputType(InputType.TYPE_CLASS_TEXT);
-                    tv_swipekeybord.setText("Press for 123");
+                    tv_swipekeybord.setText(getResources().getString(R.string.PressFor123));
                 } else {
 
                     etHours.setInputType(InputType.TYPE_CLASS_NUMBER);//| InputType.TYPE_CLASS_TEXT
-                    tv_swipekeybord.setText("Press for ABC");
+                    tv_swipekeybord.setText(getResources().getString(R.string.PressForABC));
                 }
 
             }
@@ -393,7 +398,7 @@ public class AcceptHoursAcitvity extends AppCompatActivity {
                                         etHours.setText("");
                                         Istimeout_Sec = true;
                                         ResetTimeoutHoursScreen();
-                                        CommonUtils.showMessageDilaog(AcceptHoursAcitvity.this, "Message", "The " + ScreenNameForHours + " you have entered is not within the reasonability that has been set for this " + ScreenNameForVehicle + ". Please contact your Manager.");
+                                        CommonUtils.showMessageDilaog(AcceptHoursAcitvity.this, "Message", getResources().getString(R.string.HoursNotInReasonability).replace("Hours", ScreenNameForHours).replace("Vehicle", ScreenNameForVehicle));
                                     }
                                 }
                             } else {
@@ -405,7 +410,7 @@ public class AcceptHoursAcitvity extends AppCompatActivity {
                                     etHours.setText("");
                                     if (AppConstants.GenerateLogs)
                                         AppConstants.WriteinFile(TAG + "The " + ScreenNameForHours + " you have entered is not within the reasonability that has been set for this " + ScreenNameForVehicle + ". Please contact your Manager.");
-                                    CommonUtils.showMessageDilaog(AcceptHoursAcitvity.this, "Message", "The " + ScreenNameForHours + " you have entered is not within the reasonability that has been set for this " + ScreenNameForVehicle + ". Please contact your Manager.");
+                                    CommonUtils.showMessageDilaog(AcceptHoursAcitvity.this, "Message", getResources().getString(R.string.HoursNotInReasonability).replace("Hours", ScreenNameForHours).replace("Vehicle", ScreenNameForVehicle));
                                     Istimeout_Sec = true;
                                     ResetTimeoutHoursScreen();
                                 }
@@ -490,7 +495,7 @@ public class AcceptHoursAcitvity extends AppCompatActivity {
                                         } else {
                                             if (AppConstants.GenerateLogs)
                                                 AppConstants.WriteinFile(TAG + "Please enter Correct " + ScreenNameForHours);
-                                            CommonUtils.showMessageDilaog(AcceptHoursAcitvity.this, "Message", "Please enter Correct " + ScreenNameForHours);
+                                            CommonUtils.showMessageDilaog(AcceptHoursAcitvity.this, "Message", getResources().getString(R.string.IncorrectHours).replace("Hours", ScreenNameForHours));
                                             //AppConstants.colorToastBigFont(getApplicationContext(), AppConstants.OFF1, Color.BLUE);
                                             Istimeout_Sec = true;
                                             ResetTimeoutHoursScreen();
@@ -510,7 +515,7 @@ public class AcceptHoursAcitvity extends AppCompatActivity {
                                     } else {
                                         if (AppConstants.GenerateLogs)
                                             AppConstants.WriteinFile(TAG + "Please enter Correct " + ScreenNameForHours);
-                                        CommonUtils.showMessageDilaog(AcceptHoursAcitvity.this, "Message", "Please enter Correct " + ScreenNameForHours);
+                                        CommonUtils.showMessageDilaog(AcceptHoursAcitvity.this, "Message", getResources().getString(R.string.IncorrectHours).replace("Hours", ScreenNameForHours));
                                         //AppConstants.colorToastBigFont(getApplicationContext(), AppConstants.OFF1, Color.BLUE);
                                         Istimeout_Sec = true;
                                         ResetTimeoutHoursScreen();
@@ -533,7 +538,7 @@ public class AcceptHoursAcitvity extends AppCompatActivity {
             } else {
                 if (AppConstants.GenerateLogs)
                     AppConstants.WriteinFile(TAG + "Please enter " + ScreenNameForHours);
-                CommonUtils.showMessageDilaog(AcceptHoursAcitvity.this, "Error Message", "Please enter " + ScreenNameForHours);
+                CommonUtils.showMessageDilaog(AcceptHoursAcitvity.this, "Error Message", getResources().getString(R.string.peHours).replace("Hours", ScreenNameForHours));
                 Istimeout_Sec = true;
                 ResetTimeoutHoursScreen();
             }

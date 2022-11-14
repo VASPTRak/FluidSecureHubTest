@@ -106,9 +106,9 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
 
-        //SharedPreferences sharedPref = SplashActivity.this.getSharedPreferences("LanguageSettings", Context.MODE_PRIVATE);
-        //String language = sharedPref.getString("language", "");
-        //CommonUtils.StoreLanguageSettings(SplashActivity.this, language, false);
+        SharedPreferences sharedPref = SplashActivity.this.getSharedPreferences("LanguageSettings", Context.MODE_PRIVATE);
+        String language = sharedPref.getString("language", "");
+        CommonUtils.StoreLanguageSettings(SplashActivity.this, language, false);
 
         getSupportActionBar().setTitle("HUB Application");
 
@@ -721,7 +721,7 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
 
                 } else if (ResponceText.equalsIgnoreCase("notapproved")) {
 
-                    AlertDialogBox(SplashActivity.this, "Your Registration request is not approved yet.\nIt is marked Inactive in the Company Software.\nPlease contact your company administrator.");
+                    AlertDialogBox(SplashActivity.this, getResources().getString(R.string.regiNotApproved));
 
                 } else if (ResponceText.equalsIgnoreCase("IMEI not exists")) {
 

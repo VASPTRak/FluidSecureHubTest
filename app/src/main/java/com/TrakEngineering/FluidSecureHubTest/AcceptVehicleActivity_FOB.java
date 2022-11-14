@@ -177,11 +177,11 @@ public class AcceptVehicleActivity_FOB extends AppCompatActivity {
                 int InputTyp = editVehicleNumber.getInputType();
                 if (InputTyp == 2) {
                     editVehicleNumber.setInputType(InputType.TYPE_CLASS_TEXT);
-                    tv_swipekeybord.setText("Press for 123");
+                    tv_swipekeybord.setText(getResources().getString(R.string.PressFor123));
                 } else {
 
                     editVehicleNumber.setInputType(InputType.TYPE_CLASS_NUMBER);//| InputType.TYPE_CLASS_TEXT
-                    tv_swipekeybord.setText("Press for ABC");
+                    tv_swipekeybord.setText(getResources().getString(R.string.PressForABC));
                 }
 
             }
@@ -620,7 +620,7 @@ public class AcceptVehicleActivity_FOB extends AppCompatActivity {
                         Log.d(TAG, "Barcode read: " + data.getStringExtra("Barcode").trim());
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile("Vehicle Barcode read success: " + Barcode_val);
-                        tv_Display_msg.setText("Barcode scan successfully: "+Barcode_val);
+                        tv_Display_msg.setText(getResources().getString(R.string.BarcodeReadSuccessMessage) + ": " + Barcode_val);
                     } else {
 
                         InitScreen();
@@ -656,7 +656,7 @@ public class AcceptVehicleActivity_FOB extends AppCompatActivity {
         @Override
         protected void onPreExecute() {
             pd = new ProgressDialog(AcceptVehicleActivity_FOB.this);
-            pd.setMessage("Please wait...");
+            pd.setMessage(getResources().getString(R.string.PleaseWait));
             pd.show();
 
         }
@@ -851,7 +851,7 @@ public class AcceptVehicleActivity_FOB extends AppCompatActivity {
         @Override
         protected void onPreExecute() {
             pd = new ProgressDialog(AcceptVehicleActivity_FOB.this);
-            pd.setMessage("Please wait...");
+            pd.setMessage(getResources().getString(R.string.PleaseWait));
             pd.show();
 
         }

@@ -66,6 +66,11 @@ public class AcceptVehicleOtherInfo extends AppCompatActivity {
             menu.findItem(R.id.mofline).setVisible(true);
         }
 
+        MenuItem itemSp = menu.findItem(R.id.menuSpanish);
+        MenuItem itemEng = menu.findItem(R.id.menuEnglish);
+        itemSp.setVisible(false);
+        itemEng.setVisible(false);
+
         return true;
     }
 
@@ -129,7 +134,8 @@ public class AcceptVehicleOtherInfo extends AppCompatActivity {
         IsOtherRequire = sharedPrefODO.getString(AppConstants.IsOtherRequire, "");
         OtherLabelVehoicle = sharedPrefODO.getString(AppConstants.ExtraOtherLabel, "ExtraOtherLabel");
 
-        tv_otherlabel.setText(OtherLabelVehoicle);
+        tv_otherlabel.setText(getResources().getString(R.string.EnterHeading) + " " + OtherLabelVehoicle);
+        etOther.setHint(getResources().getString(R.string.EnterHeading) + " " + OtherLabelVehoicle);
         TimeOutinMinute = sharedPrefODO.getString(AppConstants.TimeOut, "1");
 
 
@@ -236,7 +242,7 @@ public class AcceptVehicleOtherInfo extends AppCompatActivity {
                 } else {
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(TAG + "Please enter Other, and try again.");
-                    CommonUtils.showMessageDilaog(AcceptVehicleOtherInfo.this, "Error Message", "Please enter Other, and try again.");
+                    CommonUtils.showMessageDilaog(AcceptVehicleOtherInfo.this, "Error Message", getResources().getString(R.string.RequiredOther));
                 }
 
             }
@@ -263,11 +269,11 @@ public class AcceptVehicleOtherInfo extends AppCompatActivity {
                 int InputTyp = etOther.getInputType();
                 if (InputTyp == 3) {
                     etOther.setInputType(InputType.TYPE_CLASS_TEXT);
-                    tv_swipekeybord.setText("Press for 123");
+                    tv_swipekeybord.setText(getResources().getString(R.string.PressFor123));
                 } else {
 
                     etOther.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_CLASS_TEXT);
-                    tv_swipekeybord.setText("Press for ABC");
+                    tv_swipekeybord.setText(getResources().getString(R.string.PressForABC));
                 }
 
             }

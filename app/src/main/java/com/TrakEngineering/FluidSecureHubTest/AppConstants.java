@@ -139,7 +139,7 @@ public class AppConstants {
     public static final String SupportEmail = "SupportEmail";
     public static final String SupportPhonenumber = "SupportPhonenumber";
     public static String BrandName = "FluidSecure";
-    public static String LANG_PARAM;
+    public static String LANG_PARAM = "";
 
     public static final String PACKAGE_BACKGROUND_SERVICE = "com.TrakEngineering.FluidSecureHubTest.BackgroundService";
 
@@ -960,4 +960,20 @@ public class AppConstants {
         return storedIMEI;
     }
 
+    public static boolean IsHoseBusyCheckLocally() {
+
+        if (Constants.FS_1STATUS.equalsIgnoreCase("FREE") && Constants.FS_2STATUS.equalsIgnoreCase("FREE") && Constants.FS_3STATUS.equalsIgnoreCase("FREE") && Constants.FS_4STATUS.equalsIgnoreCase("FREE") && Constants.FS_5STATUS.equalsIgnoreCase("FREE") && Constants.FS_6STATUS.equalsIgnoreCase("FREE")) {
+            return true;
+        }
+
+        return false;
+    }
+
+    public static String spanishNumberSystem(String flQty) {
+        if (AppConstants.LANG_PARAM.equals(":es-ES")) {
+            return flQty.replace(".", ",");
+        } else {
+            return flQty;
+        }
+    }
 }

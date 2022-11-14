@@ -144,7 +144,7 @@ public class AcceptManualOdoActivityFA extends AppCompatActivity {
 
                                     if (AppConstants.GenerateLogs)AppConstants.WriteinFile( TAG+" Odo Entered" + C_AccOdoMeter+" is not within the reasonability");
                                     editOdoManually.setText("");
-                                    AppConstants.colorToastBigFont(getApplicationContext(), "The odometer entered is not inreasonability.", Color.BLUE);//Bad odometer! Please try again.
+                                    AppConstants.colorToastBigFont(getApplicationContext(), "The odometer entered is not in reasonability.", Color.BLUE);//Bad odometer! Please try again.
                                 }
                             }
 

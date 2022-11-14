@@ -42,7 +42,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
-                android:text="HUB Name:"
+                android:text="@string/HUBName"
                 android:textColor="#444"
                 android:textSize="25dp" />
 
@@ -116,67 +116,67 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="5dp"
                 android:background="@color/save_button"
-                android:text="Register"
+                android:text="@string/RegisterBtn"
                 android:textAllCaps="false"
                 android:textColor="#fff"
                 android:textSize="25sp"
                 android:textStyle="bold" />
 
             <TextView
+                android:id="@+id/tv_enter_username"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:visibility="gone"
-                android:id="@+id/tv_enter_username"
                 android:layout_marginTop="10dp"
-                android:text="User Name:"
+                android:text="@string/UserName"
                 android:textColor="#444"
-                android:textSize="25dp" />
+                android:textSize="25dp"
+                android:visibility="gone" />
 
             <EditText
                 android:id="@+id/edt_username"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:visibility="gone"
-                android:hint="Please enter username here"
                 android:layout_marginLeft="5dp"
+                android:hint="@string/RequiredUserName"
                 android:imeOptions="actionNext"
                 android:inputType="text"
-                android:textSize="25sp" />
+                android:textSize="25sp"
+                android:visibility="gone" />
 
             <TextView
+                android:id="@+id/tv_enter_password"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:visibility="gone"
-                android:id="@+id/tv_enter_password"
                 android:layout_marginTop="10dp"
-                android:text="User Password:"
+                android:text="@string/UserPassword"
                 android:textColor="#444"
-                android:textSize="25dp" />
+                android:textSize="25dp"
+                android:visibility="gone" />
 
             <EditText
                 android:id="@+id/edt_password"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:visibility="gone"
-                android:password="true"
-                android:hint="Please enter password here"
                 android:layout_marginLeft="5dp"
+                android:hint="@string/RequiredUserPassword"
                 android:imeOptions="actionNext"
                 android:inputType="text"
-                android:textSize="25sp" />
+                android:password="true"
+                android:textSize="25sp"
+                android:visibility="gone" />
 
             <Button
                 android:id="@+id/btnReplaceHub"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:visibility="gone"
                 android:layout_marginTop="5dp"
                 android:background="@color/save_button"
-                android:text="Submit"
+                android:text="@string/SubmitBtn"
                 android:textAllCaps="false"
                 android:textColor="#fff"
                 android:textSize="25sp"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                android:visibility="gone" />
 
             <TextView
                 android:id="@+id/tv_hint"
