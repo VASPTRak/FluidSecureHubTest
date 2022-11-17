@@ -335,6 +335,8 @@
 
     <!-- Department Screen -->
     <string name="RequireDeptNumber">Ingrese el número de departamento e inténtelo de nuevo.</string>
+    <string name="InvalidDept">Departamento inválido. Vuelva a intentarlo o comuníquese con su gerente.</string>
+    <string name="NotAuthorizedForDept">No estás autorizado para este departamento.</string>
 
     <!-- Other Screen -->
     <string name="EnterHeading">Ingresar</string>

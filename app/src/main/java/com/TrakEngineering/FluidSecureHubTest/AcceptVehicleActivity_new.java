@@ -1419,7 +1419,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
 
                             // AppConstants.APDU_FOB_KEY = "";
                             AppConstants.VehicleLocal_FOB_KEY = "";
-                            tv_vehicle_no_below.setText("Enter " + ScreenNameForVehicle + ":");
+                            tv_vehicle_no_below.setText(getResources().getString(R.string.EnterHeading) + " " + ScreenNameForVehicle + ":");
 
                             InputMethodManager inputMethodManager = (InputMethodManager) editVehicleNumber.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
                             editVehicleNumber.requestFocus();
@@ -1455,7 +1455,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
 
                             // AppConstants.APDU_FOB_KEY = "";
                             AppConstants.VehicleLocal_FOB_KEY = "";
-                            tv_vehicle_no_below.setText("Enter " + ScreenNameForVehicle + ":");
+                            tv_vehicle_no_below.setText(getResources().getString(R.string.EnterHeading) + " " + ScreenNameForVehicle + ":");
 
                             InputMethodManager inputMethodManager = (InputMethodManager) editVehicleNumber.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
                             editVehicleNumber.requestFocus();
@@ -1481,7 +1481,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                             // AppConstants.FOB_KEY_VEHICLE = "";
                             editVehicleNumber.setEnabled(true);
                             editVehicleNumber.setFocusable(true);
-                            tv_vehicle_no_below.setText("Enter " + ScreenNameForVehicle + ":");
+                            tv_vehicle_no_below.setText(getResources().getString(R.string.EnterHeading) + " " + ScreenNameForVehicle + ":");
                             RestTimeoutVehicleScreen();
                             CommonUtils.showCustomMessageDilaog(AcceptVehicleActivity_new.this, "Message", ResponceText);
                         }
@@ -2043,7 +2043,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
 
                             // AppConstants.APDU_FOB_KEY = "";
                             AppConstants.VehicleLocal_FOB_KEY = "";
-                            tv_vehicle_no_below.setText("Enter " + ScreenNameForVehicle + ":");
+                            tv_vehicle_no_below.setText(getResources().getString(R.string.EnterHeading) + " " + ScreenNameForVehicle + ":");
 
                             InputMethodManager inputMethodManager = (InputMethodManager) editVehicleNumber.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
                             editVehicleNumber.requestFocus();
@@ -2121,7 +2121,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                             // AppConstants.FOB_KEY_VEHICLE = "";
                             editVehicleNumber.setEnabled(true);
                             editVehicleNumber.setFocusable(true);
-                            tv_vehicle_no_below.setText("Enter " + ScreenNameForVehicle + ":");
+                            tv_vehicle_no_below.setText(getResources().getString(R.string.EnterHeading) + " " + ScreenNameForVehicle + ":");
                             CommonUtils.showCustomMessageDilaog(AcceptVehicleActivity_new.this, "Message", ResponceText);
 
 
@@ -2971,6 +2971,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
             SharedPreferences.Editor editor = sharedPref.edit();
             editor.putString(AppConstants.IsExtraOther, IsExtraOther);
             editor.putString(AppConstants.ExtraOtherLabel, ExtraOtherLabel);
+            editor.commit();
 
             if (Active != null) {
                 if (Active.trim().toLowerCase().equalsIgnoreCase("y")) {
@@ -3030,10 +3031,16 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                             } else if (RequireHours.trim().toLowerCase().equalsIgnoreCase("y")) {
                                 Intent intent = new Intent(AcceptVehicleActivity_new.this, AcceptHoursAcitvity.class);
                                 startActivity(intent);
+                            } else if (IsExtraOther.trim().toLowerCase().equalsIgnoreCase("True")) {
+                                Intent intent = new Intent(AcceptVehicleActivity_new.this, AcceptVehicleOtherInfo.class);
+                                startActivity(intent);
                             } else {
                                 EntityHub obj = controller.getOfflineHubDetails(AcceptVehicleActivity_new.this);
                                 if (obj.PersonnelPINNumberRequired.equalsIgnoreCase("Y")) {
                                     Intent intent = new Intent(AcceptVehicleActivity_new.this, AcceptPinActivity_new.class);//AcceptPinActivity
+                                    startActivity(intent);
+                                } else if (obj.IsDepartmentRequire.equalsIgnoreCase("true") && !obj.HUBType.equalsIgnoreCase("G")) {
+                                    Intent intent = new Intent(AcceptVehicleActivity_new.this, AcceptDeptActivity.class);
                                     startActivity(intent);
                                 } else if (obj.IsOtherRequire.equalsIgnoreCase("True") && !obj.HUBType.equalsIgnoreCase("G")) {
                                     Intent intent = new Intent(AcceptVehicleActivity_new.this, AcceptOtherActivity.class);
@@ -3082,6 +3089,9 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                     EntityHub obj = controller.getOfflineHubDetails(AcceptVehicleActivity_new.this);
                     if (obj.PersonnelPINNumberRequired.equalsIgnoreCase("Y")) {
                         Intent intent = new Intent(AcceptVehicleActivity_new.this, AcceptPinActivity_new.class);//AcceptPinActivity
+                        startActivity(intent);
+                    } else if (obj.IsDepartmentRequire.equalsIgnoreCase("true") && !obj.HUBType.equalsIgnoreCase("G")) {
+                        Intent intent = new Intent(AcceptVehicleActivity_new.this, AcceptDeptActivity.class);
                         startActivity(intent);
                     } else if (obj.IsOtherRequire.equalsIgnoreCase("True") && !obj.HUBType.equalsIgnoreCase("G")) {
                         Intent intent = new Intent(AcceptVehicleActivity_new.this, AcceptOtherActivity.class);
@@ -3164,7 +3174,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                 String FuelLimitPerMonth = hmap.get("FuelLimitPerMonth");
                 String FuelQuantityOfVehiclePerMonth = hmap.get("FuelQuantityOfVehiclePerMonth");
 
-                OfflineConstants.storeCurrentTransaction(AcceptVehicleActivity_new.this, "", "", VehicleId, "", "", "", "", "", "", "");
+                OfflineConstants.storeCurrentTransaction(AcceptVehicleActivity_new.this, "", "", VehicleId, "", "", "", "", "", VehicleNumber, "", "", "");
 
                 OfflineConstants.storeFuelLimit(AcceptVehicleActivity_new.this, VehicleId, FuelLimitPerTxn, FuelLimitPerDay, CheckFuelLimitPerMonth, FuelLimitPerMonth, FuelQuantityOfVehiclePerMonth, "", "", "");
 
@@ -3220,7 +3230,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                         AppConstants.WriteinFile(TAG + "Vehicle Number (Non-validate): " + VehicleNumber);
 
                     if (!VehicleNumber.isEmpty()) {
-                        OfflineConstants.storeCurrentTransaction(AcceptVehicleActivity_new.this, "", "", "", "", "", "", "", "", VehicleNumber, "");
+                        OfflineConstants.storeCurrentTransaction(AcceptVehicleActivity_new.this, "", "", "", "", "", "", "", "", VehicleNumber, "", "", "");
 
                         if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS1")) {
                             Constants.AccVehicleNumber_FS1 = VehicleNumber;

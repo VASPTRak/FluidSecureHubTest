@@ -598,7 +598,7 @@ public class AcceptPinActivity_FOB extends AppCompatActivity {
     private boolean ValidateData(){
 
         if (editpinNumber.getText().toString().isEmpty()){
-            editpinNumber.setError("Enter " + ScreenNameForPersonnel + " PIN");
+            editpinNumber.setError(getResources().getString(R.string.EnterHeading) + " " + ScreenNameForPersonnel + " PIN");
             return false;
         }else if (FobKey.isEmpty() && MagCard_FobKey.isEmpty() && Barcode_val.isEmpty()){
             Toast.makeText(this, "Access device value empty", Toast.LENGTH_SHORT).show();

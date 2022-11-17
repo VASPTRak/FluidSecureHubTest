@@ -357,7 +357,7 @@ public class AcceptOdoActivity extends AppCompatActivity {
                     C_AccOdoMeter = Constants.AccOdoMeter_FS6;
                 }
 
-                OfflineConstants.storeCurrentTransaction(AcceptOdoActivity.this, "", "", "", editOdoTenths.getText().toString().trim(), "", "", "", "", "", "");
+                OfflineConstants.storeCurrentTransaction(AcceptOdoActivity.this, "", "", "", editOdoTenths.getText().toString().trim(), "", "", "", "", "", "", "", "");
 
                 if (OfflineConstants.isTotalOfflineEnabled(AcceptOdoActivity.this)) {
                     //skip all validation in permanent offline mode
@@ -598,13 +598,22 @@ public class AcceptOdoActivity extends AppCompatActivity {
             }
         }
 
+        SharedPreferences sharedPrefODO = AcceptOdoActivity.this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
+        String IsExtraOther = sharedPrefODO.getString(AppConstants.IsExtraOther, "");
+
         if (AppConstants.OFF_HOUR_REQUIRED.trim().equalsIgnoreCase("y")) {
             Intent intent = new Intent(AcceptOdoActivity.this, AcceptHoursAcitvity.class);
+            startActivity(intent);
+        } else if (IsExtraOther.trim().toLowerCase().equalsIgnoreCase("True")) {
+            Intent intent = new Intent(AcceptOdoActivity.this, AcceptVehicleOtherInfo.class);
             startActivity(intent);
         } else {
             EntityHub obj = controller.getOfflineHubDetails(AcceptOdoActivity.this);
             if (obj.PersonnelPINNumberRequired.equalsIgnoreCase("Y")) {
                 Intent intent = new Intent(AcceptOdoActivity.this, AcceptPinActivity_new.class);//AcceptPinActivity
+                startActivity(intent);
+            } else if (obj.IsDepartmentRequire.equalsIgnoreCase("true") && !obj.HUBType.equalsIgnoreCase("G")) {
+                Intent intent = new Intent(AcceptOdoActivity.this, AcceptDeptActivity.class);
                 startActivity(intent);
             } else if (obj.IsOtherRequire.equalsIgnoreCase("True") && !obj.HUBType.equalsIgnoreCase("G")) {
                 Intent intent = new Intent(AcceptOdoActivity.this, AcceptOtherActivity.class);
@@ -617,7 +626,6 @@ public class AcceptOdoActivity extends AppCompatActivity {
     }
 
     public void allValid() {
-
 
         SharedPreferences sharedPrefODO = AcceptOdoActivity.this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
         String IsPersonnelPINRequireForHub = sharedPrefODO.getString(AppConstants.IsPersonnelPINRequireForHub, "");
@@ -643,7 +651,6 @@ public class AcceptOdoActivity extends AppCompatActivity {
 
         } else if (IsDepartmentRequire.equalsIgnoreCase("True")) {
 
-
             Intent i = new Intent(AcceptOdoActivity.this, AcceptDeptActivity.class);
             startActivity(i);
 
@@ -658,10 +665,7 @@ public class AcceptOdoActivity extends AppCompatActivity {
             asc.activity = AcceptOdoActivity.this;
             asc.checkAllFields();
         }
-
-
     }
-
 
     public class AuthTestAsynTask extends AsyncTask<Void, Void, Void> {
 

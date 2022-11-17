@@ -2225,7 +2225,10 @@ public class AcceptPinActivity_new extends AppCompatActivity {
 
                     boolean isAssigned = false;
 
-                    if (obj.IsOtherRequire.equalsIgnoreCase("True") && !obj.HUBType.equalsIgnoreCase("G")) {
+                    if (obj.IsDepartmentRequire.equalsIgnoreCase("true") && !obj.HUBType.equalsIgnoreCase("G")) {
+                        Intent intent = new Intent(AcceptPinActivity_new.this, AcceptDeptActivity.class);
+                        startActivity(intent);
+                    } else if (obj.IsOtherRequire.equalsIgnoreCase("True") && !obj.HUBType.equalsIgnoreCase("G")) {
                         Intent intent = new Intent(AcceptPinActivity_new.this, AcceptOtherActivity.class);
                         startActivity(intent);
 
@@ -2345,7 +2348,21 @@ public class AcceptPinActivity_new extends AppCompatActivity {
 
                 AppConstants.OFF_PERSON_PIN = PinNumber;
 
-                OfflineConstants.storeCurrentTransaction(AcceptPinActivity_new.this, "", "", "", "", "", PersonId, "", "", "", "");
+                if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS1")) {
+                    Constants.AccPersonnelPIN_FS1 = PinNumber;
+                } else if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS2")) {
+                    Constants.AccPersonnelPIN = PinNumber;
+                } else if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS3")) {
+                    Constants.AccPersonnelPIN_FS3 = PinNumber;
+                } else if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS4")) {
+                    Constants.AccPersonnelPIN_FS4 = PinNumber;
+                } else if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS5")) {
+                    Constants.AccPersonnelPIN_FS5 = PinNumber;
+                } else if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS6")) {
+                    Constants.AccPersonnelPIN_FS6 = PinNumber;
+                }
+
+                OfflineConstants.storeCurrentTransaction(AcceptPinActivity_new.this, "", "", "", "", "", PersonId, "", "", "", "", "", "");
 
                 OfflineConstants.storeFuelLimit(AcceptPinActivity_new.this, "", "", "", "", "", "", PersonId, FuelLimitPerTxn, FuelLimitPerDay);
             } else {
@@ -2375,7 +2392,21 @@ public class AcceptPinActivity_new extends AppCompatActivity {
 
                         AppConstants.OFF_PERSON_PIN = PinNumber;
 
-                        OfflineConstants.storeCurrentTransaction(AcceptPinActivity_new.this, "", "", "", "", "", "0", "", "", "", "");
+                        if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS1")) {
+                            Constants.AccPersonnelPIN_FS1 = PinNumber;
+                        } else if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS2")) {
+                            Constants.AccPersonnelPIN = PinNumber;
+                        } else if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS3")) {
+                            Constants.AccPersonnelPIN_FS3 = PinNumber;
+                        } else if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS4")) {
+                            Constants.AccPersonnelPIN_FS4 = PinNumber;
+                        } else if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS5")) {
+                            Constants.AccPersonnelPIN_FS5 = PinNumber;
+                        } else if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS6")) {
+                            Constants.AccPersonnelPIN_FS6 = PinNumber;
+                        }
+
+                        OfflineConstants.storeCurrentTransaction(AcceptPinActivity_new.this, "", "", "", "", "", "0", "", "", "", "", "", "");
 
                     } else {
                         if (AppConstants.GenerateLogs)

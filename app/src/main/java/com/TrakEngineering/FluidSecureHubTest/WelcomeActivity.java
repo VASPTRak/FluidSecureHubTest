@@ -1734,7 +1734,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         ///////////////////common online offline///////////////////////////////
         EntityHub obj = offcontroller.getOfflineHubDetails(WelcomeActivity.this);
 
-        OfflineConstants.storeCurrentTransaction(WelcomeActivity.this, obj.HubId, "", "", "", "", "", "", "", "", "");
+        OfflineConstants.storeCurrentTransaction(WelcomeActivity.this, obj.HubId, "", "", "", "", "", "", "", "", "", "", "");
 
         //////////////////////////////////////////
 
@@ -3134,7 +3134,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                         } else if (CommonFunctions.CheckIfPresentInPairedDeviceList(BTselMacAddress)) {
                             AppConstants.SELECTED_MACADDRESS = BTselMacAddress;
-                            OfflineConstants.storeCurrentTransaction(WelcomeActivity.this, "", selSiteId, "", "", "", "", "", AppConstants.currentDateFormat("yyyy-MM-dd HH:mm"), "", "");
+                            OfflineConstants.storeCurrentTransaction(WelcomeActivity.this, "", selSiteId, "", "", "", "", "", AppConstants.currentDateFormat("yyyy-MM-dd HH:mm"), "", "", "", "");
 
                             if (!IsUpgrade.isEmpty()) {
                                 SetUpgradeFirmwareDetails(position, IsUpgrade, FirmwareVersion, FirmwareFileName, selSiteId, hoseID);
@@ -3167,7 +3167,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                         BTConstants.CurrentTransactionIsBT = false;
                         BTConstants.CurrentSelectedLinkBT = 0;
-                        OfflineConstants.storeCurrentTransaction(WelcomeActivity.this, "", selSiteId, "", "", "", "", "", AppConstants.currentDateFormat("yyyy-MM-dd HH:mm"), "", "");
+                        OfflineConstants.storeCurrentTransaction(WelcomeActivity.this, "", selSiteId, "", "", "", "", "", AppConstants.currentDateFormat("yyyy-MM-dd HH:mm"), "", "", "", "");
 
                         /////////////////////////////////////////////////////
                         //Check hotspot manually
@@ -10020,7 +10020,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                         ReconfigureLink = "";
                                     }
 
-                                    OfflineConstants.storeCurrentTransaction(WelcomeActivity.this, "", AppConstants.SITE_ID, "", "", "", "", "", AppConstants.currentDateFormat("yyyy-MM-dd HH:mm"), "", "");
+                                    OfflineConstants.storeCurrentTransaction(WelcomeActivity.this, "", AppConstants.SITE_ID, "", "", "", "", "", AppConstants.currentDateFormat("yyyy-MM-dd HH:mm"), "", "", "", "");
 
                                     if (LinkCommunicationType.equalsIgnoreCase("HTTP")) {
 
@@ -10107,7 +10107,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                         ReconfigureLink = "";
                                     }
 
-                                    OfflineConstants.storeCurrentTransaction(WelcomeActivity.this, "", AppConstants.SITE_ID, "", "", "", "", "", AppConstants.currentDateFormat("yyyy-MM-dd HH:mm"), "", "");
+                                    OfflineConstants.storeCurrentTransaction(WelcomeActivity.this, "", AppConstants.SITE_ID, "", "", "", "", "", AppConstants.currentDateFormat("yyyy-MM-dd HH:mm"), "", "", "", "");
 
                                     if (LinkCommunicationType.equalsIgnoreCase("BT") && !ReconfigureLink.equalsIgnoreCase("true")) {
                                         //tvSSIDName.setText("Tap here to select hose");
@@ -13576,7 +13576,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         ReconfigureLink = "";
                     }
 
-                    OfflineConstants.storeCurrentTransaction(WelcomeActivity.this, "", AppConstants.SITE_ID, "", "", "", "", "", AppConstants.currentDateFormat("yyyy-MM-dd HH:mm"), "", "");
+                    OfflineConstants.storeCurrentTransaction(WelcomeActivity.this, "", AppConstants.SITE_ID, "", "", "", "", "", AppConstants.currentDateFormat("yyyy-MM-dd HH:mm"), "", "", "", "");
 
                     if (LinkCommunicationType.equalsIgnoreCase("BT") && !ReconfigureLink.equalsIgnoreCase("true")) {
                         //tvSSIDName.setText("Tap here to select hose");

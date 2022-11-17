@@ -24,7 +24,7 @@ public class OfflineConstants {
     public static final String TAG = AppConstants.LOG_BACKGROUND + "-" + OfflineConstants.class.getSimpleName();
 
     public static void storeCurrentTransaction(Context ctx, String HubId, String SiteId, String VehicleId, String CurrentOdometer, String CurrentHours, String PersonId,
-                                               String FuelQuantity, String TransactionDateTime, String VehicleNumber, String Other) {
+                                               String FuelQuantity, String TransactionDateTime, String VehicleNumber, String Other, String VehicleExtraOther, String DepartmentNumber) {
 
         SharedPreferences pref = ctx.getSharedPreferences("storeCurrentTransaction", 0);
         SharedPreferences.Editor editor = pref.edit();
@@ -60,13 +60,18 @@ public class OfflineConstants {
         if (!Other.trim().isEmpty())
             editor.putString("Other", Other);
 
+        if (!VehicleExtraOther.trim().isEmpty())
+            editor.putString("VehicleExtraOther", VehicleExtraOther);
+
+        if (!DepartmentNumber.trim().isEmpty())
+            editor.putString("DepartmentNumber", DepartmentNumber);
+
         // commit changes
         editor.apply();
     }
 
 
     public static EntityOffTranz getCurrentTransaction(Context ctx) {
-
 
         SharedPreferences sharedPref = ctx.getSharedPreferences("storeCurrentTransaction", Context.MODE_PRIVATE);
 
@@ -81,6 +86,8 @@ public class OfflineConstants {
         eot.TransactionDateTime = sharedPref.getString("TransactionDateTime", "");
         eot.VehicleNumber = sharedPref.getString("VehicleNumber", "");
         eot.Other = sharedPref.getString("Other", "");
+        eot.VehicleExtraOther = sharedPref.getString("VehicleExtraOther", "");
+        eot.DepartmentNumber = sharedPref.getString("DepartmentNumber", "");
 
         return eot;
     }

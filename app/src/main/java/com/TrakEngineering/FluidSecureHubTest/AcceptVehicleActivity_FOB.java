@@ -570,7 +570,7 @@ public class AcceptVehicleActivity_FOB extends AppCompatActivity {
         editVehicleNumber.setVisibility(View.VISIBLE);
         btnSave.setVisibility(View.VISIBLE);
         btnAccessDevice.setVisibility(View.INVISIBLE);
-        tv_vehicle_no_below.setText("Enter " + ScreenNameForVehicle + " ID");
+        tv_vehicle_no_below.setText(getResources().getString(R.string.EnterHeading) + " " + ScreenNameForVehicle + " ID");
         editVehicleNumber.setFocusable(true);
 
         InputMethodManager inputMethodManager = (InputMethodManager) editVehicleNumber.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -597,7 +597,7 @@ public class AcceptVehicleActivity_FOB extends AppCompatActivity {
     private boolean ValidateData(){
 
         if (editVehicleNumber.getText().toString().isEmpty()){
-            editVehicleNumber.setError("Enter " + ScreenNameForVehicle + " ID");
+            editVehicleNumber.setError(getResources().getString(R.string.EnterHeading) + " " + ScreenNameForVehicle + " ID");
             return false;
         }else if (FobKey.isEmpty() && MagCard_FobKey.isEmpty() && Barcode_val.isEmpty()){
             Toast.makeText(this, "Access device value empty", Toast.LENGTH_SHORT).show();

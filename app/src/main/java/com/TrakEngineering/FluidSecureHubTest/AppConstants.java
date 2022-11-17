@@ -159,6 +159,7 @@ public class AppConstants {
     public static String API_URL_VEHICLE = webIP + "api/Offline/GetVehicles";
     public static String API_URL_PERSONNEL = webIP + "api/Offline/GetPersonnel";
     public static String API_URL_SYNC_TRANS = webIP + "api/Offline/OFFLineImportTransactions";
+    public static String API_URL_DEPT = webIP + "api/Offline/GetDepartments";
 
 
     public static String OFF_VEHICLE_ID;

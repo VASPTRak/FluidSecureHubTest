@@ -202,7 +202,7 @@ public class BackgroundService_BTSix extends Service {
                             Log.i(TAG, " BTLink 6: Link not connected. Please try again!");
                             if (AppConstants.GenerateLogs)
                                 AppConstants.WriteinFile(TAG + " BTLink 6: Link not connected.");
-                            AppConstants.TxnFailedCount6;
+                            AppConstants.TxnFailedCount6++;
                             AppConstants.IsTransactionFailed6 = true;
                             PostTransactionBackgroundTasks();
                             CloseTransaction();
