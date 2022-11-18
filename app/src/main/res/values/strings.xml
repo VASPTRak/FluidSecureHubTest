@@ -21,6 +21,7 @@
     <string name="title_activity_fob_reader">FobReader</string>
     <string name="selectHose">Tap here to select hose</string>
     <string name="selectHoseToUse">Select hose to use</string>
+    <string name="HoseOutOfOrder">Hose out of order</string>
     <string name="GO">GO</string>
     <string name="Cancel">Cancel</string>
     <string name="previousScreen">Previous Screen</string>
@@ -34,6 +35,9 @@
     <string name="OdometerEntry">Odometer Entry:</string>
     <string name="StartBtn">START</string>
     <string name="firstTimeUseMessage">This is the first time you are using the system. Please be sure the quantity shown on the display matches the final quantity on the dispenser. If not, please be sure to call in to Support</string>
+    <string name="TryAgainLater">Please try again later</string>
+    <string name="HoseInUseRetry">Hose In Use. Please retry once the ongoing transaction has been completed.</string>
+    <string name="RegistrationNotApproved">Your registration has not been approved. Please contact your Manager.</string>
 
     <string name="permission_camera_rationale">Access to the camera is needed for detection</string>
     <string name="no_camera_permission">This application cannot run because it does not have the camera permission.  The application will now exit.</string>
@@ -275,6 +279,7 @@
     <string name="HoseInUse">Hose in use.</string>
     <string name="PairingMode">Pairing Mode...</string>
     <string name="SelectHoseAlert">Please select Hose</string>
+    <string name="UnableToGetHoseList">Unable to get hose list from server</string>
 
     <string name="Quantity">Quantity:</string>
     <string name="Pulse">Pulse:</string>
@@ -301,6 +306,7 @@
     <string name="lessThanPrevReadingMsg">You have entered a reading that is less than previously entered. Please check and try again.</string>
     <string name="UnableToConnectToHoseMessage">We apologize for the inconvenience, we were unable to establish a connection with the LINK. Please retry.</string>
     <string name="HoseUnavailableMessage">Hose is Unavailable. Please reset power to the dispenser that the hose is controlling. This can be done by tripping the main breaker or Emergency Stop. Once power is reset, wait 30 seconds and try again.</string>
+    <string name="HavingTroubleConnectingToLINK">We are having trouble connecting to the LINK that controls your dispenser. Please locate the power source / emergency stop to reset power to the dispenser. Once this is completed, please wait 30 seconds and try again. If you continue to have issues, please contact Support.</string>
 
     <!-- Vehicle Screen -->
     <string name="vehicleIdentification">VEHICLE IDENTIFICATION</string>
@@ -313,6 +319,11 @@
     <string name="UseOnScreenBarcode">Tap to use On-Screen barcode</string>
     <string name="PleaseWait">Please Wait...</string>
     <string name="ReadAccessDeviceAgain">Click to read Access Device again</string>
+    <string name="peVehicle">Please enter Vehicle. If you still have issues, please contact your Manager.</string>
+    <string name="peVehicleOrAccessDevice">Please enter Vehicle or present an Access Device. If you still have issues, please contact your Manager.</string>
+    <string name="VehiclePerDayLimitExceeded">This Vehicle has exceeded the fuel limit for the day. Please contact your Manager.</string>
+    <string name="VehiclePerMonthLimitExceeded">This Vehicle has exceeded the fuel limit for the month. Please contact your Manager.</string>
+    <string name="peVehicleOrUseFobKey">Please enter Vehicle or use fob key.</string>
 
     <!-- Odometer Screen -->
     <string name="EnterOdometerHeading">Enter Odometer (No Tenths)</string>
@@ -332,6 +343,9 @@
     <string name="EnterPersonnelId">Enter your PERSONNEL in the green box below</string>
     <string name="PersonnelNumberHeading">Personnel Number:</string>
     <string name="EnterBarcodeNumber">Enter Barcode number below</string>
+    <string name="pePersonnel">Please enter Personnel. If you still have issues, please contact your Manager.</string>
+    <string name="pePersonnelOrAccessDevice">Please enter Personnel or present an Access Device. If you still have issues, please contact your Manager.</string>
+    <string name="PerDayLimitExceeded">You have exceeded your fuel limit for the day. Please contact your Manager.</string>
 
     <!-- Department Screen -->
     <string name="RequireDeptNumber">Please enter Department Number, and try again.</string>
@@ -365,4 +379,9 @@
     <string name="EnterPersonnelPIN">Enter Personnel PIN that was assigned to this user in the Cloud</string>
     <string name="TryAgain">Would you like to try again?</string>
     <string name="ExistingAccessDeviceReplace">The PERSONNEL you have entered already has an Access Device assigned. Would you like to remove the existing device we have on file and use this as a replacement?</string>
+
+    <!-- LINK Configuration process -->
+    <string name="HotSpotSSIDCannotBeBlank">HotSpot SSID cannot be blank. Please contact Support.</string>
+    <string name="HotSpotPasswordCannotBeBlank">HotSpot Password cannot be blank. Please contact Support.</string>
+
 </resources>

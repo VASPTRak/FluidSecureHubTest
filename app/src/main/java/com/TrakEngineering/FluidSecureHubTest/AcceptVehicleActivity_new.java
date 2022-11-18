@@ -1578,12 +1578,12 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                 if (mDisableFOBReadingForVehicle.equalsIgnoreCase("y")) {
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(TAG + "Please enter " + ScreenNameForVehicle + ". If you still have issues, please contact your Manager.");
-                    CommonUtils.showCustomMessageDilaog(AcceptVehicleActivity_new.this, "Error Message", "Please enter " + ScreenNameForVehicle + ". If you still have issues, please contact your Manager.");
+                    CommonUtils.showCustomMessageDilaog(AcceptVehicleActivity_new.this, "Error Message", getResources().getString(R.string.peVehicle).replace("Vehicle", ScreenNameForVehicle));
                     //showMessageDilaog
                 } else {
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(TAG + "Please enter " + ScreenNameForVehicle + " or present an Access Device. If you still have issues, please contact your Manager.");
-                    CommonUtils.showCustomMessageDilaog(AcceptVehicleActivity_new.this, "Error Message", "Please enter " + ScreenNameForVehicle + " or present an Access Device. If you still have issues, please contact your Manager.");
+                    CommonUtils.showCustomMessageDilaog(AcceptVehicleActivity_new.this, "Error Message", getResources().getString(R.string.peVehicleOrAccessDevice).replace("Vehicle", ScreenNameForVehicle));
                 }
             }
 
@@ -1712,7 +1712,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                 btnSave.setEnabled(true);
                 if (AppConstants.GenerateLogs)
                     AppConstants.WriteinFile(TAG + "Please enter " + ScreenNameForVehicle + " or use fob key.");
-                CommonUtils.showMessageDilaog(AcceptVehicleActivity_new.this, "Error Message", "Please enter " + ScreenNameForVehicle + " or use fob key.");
+                CommonUtils.showMessageDilaog(AcceptVehicleActivity_new.this, "Error Message", getResources().getString(R.string.peVehicleOrUseFobKey).replace("Vehicle", ScreenNameForVehicle));
             }
 
 
@@ -2984,7 +2984,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                                 if (remainingLimitPerDay <= 0) {
                                     if (AppConstants.GenerateLogs)
                                         AppConstants.WriteinFile(TAG + "This vehicle has exceeded the fuel limit for the day.");
-                                    CommonUtils.showCustomMessageDilaog(AcceptVehicleActivity_new.this, "Error", "This " + ScreenNameForVehicle + " has exceeded the fuel limit for the day. Please contact your Manager.");
+                                    CommonUtils.showCustomMessageDilaog(AcceptVehicleActivity_new.this, "Error", getResources().getString(R.string.VehiclePerDayLimitExceeded).replace("Vehicle", ScreenNameForVehicle));
                                     return;
                                 }
                             }
@@ -2999,7 +2999,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                                         if (remainingLimitPerMonth <= 0) {
                                             if (AppConstants.GenerateLogs)
                                                 AppConstants.WriteinFile(TAG + "This vehicle has exceeded the fuel limit for the month.");
-                                            CommonUtils.showCustomMessageDilaog(AcceptVehicleActivity_new.this, "Error", "This " + ScreenNameForVehicle + " has exceeded the fuel limit for the month. Please contact your Manager.");
+                                            CommonUtils.showCustomMessageDilaog(AcceptVehicleActivity_new.this, "Error", getResources().getString(R.string.VehiclePerMonthLimitExceeded).replace("Vehicle", ScreenNameForVehicle));
                                             return;
                                         }
                                     }

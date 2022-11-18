@@ -298,7 +298,10 @@ public class BackgroundServiceHotspotCheck extends BackgroundService {
                     JSONArray jarrsy = new JSONArray(offtransactionArray);
 
                     if (jarrsy.length() > 0 && OfflineConstants.isOfflineAccess(BackgroundServiceHotspotCheck.this)) {
-                          startService(new Intent(BackgroundServiceHotspotCheck.this, OffTranzSyncService.class));
+                        boolean BSRunning = CommonUtils.checkServiceRunning(BackgroundServiceHotspotCheck.this, AppConstants.PACKAGE_BS_OffTransSync);
+                        if (!BSRunning) {
+                            startService(new Intent(BackgroundServiceHotspotCheck.this, OffTranzSyncService.class));
+                        }
                     }
 
                 } catch (JSONException e) {

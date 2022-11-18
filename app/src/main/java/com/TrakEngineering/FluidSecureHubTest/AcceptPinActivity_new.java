@@ -361,11 +361,11 @@ public class AcceptPinActivity_new extends AppCompatActivity {
                                     if (mDisableFOBReadingForPin.equalsIgnoreCase("Y")) {
                                         if (AppConstants.GenerateLogs)
                                             AppConstants.WriteinFile(TAG + "Please enter " + ScreenNameForPersonnel + ". If you still have issues, please contact your Manager.");
-                                        CommonUtils.showCustomMessageDilaog(AcceptPinActivity_new.this, "Error Message", "Please enter " + ScreenNameForPersonnel + ". If you still have issues, please contact your Manager.");
+                                        CommonUtils.showCustomMessageDilaog(AcceptPinActivity_new.this, "Error Message", getResources().getString(R.string.pePersonnel).replace("Personnel", ScreenNameForPersonnel));
                                     } else {
                                         if (AppConstants.GenerateLogs)
                                             AppConstants.WriteinFile(TAG + "Please enter " + ScreenNameForPersonnel + " or present an Access Device. If you still have issues, please contact your Manager.");
-                                        CommonUtils.showCustomMessageDilaog(AcceptPinActivity_new.this, "Error Message", "Please enter " + ScreenNameForPersonnel + " or present an Access Device. If you still have issues, please contact your Manager.");
+                                        CommonUtils.showCustomMessageDilaog(AcceptPinActivity_new.this, "Error Message", getResources().getString(R.string.pePersonnelOrAccessDevice).replace("Personnel", ScreenNameForPersonnel));
                                     }
                                 }
                             }
@@ -2201,7 +2201,7 @@ public class AcceptPinActivity_new extends AppCompatActivity {
                         if (remainingLimitPerDay <= 0) {
                             if (AppConstants.GenerateLogs)
                                 AppConstants.WriteinFile(TAG + "You have exceeded your fuel limit for the day.");
-                            CommonUtils.showCustomMessageDilaog(AcceptPinActivity_new.this, "Error", "You have exceeded your fuel limit for the day. Please contact your Manager.");
+                            CommonUtils.showCustomMessageDilaog(AcceptPinActivity_new.this, "Error", getResources().getString(R.string.PerDayLimitExceeded));
                             return;
                         }
                     }

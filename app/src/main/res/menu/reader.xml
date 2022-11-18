@@ -34,13 +34,13 @@
     <item android:id="@+id/mofline"
         android:orderInCategory="104"
         android:icon="@drawable/img_offline"
-        android:title="Close"
+        android:title="Offline"
         app:showAsAction="always"/>
 
     <item android:id="@+id/monline"
         android:orderInCategory="104"
         android:icon="@drawable/img_online"
-        android:title="Close"
+        android:title="Online"
         app:showAsAction="always"/>
 
     <item android:id="@+id/mclose"

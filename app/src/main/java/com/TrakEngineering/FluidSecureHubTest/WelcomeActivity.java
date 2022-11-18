@@ -1842,7 +1842,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                         } else {
                             flagGoBtn = true;
-                            CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", "Unable to get hose list from server");
+                            CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.UnableToGetHoseList));
                             if (AppConstants.GenerateLogs)
                                 AppConstants.WriteinFile(TAG + "Unable to get hose list from server");
                         }
@@ -1925,7 +1925,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                             } else {
                                 flagGoBtn = true;
-                                CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", "Unable to get hose list from server");
+                                CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.UnableToGetHoseList));
                                 if (AppConstants.GenerateLogs)
                                     AppConstants.WriteinFile(TAG + "Unable to get hose list from server");
                             }
@@ -3130,7 +3130,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                             if (AppConstants.GenerateLogs)
                                 AppConstants.WriteinFile(TAG + "Flagged Link: " + LinkFlaggedMessage);
                             CommonUtils.AlertDialogAutoClose(WelcomeActivity.this, "", LinkFlaggedMessage);
-                            RestrictHoseSelection("Please try again later");
+                            RestrictHoseSelection(getResources().getString(R.string.TryAgainLater));
 
                         } else if (CommonFunctions.CheckIfPresentInPairedDeviceList(BTselMacAddress)) {
                             AppConstants.SELECTED_MACADDRESS = BTselMacAddress;
@@ -3150,7 +3150,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     } else if (LinkCommunicationType.equalsIgnoreCase("UDP")) {
 
                         AppConstants.colorToastBigFont(getApplicationContext(), "UDP Link Selected", Color.BLUE);
-                        tvSSIDName.setText("Please try again later");
+                        tvSSIDName.setText(getResources().getString(R.string.TryAgainLater));
                         BTConstants.CurrentSelectedLinkBT = 0;
                         btnGo.setVisibility(View.GONE);
 
@@ -3243,7 +3243,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                                 if (IsDefective != null && IsDefective.equalsIgnoreCase("True")) {//some issue
 
-                                    tvSSIDName.setText("Hose out of order");
+                                    tvSSIDName.setText(getResources().getString(R.string.HoseOutOfOrder));
                                     btnGo.setVisibility(View.GONE);
 
                                 } else {
@@ -3264,11 +3264,11 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                             if (HotSpotSSID.isEmpty()) {
                                                 if (AppConstants.GenerateLogs)
                                                     AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "HotSpot SSID cannot be blank. Please contact Support.");
-                                                CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", "HotSpot SSID cannot be blank. Please contact Support.");
+                                                CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.HotSpotSSIDCannotBeBlank));
                                             } else if (HotSpotPassword.isEmpty()) {
                                                 if (AppConstants.GenerateLogs)
                                                     AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "HotSpot Password cannot be blank. Please contact Support.");
-                                                CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", "HotSpot Password cannot be blank. Please contact Support.");
+                                                CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.HotSpotPasswordCannotBeBlank));
                                             } else {
                                                 reconfigureProcessBelowAndroid10(); //Android Below 10
                                             }
@@ -3280,7 +3280,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                         if (AppConstants.GenerateLogs)
                                             AppConstants.WriteinFile(TAG + "Flagged Link: " + LinkFlaggedMessage);
                                         CommonUtils.AlertDialogAutoClose(WelcomeActivity.this, "", LinkFlaggedMessage);
-                                        RestrictHoseSelection("Please try again later");
+                                        RestrictHoseSelection(getResources().getString(R.string.TryAgainLater));
 
                                     } else {
 
@@ -3465,6 +3465,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                                 goButtonAction(null);
                                             } else {
                                                 //NL4State = 0;
+                                                RestHoseinUse_FS4 = true;
                                                 RestrictHoseSelection(getResources().getString(R.string.HoseInUse));
                                             }
                                         } else if (String.valueOf(position).equalsIgnoreCase("4") && !IsUpgradeInprogress_FS5) {
@@ -3489,6 +3490,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                                 btnGo.setVisibility(View.VISIBLE);
                                             } else {
                                                 //NL5State = 0;
+                                                RestHoseinUse_FS5 = true;
                                                 RestrictHoseSelection(getResources().getString(R.string.HoseInUse));
                                             }
 
@@ -3513,13 +3515,13 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                                 goButtonAction(null);
                                             } else {
                                                 //NL6State = 0;
+                                                RestHoseinUse_FS6 = true;
                                                 RestrictHoseSelection(getResources().getString(R.string.HoseInUse));
                                             }
                                         } else {
 
-                                            tvSSIDName.setText("Please try again soon");
+                                            tvSSIDName.setText(getResources().getString(R.string.TryAgainLater));
                                             btnGo.setVisibility(View.GONE);
-                                            RestHoseinUse_FS4 = true;
                                         }
                                         //}
 
@@ -3656,7 +3658,6 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                         RestrictHoseSelection(getResources().getString(R.string.HoseInUse));
                                     }
 
-
                                 } else if (String.valueOf(position).equalsIgnoreCase("3") && !IsUpgradeInprogress_FS4) {
 
                                     AppConstants.LastSelectedHose = String.valueOf(position);
@@ -3673,9 +3674,39 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                     } else {
                                         RestrictHoseSelection(getResources().getString(R.string.HoseInUse));
                                     }
+
+                                } else if (String.valueOf(position).equalsIgnoreCase("4") && !IsUpgradeInprogress_FS5) {
+
+                                    AppConstants.LastSelectedHose = String.valueOf(position);
+                                    if (Constants.FS_5STATUS.equalsIgnoreCase("FREE")) {
+
+                                        Constants.AccPersonnelPIN = "";
+                                        tvSSIDName.setText(selSSID);
+                                        AppConstants.FS5_CONNECTED_SSID = selSSID;
+                                        Constants.CurrentSelectedHose = "FS5";
+                                        btnGo.setVisibility(View.VISIBLE);
+                                        goButtonAction(null);
+                                    } else {
+                                        RestrictHoseSelection(getResources().getString(R.string.HoseInUse));
+                                    }
+
+                                } else if (String.valueOf(position).equalsIgnoreCase("5") && !IsUpgradeInprogress_FS6) {
+
+                                    AppConstants.LastSelectedHose = String.valueOf(position);
+                                    if (Constants.FS_6STATUS.equalsIgnoreCase("FREE")) {
+
+                                        Constants.AccPersonnelPIN = "";
+                                        tvSSIDName.setText(selSSID);
+                                        AppConstants.FS6_CONNECTED_SSID = selSSID;
+                                        Constants.CurrentSelectedHose = "FS6";
+                                        btnGo.setVisibility(View.VISIBLE);
+                                        goButtonAction(null);
+                                    } else {
+                                        RestrictHoseSelection(getResources().getString(R.string.HoseInUse));
+                                    }
                                 } else {
 
-                                    tvSSIDName.setText("Please try again soon");
+                                    tvSSIDName.setText(getResources().getString(R.string.TryAgainLater));
                                     btnGo.setVisibility(View.GONE);
                                 }
                                 //}
@@ -7014,7 +7045,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     if (ResponceText.equalsIgnoreCase("Y")) {
                         flagGoBtn = true;//Enable go button
                         // AppConstants.colorToastBigFont(WelcomeActivity.this, "Hose in use", Color.BLUE);
-                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", "Hose In Use. Please retry once the ongoing transaction has been completed.");
+                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.HoseInUseRetry));
 
                         String txtnTypeForLog = "";
                         if (LinkCommType.equalsIgnoreCase("BT")) {
@@ -7191,7 +7222,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             if (AppConstants.GenerateLogs)
                 AppConstants.WriteinFile(TAG + "Flagged Link: " + LinkFlaggedMessage);
             CommonUtils.AlertDialogAutoClose(WelcomeActivity.this, "", LinkFlaggedMessage);
-            RestrictHoseSelection("Please try again later");
+            RestrictHoseSelection(getResources().getString(R.string.TryAgainLater));
 
         } else {
 
@@ -7399,7 +7430,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 }
             } else {
 
-                tvSSIDName.setText("Can't select this Hose for current version");
+                tvSSIDName.setText(getResources().getString(R.string.TryAgainLater));
                 btnGo.setVisibility(View.GONE);
             }
             //}
@@ -7935,7 +7966,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
             case R.id.mrestartapp:
                 if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "Restart app.");
+                    AppConstants.WriteinFile(TAG + "<Restart app.>");
                 Intent i = new Intent(WelcomeActivity.this, SplashActivity.class);
                 i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                 startActivity(i);
@@ -7954,7 +7985,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
             case R.id.menuSpanish:
                 if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + " Spanish language selected.");
+                    AppConstants.WriteinFile(TAG + "<Spanish language selected.>");
                 if (AppConstants.IsHoseBusyCheckLocally()) {
                     CommonUtils.StoreLanguageSettings(WelcomeActivity.this, "es", true);
                 } else {
@@ -7964,7 +7995,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
             case R.id.menuEnglish:
                 if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + " English language selected.");
+                    AppConstants.WriteinFile(TAG + "<English language selected.>");
                 if (AppConstants.IsHoseBusyCheckLocally()) {
                     CommonUtils.StoreLanguageSettings(WelcomeActivity.this, "en", true);
                 } else {
@@ -11106,7 +11137,10 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     JSONArray jarrsy = new JSONArray(offtransactionArray);
 
                     if (jarrsy.length() > 0 && OfflineConstants.isOfflineAccess(WelcomeActivity.this)) {
-                        startService(new Intent(WelcomeActivity.this, OffTranzSyncService.class));
+                        boolean BSRunning = CommonUtils.checkServiceRunning(WelcomeActivity.this, AppConstants.PACKAGE_BS_OffTransSync);
+                        if (!BSRunning) {
+                            startService(new Intent(WelcomeActivity.this, OffTranzSyncService.class));
+                        }
                     } else {
                         stopService(new Intent(WelcomeActivity.this, OffTranzSyncService.class));
                     }
@@ -11125,7 +11159,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                 if (uData != null && uData.size() > 0) {
                     startService(new Intent(WelcomeActivity.this, BackgroundService.class));
-                    System.out.println("BackgroundService Start...");
+                    System.out.println("BackgroundService START...");
                 } else {
                     stopService(new Intent(WelcomeActivity.this, BackgroundService.class));
                     System.out.println("BackgroundService STOP...");
@@ -13751,7 +13785,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 if (serverSSIDList != null && serverSSIDList.size() == 1) {
                     try {
                         tvSSIDName.setText(serverSSIDList.get(0).get("WifiSSId"));
-                        tvSSIDName.setText("Hose in use.\nPlease try again later");
+                        tvSSIDName.setText(getResources().getString(R.string.HoseInUse));
                         btnGo.setVisibility(View.GONE);
 
                     } catch (Exception e) {
@@ -13791,7 +13825,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 @Override
                 public void run() {
                     if ((delayMillis / 4) == 100) {
-                        st = "Connecting";
+                        st = getResources().getString(R.string.connecting);
                         delayMillis = 100;
                     } else {
                         st = st + ".";
@@ -13810,7 +13844,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     private void RestrictHoseSelection(String s) {
 
         try {
-            if (!s.equalsIgnoreCase("Connecting...")) {
+            if (!s.equalsIgnoreCase(getResources().getString(R.string.LinkIsConnecting))) {
                 tvSSIDName.setText(s);
             } else {
                 ShowAnimatedStatus(s);
@@ -13821,7 +13855,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             new Handler().postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    if (!s.equalsIgnoreCase("Connecting...")) {
+                    if (!s.equalsIgnoreCase(getResources().getString(R.string.LinkIsConnecting))) {
                         tvSSIDName.setText(R.string.selectHose);
                     }
                     btnGo.setVisibility(View.GONE);
@@ -14220,12 +14254,12 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", getResources().getString(R.string.HoseUnavailableMessage));
                     } else if (NL1State == 10) {
                         NL1State = NL1State + 1;
-                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", "We are having trouble connecting to the LINK that controls your dispenser. Please locate the power source / emergency stop to reset power to the dispenser. Once this is completed, please wait 30 seconds and try again. If you continue to have issues, please contact Support.");
+                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", getResources().getString(R.string.HavingTroubleConnectingToLINK));
                         //send an email to support@fluidsecure.com
                         new LinkConnectionIssueEmail().execute();
                     } else {
                         ///NL1State = 0;
-                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", "We are having trouble connecting to the LINK that controls your dispenser. Please locate the power source / emergency stop to reset power to the dispenser. Once this is completed, please wait 30 seconds and try again. If you continue to have issues, please contact Support.");
+                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", getResources().getString(R.string.HavingTroubleConnectingToLINK));
                     }
                     break;
                 case 1:
@@ -14235,12 +14269,12 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", getResources().getString(R.string.HoseUnavailableMessage));
                     } else if (NL2State == 10) {
                         NL2State = NL2State + 1;
-                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", "We are having trouble connecting to the LINK that controls your dispenser. Please locate the power source / emergency stop to reset power to the dispenser. Once this is completed, please wait 30 seconds and try again. If you continue to have issues, please contact Support.");
+                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", getResources().getString(R.string.HavingTroubleConnectingToLINK));
                         //send an email to support@fluidsecure.com
                         new LinkConnectionIssueEmail().execute();
                     } else {
                         ///NL2State = 0;
-                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", "We are having trouble connecting to the LINK that controls your dispenser. Please locate the power source / emergency stop to reset power to the dispenser. Once this is completed, please wait 30 seconds and try again. If you continue to have issues, please contact Support.");
+                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", getResources().getString(R.string.HavingTroubleConnectingToLINK));
                     }
                     break;
                 case 2:
@@ -14249,12 +14283,12 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", getResources().getString(R.string.HoseUnavailableMessage));
                     } else if (NL3State == 10) {
                         NL3State = NL3State + 1;
-                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", "We are having trouble connecting to the LINK that controls your dispenser. Please locate the power source / emergency stop to reset power to the dispenser. Once this is completed, please wait 30 seconds and try again. If you continue to have issues, please contact Support.");
+                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", getResources().getString(R.string.HavingTroubleConnectingToLINK));
                         //send an email to support@fluidsecure.com
                         new LinkConnectionIssueEmail().execute();
                     } else {
                         ///NL3State = 0;
-                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", "We are having trouble connecting to the LINK that controls your dispenser. Please locate the power source / emergency stop to reset power to the dispenser. Once this is completed, please wait 30 seconds and try again. If you continue to have issues, please contact Support.");
+                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", getResources().getString(R.string.HavingTroubleConnectingToLINK));
                     }
                     break;
                 case 3:
@@ -14263,12 +14297,12 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", getResources().getString(R.string.HoseUnavailableMessage));
                     } else if (NL4State == 10) {
                         NL4State = NL4State + 1;
-                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", "We are having trouble connecting to the LINK that controls your dispenser. Please locate the power source / emergency stop to reset power to the dispenser. Once this is completed, please wait 30 seconds and try again. If you continue to have issues, please contact Support.");
+                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", getResources().getString(R.string.HavingTroubleConnectingToLINK));
                         //send an email to support@fluidsecure.com
                         new LinkConnectionIssueEmail().execute();
                     } else {
                         ///NL4State = 0;
-                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", "We are having trouble connecting to the LINK that controls your dispenser. Please locate the power source / emergency stop to reset power to the dispenser. Once this is completed, please wait 30 seconds and try again. If you continue to have issues, please contact Support.");
+                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", getResources().getString(R.string.HavingTroubleConnectingToLINK));
                     }
                     break;
                 case 4:
@@ -14277,12 +14311,12 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", getResources().getString(R.string.HoseUnavailableMessage));
                     } else if (NL5State == 10) {
                         NL5State = NL5State + 1;
-                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", "We are having trouble connecting to the LINK that controls your dispenser. Please locate the power source / emergency stop to reset power to the dispenser. Once this is completed, please wait 30 seconds and try again. If you continue to have issues, please contact Support.");
+                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", getResources().getString(R.string.HavingTroubleConnectingToLINK));
                         //send an email to support@fluidsecure.com
                         new LinkConnectionIssueEmail().execute();
                     } else {
                         ///NL5State = 0;
-                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", "We are having trouble connecting to the LINK that controls your dispenser. Please locate the power source / emergency stop to reset power to the dispenser. Once this is completed, please wait 30 seconds and try again. If you continue to have issues, please contact Support.");
+                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", getResources().getString(R.string.HavingTroubleConnectingToLINK));
                     }
                     break;
                 case 5:
@@ -14291,12 +14325,12 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", getResources().getString(R.string.HoseUnavailableMessage));
                     } else if (NL6State == 10) {
                         NL6State = NL6State + 1;
-                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", "We are having trouble connecting to the LINK that controls your dispenser. Please locate the power source / emergency stop to reset power to the dispenser. Once this is completed, please wait 30 seconds and try again. If you continue to have issues, please contact Support.");
+                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", getResources().getString(R.string.HavingTroubleConnectingToLINK));
                         //send an email to support@fluidsecure.com
                         new LinkConnectionIssueEmail().execute();
                     } else {
                         ///NL6State = 0;
-                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", "We are having trouble connecting to the LINK that controls your dispenser. Please locate the power source / emergency stop to reset power to the dispenser. Once this is completed, please wait 30 seconds and try again. If you continue to have issues, please contact Support.");
+                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", getResources().getString(R.string.HavingTroubleConnectingToLINK));
                     }
                     break;
             }
@@ -14540,14 +14574,14 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     AppConstants.IsBTLinkSelectedCurrently = true;
                 }
             }
-            if (!CommonUtils.isHotspotEnabled(this) && !AppConstants.IsBTLinkSelectedCurrently && Constants.hotspotstayOn) {
+            /*if (!CommonUtils.isHotspotEnabled(this) && !AppConstants.IsBTLinkSelectedCurrently && Constants.hotspotstayOn) {
                 HotspotEnableErrorCount++;
                 //AppConstants.WriteinFile(TAG + " Hotspot is Disabled. HotspotEnableErrorCount >> " + HotspotEnableErrorCount);
                 if (HotspotEnableErrorCount > 9) {
                     AppConstants.IsProblemWhileEnableHotspot = true;
                 }
-            }
-            ShowHotspotDisabledErrorMessage();
+            }*/
+            //ShowHotspotDisabledErrorMessage();
         } catch (Exception e) {
             e.printStackTrace();
         }

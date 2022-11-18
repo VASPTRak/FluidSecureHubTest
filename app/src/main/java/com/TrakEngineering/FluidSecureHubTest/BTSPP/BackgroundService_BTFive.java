@@ -983,9 +983,11 @@ public class BackgroundService_BTFive extends Service {
                             BTConstants.isHotspotDisabled = false;
                         }
                     }
-                    boolean BSRunning = CommonUtils.checkServiceRunning(BackgroundService_BTFive.this, AppConstants.PACKAGE_BACKGROUND_SERVICE);
-                    if (!BSRunning) {
-                        startService(new Intent(BackgroundService_BTFive.this, BackgroundService.class));
+                    if (cd.isConnectingToInternet()) {
+                        boolean BSRunning = CommonUtils.checkServiceRunning(BackgroundService_BTFive.this, AppConstants.PACKAGE_BACKGROUND_SERVICE);
+                        if (!BSRunning) {
+                            startService(new Intent(BackgroundService_BTFive.this, BackgroundService.class));
+                        }
                     }
                 }
             }, 2000);

@@ -142,10 +142,11 @@ public class AppConstants {
     public static String LANG_PARAM = "";
 
     public static final String PACKAGE_BACKGROUND_SERVICE = "com.TrakEngineering.FluidSecureHubTest.BackgroundService";
+    public static final String PACKAGE_BS_OffTransSync = "com.TrakEngineering.FluidSecureHubTest.offline.OffTranzSyncService";
 
     public static ArrayList<HashMap<String, String>> temp_serverSSIDList;
 
-    public static String webIP = "http://sierravistatest.cloudapp.net/";
+    public static String webIP = "http://fluidsecuretest.eastus.cloudapp.azure.com/"; // OLD URL => http://sierravistatest.cloudapp.net/";
     //public static String webIP = "https://www.fluidsecure.net/";
 
 

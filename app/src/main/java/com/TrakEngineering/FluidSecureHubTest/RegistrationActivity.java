@@ -303,13 +303,13 @@ public class RegistrationActivity extends AppCompatActivity {
 
             case R.id.menuSpanish:
                 if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + " Spanish language selected.");
+                    AppConstants.WriteinFile(TAG + " <Spanish language selected.>");
                 CommonUtils.StoreLanguageSettings(RegistrationActivity.this, "es", true);
                 break;
 
             case R.id.menuEnglish:
                 if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + " English language selected.");
+                    AppConstants.WriteinFile(TAG + " <English language selected.>");
                 CommonUtils.StoreLanguageSettings(RegistrationActivity.this, "en", true);
                 break;
 

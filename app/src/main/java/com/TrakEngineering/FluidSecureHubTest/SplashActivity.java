@@ -705,7 +705,7 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
                             }
                         }
                     } else {
-                        CommonUtils.showMessageDilaog(SplashActivity.this, "Error Message", "Your registration has not been approved. Please contact your Manager.");
+                        CommonUtils.showMessageDilaog(SplashActivity.this, "Error Message", getResources().getString(R.string.RegistrationNotApproved));
                     }
                 } catch (Exception ex) {
                     CommonUtils.LogMessage(TAG, "Handle user Data", ex);

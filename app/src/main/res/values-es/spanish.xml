@@ -15,13 +15,14 @@
     <string name="stop_fueling">Detener el combustible</string>
     <string name="fuel_history">Historia del combustible</string>
     <string name="regi">Registro</string>
-    <string name="support_line"><u>For 24/7 Support</u></string>
+    <string name="support_line"><u>Para soporte 24/7</u></string>
     <string name="no_internet">El sistema ha detectado que no tienes servicio celular y las opciones fuera de línea no están habilitadas. Póngase en contacto con su Gerente.</string>
     <string name="server_connection_problem">El sistema ha detectado que no tienes servicio celular y las opciones fuera de línea no están habilitadas. Póngase en contacto con su Gerente.</string>
     <string name="title_activity_maps">Mapa</string>
     <string name="title_activity_fob_reader">FobReader</string>
     <string name="selectHose">Seleccionar manguera</string>
     <string name="selectHoseToUse">Seleccione la manguera a usar</string>
+    <string name="HoseOutOfOrder">Manguera fuera de servicio</string>
     <string name="GO">IR</string>
     <string name="Cancel">Cancelar</string>
     <string name="previousScreen">Pantalla anterior</string>
@@ -35,6 +36,9 @@
     <string name="OdometerEntry">Entrada de odómetro:</string>
     <string name="StartBtn">EMPEZAR</string>
     <string name="firstTimeUseMessage">Esta es la primera vez que utiliza el sistema. Asegúrese de que la cantidad que se muestra en la pantalla coincida con la cantidad final en el dispensador. De lo contrario, asegúrese de llamar a Soporte</string>
+    <string name="TryAgainLater">Por favor, inténtelo de nuevo más tarde</string>
+    <string name="HoseInUseRetry">Manguera En Uso. Vuelva a intentarlo una vez que la transacción en curso se haya completado.</string>
+    <string name="RegistrationNotApproved">Su registro no ha sido aprobado. Por favor contacte a su Gerente.</string>
 
     <string name="permission_camera_rationale">Access to the camera is needed for detection</string>
     <string name="no_camera_permission">This application cannot run because it does not have the camera permission.  The application will now exit.</string>
@@ -275,6 +279,7 @@
     <string name="HoseInUse">Manguera en uso.</string>
     <string name="PairingMode">modo de emparejamiento...</string>
     <string name="SelectHoseAlert">Por favor, seleccione Manguera</string>
+    <string name="UnableToGetHoseList">No se puede obtener la lista de mangueras desde el servidor</string>
 
     <string name="Quantity">Cantidad:</string>
     <string name="Pulse">pulso:</string>
@@ -301,6 +306,7 @@
     <string name="lessThanPrevReadingMsg">Ha ingresado una lectura que es menor que la ingresada previamente. Por favor revisa e intenta de nuevo.</string>
     <string name="UnableToConnectToHoseMessage">Pedimos disculpas por las molestias, no pudimos establecer una conexión con el ENLACE. Por favor, intenta de nuevo.</string>
     <string name="HoseUnavailableMessage">La manguera no está disponible. reajustar la energía al dispensador que está controlando la manguera. Esto se puede hacer disparando el interruptor principal o la parada de emergencia. Una vez que se restablece la alimentación, espere 30 segundos y vuelva a intentarlo.</string>
+    <string name="HavingTroubleConnectingToLINK">Tenemos problemas para conectarnos al ENLACE que controla su dispensador. Localice la fuente de alimentación/la parada de emergencia para restablecer la alimentación del dispensador. Una vez que esto se complete, espere 30 segundos y vuelva a intentarlo. Si continúa teniendo problemas, comuníquese con Soporte.</string>
 
     <!-- Vehicle Screen -->
     <string name="vehicleIdentification">IDENTIFICACIÓN DEL VEHÍCULO</string>
@@ -313,6 +319,11 @@
     <string name="UseOnScreenBarcode">Toque para usar el código de barras en pantalla</string>
     <string name="PleaseWait">Espere por favor...</string>
     <string name="ReadAccessDeviceAgain">Haga clic para leer Dispositivo de acceso nuevamente</string>
+    <string name="peVehicle">Por favor ingrese Vehículo. Si aún tiene problemas, comuníquese con su Gerente.</string>
+    <string name="peVehicleOrAccessDevice">Ingrese el vehículo o presente un dispositivo de acceso. Si aún tiene problemas, comuníquese con su Gerente.</string>
+    <string name="VehiclePerDayLimitExceeded">Este vehículo ha excedido el límite de combustible para el día. Por favor contacte a su Gerente.</string>
+    <string name="VehiclePerMonthLimitExceeded">Este vehículo ha excedido el límite de combustible para el mes. Por favor contacte a su Gerente.</string>
+    <string name="peVehicleOrUseFobKey">Ingrese el vehículo o use la llave fob.</string>
 
     <!-- Odometer Screen -->
     <string name="EnterOdometerHeading">Ingrese el odómetro (sin décimos)</string>
@@ -332,6 +343,9 @@
     <string name="EnterPersonnelId">Ingrese su PERSONAL en el cuadro verde a continuación</string>
     <string name="PersonnelNumberHeading">Número personal:</string>
     <string name="EnterBarcodeNumber">Ingrese el número de código de barras a continuación</string>
+    <string name="pePersonnel">Por favor ingrese Personal. Si aún tiene problemas, comuníquese con su Gerente.</string>
+    <string name="pePersonnelOrAccessDevice">Por favor ingrese Personal o presente un Dispositivo de Acceso. Si aún tiene problemas, comuníquese con su Gerente.</string>
+    <string name="PerDayLimitExceeded">Ha excedido su límite de combustible para el día. Por favor contacte a su Gerente.</string>
 
     <!-- Department Screen -->
     <string name="RequireDeptNumber">Ingrese el número de departamento e inténtelo de nuevo.</string>
@@ -365,4 +379,8 @@
     <string name="EnterPersonnelPIN">Ingrese el PIN de persona que se asignó a este usuario en la nube</string>
     <string name="TryAgain">¿Le gustaría volver a intentarlo?</string>
     <string name="ExistingAccessDeviceReplace">El Personal que has ingresado ya tiene asignado un Dispositivo de Acceso. ¿Le gustaría eliminar el dispositivo existente que tenemos registrado y usar esto como un reemplazo?</string>
+
+    <!-- LINK Configuration process -->
+    <string name="HotSpotSSIDCannotBeBlank">HotSpot SSID no puede estar en blanco. Póngase en contacto con Soporte.</string>
+    <string name="HotSpotPasswordCannotBeBlank">La contraseña de HotSpot no puede estar en blanco. Póngase en contacto con Soporte.</string>
 </resources>

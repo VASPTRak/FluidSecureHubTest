@@ -985,9 +985,11 @@ public class BackgroundService_BTOne extends Service {
                             BTConstants.isHotspotDisabled = false;
                         }
                     }
-                    boolean BSRunning = CommonUtils.checkServiceRunning(BackgroundService_BTOne.this, AppConstants.PACKAGE_BACKGROUND_SERVICE);
-                    if (!BSRunning) {
-                        startService(new Intent(BackgroundService_BTOne.this, BackgroundService.class));
+                    if (cd.isConnectingToInternet()) {
+                        boolean BSRunning = CommonUtils.checkServiceRunning(BackgroundService_BTOne.this, AppConstants.PACKAGE_BACKGROUND_SERVICE);
+                        if (!BSRunning) {
+                            startService(new Intent(BackgroundService_BTOne.this, BackgroundService.class));
+                        }
                     }
                 }
             }, 2000);

@@ -747,7 +747,7 @@ public class SelectFSActivity extends AppCompatActivity implements GoogleApiClie
                 String IsBusy = serverSSIDList.get(SelectedItemPos).get("IsBusy");
 
                 if (IsBusy.equalsIgnoreCase("Y")) {
-                    tvSSIDName.setText("Hose in use.\nPlease try again later");
+                    tvSSIDName.setText(getResources().getString(R.string.HoseInUse));
                     btnGo.setVisibility(View.GONE);
                 } else {
 
