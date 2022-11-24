@@ -276,7 +276,7 @@ public class AcceptVehicleOtherInfo extends AppCompatActivity {
                 } else {
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(TAG + " Please enter Other, and try again.");
-                    CommonUtils.showMessageDilaog(AcceptVehicleOtherInfo.this, "Error Message", getResources().getString(R.string.RequiredOther));
+                    CommonUtils.showMessageDilaog(AcceptVehicleOtherInfo.this, "Error Message", getResources().getString(R.string.RequiredOther).replace("Other", OtherLabelVehicle));
                 }
 
             }

@@ -514,6 +514,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
         menu.findItem(R.id.mcamera_back).setVisible(false);
         menu.findItem(R.id.mcamera_front).setVisible(false);
         menu.findItem(R.id.mreconnect_ble_readers).setVisible(true);
+        menu.findItem(R.id.mshow_reader_status).setVisible(true);
         menu.findItem(R.id.mcamera_back).setVisible(false);
         menu.findItem(R.id.mcamera_front).setVisible(false);
         menu.findItem(R.id.mreload).setVisible(false);
@@ -561,11 +562,11 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                 new ReconnectBleReaders().execute();
                 return true;
 
-            /*case R.id.mshow_reader_status:
+            case R.id.mshow_reader_status:
                 if (AppConstants.GenerateLogs)
                     AppConstants.WriteinFile(TAG + "Show Reader Status");
                 AppConstants.showReaderStatus = true;
-                return true;*/
+                return true;
 
         }
         return super.onOptionsItemSelected(item);
@@ -2796,7 +2797,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                             new GetVehicleByFSTagMacAddress().execute();
                         }
                     } else {
-                        AppConstants.colorToastBigFont(getApplicationContext(), "Please check Internet connection", Color.BLUE);
+                        AppConstants.colorToastBigFont(getApplicationContext(), getResources().getString(R.string.CheckInternet), Color.BLUE);
                     }
 
 

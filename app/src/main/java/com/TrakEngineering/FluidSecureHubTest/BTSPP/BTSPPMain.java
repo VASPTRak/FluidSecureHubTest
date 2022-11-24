@@ -189,8 +189,12 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         }
         if (Response.contains("$$")) {
             String res = Response.replace("$$", "");
-            if (res.contains("}")) {
-                res = res.substring(0, (res.lastIndexOf("}") + 1)); // To remove extra characters after the last curly bracket (if any)
+            try {
+                if (res.contains("}")) {
+                    res = res.substring(0, (res.lastIndexOf("}") + 1)); // To remove extra characters after the last curly bracket (if any)
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
             if (!res.trim().isEmpty()) {
                 sb1.append(res.trim());
@@ -331,8 +335,12 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         }
         if (Response.contains("$$")) {
             String res = Response.replace("$$", "");
-            if (res.contains("}")) {
-                res = res.substring(0, (res.lastIndexOf("}") + 1)); // To remove extra characters after the last curly bracket (if any)
+            try {
+                if (res.contains("}")) {
+                    res = res.substring(0, (res.lastIndexOf("}") + 1)); // To remove extra characters after the last curly bracket (if any)
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
             if (!res.trim().isEmpty()) {
                 sb2.append(res.trim());
@@ -472,8 +480,12 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         }
         if (Response.contains("$$")) {
             String res = Response.replace("$$", "");
-            if (res.contains("}")) {
-                res = res.substring(0, (res.lastIndexOf("}") + 1)); // To remove extra characters after the last curly bracket (if any)
+            try {
+                if (res.contains("}")) {
+                    res = res.substring(0, (res.lastIndexOf("}") + 1)); // To remove extra characters after the last curly bracket (if any)
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
             if (!res.trim().isEmpty()) {
                 sb3.append(res.trim());
@@ -614,8 +626,12 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         }
         if (Response.contains("$$")) {
             String res = Response.replace("$$", "");
-            if (res.contains("}")) {
-                res = res.substring(0, (res.lastIndexOf("}") + 1)); // To remove extra characters after the last curly bracket (if any)
+            try {
+                if (res.contains("}")) {
+                    res = res.substring(0, (res.lastIndexOf("}") + 1)); // To remove extra characters after the last curly bracket (if any)
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
             if (!res.trim().isEmpty()) {
                 sb4.append(res.trim());
@@ -770,8 +786,12 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         }
         if (Response.contains("$$")) {
             String res = Response.replace("$$", "");
-            if (res.contains("}")) {
-                res = res.substring(0, (res.lastIndexOf("}") + 1)); // To remove extra characters after the last curly bracket (if any)
+            try {
+                if (res.contains("}")) {
+                    res = res.substring(0, (res.lastIndexOf("}") + 1)); // To remove extra characters after the last curly bracket (if any)
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
             if (!res.trim().isEmpty()) {
                 sb5.append(res.trim());
@@ -927,8 +947,12 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         }
         if (Response.contains("$$")) {
             String res = Response.replace("$$", "");
-            if (res.contains("}")) {
-                res = res.substring(0, (res.lastIndexOf("}") + 1)); // To remove extra characters after the last curly bracket (if any)
+            try {
+                if (res.contains("}")) {
+                    res = res.substring(0, (res.lastIndexOf("}") + 1)); // To remove extra characters after the last curly bracket (if any)
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
             if (!res.trim().isEmpty()) {
                 sb6.append(res.trim());

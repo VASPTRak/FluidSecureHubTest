@@ -86,6 +86,7 @@ public class BackgroundService_BTOne extends Service {
     ConnectionDetector cd = new ConnectionDetector(BackgroundService_BTOne.this);
     OffDBController offlineController = new OffDBController(BackgroundService_BTOne.this);
     String ipForUDP = "192.168.4.1";
+    public int infoCommandAttempt = 0;
 
     SimpleDateFormat sdformat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
     ArrayList<HashMap<String, String>> quantityRecords = new ArrayList<>();
@@ -158,7 +159,7 @@ public class BackgroundService_BTOne extends Service {
                     // Offline functionality
                     if (!cd.isConnectingToInternet()) {
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + " BTLink 2:-Offline mode--");
+                            AppConstants.WriteinFile(TAG + " BTLink 1:-Offline mode--");
                         offlineLogicBT1();
                     }
 
@@ -488,14 +489,20 @@ public class BackgroundService_BTOne extends Service {
                         }
                     } else {
 
-                        //UpgradeTransaction Status info command fail.
-                        CommonUtils.UpgradeTransactionStatusToSqlite(TransactionId, "6", BackgroundService_BTOne.this);
-                        Log.i(TAG, "BTLink 1: Failed to get infoCommand Response:>>" + Response);
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + " BTLink 1: Checking Info command response. Response: false");
-                        AppConstants.IsTransactionFailed1 = true;
-                        PostTransactionBackgroundTasks();
-                        CloseTransaction();
+                        if (infoCommandAttempt > 0) {
+                            //UpgradeTransaction Status info command fail.
+                            CommonUtils.UpgradeTransactionStatusToSqlite(TransactionId, "6", BackgroundService_BTOne.this);
+                            Log.i(TAG, "BTLink 1: Failed to get infoCommand Response:>>" + Response);
+                            if (AppConstants.GenerateLogs)
+                                AppConstants.WriteinFile(TAG + " BTLink 1: Checking Info command response. Response: false");
+                            AppConstants.TxnFailedCount1++;
+                            AppConstants.IsTransactionFailed1 = true;
+                            PostTransactionBackgroundTasks();
+                            CloseTransaction();
+                        } else {
+                            infoCommandAttempt++;
+                            infoCommand(); // Retried after failed to receive response from info command
+                        }
                     }
                 }
             }.start();
@@ -818,7 +825,7 @@ public class BackgroundService_BTOne extends Service {
             }
 
             String userEmail = CommonUtils.getCustomerDetails_backgroundServiceBT(BackgroundService_BTOne.this).PersonEmail;
-            String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(this) + ":" + userEmail + ":" + "SetHoseNameReplacedFlag");
+            String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(this) + ":" + userEmail + ":" + "SetHoseNameReplacedFlag" + AppConstants.LANG_PARAM);
 
             RenameHose rhose = new RenameHose();
             rhose.SiteId = BTConstants.BT1SITE_ID;
@@ -916,6 +923,7 @@ public class BackgroundService_BTOne extends Service {
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + " BTLink 1: Link not connected.");
                         BTConstants.isReconnectCalled1 = false;
+                        AppConstants.TxnFailedCount1++;
                         AppConstants.IsTransactionFailed1 = true;
                         PostTransactionBackgroundTasks();
                         CloseTransaction();
@@ -1104,7 +1112,7 @@ public class BackgroundService_BTOne extends Service {
 
                     if (BTConstants.forOscilloscope) {
                         //Set Oscilloscope status.
-                        //AppConstants.WriteinFile(TAG + " BTLink 2: onReceive Response:" + Response.trim());
+                        //AppConstants.WriteinFile(TAG + " BTLink 1: onReceive Response:" + Response.trim());
                         if (Response.contains("pulser_type")) {
                             BTConstants.ScopeStatus = "";
                             getPulserType(Response);
@@ -1147,7 +1155,7 @@ public class BackgroundService_BTOne extends Service {
     private void InsertInitialTransactionToSqlite() {
 
         String userEmail = CommonUtils.getCustomerDetails_backgroundServiceBT(BackgroundService_BTOne.this).PersonEmail;
-        String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(BackgroundService_BTOne.this) + ":" + userEmail + ":" + "TransactionComplete");
+        String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(BackgroundService_BTOne.this) + ":" + userEmail + ":" + "TransactionComplete" + AppConstants.LANG_PARAM);
 
         HashMap<String, String> imap = new HashMap<>();
         imap.put("jsonData", "");
@@ -1179,7 +1187,7 @@ public class BackgroundService_BTOne extends Service {
             AppConstants.WriteinFile(TAG + " BTLink 1: ID:" + TransactionId + "; LINK:" + LinkName + "; Pulses:" + Integer.parseInt(outputQuantity) + "; Qty:" + fillqty);
 
         String userEmail = CommonUtils.getCustomerDetails_backgroundServiceBT(BackgroundService_BTOne.this).PersonEmail;
-        String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(BackgroundService_BTOne.this) + ":" + userEmail + ":" + "TransactionComplete");
+        String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(BackgroundService_BTOne.this) + ":" + userEmail + ":" + "TransactionComplete" + AppConstants.LANG_PARAM);
 
 
         HashMap<String, String> imap = new HashMap<>();
@@ -1223,7 +1231,7 @@ public class BackgroundService_BTOne extends Service {
                 AppConstants.WriteinFile(TAG + " BTLink 1: <Last Transaction saved in local DB. LastTXNid:" + txnId + "; LINK:" + LinkName + "; Pulses:" + Integer.parseInt(counts) + "; Qty:" + Lastqty + ">");
 
             String userEmail = CommonUtils.getCustomerDetails_backgroundServiceBT(BackgroundService_BTOne.this).PersonEmail;
-            String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(BackgroundService_BTOne.this) + ":" + userEmail + ":" + "TransactionComplete");
+            String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(BackgroundService_BTOne.this) + ":" + userEmail + ":" + "TransactionComplete" + AppConstants.LANG_PARAM);
 
             HashMap<String, String> imap = new HashMap<>();
             imap.put("jsonData", jsonData);
@@ -1824,6 +1832,7 @@ public class BackgroundService_BTOne extends Service {
                                 if (AppConstants.GenerateLogs)
                                     AppConstants.WriteinFile(TAG + " BTLink 1: Failed to connect to the link. (Status: " + BTConstants.BTStatusStrOne + ")");
                                 IsThisBTTrnx = false;
+                                AppConstants.TxnFailedCount1++;
                                 AppConstants.IsTransactionFailed1 = true;
                                 PostTransactionBackgroundTasks();
                                 CloseTransaction();
@@ -1873,7 +1882,7 @@ public class BackgroundService_BTOne extends Service {
                 //AppConstants.WriteinFile(TAG + " BTLink 1: UpgradeCurrentVersionWithUpgradableVersion (" + jsonData + ")");
 
                 //----------------------------------------------------------------------------------
-                String authString = "Basic " + AppConstants.convertStingToBase64(objUpgrade.IMEIUDID + ":" + objUpgrade.Email + ":" + "UpgradeCurrentVersionWithUgradableVersion");
+                String authString = "Basic " + AppConstants.convertStingToBase64(objUpgrade.IMEIUDID + ":" + objUpgrade.Email + ":" + "UpgradeCurrentVersionWithUgradableVersion" + AppConstants.LANG_PARAM);
                 response = serverHandler.PostTextData(BackgroundService_BTOne.this, AppConstants.webURL, jsonData, authString);
                 //----------------------------------------------------------------------------------
 

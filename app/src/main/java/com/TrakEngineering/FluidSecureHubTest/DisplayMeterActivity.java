@@ -261,73 +261,56 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
         //UDP Connection..!!
         SERVERIP = "";
         String IpAddress = "";
-        LinkCommunicationType = WelcomeActivity.serverSSIDList.get(WelcomeActivity.SelectedItemPos).get("LinkCommunicationType");
-        LinkName = WelcomeActivity.serverSSIDList.get(WelcomeActivity.SelectedItemPos).get("WifiSSId");
+        try {
+            LinkCommunicationType = WelcomeActivity.serverSSIDList.get(WelcomeActivity.SelectedItemPos).get("LinkCommunicationType");
+            LinkName = WelcomeActivity.serverSSIDList.get(WelcomeActivity.SelectedItemPos).get("WifiSSId");
 
-        if (!LinkCommunicationType.equalsIgnoreCase("BT")) {
-            try {
-                String selSSID = WelcomeActivity.serverSSIDList.get(WelcomeActivity.SelectedItemPos).get("WifiSSId");
-                String selMacAddress = WelcomeActivity.serverSSIDList.get(WelcomeActivity.SelectedItemPos).get("MacAddress");
+            if (!LinkCommunicationType.equalsIgnoreCase("BT")) {
+                try {
+                    String selSSID = WelcomeActivity.serverSSIDList.get(WelcomeActivity.SelectedItemPos).get("WifiSSId");
+                    String selMacAddress = WelcomeActivity.serverSSIDList.get(WelcomeActivity.SelectedItemPos).get("MacAddress");
 
-                //boolean isMacConnected = false;
-                if (AppConstants.DetailsListOfConnectedDevices != null) {
-                    for (int i = 0; i < AppConstants.DetailsListOfConnectedDevices.size(); i++) {
-                        String MA_ConnectedDevices = AppConstants.DetailsListOfConnectedDevices.get(i).get("macAddress");
-
-                        if (selMacAddress.equalsIgnoreCase(MA_ConnectedDevices)) {
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "(onResume) Selected LINK (" + selSSID + " <==> " + selMacAddress + ") is connected to hotspot.");
-                            IpAddress = AppConstants.DetailsListOfConnectedDevices.get(i).get("ipAddress");
-                            //isMacConnected = true;
-                            break;
-                        }
-                    }
-                }
-
-                /*if (!isMacConnected) {
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "(onResume) Selected LINK (" + selSSID + " <==> " + selMacAddress + ") is not found in connected devices. " + AppConstants.DetailsListOfConnectedDevices);
-
+                    //boolean isMacConnected = false;
                     if (AppConstants.DetailsListOfConnectedDevices != null) {
                         for (int i = 0; i < AppConstants.DetailsListOfConnectedDevices.size(); i++) {
-                            String ConnectedMacAddress = AppConstants.DetailsListOfConnectedDevices.get(i).get("macAddress");
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "Checking Mac Address using info command: (" + ConnectedMacAddress + ")");
+                            String MA_ConnectedDevices = AppConstants.DetailsListOfConnectedDevices.get(i).get("macAddress");
 
-                            String connectedIp = AppConstants.DetailsListOfConnectedDevices.get(i).get("ipAddress");
-
-                            IpAddress = GetAndCheckMacAddressFromInfoCommand(connectedIp, selMacAddress, ConnectedMacAddress);
-                            if (!IpAddress.trim().isEmpty()) {
+                            if (selMacAddress.equalsIgnoreCase(MA_ConnectedDevices)) {
                                 if (AppConstants.GenerateLogs)
-                                    AppConstants.WriteinFile("===================================================================");
+                                    AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "(onResume) Selected LINK (" + selSSID + " <==> " + selMacAddress + ") is connected to hotspot.");
+                                IpAddress = AppConstants.DetailsListOfConnectedDevices.get(i).get("ipAddress");
+                                //isMacConnected = true;
                                 break;
                             }
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile("===================================================================");
                         }
                     }
-                }*/
-            } catch (Exception e) {
-                IpAddress = "";
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "Exception in onResume while checking HTTP link is connected to hotspot or not. " + e.getMessage() + "; Connected devices: " + AppConstants.DetailsListOfConnectedDevices);
+
+                } catch (Exception e) {
+                    IpAddress = "";
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "Exception in onResume while checking HTTP link is connected to hotspot or not. " + e.getMessage() + "; Connected devices: " + AppConstants.DetailsListOfConnectedDevices);
+                }
+
+                if (!IpAddress.trim().isEmpty()) {
+                    HTTP_URL = "http://" + IpAddress + ":80/";
+                    SERVERIP = IpAddress;
+                } else {
+                    getIpOverOSVersion();
+                }
             }
 
-            if (!IpAddress.trim().isEmpty()) {
-                HTTP_URL = "http://" + IpAddress + ":80/";
-                SERVERIP = IpAddress;
+            TimeOutDisplayMeterScreen();
+
+            if (AppConstants.IsFirstTimeUse.equalsIgnoreCase("True")) {
+                AppConstants.IsFirstTimeUse = "False";
+                firstTimeUseWarningDialog(DisplayMeterActivity.this);
             } else {
-                getIpOverOSVersion();
+                proceedToPostResume();
             }
-        }
-
-        TimeOutDisplayMeterScreen();
-
-        if (AppConstants.IsFirstTimeUse.equalsIgnoreCase("True")) {
-            AppConstants.IsFirstTimeUse = "False";
-            firstTimeUseWarningDialog(DisplayMeterActivity.this);
-        } else {
-            proceedToPostResume();
+        } catch (Exception e) {
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + "Exception in onResume while getting link details. " + e.getMessage() + "; Selected Link Position: " + WelcomeActivity.SelectedItemPos);
+            TerminateTransaction("");
         }
     }
 
@@ -1122,7 +1105,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                 }*/
             }
         } else {
-            AppConstants.colorToastBigFont(getApplicationContext(), "Please check Internet connection", Color.BLUE);
+            AppConstants.colorToastBigFont(getApplicationContext(), getResources().getString(R.string.CheckInternet), Color.BLUE);
             Istimeout_Sec = true;
             ResetTimeoutDisplayMeterScreen();
         }
@@ -1138,13 +1121,13 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
         String jsonData = gson.toJson(objEntityClass1);
 
         String userEmail = CommonUtils.getCustomerDetails(DisplayMeterActivity.this).PersonEmail;
-        String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(DisplayMeterActivity.this) + ":" + userEmail + ":" + "IsUpgradeCurrentVersionWithUgradableVersion");
+        String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(DisplayMeterActivity.this) + ":" + userEmail + ":" + "IsUpgradeCurrentVersionWithUgradableVersion" + AppConstants.LANG_PARAM);
 
 
         if (cd.isConnectingToInternet() && AppConstants.NETWORK_STRENGTH)
             new GetUpgradeFirmwareStatus().execute(FS_selected, jsonData, authString);
         else {
-            AppConstants.colorToastBigFont(getApplicationContext(), "Please check Internet connection", Color.BLUE);
+            AppConstants.colorToastBigFont(getApplicationContext(), getResources().getString(R.string.CheckInternet), Color.BLUE);
             Istimeout_Sec = true;
             ResetTimeoutDisplayMeterScreen();
         }
@@ -1294,7 +1277,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
 
                 //----------------------------------------------------------------------------------
-                String authString = "Basic " + AppConstants.convertStingToBase64(objupgrade.IMEIUDID + ":" + objupgrade.Email + ":" + "UpgradeCurrentVersionWithUgradableVersion");
+                String authString = "Basic " + AppConstants.convertStingToBase64(objupgrade.IMEIUDID + ":" + objupgrade.Email + ":" + "UpgradeCurrentVersionWithUgradableVersion" + AppConstants.LANG_PARAM);
                 response = serverHandler.PostTextData(DisplayMeterActivity.this, AppConstants.webURL, jsonData, authString);
                 //----------------------------------------------------------------------------------
 
@@ -1523,7 +1506,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
             String userEmail = CommonUtils.getCustomerDetails(DisplayMeterActivity.this).Email;
 
-            String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(DisplayMeterActivity.this) + ":" + userEmail + ":" + "TransactionComplete");
+            String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(DisplayMeterActivity.this) + ":" + userEmail + ":" + "TransactionComplete" + AppConstants.LANG_PARAM);
 
             HashMap<String, String> imap = new HashMap<>();
             imap.put("jsonData", jsonData);
@@ -1574,7 +1557,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
         if (AppConstants.NeedToRename) {
             String userEmail = CommonUtils.getCustomerDetails(DisplayMeterActivity.this).Email;
 
-            String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(DisplayMeterActivity.this) + ":" + userEmail + ":" + "SetHoseNameReplacedFlag");
+            String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(DisplayMeterActivity.this) + ":" + userEmail + ":" + "SetHoseNameReplacedFlag" + AppConstants.LANG_PARAM);
 
             RenameHose rhose = new RenameHose();
             rhose.SiteId = AppConstants.R_SITE_ID;
@@ -2010,7 +1993,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
         try {
             String userEmail = CommonUtils.getCustomerDetails(DisplayMeterActivity.this).Email;
 
-            String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(DisplayMeterActivity.this) + ":" + userEmail + ":" + "UpdateSwitchTimeBounceForLink");
+            String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(DisplayMeterActivity.this) + ":" + userEmail + ":" + "UpdateSwitchTimeBounceForLink" + AppConstants.LANG_PARAM);
 
             SwitchTimeBounce switchTimeBounce = new SwitchTimeBounce();
             switchTimeBounce.SiteId = AppConstants.SITE_ID;
@@ -3526,7 +3509,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
                             String userEmail = CommonUtils.getCustomerDetails(DisplayMeterActivity.this).PersonEmail;
 
-                            String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(DisplayMeterActivity.this) + ":" + userEmail + ":" + "TransactionComplete");
+                            String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(DisplayMeterActivity.this) + ":" + userEmail + ":" + "TransactionComplete" + AppConstants.LANG_PARAM);
 
                             HashMap<String, String> imap = new HashMap<>();
                             imap.put("jsonData", jsonData);
@@ -3918,7 +3901,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
             String userEmail = CommonUtils.getCustomerDetails(DisplayMeterActivity.this).PersonEmail;
 
-            String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(DisplayMeterActivity.this) + ":" + userEmail + ":" + "TransactionComplete");
+            String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(DisplayMeterActivity.this) + ":" + userEmail + ":" + "TransactionComplete" + AppConstants.LANG_PARAM);
 
             HashMap<String, String> imap = new HashMap<>();
             imap.put("jsonData", jsonData);
@@ -4038,7 +4021,10 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
         } catch (Exception e) {
             e.printStackTrace();
-            if (CommType.equalsIgnoreCase("HTTP")) {
+            if (CommType.isEmpty()) {
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + "SetFailedTransactionFlag Exception: " + e.getMessage());
+            } else if (CommType.equalsIgnoreCase("HTTP")) {
                 if (AppConstants.GenerateLogs)
                     AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "SetFailedTransactionFlag Exception: " + e.getMessage());
             } else {
@@ -4363,11 +4349,6 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
     private void BTServiceSelectionFunction() {
 
         if (BTConstants.CurrentTransactionIsBT) {
-
-            /*if (CommonUtils.isHotspotEnabled(DisplayMeterActivity.this)) {
-                wifiApManager.setWifiApEnabled(null, false);
-            }*/
-
             // BtnStartStateChange(true);
             Log.i(TAG, "BT Link ");
             switch (BTConstants.CurrentSelectedLinkBT) {

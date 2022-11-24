@@ -515,7 +515,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         }
 
         if (ConfigurationStep1IsInProgress) {
-            String s = "Connecting to wifi. Please wait...";
+            String s = getResources().getString(R.string.PleaseWaitForWifiConnect);
             SpannableString ss2 = new SpannableString(s);
             ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
             ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
@@ -1061,11 +1061,11 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             BatteryPercentageService();
         }
 
-        /*if (OfflineConstants.isOfflineAccess(WelcomeActivity.this))
-            OfflineConstants.setAlaramManagerToStartDownloadOfflineData(WelcomeActivity.this);*/
+        if (OfflineConstants.isOfflineAccess(WelcomeActivity.this))
+            OfflineConstants.setAlarmManagerToStartDownloadOfflineData(WelcomeActivity.this);
 
-        Intent i = new Intent(this, OffBackgroundService.class);
-        this.startService(i);
+        /*Intent i = new Intent(this, OffBackgroundService.class);
+        this.startService(i);*/ // Commented on 2022/11/24 for #2049
 
         // Registers BroadcastReceiver to track network connection changes.
         IntentFilter ifilter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
@@ -1763,16 +1763,6 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                             String LinkCommunicationType = serverSSIDList.get(SelectedItemPos).get("LinkCommunicationType");
                             AppConstants.LAST_CONNECTED_SSID = selectedSSID;
 
-                            /*if (LinkCommunicationType.equalsIgnoreCase("BT")) {
-                                if (CommonUtils.isHotspotEnabled(WelcomeActivity.this)) {
-                                    wifiApManager.setWifiApEnabled(null, false);
-                                }
-                            } else {
-                                if (!CommonUtils.isHotspotEnabled(WelcomeActivity.this)) {
-                                    wifiApManager.setWifiApEnabled(null, true);
-                                }
-                            }*/
-
                             if (IsTankEmpty.equalsIgnoreCase("True")) {
                                 if (AppConstants.GenerateLogs)
                                     AppConstants.WriteinFile(TAG + "The system is low on fuel and must be refilled before fueling can start. Please contact your Manager.");
@@ -1986,7 +1976,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 selectedSSID += "#:#0#:#0";
 
                 System.out.println("selectedSSID.." + params[0]);
-                String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(WelcomeActivity.this) + ":" + userInfoEntity.PersonEmail + ":" + "AndroidSSID");
+                String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(WelcomeActivity.this) + ":" + userInfoEntity.PersonEmail + ":" + "AndroidSSID" + AppConstants.LANG_PARAM);
 
                 OkHttpClient client = new OkHttpClient();
                 client.setConnectTimeout(4, TimeUnit.SECONDS);
@@ -2804,7 +2794,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             try {
                 ServerHandler serverHandler = new ServerHandler();
                 //----------------------------------------------------------------------------------
-                String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(WelcomeActivity.this) + ":" + Email + ":" + "AndroidSSID");
+                String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(WelcomeActivity.this) + ":" + Email + ":" + "AndroidSSID" + AppConstants.LANG_PARAM);
                 response = serverHandler.PostTextData(WelcomeActivity.this, AppConstants.webURL, latLong, authString);
                 //----------------------------------------------------------------------------------
 
@@ -2886,7 +2876,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     case Activity.RESULT_OK:
                         Log.i("Splash", "User agreed to make required location settings changes.");
 
-                        AppConstants.colorToast(getApplicationContext(), "Please wait...", Color.BLACK);
+                        AppConstants.colorToast(getApplicationContext(), getResources().getString(R.string.PleaseWait), Color.BLACK);
 
                         goButtonAction(null);
 
@@ -2933,7 +2923,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                 ServerHandler serverHandler = new ServerHandler();
                 //----------------------------------------------------------------------------------
-                String parm1 = AppConstants.getIMEI(WelcomeActivity.this) + ":" + userInfoEntity.PersonEmail + ":" + "Other";
+                String parm1 = AppConstants.getIMEI(WelcomeActivity.this) + ":" + userInfoEntity.PersonEmail + ":" + "Other" + AppConstants.LANG_PARAM;
                 String parm2 = "Authenticate:I:" + Constants.Latitude + "," + Constants.Longitude;
 
 
@@ -3274,7 +3264,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                             }
 
                                         } else {
-                                            AppConstants.colorToastBigFont(getApplicationContext(), "Can't reconfigure hose is busy", Color.BLUE);
+                                            AppConstants.colorToastBigFont(getApplicationContext(), getResources().getString(R.string.HoseIsBusy), Color.BLUE);
                                         }
                                     } else if (IsLinkFlagged != null && IsLinkFlagged.equalsIgnoreCase("True")) {
                                         if (AppConstants.GenerateLogs)
@@ -3983,7 +3973,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 if (AppConstants.NeedToRenameFS_ON_UPDATE_MAC) {
                     String userEmail = CommonUtils.getCustomerDetails(WelcomeActivity.this).PersonEmail;
 
-                    String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(WelcomeActivity.this) + ":" + userEmail + ":" + "SetHoseNameReplacedFlag");
+                    String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(WelcomeActivity.this) + ":" + userEmail + ":" + "SetHoseNameReplacedFlag" + AppConstants.LANG_PARAM);
 
 
                     RenameHose rhose = new RenameHose();
@@ -4045,7 +4035,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             try {
                 if (result.equalsIgnoreCase("exception")) {
                     ChangeWifiState(false);//turn wifi off
-                    AppConstants.colorToastBigFont(getApplicationContext(), "Step2 Failed while changing Hotspot Settings Please try again..", Color.BLUE);
+                    AppConstants.colorToastBigFont(getApplicationContext(), getResources().getString(R.string.ReconfigurationFailedRetry), Color.BLUE);
                     Log.i(TAG, "Step2 Failed while changing Hotspot Settings Please try again.. exception:" + result);
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Step2 Failed while changing Hotspot Settings Please try again.. exception: " + result);
@@ -4082,7 +4072,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         @Override
                         public void run() {
 
-                            AppConstants.colorToastBigFont(WelcomeActivity.this, "Mac address " + AppConstants.UPDATE_MACADDRESS, Color.BLUE);
+                            AppConstants.colorToastBigFont(WelcomeActivity.this, getResources().getString(R.string.MacAddressHeading) + " " + AppConstants.UPDATE_MACADDRESS, Color.BLUE);
                             if (AppConstants.GenerateLogs)
                                 AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Mac address: " + AppConstants.UPDATE_MACADDRESS);
 
@@ -4115,7 +4105,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                 } else {
                                     if (AppConstants.GenerateLogs)
                                         AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Please check Internet Connection.");
-                                    AppConstants.colorToast(WelcomeActivity.this, "Please check Internet Connection and retry.", Color.BLUE);
+                                    AppConstants.colorToast(WelcomeActivity.this, getResources().getString(R.string.CheckInternet), Color.BLUE);
                                     if (loading != null)
                                         loading.dismiss();
                                 }
@@ -4147,7 +4137,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         protected void onPreExecute() {
             super.onPreExecute();
             AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Started Reconfiguration process...");
-            String s = "Started Reconfiguration process. Please wait...";
+            String s = getResources().getString(R.string.StartedReconfiguration);
             SpannableString ss2 = new SpannableString(s);
             ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
             ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
@@ -4188,7 +4178,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Connected to wifi " + AppConstants.CURRENT_SELECTED_SSID);
-                        AppConstants.colorToastBigFont(WelcomeActivity.this, "Connected to wifi " + AppConstants.CURRENT_SELECTED_SSID, Color.parseColor("#4CAF50"));
+                        AppConstants.colorToastBigFont(WelcomeActivity.this, getResources().getString(R.string.ConnectedToWifi) + " " + AppConstants.CURRENT_SELECTED_SSID, Color.parseColor("#4CAF50"));
 
                         new Handler().postDelayed(new Runnable() {
                             @Override
@@ -4220,7 +4210,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                             Constants.hotspotstayOn = true;//Enable hotspot flag
                                             if (AppConstants.GenerateLogs)
                                                 AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Reconfiguration process fail. Could not get mac address.");
-                                            AppConstants.colorToastBigFont(WelcomeActivity.this, "Reconfiguration process fail.\nCould not get mac address.", Color.BLUE);
+                                            AppConstants.colorToastBigFont(WelcomeActivity.this, getResources().getString(R.string.ReconfigurationFailed), Color.BLUE);
 
                                             //Disable wifi connection
                                             WifiManager wifiManagerMM = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
@@ -4244,7 +4234,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                                                     if (AppConstants.GenerateLogs)
                                                         AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Setting SSID and PASS to Link");
-                                                    AppConstants.colorToastBigFont(WelcomeActivity.this, "Setting SSID and PASS to Link", Color.BLUE);
+                                                    AppConstants.colorToastBigFont(WelcomeActivity.this, getResources().getString(R.string.SettingSSIDAndPASS), Color.BLUE);
 
                                                     HTTP_URL = "http://192.168.4.1:80/";
                                                     URL_UPDATE_FS_INFO = HTTP_URL + "config?command=wifi";
@@ -4338,7 +4328,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                         Constants.hotspotstayOn = true;//Enable hotspot flag
                                         if (AppConstants.GenerateLogs)
                                             AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Reconfiguration process fail.");
-                                        AppConstants.colorToastBigFont(WelcomeActivity.this, "Reconfiguration process fail.\nPlease retry.", Color.BLUE);
+                                        AppConstants.colorToastBigFont(WelcomeActivity.this, getResources().getString(R.string.ReconfigurationFailedRetry), Color.BLUE);
 
                                         //Disable wifi connection
                                         WifiManager wifiManagerMM = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
@@ -4435,7 +4425,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 String userEmail = CommonUtils.getCustomerDetails(WelcomeActivity.this).PersonEmail;
 
                 //----------------------------------------------------------------------------------
-                String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(WelcomeActivity.this) + ":" + userEmail + ":" + "UpdateMACAddress");
+                String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(WelcomeActivity.this) + ":" + userEmail + ":" + "UpdateMACAddress" + AppConstants.LANG_PARAM);
                 response = serverHandler.PostTextData(WelcomeActivity.this, AppConstants.webURL, jsonData, authString);
                 //----------------------------------------------------------------------------------
 
@@ -4458,7 +4448,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 if (serverRes.equalsIgnoreCase("err")) {
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Link Re-configuration is partially completed.");
-                    AppConstants.alertBigFinishActivity(WelcomeActivity.this, "Link Re-configuration is partially completed. \nPlease remove app from Recent Apps and start app again");
+                    AppConstants.alertBigFinishActivity(WelcomeActivity.this, getResources().getString(R.string.PartiallyCompleted));
                 } else if (serverRes != null) {
 
                     JSONObject jsonObject1 = new JSONObject(serverRes);
@@ -4472,7 +4462,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         if (loading != null)
                             loading.dismiss();
                         Constants.hotspotstayOn = true;
-                        AppConstants.colorToastBigFont(WelcomeActivity.this, " Mac Address Updated ", Color.parseColor("#4CAF50"));
+                        AppConstants.colorToastBigFont(WelcomeActivity.this, getResources().getString(R.string.MacAddressUpdated), Color.parseColor("#4CAF50"));
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Mac Address Updated.");
                         wifiApManager.setWifiApEnabled(null, true);
@@ -4483,7 +4473,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         if (loading != null)
                             loading.dismiss();
                         Constants.hotspotstayOn = true;
-                        AppConstants.colorToastBigFont(WelcomeActivity.this, " MAC address could not be updated ", Color.BLUE);
+                        AppConstants.colorToastBigFont(WelcomeActivity.this, getResources().getString(R.string.MacAddressNotUpdated), Color.BLUE);
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "MAC address could not be updated.");
                         wifiApManager.setWifiApEnabled(null, true);
@@ -6917,7 +6907,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
             String userEmail = CommonUtils.getCustomerDetails(WelcomeActivity.this).PersonEmail;
 
-            String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(WelcomeActivity.this) + ":" + userEmail + ":" + "UpgradeIsBusyStatus");
+            String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(WelcomeActivity.this) + ":" + userEmail + ":" + "UpgradeIsBusyStatus" + AppConstants.LANG_PARAM);
 
             RenameHose rhose = new RenameHose();
             rhose.SiteId = AppConstants.CURRENT_SELECTED_SITEID;
@@ -6995,7 +6985,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
             String userEmail = CommonUtils.getCustomerDetails(WelcomeActivity.this).PersonEmail;
 
-            String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(WelcomeActivity.this) + ":" + userEmail + ":" + "UpgradeIsBusyStatus");
+            String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(WelcomeActivity.this) + ":" + userEmail + ":" + "UpgradeIsBusyStatus" + AppConstants.LANG_PARAM);
 
             RenameHose rhose = new RenameHose();
             rhose.SiteId = AppConstants.CURRENT_SELECTED_SITEID;
@@ -7214,7 +7204,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             } else {
                 if (AppConstants.GenerateLogs)
                     AppConstants.WriteinFile(TAG + "Can't update mac address,Hose is busy please retry later.");
-                AppConstants.colorToastBigFont(WelcomeActivity.this, "Can't update mac address,Hose is busy please retry later.", Color.BLUE);
+                AppConstants.colorToastBigFont(WelcomeActivity.this, getResources().getString(R.string.CannotUpdateMac), Color.BLUE);
                 btnGo.setVisibility(View.GONE);
             }
 
@@ -7905,6 +7895,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         menu.findItem(R.id.mcamera_front).setVisible(false);
         menu.findItem(R.id.mreload).setVisible(false);
         menu.findItem(R.id.btLinkScope).setVisible(true);
+        menu.findItem(R.id.mshow_reader_status).setVisible(false);
 
         if (cd.isConnectingToInternet()) {
 
@@ -7989,7 +7980,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 if (AppConstants.IsHoseBusyCheckLocally()) {
                     CommonUtils.StoreLanguageSettings(WelcomeActivity.this, "es", true);
                 } else {
-                    Toast.makeText(getApplicationContext(), "One of the hose is busy, please try again later.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), getResources().getString(R.string.HoseIsBusy), Toast.LENGTH_SHORT).show();
                 }
                 break;
 
@@ -7999,7 +7990,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 if (AppConstants.IsHoseBusyCheckLocally()) {
                     CommonUtils.StoreLanguageSettings(WelcomeActivity.this, "en", true);
                 } else {
-                    Toast.makeText(getApplicationContext(), "One of the hose is busy, please try again later.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), getResources().getString(R.string.HoseIsBusy), Toast.LENGTH_SHORT).show();
                 }
                 break;
 
@@ -9148,7 +9139,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
         String userEmail = CommonUtils.getCustomerDetails(WelcomeActivity.this).PersonEmail;
         //----------------------------------------------------------------------------------
-        String parm1 = AppConstants.getIMEI(WelcomeActivity.this) + ":" + userEmail + ":" + "DefectiveBluetoothInfoEmail";
+        String parm1 = AppConstants.getIMEI(WelcomeActivity.this) + ":" + userEmail + ":" + "DefectiveBluetoothInfoEmail" + AppConstants.LANG_PARAM;
         String authString = "Basic " + AppConstants.convertStingToBase64(parm1);
 
 
@@ -9493,7 +9484,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         String jsonData = gson.toJson(objEntityClass1);
 
         String userEmail = CommonUtils.getCustomerDetails(this).PersonEmail;
-        String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(this) + ":" + userEmail + ":" + "IsUpgradeCurrentVersionWithUgradableVersion");
+        String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(this) + ":" + userEmail + ":" + "IsUpgradeCurrentVersionWithUgradableVersion" + AppConstants.LANG_PARAM);
 
 
         new GetUpgrateFirmwareStatus().execute(FS_selected, jsonData, authString);
@@ -9626,7 +9617,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
 
                 //----------------------------------------------------------------------------------
-                String authString = "Basic " + AppConstants.convertStingToBase64(objupgrade.IMEIUDID + ":" + objupgrade.Email + ":" + "UpgradeCurrentVersionWithUgradableVersion");
+                String authString = "Basic " + AppConstants.convertStingToBase64(objupgrade.IMEIUDID + ":" + objupgrade.Email + ":" + "UpgradeCurrentVersionWithUgradableVersion" + AppConstants.LANG_PARAM);
                 response = serverHandler.PostTextData(WelcomeActivity.this, AppConstants.webURL, jsonData, authString);
                 //----------------------------------------------------------------------------------
 
@@ -9724,7 +9715,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                 ServerHandler serverHandler = new ServerHandler();
                 //----------------------------------------------------------------------------------
-                String parm1 = AppConstants.getIMEI(WelcomeActivity.this) + ":" + userInfoEntity.PersonEmail + ":" + "Other";
+                String parm1 = AppConstants.getIMEI(WelcomeActivity.this) + ":" + userInfoEntity.PersonEmail + ":" + "Other" + AppConstants.LANG_PARAM;
                 String parm2 = "Authenticate:I:" + Constants.Latitude + "," + Constants.Longitude;
 
 
@@ -9791,7 +9782,6 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     JSONObject jsonObject = new JSONObject(userData);
 
                     if (ResponseMessageSite.equalsIgnoreCase("success")) {
-
                         IsGateHub = jsonObject.getString("IsGateHub");
                         IsStayOpenGate = jsonObject.getString("StayOpenGate");
                         boolean fa_data = Boolean.parseBoolean(jsonObject.getString("EnbDisHubForFA"));
@@ -9808,6 +9798,23 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                         if (BackgroundServiceKeepDataTransferAlive.SSIDList != null)
                             BackgroundServiceKeepDataTransferAlive.SSIDList.clear();//clear SSIDList
+
+                        // Save ScreenNames into sharedPref
+                        String ScreenNameForVehicle = jsonObject.getString("ScreenNameForVehicle");
+                        String ScreenNameForPersonnel = jsonObject.getString("ScreenNameForPersonnel");
+                        String ScreenNameForOdometer = jsonObject.getString("ScreenNameForOdometer");
+                        String ScreenNameForHours = jsonObject.getString("ScreenNameForHours");
+                        String ScreenNameForDepartment = jsonObject.getString("ScreenNameForDepartment");
+
+                        SharedPreferences prefkb = WelcomeActivity.this.getSharedPreferences(AppConstants.sharedPref_KeyboardType, Context.MODE_PRIVATE);
+                        SharedPreferences.Editor editorkb = prefkb.edit();
+                        editorkb.putString("ScreenNameForVehicle", ScreenNameForVehicle);
+                        editorkb.putString("ScreenNameForPersonnel", ScreenNameForPersonnel);
+                        editorkb.putString("ScreenNameForOdometer", ScreenNameForOdometer);
+                        editorkb.putString("ScreenNameForHours", ScreenNameForHours);
+                        editorkb.putString("ScreenNameForDepartment", ScreenNameForDepartment);
+                        editorkb.commit();
+                        //=========================================================================================
 
                         JSONArray Requests = jsonObjectSite.getJSONArray(AppConstants.RES_DATA_SSID);
 
@@ -10354,7 +10361,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
     public void countDownTimerForReconfigureFun() {
 
-        String s = "Connecting to wifi. Please wait...";
+        String s = getResources().getString(R.string.PleaseWaitForWifiConnect);
         SpannableString ss2 = new SpannableString(s);
         ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
         ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
@@ -10443,7 +10450,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         AppConstants.ManuallReconfigure = true;
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Unable to auto connect to " + AppConstants.CURRENT_SELECTED_SSID +". Started manual process..");
-                        AppConstants.colorToastBigFont(WelcomeActivity.this, "Unable to auto connect to " + AppConstants.CURRENT_SELECTED_SSID +". Started manual process..", Color.BLUE);
+                        AppConstants.colorToastBigFont(WelcomeActivity.this, getResources().getString(R.string.UnableToAutoConnect) + " " + AppConstants.CURRENT_SELECTED_SSID + ". " + getResources().getString(R.string.StartedManualProcess), Color.BLUE);
                         LinkReConfigurationProcessStep1();//onfinish
 
                     }
@@ -10464,7 +10471,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
             if (AppConstants.GenerateLogs)
                 AppConstants.WriteinFile(TAG + "WIFI CONNECTED " + AppConstants.CURRENT_SELECTED_SSID);
-            AppConstants.colorToastBigFont(WelcomeActivity.this, "CONNECTED TO:- " + AppConstants.CURRENT_SELECTED_SSID, Color.BLUE);
+            AppConstants.colorToastBigFont(WelcomeActivity.this, getResources().getString(R.string.ConnectedToWifi) + " " + AppConstants.CURRENT_SELECTED_SSID, Color.BLUE);
 
             WifiManager wifiManager = (WifiManager) WelcomeActivity.this.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
             WifiInfo wifiInfo = wifiManager.getConnectionInfo();
@@ -10541,7 +10548,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
             if (AppConstants.GenerateLogs)
                 AppConstants.WriteinFile(TAG + "WIFI CONNECTED " + AppConstants.CURRENT_SELECTED_SSID);
-            AppConstants.colorToastBigFont(WelcomeActivity.this, "CONNECTED TO:- " + AppConstants.CURRENT_SELECTED_SSID, Color.BLUE);
+            AppConstants.colorToastBigFont(WelcomeActivity.this, getResources().getString(R.string.ConnectedToWifi) + " " + AppConstants.CURRENT_SELECTED_SSID, Color.BLUE);
 
             WifiManager wifiManager = (WifiManager) WelcomeActivity.this.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
             WifiInfo wifiInfo = wifiManager.getConnectionInfo();
@@ -10711,7 +10718,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                 ServerHandler serverHandler = new ServerHandler();
                 //----------------------------------------------------------------------------------
-                String parm1 = AppConstants.getIMEI(WelcomeActivity.this) + ":" + userInfoEntity.PersonEmail + ":" + "Other";
+                String parm1 = AppConstants.getIMEI(WelcomeActivity.this) + ":" + userInfoEntity.PersonEmail + ":" + "Other" + AppConstants.LANG_PARAM;
                 String parm2 = "Authenticate:I:" + Constants.Latitude + "," + Constants.Longitude;
 
 
@@ -10808,6 +10815,23 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         editor1.putString("BLEType", BLEType);
                         editor1.putString("BLEFileLocation", BLEFileLocation);
                         editor1.commit();
+
+                        // Save ScreenNames into sharedPref
+                        String ScreenNameForVehicle = jsonObject.getString("ScreenNameForVehicle");
+                        String ScreenNameForPersonnel = jsonObject.getString("ScreenNameForPersonnel");
+                        String ScreenNameForOdometer = jsonObject.getString("ScreenNameForOdometer");
+                        String ScreenNameForHours = jsonObject.getString("ScreenNameForHours");
+                        String ScreenNameForDepartment = jsonObject.getString("ScreenNameForDepartment");
+
+                        SharedPreferences prefkb = WelcomeActivity.this.getSharedPreferences(AppConstants.sharedPref_KeyboardType, Context.MODE_PRIVATE);
+                        SharedPreferences.Editor editorkb = prefkb.edit();
+                        editorkb.putString("ScreenNameForVehicle", ScreenNameForVehicle);
+                        editorkb.putString("ScreenNameForPersonnel", ScreenNameForPersonnel);
+                        editorkb.putString("ScreenNameForOdometer", ScreenNameForOdometer);
+                        editorkb.putString("ScreenNameForHours", ScreenNameForHours);
+                        editorkb.putString("ScreenNameForDepartment", ScreenNameForDepartment);
+                        editorkb.commit();
+                        //=========================================================================================
 
                         JSONArray Requests = jsonObjectSite.getJSONArray(AppConstants.RES_DATA_SSID);
 
@@ -11285,6 +11309,23 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     String HotSpotSSID = jsonObject.getString("HotSpotSSID");
                     String HotSpotPassword = jsonObject.getString("HotSpotPassword");
                     CommonUtils.SaveHotSpotDetailsInPref(WelcomeActivity.this, HotSpotSSID, HotSpotPassword);
+
+                    // Save ScreenNames into sharedPref
+                    String ScreenNameForVehicle = jsonObject.getString("ScreenNameForVehicle");
+                    String ScreenNameForPersonnel = jsonObject.getString("ScreenNameForPersonnel");
+                    String ScreenNameForOdometer = jsonObject.getString("ScreenNameForOdometer");
+                    String ScreenNameForHours = jsonObject.getString("ScreenNameForHours");
+                    String ScreenNameForDepartment = jsonObject.getString("ScreenNameForDepartment");
+
+                    SharedPreferences prefkb = WelcomeActivity.this.getSharedPreferences(AppConstants.sharedPref_KeyboardType, Context.MODE_PRIVATE);
+                    SharedPreferences.Editor editorkb = prefkb.edit();
+                    editorkb.putString("ScreenNameForVehicle", ScreenNameForVehicle);
+                    editorkb.putString("ScreenNameForPersonnel", ScreenNameForPersonnel);
+                    editorkb.putString("ScreenNameForOdometer", ScreenNameForOdometer);
+                    editorkb.putString("ScreenNameForHours", ScreenNameForHours);
+                    editorkb.putString("ScreenNameForDepartment", ScreenNameForDepartment);
+                    editorkb.commit();
+                    //=========================================================================================
 
                     JSONArray Requests = jsonObjectSite.getJSONArray(AppConstants.RES_DATA_SSID);
 
@@ -12068,7 +12109,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             }
 
         } else {
-            AppConstants.colorToastBigFont(WelcomeActivity.this, "Can't update mac address, Hose is busy please retry later.", Color.BLUE);
+            AppConstants.colorToastBigFont(WelcomeActivity.this, getResources().getString(R.string.CannotUpdateMac), Color.BLUE);
             if (AppConstants.GenerateLogs)
                 AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Can't update mac address, Hose is busy please retry later.");
             btnGo.setVisibility(View.GONE);
@@ -12115,7 +12156,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                             AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Step1 Link ReConfiguration enable wifi manually.");
 
                         AppConstants.SELECTED_SSID_FOR_MANUALL = AppConstants.CURRENT_SELECTED_SSID; //ReconfigSSID;
-                        AppConstants.colorToastBigFont(getApplicationContext(), "Enable Wifi Manually and Connect to " + AppConstants.SELECTED_SSID_FOR_MANUALL + " using wifi list", Color.BLUE);
+                        AppConstants.colorToastBigFont(getApplicationContext(), getResources().getString(R.string.EnableWifiManually) + " " + AppConstants.SELECTED_SSID_FOR_MANUALL + " " + getResources().getString(R.string.UsingWifiList), Color.BLUE);
                         startActivity(new Intent(Settings.ACTION_WIFI_SETTINGS));
                         ConfigurationStep1IsInProgress = true;
                         //mjconf
@@ -12188,7 +12229,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             }
         } else {
             ConfigurationStep1IsInProgress = false;
-            AppConstants.colorToastBigFont(WelcomeActivity.this, "Can't update mac address,Hose is busy please retry later.", Color.BLUE);
+            AppConstants.colorToastBigFont(WelcomeActivity.this, getResources().getString(R.string.CannotUpdateMac), Color.BLUE);
             if (AppConstants.GenerateLogs)
                 AppConstants.WriteinFile(TAG + "Can't update mac address,Hose is busy please retry later.");
             btnGo.setVisibility(View.GONE);
@@ -12221,7 +12262,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                 if (mac_address.equals("")) {
 
-                    AppConstants.colorToastBigFont(WelcomeActivity.this, "Reconfiguration process fail..\nCould not get mac address", Color.BLUE);
+                    AppConstants.colorToastBigFont(WelcomeActivity.this, getResources().getString(R.string.ReconfigurationFailed), Color.BLUE);
                     Log.i(TAG, "Step2 Reconfiguration process fail.. Could not get mac address Info command result:" + result);
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Step2 Reconfiguration process fail.. Could not get mac address. InfoCommand result >> " + result);
@@ -12237,7 +12278,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     //setGlobalWifiConnection();
                     //Set HUB usernam and password to link
 
-                    AppConstants.colorToastBigFont(WelcomeActivity.this, "Setting SSID and PASS to Link", Color.BLUE);
+                    AppConstants.colorToastBigFont(WelcomeActivity.this, getResources().getString(R.string.SettingSSIDAndPASS), Color.BLUE);
                     Log.i(TAG, "Step2 Setting SSID and PASS to Link");
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Step2 Setting SSID and PASS to Link");
@@ -12421,7 +12462,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
     private void LinkReConfigurationProcessStep4() {
 
-        AppConstants.colorToastBigFont(WelcomeActivity.this, "Mac address " + AppConstants.UPDATE_MACADDRESS, Color.BLUE);
+        AppConstants.colorToastBigFont(WelcomeActivity.this, getResources().getString(R.string.MacAddressHeading) + " " + AppConstants.UPDATE_MACADDRESS, Color.BLUE);
         Log.i(TAG, "Step4 Mac address " + AppConstants.UPDATE_MACADDRESS);
         if (AppConstants.GenerateLogs)
             AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Step4 Mac address " + AppConstants.UPDATE_MACADDRESS);
@@ -12553,7 +12594,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 String userEmail = CommonUtils.getCustomerDetails(WelcomeActivity.this).PersonEmail;
 
                 //----------------------------------------------------------------------------------
-                String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(WelcomeActivity.this) + ":" + userEmail + ":" + "UpdateMACAddress");
+                String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(WelcomeActivity.this) + ":" + userEmail + ":" + "UpdateMACAddress" + AppConstants.LANG_PARAM);
                 response = serverHandler.PostTextData(WelcomeActivity.this, AppConstants.webURL, jsonData, authString);
                 //----------------------------------------------------------------------------------
 
@@ -12572,7 +12613,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
             try {
                 if (serverRes.equalsIgnoreCase("err")) {
-                    AppConstants.alertBigFinishActivity(WelcomeActivity.this, "Link Re-configuration is partially completed. \nPlease remove app from Recent Apps and start app again");
+                    AppConstants.alertBigFinishActivity(WelcomeActivity.this, getResources().getString(R.string.PartiallyCompleted));
                     Log.i(TAG, "Step4 Link Re-configuration is partially completed.");
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Step4 Link Re-configuration is partially completed.");
@@ -12584,7 +12625,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                         AppConstants.clearSharedPrefByName(WelcomeActivity.this, Constants.MAC_ADDR_RECONFIGURE);
                         Constants.hotspotstayOn = true;
-                        AppConstants.colorToastBigFont(WelcomeActivity.this, " Mac Address Updated ", Color.parseColor("#4CAF50"));
+                        AppConstants.colorToastBigFont(WelcomeActivity.this, getResources().getString(R.string.MacAddressUpdated), Color.parseColor("#4CAF50"));
                         Log.i(TAG, "Step4 Mac Address Updated");
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Step4 Mac Address Updated");
@@ -12595,7 +12636,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     } else if (ResponceMessage.equalsIgnoreCase("fail")) {
 
                         Constants.hotspotstayOn = true;
-                        AppConstants.colorToastBigFont(WelcomeActivity.this, " MAC address could not be updated ", Color.BLUE);
+                        AppConstants.colorToastBigFont(WelcomeActivity.this, getResources().getString(R.string.MacAddressNotUpdated), Color.BLUE);
                         Log.i(TAG, "Step4 MAC address could not be updated");
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Step4 MAC address could not be updated");
@@ -12638,7 +12679,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                             AppConstants.WriteinFile(TAG + "Step1 UDP Link ReConfiguration enable wifi manually.");
 
                         AppConstants.SELECTED_SSID_FOR_MANUALL = AppConstants.CURRENT_SELECTED_SSID;//ReconfigSSID;
-                        AppConstants.colorToastBigFont(getApplicationContext(), "Enable Wifi Manually and Connect to " + AppConstants.SELECTED_SSID_FOR_MANUALL + " using wifi list", Color.BLUE);
+                        AppConstants.colorToastBigFont(getApplicationContext(), getResources().getString(R.string.EnableWifiManually) + " " + AppConstants.SELECTED_SSID_FOR_MANUALL + " " + getResources().getString(R.string.UsingWifiList), Color.BLUE);
                         startActivity(new Intent(Settings.ACTION_WIFI_SETTINGS));
 
                         new CountDownTimer(180000, 2000) {
@@ -12664,7 +12705,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                     //proced to reconfigure process
                                     cancel();
                                     Log.i(TAG, "Step1 UDP onTick ssid connected" + ssid);
-                                    AppConstants.colorToastBigFont(WelcomeActivity.this, "Connected to wifi " + AppConstants.SELECTED_SSID_FOR_MANUALL, Color.BLUE);
+                                    AppConstants.colorToastBigFont(WelcomeActivity.this, getResources().getString(R.string.ConnectedToWifi) + " " + AppConstants.SELECTED_SSID_FOR_MANUALL, Color.BLUE);
                                     Log.i(TAG, "Step1 UDP Connected to wifi " + AppConstants.SELECTED_SSID_FOR_MANUALL);
                                     if (AppConstants.GenerateLogs)
                                         AppConstants.WriteinFile(TAG + "Step1 UDP Connected to wifi " + AppConstants.SELECTED_SSID_FOR_MANUALL);
@@ -12710,7 +12751,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     AppConstants.WriteinFile(TAG + "Link ReConfiguration process -Step 1 Exception" + e);
             }
         } else {
-            AppConstants.colorToastBigFont(WelcomeActivity.this, "Can't update mac address,Hose is busy please retry later.", Color.BLUE);
+            AppConstants.colorToastBigFont(WelcomeActivity.this, getResources().getString(R.string.CannotUpdateMac), Color.BLUE);
             if (AppConstants.GenerateLogs)
                 AppConstants.WriteinFile(TAG + "Can't update mac address,Hose is busy please retry later.");
             btnGo.setVisibility(View.GONE);
@@ -12739,7 +12780,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                 if (mac_address.equals("")) {
 
-                    AppConstants.colorToastBigFont(WelcomeActivity.this, "Reconfiguration process fail..\nCould not get mac address", Color.BLUE);
+                    AppConstants.colorToastBigFont(WelcomeActivity.this, getResources().getString(R.string.ReconfigurationFailed), Color.BLUE);
                     Log.i(TAG, "Step2 UDP Reconfiguration process fail.. Could not get mac address Info command result:" + info_result);
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(TAG + "Step2 UDP Reconfiguration process fail.. Could not get mac address Info command result:" + info_result);
@@ -12754,7 +12795,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                     //setGlobalWifiConnection();
                     //Set HUB usernam and password to link
-                    AppConstants.colorToastBigFont(WelcomeActivity.this, "Setting SSID and PASS to Link", Color.BLUE);
+                    AppConstants.colorToastBigFont(WelcomeActivity.this, getResources().getString(R.string.SettingSSIDAndPASS), Color.BLUE);
                     Log.i(TAG, "Step2 Setting SSID and PASS to Link");
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(TAG + "Step2 UDP Setting SSID and PASS to Link");
@@ -13124,7 +13165,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         }, delay);*/
 
                     } else {
-                        AppConstants.colorToast(getApplicationContext(), "Please make sure BT mac is set.", Color.BLUE);
+                        AppConstants.colorToast(getApplicationContext(), getResources().getString(R.string.MakeSureBTMacIsSet), Color.BLUE);
                     }
                 }
                 break;
@@ -13192,7 +13233,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         }, delay);*/
 
                     } else {
-                        AppConstants.colorToast(getApplicationContext(), "Please make sure BT mac is set.", Color.BLUE);
+                        AppConstants.colorToast(getApplicationContext(), getResources().getString(R.string.MakeSureBTMacIsSet), Color.BLUE);
                     }
                 }
                 break;
@@ -13261,7 +13302,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         }, delay);*/
 
                     } else {
-                        AppConstants.colorToast(getApplicationContext(), "Please make sure BT mac is set.", Color.BLUE);
+                        AppConstants.colorToast(getApplicationContext(), getResources().getString(R.string.MakeSureBTMacIsSet), Color.BLUE);
                     }
                 }
 
@@ -13304,7 +13345,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         }, delay);
 
                     } else {
-                        AppConstants.colorToast(getApplicationContext(), "Please make sure BT mac is set.", Color.BLUE);
+                        AppConstants.colorToast(getApplicationContext(), getResources().getString(R.string.MakeSureBTMacIsSet), Color.BLUE);
                     }
                 }
                 break;
@@ -13346,7 +13387,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         }, delay);
 
                     } else {
-                        AppConstants.colorToast(getApplicationContext(), "Please make sure BT mac is set.", Color.BLUE);
+                        AppConstants.colorToast(getApplicationContext(), getResources().getString(R.string.MakeSureBTMacIsSet), Color.BLUE);
                     }
                 }
                 break;
@@ -13388,7 +13429,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         }, delay);
 
                     } else {
-                        AppConstants.colorToast(getApplicationContext(), "Please make sure BT mac is set.", Color.BLUE);
+                        AppConstants.colorToast(getApplicationContext(), getResources().getString(R.string.MakeSureBTMacIsSet), Color.BLUE);
                     }
                 }
                 break;
@@ -13532,17 +13573,33 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         case 2://Link Three
                             if (!BTMacAddress.isEmpty() && !BTConstants.BTLinkThreeStatus && CommonFunctions.CheckIfPresentInPairedDeviceList(BTMacAddress) && !BTConstants.BTStatusStrThree.equalsIgnoreCase("Connecting...")) {
                                 //Connect to Link three
-                                BTSPPMain btspp2 = new BTSPPMain();
-                                btspp2.activity = WelcomeActivity.this;
-                                btspp2.connect3();
+                                BTSPPMain btspp3 = new BTSPPMain();
+                                btspp3.activity = WelcomeActivity.this;
+                                btspp3.connect3();
                             }
                             break;
                         case 3://Link Four
                             if (!BTMacAddress.isEmpty() && !BTConstants.BTLinkFourStatus && CommonFunctions.CheckIfPresentInPairedDeviceList(BTMacAddress) && !BTConstants.BTStatusStrFour.equalsIgnoreCase("Connecting...")) {
                                 //Connect to Link Four
-                                BTSPPMain btspp2 = new BTSPPMain();
-                                btspp2.activity = WelcomeActivity.this;
-                                btspp2.connect4();
+                                BTSPPMain btspp4 = new BTSPPMain();
+                                btspp4.activity = WelcomeActivity.this;
+                                btspp4.connect4();
+                            }
+                            break;
+                        case 4://Link Five
+                            if (!BTMacAddress.isEmpty() && !BTConstants.BTLinkFiveStatus && CommonFunctions.CheckIfPresentInPairedDeviceList(BTMacAddress) && !BTConstants.BTStatusStrFive.equalsIgnoreCase("Connecting...")) {
+                                //Connect to Link Five
+                                BTSPPMain btspp5 = new BTSPPMain();
+                                btspp5.activity = WelcomeActivity.this;
+                                btspp5.connect5();
+                            }
+                            break;
+                        case 5://Link Six
+                            if (!BTMacAddress.isEmpty() && !BTConstants.BTLinkSixStatus && CommonFunctions.CheckIfPresentInPairedDeviceList(BTMacAddress) && !BTConstants.BTStatusStrSix.equalsIgnoreCase("Connecting...")) {
+                                //Connect to Link Six
+                                BTSPPMain btspp6 = new BTSPPMain();
+                                btspp6.activity = WelcomeActivity.this;
+                                btspp6.connect6();
                             }
                             break;
                         default://Something went wrong in link selection please try again.
@@ -14386,7 +14443,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 String userEmail = CommonUtils.getCustomerDetailsCC(WelcomeActivity.this).PersonEmail;
 
                 //----------------------------------------------------------------------------------
-                String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(WelcomeActivity.this) + ":" + userEmail + ":" + "LINKReconnectionEmail");
+                String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(WelcomeActivity.this) + ":" + userEmail + ":" + "LINKReconnectionEmail" + AppConstants.LANG_PARAM);
                 response = serverHandler.PostTextData(WelcomeActivity.this, AppConstants.webURL, jsonData, authString);
                 //----------------------------------------------------------------------------------
 
@@ -14462,7 +14519,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 String userEmail = CommonUtils.getCustomerDetailsCC(WelcomeActivity.this).PersonEmail;
 
                 //----------------------------------------------------------------------------------
-                String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(WelcomeActivity.this) + ":" + userEmail + ":" + "LinkConnectionIssueEmail");
+                String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(WelcomeActivity.this) + ":" + userEmail + ":" + "LinkConnectionIssueEmail" + AppConstants.LANG_PARAM);
                 response = serverHandler.PostTextData(WelcomeActivity.this, AppConstants.webURL, jsonData, authString);
                 //----------------------------------------------------------------------------------
 
@@ -14846,7 +14903,6 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     }
 
     public void alertSelectBTLinkList() {
-        final int counter = 0;
         final Dialog dialog = new Dialog(WelcomeActivity.this);
         dialog.setTitle("FluidSecureHubTest");
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -15075,7 +15131,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         }, delay);
 
                     } else {
-                        AppConstants.colorToast(getApplicationContext(), "Please make sure BT mac is set.", Color.BLUE);
+                        AppConstants.colorToast(getApplicationContext(), getResources().getString(R.string.MakeSureBTMacIsSet), Color.BLUE);
                     }
                 }
                 break;
@@ -15105,7 +15161,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         }, delay);
 
                     } else {
-                        AppConstants.colorToast(getApplicationContext(), "Please make sure BT mac is set.", Color.BLUE);
+                        AppConstants.colorToast(getApplicationContext(), getResources().getString(R.string.MakeSureBTMacIsSet), Color.BLUE);
                     }
                 }
                 break;
@@ -15136,7 +15192,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         }, delay);
 
                     } else {
-                        AppConstants.colorToast(getApplicationContext(), "Please make sure BT mac is set.", Color.BLUE);
+                        AppConstants.colorToast(getApplicationContext(), getResources().getString(R.string.MakeSureBTMacIsSet), Color.BLUE);
                     }
                 }
                 break;
@@ -15166,7 +15222,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         }, delay);
 
                     } else {
-                        AppConstants.colorToast(getApplicationContext(), "Please make sure BT mac is set.", Color.BLUE);
+                        AppConstants.colorToast(getApplicationContext(), getResources().getString(R.string.MakeSureBTMacIsSet), Color.BLUE);
                     }
                 }
                 break;
@@ -15196,7 +15252,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         }, delay);
 
                     } else {
-                        AppConstants.colorToast(getApplicationContext(), "Please make sure BT mac is set.", Color.BLUE);
+                        AppConstants.colorToast(getApplicationContext(), getResources().getString(R.string.MakeSureBTMacIsSet), Color.BLUE);
                     }
                 }
                 break;
@@ -15226,7 +15282,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         }, delay);
 
                     } else {
-                        AppConstants.colorToast(getApplicationContext(), "Please make sure BT mac is set.", Color.BLUE);
+                        AppConstants.colorToast(getApplicationContext(), getResources().getString(R.string.MakeSureBTMacIsSet), Color.BLUE);
                     }
                 }
                 break;

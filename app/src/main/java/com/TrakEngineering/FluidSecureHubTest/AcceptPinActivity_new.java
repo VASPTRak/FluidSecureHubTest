@@ -370,7 +370,7 @@ public class AcceptPinActivity_new extends AppCompatActivity {
                                 }
                             }
                         } else {
-                            AppConstants.colorToastBigFont(getApplicationContext(), "Please check Internet connection", Color.BLUE);
+                            AppConstants.colorToastBigFont(getApplicationContext(), getResources().getString(R.string.CheckInternet), Color.BLUE);
                         }
 
                     } else if (pin.equalsIgnoreCase("") && !FKey.equalsIgnoreCase("")) {
@@ -380,7 +380,7 @@ public class AcceptPinActivity_new extends AppCompatActivity {
                                 new GetPinNuOnFobKeyDetection().execute();
                             }
                         } else {
-                            AppConstants.colorToastBigFont(getApplicationContext(), "Please check Internet connection", Color.BLUE);
+                            AppConstants.colorToastBigFont(getApplicationContext(), getResources().getString(R.string.CheckInternet), Color.BLUE);
                         }
 
                     } else if (!pin.equalsIgnoreCase("") && !FKey.equalsIgnoreCase("")) {
@@ -391,7 +391,7 @@ public class AcceptPinActivity_new extends AppCompatActivity {
                                 new GetPinNuOnFobKeyDetection().execute();
                             }
                         } else {
-                            AppConstants.colorToastBigFont(getApplicationContext(), "Please check Internet connection", Color.BLUE);
+                            AppConstants.colorToastBigFont(getApplicationContext(), getResources().getString(R.string.CheckInternet), Color.BLUE);
                         }
                     }
                 } else {
@@ -628,6 +628,7 @@ public class AcceptPinActivity_new extends AppCompatActivity {
         menu.findItem(R.id.enable_debug_window).setVisible(false);
         menu.findItem(R.id.mclose).setVisible(false);
         menu.findItem(R.id.mreconnect_ble_readers).setVisible(true);
+        menu.findItem(R.id.mshow_reader_status).setVisible(true);
         menu.findItem(R.id.mcamera_back).setVisible(false);
         menu.findItem(R.id.mcamera_front).setVisible(false);
 
@@ -671,11 +672,11 @@ public class AcceptPinActivity_new extends AppCompatActivity {
                 AppConstants.showReaderStatus = true;
                 CustomDilaogForRebootCmd(AcceptPinActivity_new.this, "Please enter a code to continue.", "Message");
                 return true;
-            /*case R.id.mshow_reader_status:
+            case R.id.mshow_reader_status:
                 if (AppConstants.GenerateLogs)
                     AppConstants.WriteinFile(TAG + "Show Reader Status");
                 AppConstants.showReaderStatus = true;
-                return true;*/
+                return true;
         }
         return super.onOptionsItemSelected(item);
     }

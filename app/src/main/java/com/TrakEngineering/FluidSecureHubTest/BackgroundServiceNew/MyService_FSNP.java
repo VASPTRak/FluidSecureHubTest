@@ -448,7 +448,7 @@ public class MyService_FSNP extends Service {
                     AppConstants.WriteinFile(TAG + "  StartTransactionProcess ServerCallRequired");
                 Log.i(TAG, " Server call");
                 String userEmail = CommonUtils.getCustomerDetails_backgroundService(MyService_FSNP.this).PersonEmail;
-                String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(MyService_FSNP.this) + ":" + userEmail + ":" + "CheckAndValidateFSNPDetails");
+                String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(MyService_FSNP.this) + ":" + userEmail + ":" + "CheckAndValidateFSNPDetails" + AppConstants.LANG_PARAM);
 
                 String IMEI_UDID = String.valueOf(AppConstants.getIMEI(MyService_FSNP.this));
                 String Email = CommonUtils.getCustomerDetails_backgroundService(MyService_FSNP.this).PersonEmail;

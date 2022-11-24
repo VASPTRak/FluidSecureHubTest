@@ -1930,7 +1930,7 @@ public class CommonUtils {
 
         String userEmail = CommonUtils.getCustomerDetailsCC(context).PersonEmail;
         //----------------------------------------------------------------------------------
-        String parm1 = AppConstants.getIMEI(context) + ":" + userEmail + ":" + "MobileHotspotErrorEmail";
+        String parm1 = AppConstants.getIMEI(context) + ":" + userEmail + ":" + "MobileHotspotErrorEmail" + AppConstants.LANG_PARAM;
         String authString = "Basic " + AppConstants.convertStingToBase64(parm1);
 
 

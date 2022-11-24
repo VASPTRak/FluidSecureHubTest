@@ -197,7 +197,7 @@ public class AcceptManualOdoActivityFA extends AppCompatActivity {
         String jsonData = gson.toJson(objEntityClass);
 
         String userEmail = CommonUtils.getCustomerDetailsCC(AcceptManualOdoActivityFA.this).PersonEmail;
-        String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(AcceptManualOdoActivityFA.this) + ":" + userEmail + ":" + "SaveManualVehicleOdometer");
+        String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(AcceptManualOdoActivityFA.this) + ":" + userEmail + ":" + "SaveManualVehicleOdometer" + AppConstants.LANG_PARAM);
 
         System.out.println(TAG + "Response" + jsonData);
         //if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG +"Response" + jsonData);

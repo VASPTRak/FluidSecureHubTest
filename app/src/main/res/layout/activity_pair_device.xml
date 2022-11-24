@@ -26,7 +26,7 @@
         android:textSize="22dp"
         android:textColor="#FFF"
         android:textAllCaps="false"
-        android:text="Pair new LINK" />
+        android:text="@string/PairNewLink" />
 
 
     <androidx.recyclerview.widget.RecyclerView

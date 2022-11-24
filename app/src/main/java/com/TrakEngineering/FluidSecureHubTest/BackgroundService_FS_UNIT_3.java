@@ -284,7 +284,7 @@ public class BackgroundService_FS_UNIT_3 extends Service {
 
                     ////////////////////////////////////////////
                     String userEmail = CommonUtils.getCustomerDetails_backgroundService_FS3(BackgroundService_FS_UNIT_3.this).PersonEmail;
-                    String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(BackgroundService_FS_UNIT_3.this) + ":" + userEmail + ":" + "TransactionComplete");
+                    String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(BackgroundService_FS_UNIT_3.this) + ":" + userEmail + ":" + "TransactionComplete" + AppConstants.LANG_PARAM);
 
                     HashMap<String, String> imap = new HashMap<>();
                     imap.put("jsonData", "");
@@ -1360,7 +1360,7 @@ public class BackgroundService_FS_UNIT_3 extends Service {
                 AppConstants.WriteinFile(TAG + "ID:" + TransactionId + "; LINK:" + LinkName + "; Pulses:" + Integer.parseInt(counts) + "; Qty:" + fillqty);
 
             String userEmail = CommonUtils.getCustomerDetails_backgroundService_FS3(BackgroundService_FS_UNIT_3.this).PersonEmail;
-            String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(BackgroundService_FS_UNIT_3.this) + ":" + userEmail + ":" + "TransactionComplete");
+            String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(BackgroundService_FS_UNIT_3.this) + ":" + userEmail + ":" + "TransactionComplete" + AppConstants.LANG_PARAM);
 
 
             HashMap<String, String> imap = new HashMap<>();
@@ -1544,7 +1544,7 @@ public class BackgroundService_FS_UNIT_3 extends Service {
 
                 String userEmail = CommonUtils.getCustomerDetails_backgroundService_FS3(this).PersonEmail;
 
-                String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(this) + ":" + userEmail + ":" + "TransactionComplete");
+                String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(this) + ":" + userEmail + ":" + "TransactionComplete" + AppConstants.LANG_PARAM);
 
                 HashMap<String, String> imap = new HashMap<>();
                 imap.put("jsonData", jsonData);
@@ -1621,7 +1621,7 @@ public class BackgroundService_FS_UNIT_3 extends Service {
 
                 String userEmail = CommonUtils.getCustomerDetailsCC(this).PersonEmail;
 
-                String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(this) + ":" + userEmail + ":" + "TransactionComplete");
+                String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(this) + ":" + userEmail + ":" + "TransactionComplete" + AppConstants.LANG_PARAM);
 
 
                 //==========================*/
@@ -2044,7 +2044,7 @@ public class BackgroundService_FS_UNIT_3 extends Service {
 
 
                 //----------------------------------------------------------------------------------
-                String authString = "Basic " + AppConstants.convertStingToBase64(objupgrade.IMEIUDID + ":" + objupgrade.Email + ":" + "UpgradeCurrentVersionWithUgradableVersion");
+                String authString = "Basic " + AppConstants.convertStingToBase64(objupgrade.IMEIUDID + ":" + objupgrade.Email + ":" + "UpgradeCurrentVersionWithUgradableVersion" + AppConstants.LANG_PARAM);
                 response = serverHandler.PostTextData(BackgroundService_FS_UNIT_3.this, AppConstants.webURL, jsonData, authString);
                 //----------------------------------------------------------------------------------
 

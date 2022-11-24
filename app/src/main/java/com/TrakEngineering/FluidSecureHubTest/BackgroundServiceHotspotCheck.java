@@ -216,7 +216,7 @@ public class BackgroundServiceHotspotCheck extends BackgroundService {
 
         String userEmail = CommonUtils.getCustomerDetailsCC(BackgroundServiceHotspotCheck.this).PersonEmail;
         //----------------------------------------------------------------------------------
-        String parm1 = AppConstants.getIMEI(BackgroundServiceHotspotCheck.this) + ":" + userEmail + ":" + "MobileHotspotErrorEmail";
+        String parm1 = AppConstants.getIMEI(BackgroundServiceHotspotCheck.this) + ":" + userEmail + ":" + "MobileHotspotErrorEmail" + AppConstants.LANG_PARAM;
         String authString = "Basic " + AppConstants.convertStingToBase64(parm1);
 
 

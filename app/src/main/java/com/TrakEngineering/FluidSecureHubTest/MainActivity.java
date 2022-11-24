@@ -375,7 +375,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
             try {
                 ServerHandler serverHandler = new ServerHandler();
                 //----------------------------------------------------------------------------------
-                String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(MainActivity.this) + ":" + Email + ":" + "AndroidSSID");
+                String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(MainActivity.this) + ":" + Email + ":" + "AndroidSSID" + AppConstants.LANG_PARAM);
                 response = serverHandler.PostTextData(MainActivity.this, AppConstants.webURL, latLong, authString);
                 //----------------------------------------------------------------------------------
 

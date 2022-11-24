@@ -39,6 +39,11 @@
     <string name="TryAgainLater">Por favor, inténtelo de nuevo más tarde</string>
     <string name="HoseInUseRetry">Manguera En Uso. Vuelva a intentarlo una vez que la transacción en curso se haya completado.</string>
     <string name="RegistrationNotApproved">Su registro no ha sido aprobado. Por favor contacte a su Gerente.</string>
+    <string name="MakeSureBTMacIsSet">Asegúrese de que BT mac esté configurado.</string>
+    <string name="PairNewLink">Emparejar nuevo ENLACE</string>
+    <string name="DeviceName">Nombre del dispositivo</string>
+    <string name="DeviceMacAddress">Dirección Mac del dispositivo</string>
+    <string name="IMEIAlreadyExist">¡Tu número de IMEI ya EXISTE!</string>
 
     <string name="permission_camera_rationale">Access to the camera is needed for detection</string>
     <string name="no_camera_permission">This application cannot run because it does not have the camera permission.  The application will now exit.</string>
@@ -318,6 +323,7 @@
     <string name="UseFSTag">Usar FSTag</string>
     <string name="UseOnScreenBarcode">Toque para usar el código de barras en pantalla</string>
     <string name="PleaseWait">Espere por favor...</string>
+    <string name="PleaseWaitForWifiConnect">Conectando a Wi-Fi. Espere por favor...</string>
     <string name="ReadAccessDeviceAgain">Haga clic para leer Dispositivo de acceso nuevamente</string>
     <string name="peVehicle">Por favor ingrese Vehículo. Si aún tiene problemas, comuníquese con su Gerente.</string>
     <string name="peVehicleOrAccessDevice">Ingrese el vehículo o presente un dispositivo de acceso. Si aún tiene problemas, comuníquese con su Gerente.</string>
@@ -360,9 +366,9 @@
     <string name="RegisterBtn">Registro</string>
     <string name="SubmitBtn">Someter</string>
     <string name="UserName">Nombre de usuario:</string>
-    <string name="UserPassword">Contraseña de usuario:</string>
-    <string name="RequiredUserName">Por favor, introduzca el nombre de usuario</string>
-    <string name="RequiredUserPassword">Por favor ingrese la contraseña de usuario</string>
+    <string name="UserPassword">Contraseña:</string>
+    <string name="RequiredUserName">Por favor ingrese nombre de usuario</string>
+    <string name="RequiredUserPassword">Por favor, ingrese contraseña</string>
     <string name="NewHUBRegistration">Registro nuevo HUB</string>
     <string name="HubNameHint">INSINUACIÓN: Su nombre HUB consistirá en las palabras HUB seguidas de 8 números.</string>
     <string name="Example">Ejemplo</string>
@@ -383,4 +389,21 @@
     <!-- LINK Configuration process -->
     <string name="HotSpotSSIDCannotBeBlank">HotSpot SSID no puede estar en blanco. Póngase en contacto con Soporte.</string>
     <string name="HotSpotPasswordCannotBeBlank">La contraseña de HotSpot no puede estar en blanco. Póngase en contacto con Soporte.</string>
+    <string name="CannotUpdateMac">No se puede actualizar la dirección mac, la manguera está ocupada. Por favor, inténtelo de nuevo más tarde.</string>
+    <string name="HoseIsBusy">Una de las mangueras está ocupada, inténtelo de nuevo más tarde.</string>
+    <string name="UnableToAutoConnect">No se puede conectar automáticamente a</string>
+    <string name="StartedManualProcess">Proceso manual iniciado...</string>
+    <string name="EnableWifiManually">Habilitar Wi-Fi manualmente y conectarse a</string>
+    <string name="UsingWifiList">usando la lista wifi</string>
+    <string name="StartedReconfiguration">Proceso de reconfiguración iniciado. Espere por favor...</string>
+    <string name="ConnectedToWifi">Conectado a wifi</string>
+    <string name="ReconfigurationFailed">El proceso de reconfiguración falla. No se pudo obtener la dirección mac</string>
+    <string name="SettingSSIDAndPASS">Configuración de SSID y CONTRASEÑA para ENLACE</string>
+    <string name="ReconfigurationFailedRetry">El proceso de reconfiguración falla. Por favor, intenta de nuevo.</string>
+    <string name="MacAddressHeading">dirección MAC</string>
+    <string name="CheckInternet">Verifique la conexión a Internet y vuelva a intentarlo.</string>
+    <string name="PartiallyCompleted">La reconfiguración del enlace se completó parcialmente. Elimine la aplicación de Aplicaciones recientes e inicie la aplicación nuevamente.</string>
+    <string name="MacAddressUpdated">Dirección de Mac actualizada</string>
+    <string name="MacAddressNotUpdated">La dirección MAC no se pudo actualizar</string>
+
 </resources>

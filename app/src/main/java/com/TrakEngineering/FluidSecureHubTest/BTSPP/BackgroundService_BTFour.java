@@ -86,6 +86,7 @@ public class BackgroundService_BTFour extends Service {
     ConnectionDetector cd = new ConnectionDetector(BackgroundService_BTFour.this);
     OffDBController offlineController = new OffDBController(BackgroundService_BTFour.this);
     String ipForUDP = "192.168.4.1";
+    public int infoCommandAttempt = 0;
 
     SimpleDateFormat sdformat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
     ArrayList<HashMap<String, String>> quantityRecords = new ArrayList<>();
@@ -488,14 +489,20 @@ public class BackgroundService_BTFour extends Service {
                         }
                     } else {
 
-                        //UpgradeTransaction Status info command fail.
-                        CommonUtils.UpgradeTransactionStatusToSqlite(TransactionId, "6", BackgroundService_BTFour.this);
-                        Log.i(TAG, "BTLink 4: Failed to get infoCommand Response:>>" + Response);
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + " BTLink 4: Checking Info command response. Response: false");
-                        AppConstants.IsTransactionFailed4 = true;
-                        PostTransactionBackgroundTasks();
-                        CloseTransaction();
+                        if (infoCommandAttempt > 0) {
+                            //UpgradeTransaction Status info command fail.
+                            CommonUtils.UpgradeTransactionStatusToSqlite(TransactionId, "6", BackgroundService_BTFour.this);
+                            Log.i(TAG, "BTLink 4: Failed to get infoCommand Response:>>" + Response);
+                            if (AppConstants.GenerateLogs)
+                                AppConstants.WriteinFile(TAG + " BTLink 4: Checking Info command response. Response: false");
+                            AppConstants.TxnFailedCount4++;
+                            AppConstants.IsTransactionFailed4 = true;
+                            PostTransactionBackgroundTasks();
+                            CloseTransaction();
+                        } else {
+                            infoCommandAttempt++;
+                            infoCommand(); // Retried after failed to receive response from info command
+                        }
                     }
                 }
             }.start();
@@ -816,7 +823,7 @@ public class BackgroundService_BTFour extends Service {
             }
 
             String userEmail = CommonUtils.getCustomerDetails_backgroundServiceBT(BackgroundService_BTFour.this).PersonEmail;
-            String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(this) + ":" + userEmail + ":" + "SetHoseNameReplacedFlag");
+            String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(this) + ":" + userEmail + ":" + "SetHoseNameReplacedFlag" + AppConstants.LANG_PARAM);
 
             RenameHose rhose = new RenameHose();
             rhose.SiteId = BTConstants.BT4SITE_ID;
@@ -914,6 +921,7 @@ public class BackgroundService_BTFour extends Service {
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + " BTLink 4: Link not connected.");
                         BTConstants.isReconnectCalled4 = false;
+                        AppConstants.TxnFailedCount4++;
                         AppConstants.IsTransactionFailed4 = true;
                         PostTransactionBackgroundTasks();
                         CloseTransaction();
@@ -1145,7 +1153,7 @@ public class BackgroundService_BTFour extends Service {
     private void InsertInitialTransactionToSqlite() {
 
         String userEmail = CommonUtils.getCustomerDetails_backgroundServiceBT(BackgroundService_BTFour.this).PersonEmail;
-        String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(BackgroundService_BTFour.this) + ":" + userEmail + ":" + "TransactionComplete");
+        String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(BackgroundService_BTFour.this) + ":" + userEmail + ":" + "TransactionComplete" + AppConstants.LANG_PARAM);
 
         HashMap<String, String> imap = new HashMap<>();
         imap.put("jsonData", "");
@@ -1177,7 +1185,7 @@ public class BackgroundService_BTFour extends Service {
             AppConstants.WriteinFile(TAG + " BTLink 4: ID:" + TransactionId + "; LINK:" + LinkName + "; Pulses:" + Integer.parseInt(outputQuantity) + "; Qty:" + fillqty);
 
         String userEmail = CommonUtils.getCustomerDetails_backgroundServiceBT(BackgroundService_BTFour.this).PersonEmail;
-        String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(BackgroundService_BTFour.this) + ":" + userEmail + ":" + "TransactionComplete");
+        String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(BackgroundService_BTFour.this) + ":" + userEmail + ":" + "TransactionComplete" + AppConstants.LANG_PARAM);
 
 
         HashMap<String, String> imap = new HashMap<>();
@@ -1221,7 +1229,7 @@ public class BackgroundService_BTFour extends Service {
                 AppConstants.WriteinFile(TAG + " BTLink 4: <Last Transaction saved in local DB. LastTXNid:" + txnId + "; LINK:" + LinkName + "; Pulses:" + Integer.parseInt(counts) + "; Qty:" + Lastqty + ">");
 
             String userEmail = CommonUtils.getCustomerDetails_backgroundServiceBT(BackgroundService_BTFour.this).PersonEmail;
-            String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(BackgroundService_BTFour.this) + ":" + userEmail + ":" + "TransactionComplete");
+            String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(BackgroundService_BTFour.this) + ":" + userEmail + ":" + "TransactionComplete" + AppConstants.LANG_PARAM);
 
             HashMap<String, String> imap = new HashMap<>();
             imap.put("jsonData", jsonData);
@@ -1813,6 +1821,7 @@ public class BackgroundService_BTFour extends Service {
                                 if (AppConstants.GenerateLogs)
                                     AppConstants.WriteinFile(TAG + " BTLink 4: Failed to connect to the link. (Status: " + BTConstants.BTStatusStrFour + ")");
                                 IsThisBTTrnx = false;
+                                AppConstants.TxnFailedCount4++;
                                 AppConstants.IsTransactionFailed4 = true;
                                 PostTransactionBackgroundTasks();
                                 CloseTransaction();
@@ -1862,7 +1871,7 @@ public class BackgroundService_BTFour extends Service {
                 //AppConstants.WriteinFile(TAG + " BTLink 4: UpgradeCurrentVersionWithUpgradableVersion (" + jsonData + ")");
 
                 //----------------------------------------------------------------------------------
-                String authString = "Basic " + AppConstants.convertStingToBase64(objUpgrade.IMEIUDID + ":" + objUpgrade.Email + ":" + "UpgradeCurrentVersionWithUgradableVersion");
+                String authString = "Basic " + AppConstants.convertStingToBase64(objUpgrade.IMEIUDID + ":" + objUpgrade.Email + ":" + "UpgradeCurrentVersionWithUgradableVersion" + AppConstants.LANG_PARAM);
                 response = serverHandler.PostTextData(BackgroundService_BTFour.this, AppConstants.webURL, jsonData, authString);
                 //----------------------------------------------------------------------------------
 

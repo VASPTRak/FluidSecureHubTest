@@ -441,7 +441,7 @@ public class SelectFSActivity extends AppCompatActivity implements GoogleApiClie
             try {
                 ServerHandler serverHandler = new ServerHandler();
                 //----------------------------------------------------------------------------------
-                String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(SelectFSActivity.this) + ":" + Email + ":" + "AndroidSSID");
+                String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(SelectFSActivity.this) + ":" + Email + ":" + "AndroidSSID" + AppConstants.LANG_PARAM);
                 response = serverHandler.PostTextData(SelectFSActivity.this, AppConstants.webURL, latLong, authString);
                 //----------------------------------------------------------------------------------
 
@@ -569,7 +569,7 @@ public class SelectFSActivity extends AppCompatActivity implements GoogleApiClie
 
                 ServerHandler serverHandler = new ServerHandler();
                 //----------------------------------------------------------------------------------
-                String parm1 = AppConstants.getIMEI(SelectFSActivity.this) + ":" + userInfoEntity.PersonEmail + ":" + "Other";
+                String parm1 = AppConstants.getIMEI(SelectFSActivity.this) + ":" + userInfoEntity.PersonEmail + ":" + "Other" + AppConstants.LANG_PARAM;
                 String parm2 = "Authenticate:I:" + latitude + "," + longitude;
 
 
@@ -843,7 +843,7 @@ public class SelectFSActivity extends AppCompatActivity implements GoogleApiClie
 
             String userEmail = CommonUtils.getCustomerDetails(SelectFSActivity.this).Email;
 
-            String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(SelectFSActivity.this) + ":" + userEmail + ":" + "ChangeBusyStatus");
+            String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(SelectFSActivity.this) + ":" + userEmail + ":" + "ChangeBusyStatus" + AppConstants.LANG_PARAM);
 
             RenameHose rhose = new RenameHose();
             rhose.SiteId = AppConstants.R_SITE_ID;

@@ -103,7 +103,7 @@ public class NetworkReceiver extends BroadcastReceiver {
                 String userEmail = CommonUtils.getCustomerDetailsCC(ctx).PersonEmail;
 
                 //----------------------------------------------------------------------------------
-                String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(ctx) + ":" + userEmail + ":" + "UpdateMACAddress");
+                String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(ctx) + ":" + userEmail + ":" + "UpdateMACAddress" + AppConstants.LANG_PARAM);
                 response = serverHandler.PostTextData(ctx, AppConstants.webURL, jsonData, authString);
                 //----------------------------------------------------------------------------------
 

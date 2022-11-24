@@ -91,4 +91,10 @@
         android:title="Restart App"
         app:showAsAction="never" />
 
+    <item
+        android:id="@+id/mshow_reader_status"
+        android:orderInCategory="100"
+        android:title="Show Reader Status"
+        app:showAsAction="never" />
+
 </menu>

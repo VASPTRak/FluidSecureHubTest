@@ -94,7 +94,7 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
     private DevicePolicyManager mDevicePolicyManager;
     private ComponentName mComponentName;
     private ConnectionDetector cd = new ConnectionDetector(SplashActivity.this);
-    public static String imei_mob_folder_name = "FSHUBUUID",HubType = "";
+    public static String imei_mob_folder_name = "FSHUBTESTUUID", HubType = "";
     protected static final int REQUEST_CHECK_SETTINGS = 0x1;
 
     com.TrakEngineering.FluidSecureHubTest.WifiHotspot.WifiApManager wifiApManager;
@@ -779,7 +779,7 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
                 Request request = new Request.Builder()
                         .url(AppConstants.webURL)
                         .post(body)
-                        .addHeader("Authorization", "Basic " + AppConstants.convertStingToBase64(param[0] + ":abc:Other"))
+                        .addHeader("Authorization", "Basic " + AppConstants.convertStingToBase64(param[0] + ":abc:Other" + AppConstants.LANG_PARAM))
                         .build();
 
                 Response response = client.newCall(request).execute();

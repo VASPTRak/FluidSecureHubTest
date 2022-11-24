@@ -1071,7 +1071,7 @@ public class AcceptServiceCall {
 
                         String userEmail = CommonUtils.getCustomerDetails(activity).PersonEmail;
 
-                        String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(activity) + ":" + userEmail + ":" + "TransactionComplete");
+                        String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(activity) + ":" + userEmail + ":" + "TransactionComplete" + AppConstants.LANG_PARAM);
 
                         HashMap<String, String> imap = new HashMap<>();
                         imap.put("jsonData", jsonData);
