@@ -25,8 +25,10 @@ import com.TrakEngineering.FluidSecureHubTest.CommonUtils;
 import com.TrakEngineering.FluidSecureHubTest.ConnectionDetector;
 import com.TrakEngineering.FluidSecureHubTest.Constants;
 import com.TrakEngineering.FluidSecureHubTest.DBController;
+import com.TrakEngineering.FluidSecureHubTest.R;
 import com.TrakEngineering.FluidSecureHubTest.WelcomeActivity;
 import com.TrakEngineering.FluidSecureHubTest.enity.RenameHose;
+import com.TrakEngineering.FluidSecureHubTest.enity.SwitchTimeBounce;
 import com.TrakEngineering.FluidSecureHubTest.enity.TrazComp;
 import com.TrakEngineering.FluidSecureHubTest.enity.UpgradeVersionEntity;
 import com.TrakEngineering.FluidSecureHubTest.offline.EntityOffTranz;
@@ -233,16 +235,7 @@ public class BackgroundService_BTOne extends Service {
 
     private void BeginProcessUsingUDP() {
         try {
-            /*String s = "Connecting to wifi please wait..";
-            SpannableString ss2 = new SpannableString(s);
-            ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
-            ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
-            ProgressDialog loading = new ProgressDialog(this);
-            loading.setMessage(ss2);
-
-            loading.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-            loading.show();*/
-            Toast.makeText(BackgroundService_BTOne.this, "Connecting to wifi please wait..", Toast.LENGTH_SHORT).show();
+            Toast.makeText(BackgroundService_BTOne.this, getResources().getString(R.string.PleaseWaitForWifiConnect), Toast.LENGTH_SHORT).show();
 
             new CountDownTimer(12000, 1000) {
                 @Override
@@ -440,7 +433,11 @@ public class BackgroundService_BTOne extends Service {
                                 new Handler().postDelayed(new Runnable() {
                                     @Override
                                     public void run() {
-                                        transactionIdCommand(TransactionId);
+                                        if (IsThisBTTrnx) {
+                                            P_Type_Command();
+                                        } else {
+                                            transactionIdCommand(TransactionId);
+                                        }
                                     }
                                 }, 1000);
                             } else {
@@ -478,7 +475,11 @@ public class BackgroundService_BTOne extends Service {
                             new Handler().postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
-                                    transactionIdCommand(TransactionId);
+                                    if (IsThisBTTrnx) {
+                                        P_Type_Command();
+                                    } else {
+                                        transactionIdCommand(TransactionId);
+                                    }
                                 }
                             }, 1000);
                         } else {
@@ -501,7 +502,7 @@ public class BackgroundService_BTOne extends Service {
                             CloseTransaction();
                         } else {
                             infoCommandAttempt++;
-                            infoCommand(); // Retried after failed to receive response from info command
+                            infoCommand(); // Retried one more time after failed to receive response from info command
                         }
                     }
                 }
@@ -511,6 +512,138 @@ public class BackgroundService_BTOne extends Service {
             e.printStackTrace();
             if (AppConstants.GenerateLogs)
                 AppConstants.WriteinFile(TAG + " BTLink 1: infoCommand Exception:>>" + e.getMessage());
+        }
+    }
+
+    private void P_Type_Command() {
+        try {
+            if (AppConstants.IsResetSwitchTimeBounce != null) {
+                if (AppConstants.IsResetSwitchTimeBounce.trim().equalsIgnoreCase("1") && !AppConstants.PulserTimingAdjust.isEmpty()) {
+                    //Execute p_type Command
+                    Request = "";
+                    Response = "";
+
+                    if (IsThisBTTrnx) {
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + " BTLink 1: Sending p_type command to Link: " + LinkName);
+                        BTSPPMain btspp = new BTSPPMain();
+                        btspp.send1(BTConstants.p_type_command + AppConstants.PulserTimingAdjust);
+                    }
+
+                    new CountDownTimer(4000, 1000) {
+
+                        public void onTick(long millisUntilFinished) {
+
+                            long attempt = (4 - (millisUntilFinished / 1000));
+                            if (attempt > 0) {
+                                if (Request.contains(BTConstants.p_type_command) && Response.contains("pulser_type")) {
+                                    if (AppConstants.GenerateLogs)
+                                        AppConstants.WriteinFile(TAG + " BTLink 1: Checking p_type command response:>> " + Response);
+                                    new Handler().postDelayed(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            BTConstants.isPTypeCommandExecuted1 = true;
+                                            AppConstants.IsResetSwitchTimeBounce = "0";
+                                            UpdateSwitchTimeBounceForLink();
+                                            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                                @Override
+                                                public void run() {
+                                                    WaitForReconnectToLink();
+                                                }
+                                            }, 1000);
+                                        }
+                                    }, 7000); // Tried to reconnect and continue after 7 seconds because the link disconnects after 7 seconds.
+                                    cancel();
+                                } else {
+                                    if (AppConstants.GenerateLogs)
+                                        AppConstants.WriteinFile(TAG + " BTLink 1: Checking p_type command response. Response: false");
+                                }
+                            }
+                        }
+
+                        public void onFinish() {
+
+                            if (Request.contains(BTConstants.p_type_command) && Response.contains("pulser_type")) {
+                                if (AppConstants.GenerateLogs)
+                                    AppConstants.WriteinFile(TAG + " BTLink 1: Checking p_type command response:>> " + Response);
+                                new Handler().postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        BTConstants.isPTypeCommandExecuted1 = true;
+                                        AppConstants.IsResetSwitchTimeBounce = "0";
+                                        UpdateSwitchTimeBounceForLink();
+                                        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                WaitForReconnectToLink();
+                                            }
+                                        }, 1000);
+                                    }
+                                }, 7000); // Tried to reconnect and continue after 7 seconds because the link disconnects after 7 seconds.
+                            } else {
+                                transactionIdCommand(TransactionId); // Continue to transactionId Command
+                            }
+                        }
+                    }.start();
+                } else {
+                    transactionIdCommand(TransactionId); // Continue to transactionId Command
+                }
+            } else {
+                transactionIdCommand(TransactionId); // Continue to transactionId Command
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + " BTLink 1: P_Type_Command Exception:>>" + e.getMessage());
+        }
+    }
+
+    public void WaitForReconnectToLink() {
+        try {
+            new CountDownTimer(10000, 1000) {
+
+                public void onTick(long millisUntilFinished) {
+
+                    long attempt = (10 - (millisUntilFinished / 1000));
+                    if (attempt > 0) {
+                        if (BTConstants.BTStatusStrOne.equalsIgnoreCase("Connected")) {
+                            if (AppConstants.GenerateLogs)
+                                AppConstants.WriteinFile(TAG + " BTLink 1: Connected to Link: " + LinkName);
+                            new Handler().postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    transactionIdCommand(TransactionId); // Continue to transactionId Command
+                                }
+                            }, 500);
+                            cancel();
+                        } else {
+                            if (AppConstants.GenerateLogs)
+                                AppConstants.WriteinFile(TAG + " BTLink 1: Waiting for Reconnect to Link: " + LinkName);
+                        }
+                    }
+                }
+
+                public void onFinish() {
+
+                    if (BTConstants.BTStatusStrOne.equalsIgnoreCase("Connected")) {
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + " BTLink 1: Connected to Link: " + LinkName);
+                        new Handler().postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                transactionIdCommand(TransactionId); // Continue to transactionId Command
+                            }
+                        }, 500);
+                    } else {
+                        TerminateBTTransaction();
+                    }
+                }
+            }.start();
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + " BTLink 1: WaitForReconnectToLink Exception:>>" + e.getMessage());
         }
     }
 
@@ -550,7 +683,7 @@ public class BackgroundService_BTOne extends Service {
                         try {
 
                             if (Request.contains(transactionId) && Response.contains(transactionId)) {
-                                //Info command success.
+                                //transactionId command success.
                                 Log.i(TAG, "BTLink 1: transactionId Command Response success 1:>>" + Response);
                                 if (AppConstants.GenerateLogs)
                                     AppConstants.WriteinFile(TAG + " BTLink 1: Checking transactionId command response. Response:>>" + Response.trim());
@@ -577,7 +710,7 @@ public class BackgroundService_BTOne extends Service {
                 public void onFinish() {
 
                     if (Request.contains(transactionId) && Response.contains(transactionId)) {
-                        //Info command success.
+                        //transactionId command success.
                         Log.i(TAG, "BTLink 1: transactionId Command Response success 2:>>" + Response);
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + " BTLink 1: Checking transactionId command response. Response:>>" + Response.trim());
@@ -640,7 +773,7 @@ public class BackgroundService_BTOne extends Service {
                     if (attempt > 0) {
                         if (RelayStatus) {
                             BTConstants.isRelayOnAfterReconnect1 = isAfterReconnect;
-                            //Info command success.
+                            //relayOn command success.
                             Log.i(TAG, "BTLink 1: relayOn Command Response success 1:>>" + Response);
                             if (AppConstants.GenerateLogs)
                                 AppConstants.WriteinFile(TAG + " BTLink 1: Checking relayOn command response. Response: ON");
@@ -657,7 +790,7 @@ public class BackgroundService_BTOne extends Service {
 
                     if (RelayStatus) {
                         BTConstants.isRelayOnAfterReconnect1 = isAfterReconnect;
-                        //RelayOff command success.
+                        //relayOn command success.
                         Log.i(TAG, "BTLink 1: relayOn Command Response success 2:>>" + Response);
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + " BTLink 1: Checking relayOn command response. Response: ON");
@@ -1003,7 +1136,7 @@ public class BackgroundService_BTOne extends Service {
             }, 2000);
         } catch (Exception e) {
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "BTLink 1: DisableWifiConnection Exception>> " + e.getMessage());
+                AppConstants.WriteinFile(TAG + " BTLink 1: DisableWifiConnection Exception>> " + e.getMessage());
         }
     }
 
@@ -1987,30 +2120,43 @@ public class BackgroundService_BTOne extends Service {
         }
     }
 
-    private void StopScopeReading() {
-
+    private void UpdateSwitchTimeBounceForLink() {
         try {
-            try {
-                if (isBroadcastReceiverRegistered) {
-                    unregisterReceiver(broadcastBlueLinkOneData);
-                    isBroadcastReceiverRegistered = false;
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + " BTLink 1: <Receiver unregistered successfully. (" + broadcastBlueLinkOneData + ")>");
-                } else {
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + " BTLink 1: <Receiver is not registered. (" + broadcastBlueLinkOneData + ")>");
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + " BTLink 1: <Exception occurred while unregistering receiver: " + e.getMessage() + " (" + broadcastBlueLinkOneData + ")>");
-            }
-            CancelTimer();
-            this.stopSelf();
-        } catch (Exception e) {
-            e.printStackTrace();
+            String userEmail = CommonUtils.getCustomerDetails_backgroundServiceBT(BackgroundService_BTOne.this).PersonEmail;
+
+            String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(BackgroundService_BTOne.this) + ":" + userEmail + ":" + "UpdateSwitchTimeBounceForLink" + AppConstants.LANG_PARAM);
+
+            SwitchTimeBounce switchTimeBounce = new SwitchTimeBounce();
+            switchTimeBounce.SiteId = BTConstants.BT1SITE_ID;
+            switchTimeBounce.IsResetSwitchTimeBounce = "0";
+
+            Gson gson = new Gson();
+            String jsonData = gson.toJson(switchTimeBounce);
+
+            storeSwitchTimeBounceFlag(BackgroundService_BTOne.this, jsonData, authString);
+
+        } catch (Exception ex) {
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " BTLink 1: StopScopeReading Exception:>>" + e.getMessage());
+                AppConstants.WriteinFile(TAG + " BTLink 1: UpdateSwitchTimeBounceForLink Exception: " + ex.getMessage());
+        }
+    }
+
+    public void storeSwitchTimeBounceFlag(Context context, String jsonData, String authString) {
+        try {
+            SharedPreferences pref;
+            SharedPreferences.Editor editor;
+
+            pref = context.getSharedPreferences("storeSwitchTimeBounceFlag1", 0);
+            editor = pref.edit();
+
+            // Storing
+            editor.putString("jsonData", jsonData);
+            editor.putString("authString", authString);
+
+            // commit changes
+            editor.commit();
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
     }
 }

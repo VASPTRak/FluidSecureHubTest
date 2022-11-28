@@ -162,7 +162,7 @@ public class BT_Link_Oscilloscope_Activity extends AppCompatActivity { // implem
                         chartBindStarted = true;
                         BTConstants.ReadingProcessComplete = false;
 
-                        Toast.makeText(BT_Link_Oscilloscope_Activity.this, "Please wait...", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(BT_Link_Oscilloscope_Activity.this, getResources().getString(R.string.PleaseWait), Toast.LENGTH_SHORT).show();
                         scopeReadCommand();
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + "Read started.");
@@ -215,7 +215,7 @@ public class BT_Link_Oscilloscope_Activity extends AppCompatActivity { // implem
                     AppConstants.WriteinFile(TAG + "Reconnecting to the Link... ");
 
                 ProgressDialog pd;
-                String s = "Reconnecting to the Link. Please wait...";
+                String s = getResources().getString(R.string.ConnectingToTheLINK) + " " + getResources().getString(R.string.PleaseWait);
                 SpannableString ss2 = new SpannableString(s);
                 ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
                 ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
@@ -319,35 +319,42 @@ public class BT_Link_Oscilloscope_Activity extends AppCompatActivity { // implem
                             Toast.makeText(BT_Link_Oscilloscope_Activity.this, "Unable to set pulser type. Please click the Reconnect button and try again.", Toast.LENGTH_LONG).show();
                         } else {
                             if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(TAG + "Pulser type is set. Reconnecting to the Link.");
+                                AppConstants.WriteinFile(TAG + "Pulser type is set: " + BTConstants.p_type);
                             Toast.makeText(BT_Link_Oscilloscope_Activity.this, "Pulser Type: " + BTConstants.p_type, Toast.LENGTH_SHORT).show();
-                            if (!BTConstants.p_type.isEmpty()) {
-                                BTSPPMain btspp = new BTSPPMain();
-                                btspp.activity = BT_Link_Oscilloscope_Activity.this;
+                            Toast.makeText(BT_Link_Oscilloscope_Activity.this, getResources().getString(R.string.ConnectingToTheLINK) + " " + getResources().getString(R.string.PleaseWaitSeveralSeconds), Toast.LENGTH_SHORT).show();
 
-                                switch (LinkPosition) {
-                                    case "0"://Link 1
-                                        btspp.connect1();
-                                        break;
-                                    case "1"://Link 2
-                                        btspp.connect2();
-                                        break;
-                                    case "2"://Link 3
-                                        btspp.connect3();
-                                        break;
-                                    case "3"://Link 4
-                                        btspp.connect4();
-                                        break;
-                                    case "4"://Link 5
-                                        btspp.connect5();
-                                        break;
-                                    case "5"://Link 6
-                                        btspp.connect6();
-                                        break;
-                                    default://Something went wrong in link selection please try again.
-                                        break;
+                            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    if (AppConstants.GenerateLogs)
+                                        AppConstants.WriteinFile(TAG + "Reconnecting to the Link.");
+                                    BTSPPMain btspp = new BTSPPMain();
+                                    btspp.activity = BT_Link_Oscilloscope_Activity.this;
+
+                                    switch (LinkPosition) {
+                                        case "0"://Link 1
+                                            btspp.connect1();
+                                            break;
+                                        case "1"://Link 2
+                                            btspp.connect2();
+                                            break;
+                                        case "2"://Link 3
+                                            btspp.connect3();
+                                            break;
+                                        case "3"://Link 4
+                                            btspp.connect4();
+                                            break;
+                                        case "4"://Link 5
+                                            btspp.connect5();
+                                            break;
+                                        case "5"://Link 6
+                                            btspp.connect6();
+                                            break;
+                                        default://Something went wrong in link selection please try again.
+                                            break;
+                                    }
                                 }
-                            }
+                            }, 6000);
                         }
                         btnReconnect.setVisibility(View.VISIBLE);
                     }

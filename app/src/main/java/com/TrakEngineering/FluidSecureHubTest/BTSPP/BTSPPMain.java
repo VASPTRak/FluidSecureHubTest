@@ -202,7 +202,7 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
             sendBroadcastIntentFromLinkOne(sb1.toString());
             sb1.setLength(0);
         } else {
-            if (BTConstants.isNewVersionLinkOne || BTConstants.forOscilloscope) {
+            if (BTConstants.isNewVersionLinkOne || BTConstants.forOscilloscope || BTConstants.CurrentCommand_LinkOne.contains(BTConstants.p_type_command)) {
                 sb1.append(Response);
             } else {
                 // For old version Link response
@@ -348,7 +348,7 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
             sendBroadcastIntentFromLinkTwo(sb2.toString());
             sb2.setLength(0);
         } else {
-            if (BTConstants.isNewVersionLinkTwo || BTConstants.forOscilloscope) {
+            if (BTConstants.isNewVersionLinkTwo || BTConstants.forOscilloscope || BTConstants.CurrentCommand_LinkTwo.contains(BTConstants.p_type_command)) {
                 sb2.append(Response);
             } else {
                 // For old version Link response
@@ -493,7 +493,7 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
             sendBroadcastIntentFromLinkThree(sb3.toString());
             sb3.setLength(0);
         } else {
-            if (BTConstants.isNewVersionLinkThree || BTConstants.forOscilloscope) {
+            if (BTConstants.isNewVersionLinkThree || BTConstants.forOscilloscope || BTConstants.CurrentCommand_LinkThree.contains(BTConstants.p_type_command)) {
                 sb3.append(Response);
             } else {
                 // For old version Link response
@@ -639,7 +639,7 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
             sendBroadcastIntentFromLinkFour(sb4.toString());
             sb4.setLength(0);
         } else {
-            if (BTConstants.isNewVersionLinkFour || BTConstants.forOscilloscope) {
+            if (BTConstants.isNewVersionLinkFour || BTConstants.forOscilloscope || BTConstants.CurrentCommand_LinkFour.contains(BTConstants.p_type_command)) {
                 sb4.append(Response);
             } else {
                 // For old version Link response
@@ -799,7 +799,7 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
             sendBroadcastIntentFromLinkFive(sb5.toString());
             sb5.setLength(0);
         } else {
-            if (BTConstants.isNewVersionLinkFive || BTConstants.forOscilloscope) {
+            if (BTConstants.isNewVersionLinkFive || BTConstants.forOscilloscope || BTConstants.CurrentCommand_LinkFive.contains(BTConstants.p_type_command)) {
                 sb5.append(Response);
             } else {
                 // For old version Link response
@@ -960,7 +960,7 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
             sendBroadcastIntentFromLinkSix(sb6.toString());
             sb6.setLength(0);
         } else {
-            if (BTConstants.isNewVersionLinkSix || BTConstants.forOscilloscope) {
+            if (BTConstants.isNewVersionLinkSix || BTConstants.forOscilloscope || BTConstants.CurrentCommand_LinkSix.contains(BTConstants.p_type_command)) {
                 sb6.append(Response);
             } else {
                 // For old version Link response

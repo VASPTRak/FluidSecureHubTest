@@ -2547,7 +2547,7 @@ public class AcceptPinActivity_new extends AppCompatActivity {
         @Override
         protected void onPreExecute() {
             pd = new ProgressDialog(AcceptPinActivity_new.this);
-            String message = "Upgrade file download in progress.\nPlease wait several seconds....";
+            String message = getResources().getString(R.string.FileDownloadInProgress) + "\n" + getResources().getString(R.string.PleaseWaitSeveralSeconds);
             SpannableString ss2 = new SpannableString(message);
             ss2.setSpan(new RelativeSizeSpan(1.2f), 0, ss2.length(), 0);
             pd.setMessage(ss2);

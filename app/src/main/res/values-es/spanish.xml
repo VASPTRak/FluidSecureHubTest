@@ -285,6 +285,7 @@
     <string name="PairingMode">modo de emparejamiento...</string>
     <string name="SelectHoseAlert">Por favor, seleccione Manguera</string>
     <string name="UnableToGetHoseList">No se puede obtener la lista de mangueras desde el servidor</string>
+    <string name="HoseListIsNotAvailable">Lista de mangueras no disponible</string>
 
     <string name="Quantity">Cantidad:</string>
     <string name="Pulse">pulso:</string>
@@ -405,5 +406,12 @@
     <string name="PartiallyCompleted">La reconfiguración del enlace se completó parcialmente. Elimine la aplicación de Aplicaciones recientes e inicie la aplicación nuevamente.</string>
     <string name="MacAddressUpdated">Dirección de Mac actualizada</string>
     <string name="MacAddressNotUpdated">La dirección MAC no se pudo actualizar</string>
+
+    <!-- LINK Upgrade process -->
+    <string name="FileDownloadInProgress">Descarga de archivo de actualización en progreso.</string>
+    <string name="SoftwareUpdateInProgress">Actualización de software en progreso.</string>
+    <string name="ConnectingToTheLINK">Conectando con el ENLACE.</string>
+    <string name="LINKConnectionLost">Conexión de ENLACE perdida.</string>
+    <string name="PleaseWaitSeveralSeconds">Por favor espere varios segundos...</string>
 
 </resources>

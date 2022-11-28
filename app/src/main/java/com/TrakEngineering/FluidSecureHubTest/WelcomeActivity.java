@@ -2976,7 +2976,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 pd.dismiss();
 
                 linearHose.setClickable(true);//Enable hose Selection
-                tvLatLng.setText("Current Location :" + Constants.Latitude + "," + Constants.Longitude);
+                //tvLatLng.setText("Current Location :" + Constants.Latitude + "," + Constants.Longitude); // #2005
+                tvLatLng.setText(getResources().getString(R.string.HoseListIsNotAvailable));
                 System.out.println("GetSSIDUsingLocation...." + result);
 
                 oo_post_getssid(result);
@@ -5765,7 +5766,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     public void BTLinkUpgradeProcessLoader() {
 
         pdUpgradeProcess = new ProgressDialog(WelcomeActivity.this);
-        pdUpgradeProcess.setMessage(GetSpinnerMessage("Software update in progress.\nPlease wait several seconds...."));
+        pdUpgradeProcess.setMessage(GetSpinnerMessage(getResources().getString(R.string.SoftwareUpdateInProgress) + "\n" + getResources().getString(R.string.PleaseWaitSeveralSeconds)));
         pdUpgradeProcess.setProgressStyle(ProgressDialog.STYLE_SPINNER);
         pdUpgradeProcess.setCancelable(false);
         pdUpgradeProcess.show();
@@ -5784,7 +5785,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                             }
                             if (pdUpgradeProcess != null & showUpgradeSpinnerMessage) {
                                 //pdUpgradeProcess.setProgress(Integer.parseInt(BTConstants.upgradeProgress));
-                                pdUpgradeProcess.setMessage(GetSpinnerMessage("Software update in progress.\nPlease wait several seconds... " + BTConstants.upgradeProgress));
+                                pdUpgradeProcess.setMessage(GetSpinnerMessage(getResources().getString(R.string.SoftwareUpdateInProgress) + "\n" + getResources().getString(R.string.PleaseWaitSeveralSeconds) + " " + BTConstants.upgradeProgress));
                             }
                         }
                         if (BTConstants.UpgradeStatusBT1.equalsIgnoreCase("Completed")) {
@@ -5795,7 +5796,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                             BTConstants.UpgradeStatusBT1 = "";
 
                             if (pdUpgradeProcess != null) {
-                                pdUpgradeProcess.setMessage(GetSpinnerMessage("Connecting to LINK.\nPlease wait several seconds... "));
+                                pdUpgradeProcess.setMessage(GetSpinnerMessage(getResources().getString(R.string.ConnectingToTheLINK) + "\n" + getResources().getString(R.string.PleaseWaitSeveralSeconds)));
                             }
 
                             startBTSppMain(1);
@@ -5813,7 +5814,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                             BTConstants.isUpgradeInProgress_BT1 = false;
                             showUpgradeSpinnerMessage = false;
                             if (pdUpgradeProcess != null) {
-                                pdUpgradeProcess.setMessage(GetSpinnerMessage("LINK connection lost.\nPlease try again later!"));
+                                pdUpgradeProcess.setMessage(GetSpinnerMessage(getResources().getString(R.string.LINKConnectionLost) + "\n" + getResources().getString(R.string.TryAgainLater)));
                             }
 
                             startBTSppMain(1);
@@ -5837,7 +5838,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                             }
                             if (pdUpgradeProcess != null & showUpgradeSpinnerMessage) {
                                 //pdUpgradeProcess.setProgress(Integer.parseInt(BTConstants.upgradeProgress));
-                                pdUpgradeProcess.setMessage(GetSpinnerMessage("Software update in progress.\nPlease wait several seconds... " + BTConstants.upgradeProgress));
+                                pdUpgradeProcess.setMessage(GetSpinnerMessage(getResources().getString(R.string.SoftwareUpdateInProgress) + "\n" + getResources().getString(R.string.PleaseWaitSeveralSeconds) + " " + BTConstants.upgradeProgress));
                             }
                         }
                         if (BTConstants.UpgradeStatusBT2.equalsIgnoreCase("Completed")) {
@@ -5848,7 +5849,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                             BTConstants.UpgradeStatusBT2 = "";
 
                             if (pdUpgradeProcess != null) {
-                                pdUpgradeProcess.setMessage(GetSpinnerMessage("Connecting to LINK.\nPlease wait several seconds... "));
+                                pdUpgradeProcess.setMessage(GetSpinnerMessage(getResources().getString(R.string.ConnectingToTheLINK) + "\n" + getResources().getString(R.string.PleaseWaitSeveralSeconds)));
                             }
 
                             startBTSppMain(2);
@@ -5866,7 +5867,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                             BTConstants.isUpgradeInProgress_BT2 = false;
                             showUpgradeSpinnerMessage = false;
                             if (pdUpgradeProcess != null) {
-                                pdUpgradeProcess.setMessage(GetSpinnerMessage("LINK connection lost.\nPlease try again later!"));
+                                pdUpgradeProcess.setMessage(GetSpinnerMessage(getResources().getString(R.string.LINKConnectionLost) + "\n" + getResources().getString(R.string.TryAgainLater)));
                             }
                             BTConstants.UpgradeStatusBT2 = "";
 
@@ -5890,7 +5891,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                             }
                             if (pdUpgradeProcess != null & showUpgradeSpinnerMessage) {
                                 //pdUpgradeProcess.setProgress(Integer.parseInt(BTConstants.upgradeProgress));
-                                pdUpgradeProcess.setMessage(GetSpinnerMessage("Software update in progress.\nPlease wait several seconds... " + BTConstants.upgradeProgress));
+                                pdUpgradeProcess.setMessage(GetSpinnerMessage(getResources().getString(R.string.SoftwareUpdateInProgress) + "\n" + getResources().getString(R.string.PleaseWaitSeveralSeconds) + " " + BTConstants.upgradeProgress));
                             }
                         }
                         if (BTConstants.UpgradeStatusBT3.equalsIgnoreCase("Completed")) {
@@ -5901,7 +5902,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                             BTConstants.UpgradeStatusBT3 = "";
 
                             if (pdUpgradeProcess != null) {
-                                pdUpgradeProcess.setMessage(GetSpinnerMessage("Connecting to LINK.\nPlease wait several seconds... "));
+                                pdUpgradeProcess.setMessage(GetSpinnerMessage(getResources().getString(R.string.ConnectingToTheLINK) + "\n" + getResources().getString(R.string.PleaseWaitSeveralSeconds)));
                             }
 
                             startBTSppMain(3);
@@ -5919,7 +5920,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                             BTConstants.isUpgradeInProgress_BT3 = false;
                             showUpgradeSpinnerMessage = false;
                             if (pdUpgradeProcess != null) {
-                                pdUpgradeProcess.setMessage(GetSpinnerMessage("LINK connection lost.\nPlease try again later!"));
+                                pdUpgradeProcess.setMessage(GetSpinnerMessage(getResources().getString(R.string.LINKConnectionLost) + "\n" + getResources().getString(R.string.TryAgainLater)));
                             }
                             BTConstants.UpgradeStatusBT3 = "";
 
@@ -5943,7 +5944,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                             }
                             if (pdUpgradeProcess != null & showUpgradeSpinnerMessage) {
                                 //pdUpgradeProcess.setProgress(Integer.parseInt(BTConstants.upgradeProgress));
-                                pdUpgradeProcess.setMessage(GetSpinnerMessage("Software update in progress.\nPlease wait several seconds... " + BTConstants.upgradeProgress));
+                                pdUpgradeProcess.setMessage(GetSpinnerMessage(getResources().getString(R.string.SoftwareUpdateInProgress) + "\n" + getResources().getString(R.string.PleaseWaitSeveralSeconds) + " " + BTConstants.upgradeProgress));
                             }
                         }
                         if (BTConstants.UpgradeStatusBT4.equalsIgnoreCase("Completed")) {
@@ -5954,7 +5955,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                             BTConstants.UpgradeStatusBT4 = "";
 
                             if (pdUpgradeProcess != null) {
-                                pdUpgradeProcess.setMessage(GetSpinnerMessage("Connecting to LINK.\nPlease wait several seconds... "));
+                                pdUpgradeProcess.setMessage(GetSpinnerMessage(getResources().getString(R.string.ConnectingToTheLINK) + "\n" + getResources().getString(R.string.PleaseWaitSeveralSeconds)));
                             }
 
                             startBTSppMain(4);
@@ -5972,7 +5973,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                             BTConstants.isUpgradeInProgress_BT4 = false;
                             showUpgradeSpinnerMessage = false;
                             if (pdUpgradeProcess != null) {
-                                pdUpgradeProcess.setMessage(GetSpinnerMessage("LINK connection lost.\nPlease try again later!"));
+                                pdUpgradeProcess.setMessage(GetSpinnerMessage(getResources().getString(R.string.LINKConnectionLost) + "\n" + getResources().getString(R.string.TryAgainLater)));
                             }
                             BTConstants.UpgradeStatusBT4 = "";
 
@@ -5996,7 +5997,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                             }
                             if (pdUpgradeProcess != null & showUpgradeSpinnerMessage) {
                                 //pdUpgradeProcess.setProgress(Integer.parseInt(BTConstants.upgradeProgress));
-                                pdUpgradeProcess.setMessage(GetSpinnerMessage("Software update in progress.\nPlease wait several seconds... " + BTConstants.upgradeProgress));
+                                pdUpgradeProcess.setMessage(GetSpinnerMessage(getResources().getString(R.string.SoftwareUpdateInProgress) + "\n" + getResources().getString(R.string.PleaseWaitSeveralSeconds) + " " + BTConstants.upgradeProgress));
                             }
                         }
                         if (BTConstants.UpgradeStatusBT5.equalsIgnoreCase("Completed")) {
@@ -6007,7 +6008,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                             BTConstants.UpgradeStatusBT5 = "";
 
                             if (pdUpgradeProcess != null) {
-                                pdUpgradeProcess.setMessage(GetSpinnerMessage("Connecting to LINK.\nPlease wait several seconds... "));
+                                pdUpgradeProcess.setMessage(GetSpinnerMessage(getResources().getString(R.string.ConnectingToTheLINK) + "\n" + getResources().getString(R.string.PleaseWaitSeveralSeconds)));
                             }
 
                             startBTSppMain(5);
@@ -6025,7 +6026,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                             BTConstants.isUpgradeInProgress_BT5 = false;
                             showUpgradeSpinnerMessage = false;
                             if (pdUpgradeProcess != null) {
-                                pdUpgradeProcess.setMessage(GetSpinnerMessage("LINK connection lost.\nPlease try again later!"));
+                                pdUpgradeProcess.setMessage(GetSpinnerMessage(getResources().getString(R.string.LINKConnectionLost) + "\n" + getResources().getString(R.string.TryAgainLater)));
                             }
                             BTConstants.UpgradeStatusBT5 = "";
 
@@ -6049,7 +6050,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                             }
                             if (pdUpgradeProcess != null & showUpgradeSpinnerMessage) {
                                 //pdUpgradeProcess.setProgress(Integer.parseInt(BTConstants.upgradeProgress));
-                                pdUpgradeProcess.setMessage(GetSpinnerMessage("Software update in progress.\nPlease wait several seconds... " + BTConstants.upgradeProgress));
+                                pdUpgradeProcess.setMessage(GetSpinnerMessage(getResources().getString(R.string.SoftwareUpdateInProgress) + "\n" + getResources().getString(R.string.PleaseWaitSeveralSeconds) + " " + BTConstants.upgradeProgress));
                             }
                         }
                         if (BTConstants.UpgradeStatusBT6.equalsIgnoreCase("Completed")) {
@@ -6060,7 +6061,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                             BTConstants.UpgradeStatusBT6 = "";
 
                             if (pdUpgradeProcess != null) {
-                                pdUpgradeProcess.setMessage(GetSpinnerMessage("Connecting to LINK.\nPlease wait several seconds... "));
+                                pdUpgradeProcess.setMessage(GetSpinnerMessage(getResources().getString(R.string.ConnectingToTheLINK) + "\n" + getResources().getString(R.string.PleaseWaitSeveralSeconds)));
                             }
 
                             startBTSppMain(6);
@@ -6078,7 +6079,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                             BTConstants.isUpgradeInProgress_BT6 = false;
                             showUpgradeSpinnerMessage = false;
                             if (pdUpgradeProcess != null) {
-                                pdUpgradeProcess.setMessage(GetSpinnerMessage("LINK connection lost.\nPlease try again later!"));
+                                pdUpgradeProcess.setMessage(GetSpinnerMessage(getResources().getString(R.string.LINKConnectionLost) + "\n" + getResources().getString(R.string.TryAgainLater)));
                             }
                             BTConstants.UpgradeStatusBT6 = "";
 
@@ -6231,6 +6232,16 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 }
             }
 
+            if (BTConstants.isPTypeCommandExecuted1) {
+                BTConstants.isPTypeCommandExecuted1 = false;
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink 1: Retrying to Connect");
+                //Retrying to connect to link
+                BTSPPMain btspp = new BTSPPMain();
+                btspp.activity = WelcomeActivity.this;
+                btspp.connect1();
+            }
+
             //----------------------------------------
             tv_fs1_Qty.setText(AppConstants.spanishNumberSystem(Constants.FS_1Gallons));
             tv_fs1_Pulse.setText(Constants.FS_1Pulse);
@@ -6348,6 +6359,16 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 } else {
                     CountBeforeReconnectRelay2++;
                 }
+            }
+
+            if (BTConstants.isPTypeCommandExecuted2) {
+                BTConstants.isPTypeCommandExecuted2 = false;
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink 2: Retrying to Connect");
+                //Retrying to connect to link
+                BTSPPMain btspp = new BTSPPMain();
+                btspp.activity = WelcomeActivity.this;
+                btspp.connect2();
             }
 
             tv_fs2_Qty.setText(AppConstants.spanishNumberSystem(Constants.FS_2Gallons));
@@ -6471,6 +6492,16 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 }
             }
 
+            if (BTConstants.isPTypeCommandExecuted3) {
+                BTConstants.isPTypeCommandExecuted3 = false;
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink 3: Retrying to Connect");
+                //Retrying to connect to link
+                BTSPPMain btspp = new BTSPPMain();
+                btspp.activity = WelcomeActivity.this;
+                btspp.connect3();
+            }
+
             tv_fs3_Qty.setText(AppConstants.spanishNumberSystem(Constants.FS_3Gallons));
             tv_fs3_Pulse.setText(Constants.FS_3Pulse);
             linear_fs_3.setBackgroundResource(R.color.colorPrimary);
@@ -6588,6 +6619,16 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 } else {
                     CountBeforeReconnectRelay4++;
                 }
+            }
+
+            if (BTConstants.isPTypeCommandExecuted4) {
+                BTConstants.isPTypeCommandExecuted4 = false;
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink 4: Retrying to Connect");
+                //Retrying to connect to link
+                BTSPPMain btspp = new BTSPPMain();
+                btspp.activity = WelcomeActivity.this;
+                btspp.connect4();
             }
 
             tv_fs4_Qty.setText(AppConstants.spanishNumberSystem(Constants.FS_4Gallons));
@@ -6711,6 +6752,16 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 }
             }
 
+            if (BTConstants.isPTypeCommandExecuted5) {
+                BTConstants.isPTypeCommandExecuted5 = false;
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink 5: Retrying to Connect");
+                //Retrying to connect to link
+                BTSPPMain btspp = new BTSPPMain();
+                btspp.activity = WelcomeActivity.this;
+                btspp.connect5();
+            }
+
             tv_fs5_Qty.setText(AppConstants.spanishNumberSystem(Constants.FS_5Gallons));
             tv_fs5_Pulse.setText(Constants.FS_5Pulse);
             linear_fs_5.setBackgroundResource(R.color.colorPrimary);
@@ -6829,6 +6880,16 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 } else {
                     CountBeforeReconnectRelay6++;
                 }
+            }
+
+            if (BTConstants.isPTypeCommandExecuted6) {
+                BTConstants.isPTypeCommandExecuted6 = false;
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink 6: Retrying to Connect");
+                //Retrying to connect to link
+                BTSPPMain btspp = new BTSPPMain();
+                btspp.activity = WelcomeActivity.this;
+                btspp.connect6();
             }
 
             tv_fs6_Qty.setText(AppConstants.spanishNumberSystem(Constants.FS_6Gallons));
@@ -9765,7 +9826,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             try {
 
                 pd.dismiss();
-                tvLatLng.setText("Current Location :" + Constants.Latitude + "," + Constants.Longitude);
+                //tvLatLng.setText("Current Location :" + Constants.Latitude + "," + Constants.Longitude); // #2005
+                tvLatLng.setText(getResources().getString(R.string.HoseListIsNotAvailable));
 
                 System.out.println("GetSSIDUsingLocation...." + result);
 
@@ -10323,7 +10385,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         wifiApManager.setWifiApEnabled(null, false);
 
 
-        String s = "Connecting to wifi please wait..";
+        String s = getResources().getString(R.string.PleaseWaitForWifiConnect);
         SpannableString ss2 = new SpannableString(s);
         ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
         ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
@@ -10506,7 +10568,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         wifiApManager.setWifiApEnabled(null, false);
 
 
-        String s = "Connecting to wifi please wait..2";
+        String s = getResources().getString(R.string.PleaseWaitForWifiConnect);
         SpannableString ss2 = new SpannableString(s);
         ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
         ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
@@ -10583,7 +10645,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         wifiApManager.setWifiApEnabled(null, false);
 
 
-        String s = "Connecting to wifi please wait..3";
+        String s = getResources().getString(R.string.PleaseWaitForWifiConnect);
         SpannableString ss2 = new SpannableString(s);
         ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
         ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
@@ -11264,8 +11326,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     alertSelectHoseList(tvLatLng.getText().toString() + "\n" + "");
                 } else {
                     if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + "Offline SSIDData is Empty. Error: " + getResources().getString(R.string.conn_error));
-                    AppConstants.AlertDialogBoxCanecl(WelcomeActivity.this, R.string.conn_error);
+                        AppConstants.WriteinFile(TAG + "Offline SSIDData is Empty. Error: " + getResources().getString(R.string.HoseListIsNotAvailable));
+                    AppConstants.AlertDialogBoxCanecl(WelcomeActivity.this, R.string.HoseListIsNotAvailable);
                 }
 
                 AppConstants.temp_serverSSIDList = serverSSIDList;
@@ -11280,7 +11342,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
     public void oo_post_getssid(String result) {
         linearHose.setClickable(true);//Enable hose Selection
-        tvLatLng.setText("Current Location :" + Constants.Latitude + "," + Constants.Longitude);
+        //tvLatLng.setText("Current Location :" + Constants.Latitude + "," + Constants.Longitude); // #2005
+        tvLatLng.setText(getResources().getString(R.string.HoseListIsNotAvailable));
         System.out.println("GetSSIDUsingLocation...." + result);
 
         try {
@@ -13974,7 +14037,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             BTConstants.BT1NeedRename = false;
             BTConstants.BT1REPLACEBLE_WIFI_NAME = "";
             BTConstants.BT1HOSE_ID = "";
-            BTConstants.BT1SITE_ID = "";
+            BTConstants.BT1SITE_ID = SiteId;
         } else {
             BTConstants.BT1NeedRename = true;
             BTConstants.BT1REPLACEBLE_WIFI_NAME = ReplaceableHoseName;
@@ -14019,7 +14082,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             BTConstants.BT2NeedRename = false;
             BTConstants.BT2REPLACEBLE_WIFI_NAME = "";
             BTConstants.BT2HOSE_ID = "";
-            BTConstants.BT2SITE_ID = "";
+            BTConstants.BT2SITE_ID = SiteId;
         } else {
             BTConstants.BT2NeedRename = true;
             BTConstants.BT2REPLACEBLE_WIFI_NAME = ReplaceableHoseName;
@@ -14061,7 +14124,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             BTConstants.BT3NeedRename = false;
             BTConstants.BT3REPLACEBLE_WIFI_NAME = "";
             BTConstants.BT3HOSE_ID = "";
-            BTConstants.BT3SITE_ID = "";
+            BTConstants.BT3SITE_ID = SiteId;
         } else {
             BTConstants.BT3NeedRename = true;
             BTConstants.BT3REPLACEBLE_WIFI_NAME = ReplaceableHoseName;
@@ -14103,7 +14166,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             BTConstants.BT4NeedRename = false;
             BTConstants.BT4REPLACEBLE_WIFI_NAME = "";
             BTConstants.BT4HOSE_ID = "";
-            BTConstants.BT4SITE_ID = "";
+            BTConstants.BT4SITE_ID = SiteId;
         } else {
             BTConstants.BT4NeedRename = true;
             BTConstants.BT4REPLACEBLE_WIFI_NAME = ReplaceableHoseName;
@@ -14144,7 +14207,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             BTConstants.BT5NeedRename = false;
             BTConstants.BT5REPLACEBLE_WIFI_NAME = "";
             BTConstants.BT5HOSE_ID = "";
-            BTConstants.BT5SITE_ID = "";
+            BTConstants.BT5SITE_ID = SiteId;
         } else {
             BTConstants.BT5NeedRename = true;
             BTConstants.BT5REPLACEBLE_WIFI_NAME = ReplaceableHoseName;
@@ -14185,7 +14248,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             BTConstants.BT6NeedRename = false;
             BTConstants.BT6REPLACEBLE_WIFI_NAME = "";
             BTConstants.BT6HOSE_ID = "";
-            BTConstants.BT6SITE_ID = "";
+            BTConstants.BT6SITE_ID = SiteId;
         } else {
             BTConstants.BT6NeedRename = true;
             BTConstants.BT6REPLACEBLE_WIFI_NAME = ReplaceableHoseName;

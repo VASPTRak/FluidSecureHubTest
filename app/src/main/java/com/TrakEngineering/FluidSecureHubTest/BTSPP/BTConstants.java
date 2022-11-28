@@ -61,6 +61,13 @@ public class BTConstants {
     public static String ScopeStatus = "";
     public static ArrayList<Integer> BTLinkVoltageReadings = new ArrayList<>();
 
+    public static boolean isPTypeCommandExecuted1 = false;
+    public static boolean isPTypeCommandExecuted2 = false;
+    public static boolean isPTypeCommandExecuted3 = false;
+    public static boolean isPTypeCommandExecuted4 = false;
+    public static boolean isPTypeCommandExecuted5 = false;
+    public static boolean isPTypeCommandExecuted6 = false;
+
     public static boolean isNewVersionLinkOne = false;
     public static boolean isNewVersionLinkTwo = false;
     public static boolean isNewVersionLinkThree = false;

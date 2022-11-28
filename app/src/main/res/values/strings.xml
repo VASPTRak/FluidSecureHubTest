@@ -285,6 +285,7 @@
     <string name="PairingMode">Pairing Mode...</string>
     <string name="SelectHoseAlert">Please select Hose</string>
     <string name="UnableToGetHoseList">Unable to get hose list from server</string>
+    <string name="HoseListIsNotAvailable">Hose list is not available</string>
 
     <string name="Quantity">Quantity:</string>
     <string name="Pulse">Pulse:</string>
@@ -405,5 +406,12 @@
     <string name="PartiallyCompleted">Link Re-configuration is partially completed. Please remove app from Recent Apps and start app again.</string>
     <string name="MacAddressUpdated">Mac Address Updated</string>
     <string name="MacAddressNotUpdated">MAC address could not be updated</string>
+
+    <!-- LINK Upgrade process -->
+    <string name="FileDownloadInProgress">Upgrade file download in progress.</string>
+    <string name="SoftwareUpdateInProgress">Software update in progress.</string>
+    <string name="ConnectingToTheLINK">Connecting to the LINK.</string>
+    <string name="LINKConnectionLost">LINK connection lost.</string>
+    <string name="PleaseWaitSeveralSeconds">Please wait several seconds...</string>
 
 </resources>
