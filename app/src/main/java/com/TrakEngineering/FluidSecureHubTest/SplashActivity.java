@@ -173,7 +173,7 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
         } else {
 
             //Enable hotspot
-            wifiApManager.setWifiApEnabled(null, true);
+            //wifiApManager.setWifiApEnabled(null, true);
 
             //Enable bluetooth
             BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -527,8 +527,8 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
                 try {
 
                     JSONObject jsonObject = new JSONObject(userData);
-                    String tanksForLinksObj = jsonObject.getString(AppConstants.RES_TANK_DATA);
-                    CommonUtils.BindTankData(tanksForLinksObj);
+                    //String tanksForLinksObj = jsonObject.getString(AppConstants.RES_TANK_DATA);
+                    //CommonUtils.BindTankData(tanksForLinksObj);
 
                     String userName = jsonObject.getString("PersonName");
                     String userMobile = jsonObject.getString("PhoneNumber");
@@ -665,6 +665,12 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
                     String HotSpotPassword = jsonObject.getString("HotSpotPassword");
 
                     CommonUtils.SaveHotSpotDetailsInPref(SplashActivity.this, HotSpotSSID, HotSpotPassword);
+
+                    // Save Subscription Key for Azure Map
+                    SharedPreferences prefMap = SplashActivity.this.getSharedPreferences(AppConstants.sharedPref_AzureMapDetails, Context.MODE_PRIVATE);
+                    SharedPreferences.Editor edMap = prefMap.edit();
+                    edMap.putString("SubscriptionKey", "FJ29LaayVFiy20Hp29hEe5mG7F6QTbhfyV6wuWwG7Sg"); // Change here when this key is received from server
+                    edMap.commit();
 
                     System.out.println("BluetoothCardReader--" + response);
 

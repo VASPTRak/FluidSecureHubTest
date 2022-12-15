@@ -72,6 +72,7 @@ public class AppConstants {
     public static String sharedPref_KeyboardType = "KeyboardType";
     public static String sharedPref_HotSpotEmail = "HotSpotEmail";
     public static String sharedPref_OfflineAzureSync = "OfflineAzureSync";
+    public static String sharedPref_AzureMapDetails = "AzureMapDetails";
     public static String IsFirstTimeUse = "false";
     public static boolean enableHotspotManuallyWindow = false;
     public static boolean busyWithHotspotToggle = false;
@@ -162,6 +163,7 @@ public class AppConstants {
     public static String API_URL_SYNC_TRANS = webIP + "api/Offline/OFFLineImportTransactions";
     public static String API_URL_DEPT = webIP + "api/Offline/GetDepartments";
 
+    public static String BASE_URL_AZURE_MAP = "https://atlas.microsoft.com/";
 
     public static String OFF_VEHICLE_ID;
     public static String OFF_PERSON_PIN;
@@ -279,7 +281,8 @@ public class AppConstants {
     public static String RES_DATA = "ResponceData";
     public static String RES_DATA_SSID = "SSIDDataObj";
     public static String RES_DATA_USER = "objUserData";
-    public static String RES_TANK_DATA = "tanksForLinksObj";
+    public static String RES_TANK_DATA = "TanksForLinksObj";
+    public static String RES_PRODUCT_DATA = "ProductsObj";
     public static String RES_TEXT = "ResponceText";
     public static String VALIDATION_FOR_TEXT = "ValidationFailFor";
 
@@ -327,7 +330,6 @@ public class AppConstants {
     public static String R_SITE_ID;
     public static String SITE_ID;
 
-
     public static String WIFI_PASSWORD = "";
 
     public static boolean NeedToRename;
@@ -338,9 +340,21 @@ public class AppConstants {
     public static boolean IS_DATA_ON;
     public static boolean IS_HOTSPOT_ON;
 
+    public static String Latitude = "0.00";
+    public static String Longitude = "0.00";
+    public static boolean isLocationSelected = false;
+
     public static ArrayList<HashMap<String, String>> DetailsServerSSIDList;
     public static ArrayList<HashMap<String, String>> DetailsListOfConnectedDevices;
     public static ArrayList<HashMap<String, String>> test;
+
+    public static boolean isAllLinksAreBTLinks = true;
+    public static boolean isHTTPTxnRunningFS1 = false;
+    public static boolean isHTTPTxnRunningFS2 = false;
+    public static boolean isHTTPTxnRunningFS3 = false;
+    public static boolean isHTTPTxnRunningFS4 = false;
+    public static boolean isHTTPTxnRunningFS5 = false;
+    public static boolean isHTTPTxnRunningFS6 = false;
 
     public static ArrayList<String> ListOfRunningTransactiins = new ArrayList<>();
 

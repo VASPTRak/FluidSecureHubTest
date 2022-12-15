@@ -184,32 +184,35 @@ public class BackgroundService_BTFive extends Service {
                                 BTLinkUpgradeCheck(); //infoCommand();
                             }
                         } else {
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(TAG + " BTLink 5: Link not connected. Switching to wifi connection...");
+                            if (CommonUtils.CheckAllHTTPLinksAreFree()) {
+                                if (AppConstants.GenerateLogs)
+                                    AppConstants.WriteinFile(TAG + " BTLink 5: Link not connected. Switching to wifi connection...");
 
-                            // Enable Wi-Fi
-                            WifiManager wifiManagerMM = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
-                            wifiManagerMM.setWifiEnabled(true);
+                                // Enable Wi-Fi
+                                WifiManager wifiManagerMM = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
+                                wifiManagerMM.setWifiEnabled(true);
 
-                            new Handler().postDelayed(new Runnable() {
-                                @Override
-                                public void run() {
-                                    IsThisBTTrnx = false;
-                                    BTConstants.SwitchedBTToUDP5 = true;
-                                    BeginProcessUsingUDP();
-                                }
-                            }, 5000); //Comment this and uncomment below code to terminate BT transaction.
+                                new Handler().postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        IsThisBTTrnx = false;
+                                        BTConstants.SwitchedBTToUDP5 = true;
+                                        BeginProcessUsingUDP();
+                                    }
+                                }, 5000); //Comment this and uncomment below code to terminate BT transaction.
+                            } else {
 
-                            /*IsThisBTTrnx = false;
-                            CommonUtils.UpgradeTransactionStatusToSqlite(TransactionId, "6", BackgroundService_BTFive.this);
-                            Log.i(TAG, " BTLink 5: Link not connected. Please try again!");
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(TAG + " BTLink 5: Link not connected.");
-                            AppConstants.TxnFailedCount5++;
-                            AppConstants.IsTransactionFailed5 = true;
-                            PostTransactionBackgroundTasks();
-                            CloseTransaction();
-                            this.stopSelf();*/
+                                IsThisBTTrnx = false;
+                                CommonUtils.UpgradeTransactionStatusToSqlite(TransactionId, "6", BackgroundService_BTFive.this);
+                                Log.i(TAG, " BTLink 5: Link not connected. Please try again!");
+                                if (AppConstants.GenerateLogs)
+                                    AppConstants.WriteinFile(TAG + " BTLink 5: Link not connected.");
+                                AppConstants.TxnFailedCount5++;
+                                AppConstants.IsTransactionFailed5 = true;
+                                PostTransactionBackgroundTasks();
+                                CloseTransaction();
+                                this.stopSelf();
+                            }
                         }
                     } else if (LinkCommunicationType.equalsIgnoreCase("UDP")) {
                         IsThisBTTrnx = false;
@@ -946,12 +949,12 @@ public class BackgroundService_BTFive extends Service {
 
             if (IsThisBTTrnx) {
                 if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + " BTLink 5: Sending rename command to Link: " + LinkName);
+                    AppConstants.WriteinFile(TAG + " BTLink 5: Sending rename command to Link: " + LinkName + " (New Name: " + BTConstants.BT5REPLACEBLE_WIFI_NAME + ")");
                 BTSPPMain btspp = new BTSPPMain();
                 btspp.send5(BTConstants.namecommand + BTConstants.BT5REPLACEBLE_WIFI_NAME);
             } else {
                 if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + " BTLink 5: Sending rename command (UDP) to Link: " + LinkName);
+                    AppConstants.WriteinFile(TAG + " BTLink 5: Sending rename command (UDP) to Link: " + LinkName + " (New Name: " + BTConstants.BT5REPLACEBLE_WIFI_NAME + ")");
                 new Thread(new ClientSendAndListenUDPFive(BTConstants.namecommand + BTConstants.BT5REPLACEBLE_WIFI_NAME, ipForUDP, this)).start();
             }
 
@@ -1119,10 +1122,10 @@ public class BackgroundService_BTFive extends Service {
                     if (BTConstants.isHotspotDisabled) {
                         //Enable Hotspot
                         WifiApManager wifiApManager = new WifiApManager(BackgroundService_BTFive.this);
-                        if (!CommonUtils.isHotspotEnabled(BackgroundService_BTFive.this)) {
+                        if (!CommonUtils.isHotspotEnabled(BackgroundService_BTFive.this) && !AppConstants.isAllLinksAreBTLinks) {
                             wifiApManager.setWifiApEnabled(null, true);
-                            BTConstants.isHotspotDisabled = false;
                         }
+                        BTConstants.isHotspotDisabled = false;
                     }
                     if (cd.isConnectingToInternet()) {
                         boolean BSRunning = CommonUtils.checkServiceRunning(BackgroundService_BTFive.this, AppConstants.PACKAGE_BACKGROUND_SERVICE);
@@ -1871,7 +1874,7 @@ public class BackgroundService_BTFive extends Service {
 
                 InputStream inputStream = new FileInputStream(file);
 
-                int BUFFER_SIZE = 490; //8192;
+                int BUFFER_SIZE = 256; //490; //8192;
                 byte[] bufferBytes = new byte[BUFFER_SIZE];
 
                 Thread.sleep(2000);
@@ -1901,7 +1904,7 @@ public class BackgroundService_BTFive extends Service {
                                 }
                             }
 
-                            Thread.sleep(25);
+                            //Thread.sleep(25);
                         } else {
                             BTConstants.IsFileUploadCompleted = false;
                             AppConstants.WriteinFile(TAG + " BTLink 5: After upgrade command (Link is not connected): Progress: " + progressValue);

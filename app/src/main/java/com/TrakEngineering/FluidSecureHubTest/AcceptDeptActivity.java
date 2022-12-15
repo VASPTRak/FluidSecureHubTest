@@ -256,7 +256,7 @@ public class AcceptDeptActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.reader, menu);
 
-        menu.findItem(R.id.mconfigure_tld).setVisible(false);
+        //menu.findItem(R.id.mconfigure_tld).setVisible(false);
         menu.findItem(R.id.enable_debug_window).setVisible(false);
         menu.findItem(R.id.mclose).setVisible(false);
         menu.findItem(R.id.madd_link).setVisible(false);

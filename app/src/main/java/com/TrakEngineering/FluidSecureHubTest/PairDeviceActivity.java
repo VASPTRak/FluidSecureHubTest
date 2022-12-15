@@ -79,6 +79,7 @@ public class PairDeviceActivity extends AppCompatActivity {
         menu.findItem(R.id.mcamera_back).setVisible(false);
         menu.findItem(R.id.mcamera_front).setVisible(false);
         menu.findItem(R.id.mshow_reader_status).setVisible(false);
+        menu.findItem(R.id.madd_link).setVisible(false);
 
         if (cd.isConnectingToInternet()) {
 
@@ -123,7 +124,11 @@ public class PairDeviceActivity extends AppCompatActivity {
                 String deviceName = device.getName();
                 String deviceHardwareAddress = device.getAddress(); // MAC address
                 if (deviceName != null) {
-                    if (deviceName.startsWith("FSBT-") || deviceName.startsWith("FSAST-") || deviceName.startsWith("FSDB-")){
+                    if (deviceName.startsWith("FSBT-") || deviceName.startsWith("FSAST-") || deviceName.startsWith("FSDB-") ||
+                            deviceName.startsWith("FSAF3-") || deviceName.startsWith("FSAF7-") || deviceName.startsWith("FSAG2-") ||
+                            deviceName.startsWith("FSAG3-") || deviceName.startsWith("FSFV-") || deviceName.startsWith("FSFH3-") ||
+                            deviceName.startsWith("FSFH7-") || deviceName.startsWith("FSGH2-") || deviceName.startsWith("FSGH3-")) {
+
                         mImageUrls.add(deviceHardwareAddress);
                         mNames.add(deviceName);
                         Log.i(TAG, "DeviceName:" + deviceName + "\n" + "MacAddress:" + deviceHardwareAddress);

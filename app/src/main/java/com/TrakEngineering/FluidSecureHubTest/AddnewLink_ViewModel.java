@@ -143,7 +143,9 @@ public class AddnewLink_ViewModel extends AndroidViewModel implements LifecycleO
         //Toast.makeText(getApplication(), msg, Toast.LENGTH_SHORT).show();
         // You can now create a LatLng Object for use with maps
         Latitude = String.valueOf(location.getLatitude());
+        AppConstants.Latitude = String.valueOf(location.getLatitude());
         Longitude = String.valueOf(location.getLongitude());
+        AppConstants.Longitude = String.valueOf(location.getLongitude());
         LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
         Log.i(TAG, "latLng" + latLng);
     }
@@ -166,13 +168,37 @@ public class AddnewLink_ViewModel extends AndroidViewModel implements LifecycleO
         Log.i(TAG, "ViewModel Destroyed");
     }
 
-    public ArrayList<String> getSpinnerList() {
+    public ArrayList<String> getProductList() {
+
+        ArrayList<String> products = new ArrayList<>();
+        products.clear();
+        for (int i = 0; i < CommonUtils.ProductDataList.size(); i++) {
+            String FuelType = CommonUtils.ProductDataList.get(i).get("FuelType");
+            products.add(FuelType);
+        }
+        return products;
+    }
+
+    public String getFuelTypeIdByFuelType(int position) {
+
+        String fuelTypeId = "";
+        try {
+            fuelTypeId = CommonUtils.ProductDataList.get(position).get("FuelTypeId");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return fuelTypeId;
+    }
+
+    public ArrayList<String> getTankSpinnerList() {
 
         ArrayList<String> tankNumbers = new ArrayList<>();
         tankNumbers.clear();
         for (int i = 0; i < CommonUtils.TankDataList.size(); i++) {
             String TankName = CommonUtils.TankDataList.get(i).get("TankName");
-            tankNumbers.add(TankName);
+            String TankNumber = CommonUtils.TankDataList.get(i).get("TankNumber");
+            tankNumbers.add(TankNumber + " - " + TankName);
         }
 
         return tankNumbers;
@@ -217,24 +243,25 @@ public class AddnewLink_ViewModel extends AndroidViewModel implements LifecycleO
         return IsUpdating;
     }
 
-    public void ProcessData(String linkName, String pon, String poff, String username, String pass, String LinkNewName, String UnitsMeasured, String Pulses) {
+    public void ProcessData(String linkName, String pOn, String pOff, String LinkNewName, String UnitsMeasured, String Pulses, String streetAddress) {
 
         IsUpdating.setValue(true);
         try {
             SaveLinkFromAPP_entity obj = new SaveLinkFromAPP_entity();
             obj.wifissid = linkName;
-            obj.pumpOnTime = pon;
-            obj.pumpOffTime = poff;
-            obj.latitude = Latitude;
-            obj.longitude = Longitude;
+            obj.latitude = AppConstants.Latitude;
+            obj.longitude = AppConstants.Longitude;
+            obj.pumpOffTime = pOff;
+            obj.pumpOnTime = pOn;
             obj.fuelTypeId = getfuelTypeId();
             obj.TankNumber = getTankNumber();
             obj.TankId = getTankid();
-            obj.userName = username;
-            obj.password = pass;
             obj.NewName = LinkNewName;
             obj.UnitsMeasure = UnitsMeasured;
             obj.Pulses = Pulses;
+            obj.streetAddress = streetAddress;
+            /*obj.userName = username;
+            obj.password = pass;*/
 
             Gson gson = new Gson();
             String jsonString = gson.toJson(obj);
@@ -277,7 +304,7 @@ public class AddnewLink_ViewModel extends AndroidViewModel implements LifecycleO
             } catch (IOException e) {
                 e.printStackTrace();
                 if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "Exception DoInBackGround: " + e.getMessage());
+                    AppConstants.WriteinFile(TAG + "SaveLinkFromAPP InBackGround Exception: " + e.getMessage());
                 IsUpdating.postValue(false);
             }
             return resp;
@@ -303,7 +330,7 @@ public class AddnewLink_ViewModel extends AndroidViewModel implements LifecycleO
                     } else {
                         Log.i(TAG, "Something went wrong in server call");
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "ResponseText: " + ResponseText);
+                            AppConstants.WriteinFile(TAG + "SaveLinkFromAPP Response: " + ResponseText);
                     }
                 } else {
                     Log.i(TAG, "Something went wrong in server call");
@@ -312,7 +339,7 @@ public class AddnewLink_ViewModel extends AndroidViewModel implements LifecycleO
             } catch (Exception e) {
                 e.printStackTrace();
                 if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "Exception onPostExecute: " + e.getMessage());
+                    AppConstants.WriteinFile(TAG + "SaveLinkFromAPP onPostExecute Exception: " + e.getMessage());
             }
         }
 

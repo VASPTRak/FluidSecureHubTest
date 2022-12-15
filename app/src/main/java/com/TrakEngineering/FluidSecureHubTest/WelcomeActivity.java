@@ -65,6 +65,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -409,8 +410,9 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     public boolean showUpgradeSpinnerMessage = true;
     public Handler BTConnectionHandler = new Handler(Looper.getMainLooper());
     public int delayMillis = 100;
-    public String st = "Connecting";
+    public String st = "";
     public boolean ConfigurationStep1IsInProgress = false;
+    public Menu myMenu;
 
     //============ Bluetooth reader Gatt end==============
 
@@ -693,6 +695,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         getSupportActionBar().setIcon(R.drawable.fuel_secure_lock);
 
         density = getResources().getDisplayMetrics().density;
+        st = getResources().getString(R.string.connecting);
 
         TextView tvVersionNum = (TextView) findViewById(R.id.tvVersionNum);
         String versionNumber = getResources().getString(R.string.VersionHeading) + ": " + CommonUtils.getVersionCode(WelcomeActivity.this);
@@ -6167,7 +6170,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             tv_fs1_stop.setClickable(false);
             FS1_Stpflag = true;
 
-            if (Constants.FS_1Gallons.equals("") || Constants.FS_1Gallons.equals("0.00")) {
+            /*if (Constants.FS_1Gallons.equals("") || Constants.FS_1Gallons.equals("0.00")) {
                 Constants.FS_1Gallons = String.valueOf("0.00");
                 Constants.FS_1Pulse = "00";
                 tv_fs1_Qty.setText("");
@@ -6183,24 +6186,26 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 tv_fs1_Pulse.setTextColor(getResources().getColor(R.color.black));
                 tv_fs1_stop.setClickable(false);
 
-            } else {
+            } else {*/
 
+            Constants.FS_1Gallons = String.valueOf("0.00");
+            Constants.FS_1Pulse = "00";
+            tv_fs1_Qty.setText("");
+            tv_fs1_Pulse.setText("");
+            linear_fs_1.setBackgroundResource(R.color.Dashboard_background);
+            tv_fs1_stop.setBackgroundResource(R.color.Dashboard_presstostop_btn);
+            tv_NFS1.setTextColor(getResources().getColor(R.color.black));
+            tv_FS1_hoseName.setTextColor(getResources().getColor(R.color.black));
+            tv_fs1_stop.setTextColor(getResources().getColor(R.color.black));
+            tv_fs1QTN.setTextColor(getResources().getColor(R.color.black));
+            tv_fs1_pulseTxt.setTextColor(getResources().getColor(R.color.black));
+            tv_fs1_Qty.setTextColor(getResources().getColor(R.color.black));
+            tv_fs1_Pulse.setTextColor(getResources().getColor(R.color.black));
+            tv_fs1_stop.setClickable(false);
 
-                Constants.FS_1Gallons = String.valueOf("0.00");
-                Constants.FS_1Pulse = "00";
-                tv_fs1_Qty.setText("");
-                tv_fs1_Pulse.setText("");
-                linear_fs_1.setBackgroundResource(R.color.Dashboard_background);
-                tv_fs1_stop.setBackgroundResource(R.color.Dashboard_presstostop_btn);
-                tv_NFS1.setTextColor(getResources().getColor(R.color.black));
-                tv_FS1_hoseName.setTextColor(getResources().getColor(R.color.black));
-                tv_fs1_stop.setTextColor(getResources().getColor(R.color.black));
-                tv_fs1QTN.setTextColor(getResources().getColor(R.color.black));
-                tv_fs1_pulseTxt.setTextColor(getResources().getColor(R.color.black));
-                tv_fs1_Qty.setTextColor(getResources().getColor(R.color.black));
-                tv_fs1_Pulse.setTextColor(getResources().getColor(R.color.black));
-                tv_fs1_stop.setClickable(false);
-
+            //}
+            if (AppConstants.isHTTPTxnRunningFS1) {
+                AppConstants.isHTTPTxnRunningFS1 = false;
             }
 
         } else {
@@ -6297,7 +6302,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             tv_fs2_stop.setClickable(false);
             FS2_Stpflag = true;
 
-            if (Constants.FS_2Gallons.equals("") || Constants.FS_2Gallons.equals("0.00")) {
+            /*if (Constants.FS_2Gallons.equals("") || Constants.FS_2Gallons.equals("0.00")) {
                 Constants.FS_2Gallons = String.valueOf("0.00");
                 Constants.FS_2Pulse = "00";
                 tv_fs2_Qty.setText("");
@@ -6313,23 +6318,26 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 tv_fs2_Pulse.setTextColor(getResources().getColor(R.color.black));
                 tv_fs2_stop.setClickable(false);
 
-            } else {
+            } else {*/
 
-                Constants.FS_2Gallons = String.valueOf("0.00");
-                Constants.FS_2Pulse = "00";
-                tv_fs2_Qty.setText("");
-                tv_fs2_Pulse.setText("");
-                linear_fs_2.setBackgroundResource(R.color.Dashboard_background);
-                tv_fs2_stop.setBackgroundResource(R.color.Dashboard_presstostop_btn);
-                tv_NFS2.setTextColor(getResources().getColor(R.color.black));
-                tv_FS2_hoseName.setTextColor(getResources().getColor(R.color.black));
-                tv_fs2_stop.setTextColor(getResources().getColor(R.color.black));
-                tv_fs2QTN.setTextColor(getResources().getColor(R.color.black));
-                tv_fs2_pulseTxt.setTextColor(getResources().getColor(R.color.black));
-                tv_fs2_Qty.setTextColor(getResources().getColor(R.color.black));
-                tv_fs2_Pulse.setTextColor(getResources().getColor(R.color.black));
-                tv_fs2_stop.setClickable(false);
+            Constants.FS_2Gallons = String.valueOf("0.00");
+            Constants.FS_2Pulse = "00";
+            tv_fs2_Qty.setText("");
+            tv_fs2_Pulse.setText("");
+            linear_fs_2.setBackgroundResource(R.color.Dashboard_background);
+            tv_fs2_stop.setBackgroundResource(R.color.Dashboard_presstostop_btn);
+            tv_NFS2.setTextColor(getResources().getColor(R.color.black));
+            tv_FS2_hoseName.setTextColor(getResources().getColor(R.color.black));
+            tv_fs2_stop.setTextColor(getResources().getColor(R.color.black));
+            tv_fs2QTN.setTextColor(getResources().getColor(R.color.black));
+            tv_fs2_pulseTxt.setTextColor(getResources().getColor(R.color.black));
+            tv_fs2_Qty.setTextColor(getResources().getColor(R.color.black));
+            tv_fs2_Pulse.setTextColor(getResources().getColor(R.color.black));
+            tv_fs2_stop.setClickable(false);
 
+            //}
+            if (AppConstants.isHTTPTxnRunningFS2) {
+                AppConstants.isHTTPTxnRunningFS2 = false;
             }
 
         } else {
@@ -6425,7 +6433,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             tv_fs3_stop.setClickable(false);
             FS3_Stpflag = true;
 
-            if (Constants.FS_3Gallons.equals("") || Constants.FS_3Gallons.equals("0.00")) {
+            /*if (Constants.FS_3Gallons.equals("") || Constants.FS_3Gallons.equals("0.00")) {
                 Constants.FS_3Gallons = String.valueOf("0.00");
                 Constants.FS_3Pulse = "00";
                 tv_fs3_Qty.setText("");
@@ -6441,27 +6449,27 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 tv_fs3_Pulse.setTextColor(getResources().getColor(R.color.black));
                 tv_fs3_stop.setClickable(false);
 
-            } else {
+            } else {*/
 
+            Constants.FS_3Gallons = String.valueOf("0.00");
+            Constants.FS_3Pulse = "00";
+            tv_fs3_Qty.setText("");
+            tv_fs3_Pulse.setText("");
+            linear_fs_3.setBackgroundResource(R.color.Dashboard_background);
+            tv_fs3_stop.setBackgroundResource(R.color.Dashboard_presstostop_btn);
+            tv_NFS3.setTextColor(getResources().getColor(R.color.black));
+            tv_FS3_hoseName.setTextColor(getResources().getColor(R.color.black));
+            tv_fs3_stop.setTextColor(getResources().getColor(R.color.black));
+            tv_fs3QTN.setTextColor(getResources().getColor(R.color.black));
+            tv_fs3_pulseTxt.setTextColor(getResources().getColor(R.color.black));
+            tv_fs3_Qty.setTextColor(getResources().getColor(R.color.black));
+            tv_fs3_Pulse.setTextColor(getResources().getColor(R.color.black));
+            tv_fs3_stop.setClickable(false);
 
-                Constants.FS_3Gallons = String.valueOf("0.00");
-                Constants.FS_3Pulse = "00";
-                tv_fs3_Qty.setText("");
-                tv_fs3_Pulse.setText("");
-                linear_fs_3.setBackgroundResource(R.color.Dashboard_background);
-                tv_fs3_stop.setBackgroundResource(R.color.Dashboard_presstostop_btn);
-                tv_NFS3.setTextColor(getResources().getColor(R.color.black));
-                tv_FS3_hoseName.setTextColor(getResources().getColor(R.color.black));
-                tv_fs3_stop.setTextColor(getResources().getColor(R.color.black));
-                tv_fs3QTN.setTextColor(getResources().getColor(R.color.black));
-                tv_fs3_pulseTxt.setTextColor(getResources().getColor(R.color.black));
-                tv_fs3_Qty.setTextColor(getResources().getColor(R.color.black));
-                tv_fs3_Pulse.setTextColor(getResources().getColor(R.color.black));
-                tv_fs3_stop.setClickable(false);
-
-
+            //}
+            if (AppConstants.isHTTPTxnRunningFS3) {
+                AppConstants.isHTTPTxnRunningFS3 = false;
             }
-
 
         } else {
 
@@ -6556,7 +6564,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             tv_fs4_stop.setClickable(false);
             FS4_Stpflag = true;
 
-            if (Constants.FS_4Gallons.equals("") || Constants.FS_4Gallons.equals("0.00")) {
+            /*if (Constants.FS_4Gallons.equals("") || Constants.FS_4Gallons.equals("0.00")) {
                 Constants.FS_4Gallons = String.valueOf("0.00");
                 Constants.FS_4Pulse = "00";
                 tv_fs4_Qty.setText("");
@@ -6572,24 +6580,26 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 tv_fs4_Pulse.setTextColor(getResources().getColor(R.color.black));
                 tv_fs4_stop.setClickable(false);
 
-            } else {
+            } else {*/
 
+            Constants.FS_4Gallons = String.valueOf("0.00");
+            Constants.FS_4Pulse = "00";
+            tv_fs4_Qty.setText("");
+            tv_fs4_Pulse.setText("");
+            linear_fs_4.setBackgroundResource(R.color.Dashboard_background);
+            tv_fs4_stop.setBackgroundResource(R.color.Dashboard_presstostop_btn);
+            tv_NFS4.setTextColor(getResources().getColor(R.color.black));
+            tv_FS4_hoseName.setTextColor(getResources().getColor(R.color.black));
+            tv_fs4_stop.setTextColor(getResources().getColor(R.color.black));
+            tv_fs4QTN.setTextColor(getResources().getColor(R.color.black));
+            tv_fs4_pulseTxt.setTextColor(getResources().getColor(R.color.black));
+            tv_fs4_Qty.setTextColor(getResources().getColor(R.color.black));
+            tv_fs4_Pulse.setTextColor(getResources().getColor(R.color.black));
+            tv_fs4_stop.setClickable(false);
 
-                Constants.FS_4Gallons = String.valueOf("0.00");
-                Constants.FS_4Pulse = "00";
-                tv_fs4_Qty.setText("");
-                tv_fs4_Pulse.setText("");
-                linear_fs_4.setBackgroundResource(R.color.Dashboard_background);
-                tv_fs4_stop.setBackgroundResource(R.color.Dashboard_presstostop_btn);
-                tv_NFS4.setTextColor(getResources().getColor(R.color.black));
-                tv_FS4_hoseName.setTextColor(getResources().getColor(R.color.black));
-                tv_fs4_stop.setTextColor(getResources().getColor(R.color.black));
-                tv_fs4QTN.setTextColor(getResources().getColor(R.color.black));
-                tv_fs4_pulseTxt.setTextColor(getResources().getColor(R.color.black));
-                tv_fs4_Qty.setTextColor(getResources().getColor(R.color.black));
-                tv_fs4_Pulse.setTextColor(getResources().getColor(R.color.black));
-                tv_fs4_stop.setClickable(false);
-
+            //}
+            if (AppConstants.isHTTPTxnRunningFS4) {
+                AppConstants.isHTTPTxnRunningFS4 = false;
             }
 
         } else {
@@ -6686,7 +6696,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             tv_fs5_stop.setClickable(false);
             FS5_Stpflag = true;
 
-            if (Constants.FS_5Gallons.equals("") || Constants.FS_5Gallons.equals("0.00")) {
+            /*if (Constants.FS_5Gallons.equals("") || Constants.FS_5Gallons.equals("0.00")) {
                 Constants.FS_5Gallons = String.valueOf("0.00");
                 Constants.FS_5Pulse = "00";
                 tv_fs5_Qty.setText("");
@@ -6702,26 +6712,27 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 tv_fs5_Pulse.setTextColor(getResources().getColor(R.color.black));
                 tv_fs5_stop.setClickable(false);
 
-            } else {
+            } else {*/
 
+            Constants.FS_5Gallons = String.valueOf("0.00");
+            Constants.FS_5Pulse = "00";
+            tv_fs5_Qty.setText("");
+            tv_fs5_Pulse.setText("");
+            linear_fs_5.setBackgroundResource(R.color.Dashboard_background);
+            tv_fs5_stop.setBackgroundResource(R.color.Dashboard_presstostop_btn);
+            tv_NFS5.setTextColor(getResources().getColor(R.color.black));
+            tv_FS5_hoseName.setTextColor(getResources().getColor(R.color.black));
+            tv_fs5_stop.setTextColor(getResources().getColor(R.color.black));
+            tv_fs5QTN.setTextColor(getResources().getColor(R.color.black));
+            tv_fs5_pulseTxt.setTextColor(getResources().getColor(R.color.black));
+            tv_fs5_Qty.setTextColor(getResources().getColor(R.color.black));
+            tv_fs5_Pulse.setTextColor(getResources().getColor(R.color.black));
+            tv_fs5_stop.setClickable(false);
 
-                Constants.FS_5Gallons = String.valueOf("0.00");
-                Constants.FS_5Pulse = "00";
-                tv_fs5_Qty.setText("");
-                tv_fs5_Pulse.setText("");
-                linear_fs_5.setBackgroundResource(R.color.Dashboard_background);
-                tv_fs5_stop.setBackgroundResource(R.color.Dashboard_presstostop_btn);
-                tv_NFS5.setTextColor(getResources().getColor(R.color.black));
-                tv_FS5_hoseName.setTextColor(getResources().getColor(R.color.black));
-                tv_fs5_stop.setTextColor(getResources().getColor(R.color.black));
-                tv_fs5QTN.setTextColor(getResources().getColor(R.color.black));
-                tv_fs5_pulseTxt.setTextColor(getResources().getColor(R.color.black));
-                tv_fs5_Qty.setTextColor(getResources().getColor(R.color.black));
-                tv_fs5_Pulse.setTextColor(getResources().getColor(R.color.black));
-                tv_fs5_stop.setClickable(false);
-
+            //}
+            if (AppConstants.isHTTPTxnRunningFS5) {
+                AppConstants.isHTTPTxnRunningFS5 = false;
             }
-
 
         } else {
 
@@ -6816,7 +6827,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             tv_fs6_stop.setClickable(false);
             FS6_Stpflag = true;
 
-            if (Constants.FS_6Gallons.equals("") || Constants.FS_6Gallons.equals("0.00")) {
+            /*if (Constants.FS_6Gallons.equals("") || Constants.FS_6Gallons.equals("0.00")) {
                 Constants.FS_6Gallons = String.valueOf("0.00");
                 Constants.FS_6Pulse = "00";
                 tv_fs6_Qty.setText("");
@@ -6832,26 +6843,27 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 tv_fs6_Pulse.setTextColor(getResources().getColor(R.color.black));
                 tv_fs6_stop.setClickable(false);
 
-            } else {
+            } else {*/
 
+            Constants.FS_6Gallons = String.valueOf("0.00");
+            Constants.FS_6Pulse = "00";
+            tv_fs6_Qty.setText("");
+            tv_fs6_Pulse.setText("");
+            linear_fs_6.setBackgroundResource(R.color.Dashboard_background);
+            tv_fs6_stop.setBackgroundResource(R.color.Dashboard_presstostop_btn);
+            tv_NFS6.setTextColor(getResources().getColor(R.color.black));
+            tv_FS6_hoseName.setTextColor(getResources().getColor(R.color.black));
+            tv_fs6_stop.setTextColor(getResources().getColor(R.color.black));
+            tv_fs6QTN.setTextColor(getResources().getColor(R.color.black));
+            tv_fs6_pulseTxt.setTextColor(getResources().getColor(R.color.black));
+            tv_fs6_Qty.setTextColor(getResources().getColor(R.color.black));
+            tv_fs6_Pulse.setTextColor(getResources().getColor(R.color.black));
+            tv_fs6_stop.setClickable(false);
 
-                Constants.FS_6Gallons = String.valueOf("0.00");
-                Constants.FS_6Pulse = "00";
-                tv_fs6_Qty.setText("");
-                tv_fs6_Pulse.setText("");
-                linear_fs_6.setBackgroundResource(R.color.Dashboard_background);
-                tv_fs6_stop.setBackgroundResource(R.color.Dashboard_presstostop_btn);
-                tv_NFS6.setTextColor(getResources().getColor(R.color.black));
-                tv_FS6_hoseName.setTextColor(getResources().getColor(R.color.black));
-                tv_fs6_stop.setTextColor(getResources().getColor(R.color.black));
-                tv_fs6QTN.setTextColor(getResources().getColor(R.color.black));
-                tv_fs6_pulseTxt.setTextColor(getResources().getColor(R.color.black));
-                tv_fs6_Qty.setTextColor(getResources().getColor(R.color.black));
-                tv_fs6_Pulse.setTextColor(getResources().getColor(R.color.black));
-                tv_fs6_stop.setClickable(false);
-
+            //}
+            if (AppConstants.isHTTPTxnRunningFS6) {
+                AppConstants.isHTTPTxnRunningFS6 = false;
             }
-
 
         } else {
 
@@ -7948,6 +7960,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
+        myMenu = menu;
         getMenuInflater().inflate(R.menu.reader, menu);
 
         menu.findItem(R.id.mreboot_reader).setVisible(false);
@@ -7962,11 +7975,14 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
             menu.findItem(R.id.monline).setVisible(true);
             menu.findItem(R.id.mofline).setVisible(false);
+            menu.findItem(R.id.madd_link).setVisible(true); // Show Add LINK menu only in online mode.
+            HideAddLinkMenu();
 
         } else {
 
             menu.findItem(R.id.monline).setVisible(false);
             menu.findItem(R.id.mofline).setVisible(true);
+            menu.findItem(R.id.madd_link).setVisible(false);
         }
 
         SharedPreferences sharedPref = WelcomeActivity.this.getSharedPreferences("LanguageSettings", Context.MODE_PRIVATE);
@@ -8001,11 +8017,11 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 CustomDilaogExitApp(WelcomeActivity.this, "Please enter a code to continue.", "Message");
                 //String Dt = CommonUtils.getTodaysDateInStringbt();
                 break;
-            case R.id.mconfigure_tld:
+            /*case R.id.mconfigure_tld:
                 //TLD Service
                 ConfigureTld();
 
-                break;
+                break;*/
             case R.id.enable_debug_window:
 
                 CustomDilaogForDebugWindow(WelcomeActivity.this, "Please enter a code to continue.", "Message");
@@ -8032,7 +8048,11 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 break;
 
             case R.id.btLinkScope:
-                OscilloscopeLinkSelection();
+                if (AppConstants.IsHoseBusyCheckLocally()) {
+                    OscilloscopeLinkSelection();
+                } else {
+                    Toast.makeText(getApplicationContext(), getResources().getString(R.string.HoseIsBusy), Toast.LENGTH_SHORT).show();
+                }
                 break;
 
             case R.id.menuSpanish:
@@ -8057,6 +8077,22 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void HideAddLinkMenu() {
+        try {
+            if (myMenu != null) {
+                int linkDataSize = 5;
+                if (IsGateHub.equalsIgnoreCase("True")) {
+                    linkDataSize = 0;
+                }
+                if (serverSSIDList != null && serverSSIDList.size() > linkDataSize) {
+                    myMenu.findItem(R.id.madd_link).setVisible(false);
+                }
+            }
+        } catch (Exception ex) {
+            Log.e(TAG, " Error in HideAddLinkMenu. " + ex.getMessage());
+        }
     }
 
     /* Show and hide UI resources and set the default master key and commands. */
@@ -9918,6 +9954,9 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                 String IsTLDFirmwareUpgrade = c.getString("IsTLDFirmwareUpgrade");
                                 String ScheduleTankReading = c.getString("ScheduleTankReading");
                                 String LinkCommunicationType = c.getString("HubLinkCommunication");
+                                if (!LinkCommunicationType.equalsIgnoreCase("BT")) {
+                                    AppConstants.isAllLinksAreBTLinks = false;
+                                }
                                 String IsTankEmpty = c.getString("IsTankEmpty");
                                 String IsLinkFlagged = c.getString("IsLinkFlagged");
                                 String LinkFlaggedMessage = c.getString("LinkFlaggedMessage");
@@ -10098,15 +10137,19 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                 } else {
                                     errMsg = ResponceText;
                                     if (AppConstants.GenerateLogs)
-                                        AppConstants.WriteinFile(TAG + "GetSSIDUsingLocationOnResume SSIDData (" + WifiSSId + "): " + ResponceText);
-                                    AppConstants.AlertDialogFinish(WelcomeActivity.this, ResponceText);
+                                        AppConstants.WriteinFile(TAG + "GetSSIDUsingLocationOnResume: " + ResponceText);
+                                    if (ResponceText.contains(getResources().getString(R.string.NoLinksAssignedServerMessage))) {
+                                        CustomMessageWithYesOrNo(WelcomeActivity.this, "", getResources().getString(R.string.NoLinksAssignedAppMessage));
+                                    } else {
+                                        AppConstants.AlertDialogFinish(WelcomeActivity.this, ResponceText);
+                                    }
                                 }
                             }
 
                             AppConstants.temp_serverSSIDList = serverSSIDList;
                         }
                         try {
-
+                            HideAddLinkMenu();
                             if (serverSSIDList != null && serverSSIDList.size() == 1 && IsGateHub.equalsIgnoreCase("True") && Constants.FS_1STATUS.equalsIgnoreCase("FREE")) {
 
                                 cancelThinDownloadManager();
@@ -10935,6 +10978,9 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                 String IsTLDFirmwareUpgrade = c.getString("IsTLDFirmwareUpgrade");
                                 String ScheduleTankReading = c.getString("ScheduleTankReading");
                                 String LinkCommunicationType = c.getString("HubLinkCommunication");
+                                if (!LinkCommunicationType.equalsIgnoreCase("BT")) {
+                                    AppConstants.isAllLinksAreBTLinks = false;
+                                }
                                 String IsTankEmpty = c.getString("IsTankEmpty");
                                 String IsLinkFlagged = c.getString("IsLinkFlagged");
                                 String LinkFlaggedMessage = c.getString("LinkFlaggedMessage");
@@ -10995,14 +11041,18 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                 } else {
                                     errMsg = ResponceText;
                                     if (AppConstants.GenerateLogs)
-                                        AppConstants.WriteinFile(TAG + "GetSSIDUsingLocationGateHub SSIDData (" + WifiSSId + "): " + ResponceText);
-                                    AppConstants.AlertDialogFinish(WelcomeActivity.this, ResponceText);
+                                        AppConstants.WriteinFile(TAG + "GetSSIDUsingLocationGateHub: " + ResponceText);
+                                    if (ResponceText.contains(getResources().getString(R.string.NoLinksAssignedServerMessage))) {
+                                        CustomMessageWithYesOrNo(WelcomeActivity.this, "", getResources().getString(R.string.NoLinksAssignedAppMessage));
+                                    } else {
+                                        AppConstants.AlertDialogFinish(WelcomeActivity.this, ResponceText);
+                                    }
                                 }
                             }
 
                         }
                         try {
-
+                            HideAddLinkMenu();
                             if (serverSSIDList != null && serverSSIDList.size() == 1 && IsGateHub.equalsIgnoreCase("True") && Constants.FS_1STATUS.equalsIgnoreCase("FREE")) {
 
                                 //Thread.sleep(1000);
@@ -11424,6 +11474,9 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                             String IsTLDCall = c.getString("IsTLDCall");
                             String PROBEMacAddress = c.getString("PROBEMacAddress");
                             String LinkCommunicationType = c.getString("HubLinkCommunication");
+                            if (!LinkCommunicationType.equalsIgnoreCase("BT")) {
+                                AppConstants.isAllLinksAreBTLinks = false;
+                            }
                             String IsTankEmpty = c.getString("IsTankEmpty");
                             String IsLinkFlagged = c.getString("IsLinkFlagged");
                             String LinkFlaggedMessage = c.getString("LinkFlaggedMessage");
@@ -11492,8 +11545,12 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                             } else {
                                 errMsg = ResponceText;
                                 if (AppConstants.GenerateLogs)
-                                    AppConstants.WriteinFile(TAG + "SSIDData (" + WifiSSId + "): " + ResponceText);
-                                AppConstants.AlertDialogFinish(WelcomeActivity.this, ResponceText);
+                                    AppConstants.WriteinFile(TAG + "GetSSIDUsingLocation: " + ResponceText);
+                                if (ResponceText.contains(getResources().getString(R.string.NoLinksAssignedServerMessage))) {
+                                    CustomMessageWithYesOrNo(WelcomeActivity.this, "", getResources().getString(R.string.NoLinksAssignedAppMessage));
+                                } else {
+                                    AppConstants.AlertDialogFinish(WelcomeActivity.this, ResponceText);
+                                }
                             }
                         }
 
@@ -11506,6 +11563,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     }
 
                     AppConstants.temp_serverSSIDList = serverSSIDList;
+                    HideAddLinkMenu();
 
                 } else if (ResponseMessageSite.equalsIgnoreCase("fail")) {
                     String ResponseTextSite = jsonObjectSite.getString(AppConstants.RES_TEXT);
@@ -11907,7 +11965,21 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         loading.setProgressStyle(ProgressDialog.STYLE_SPINNER);
         loading.show();
 
+        // New code to reduce hotspot commands
         new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+
+                if (!CommonUtils.isHotspotEnabled(WelcomeActivity.this)) {
+                    wifiApManager.setWifiApEnabled(null, true);
+                }
+                ChangeWifiState(false);
+                getipOverOSVersion();
+            }
+        }, 5000);
+        //=============================================
+
+        /*new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
                 wifiApManager.setWifiApEnabled(null, false);
@@ -11959,7 +12031,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 ChangeWifiState(false);
                 getipOverOSVersion();
             }
-        }, 6000);
+        }, 6000);*/
 
     }
 
@@ -15353,4 +15425,74 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.N)
+    private void CustomMessageWithYesOrNo(final Activity context, String title, String message) {
+
+        final Dialog dialogBus = new Dialog(context);
+        dialogBus.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialogBus.setCancelable(false);
+        dialogBus.setContentView(R.layout.custom_alertdialougeinput);
+        dialogBus.show();
+
+        TextView edt_message = (TextView) dialogBus.findViewById(R.id.edt_message);
+        Button btnYes = (Button) dialogBus.findViewById(R.id.btnYes);
+        Button btnNo = (Button) dialogBus.findViewById(R.id.btnNo);
+        edt_message.setText(message); //Html.fromHtml(message, Html.FROM_HTML_MODE_LEGACY)
+
+        btnYes.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                Intent in = new Intent(WelcomeActivity.this, AddNewLinkToCloud.class);
+                startActivity(in);
+                dialogBus.dismiss();
+            }
+        });
+
+        btnNo.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                CustomMessageAddLinkWarning(context, "", getResources().getString(R.string.AddLinkWarning));
+                dialogBus.dismiss();
+            }
+        });
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.N)
+    private void CustomMessageAddLinkWarning(final Activity context, String title, String message) {
+
+        final Dialog dialogBus = new Dialog(context);
+        dialogBus.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialogBus.setCancelable(false);
+        dialogBus.setContentView(R.layout.custom_alertdialougeinput);
+
+        TextView edt_message = (TextView) dialogBus.findViewById(R.id.edt_message);
+        Button btnYes = (Button) dialogBus.findViewById(R.id.btnYes);
+        Button btnNo = (Button) dialogBus.findViewById(R.id.btnNo);
+        btnYes.setText(R.string.AddLink);
+        btnNo.setText(R.string.CloseBtn);
+        edt_message.setText(message); //Html.fromHtml(message, Html.FROM_HTML_MODE_LEGACY)
+
+        dialogBus.show();
+
+        btnYes.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                Intent in = new Intent(WelcomeActivity.this, AddNewLinkToCloud.class);
+                startActivity(in);
+                dialogBus.dismiss();
+            }
+        });
+
+        btnNo.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                context.finish();
+                dialogBus.dismiss();
+            }
+        });
+    }
 }

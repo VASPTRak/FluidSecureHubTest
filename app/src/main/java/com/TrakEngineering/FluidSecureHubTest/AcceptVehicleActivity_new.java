@@ -508,7 +508,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
         getMenuInflater().inflate(R.menu.reader, menu);
 
         menu.findItem(R.id.mreboot_reader).setVisible(true);
-        menu.findItem(R.id.mconfigure_tld).setVisible(false);
+        //menu.findItem(R.id.mconfigure_tld).setVisible(false);
         menu.findItem(R.id.madd_link).setVisible(false);
         menu.findItem(R.id.mclose).setVisible(false);
         menu.findItem(R.id.mcamera_back).setVisible(false);
@@ -3207,15 +3207,15 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
 
                 String VehicleNumber = "";
                 try {
-                    String V_Number = editVehicleNumber.getText().toString().trim();
+                    String V_Number = editVehicleNumber.getText().toString();
                     if (!V_Number.isEmpty()) {
-                        VehicleNumber = V_Number.trim();
+                        VehicleNumber = V_Number;
                     } else if (!AppConstants.APDU_FOB_KEY.isEmpty()) {
-                        VehicleNumber = AppConstants.APDU_FOB_KEY.trim();
+                        VehicleNumber = AppConstants.APDU_FOB_KEY;
                     } else if (!Barcode_val.isEmpty()) {
-                        VehicleNumber = Barcode_val.trim();
+                        VehicleNumber = Barcode_val;
                     } else if (!MagCard_vehicle.isEmpty()) {
-                        VehicleNumber = MagCard_vehicle.trim();
+                        VehicleNumber = MagCard_vehicle;
                     }
                 } catch (Exception ex) {
                     VehicleNumber = "";

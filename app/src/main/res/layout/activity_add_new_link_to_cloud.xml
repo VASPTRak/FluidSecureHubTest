@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -22,10 +21,10 @@
         <TableRow android:paddingBottom="5dp">
 
             <TextView
-                android:id="@+id/textView8"
+                android:id="@+id/tv_linkname"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Enter LINK Name (SSID):"
+                android:text="@string/LinkNameHeading"
                 android:textColor="#444"
                 android:textSize="22sp"
                 tools:layout_editor_absoluteX="28dp"
@@ -37,27 +36,41 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="5dp"
                 android:background="@drawable/layout_border"
-                android:hint="LINK Name"
+                android:hint="@string/LinkNameHint"
                 android:imeOptions="actionNext"
                 android:inputType="text"
+                android:maxWidth="200dp"
                 android:padding="5dp"
                 android:textSize="22sp"
                 tools:layout_editor_absoluteX="325dp"
                 tools:layout_editor_absoluteY="52dp" />
 
+            <ImageButton
+                android:id="@+id/iBtn_LinkName"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_gravity="center_vertical"
+                android:adjustViewBounds="true"
+                android:backgroundTint="@android:color/transparent"
+                android:contentDescription="@string/LinkNameToolTip"
+                android:longClickable="true"
+                android:scaleType="fitCenter"
+                android:scaleX="1.5"
+                android:scaleY="1.5"
+                app:srcCompat="@drawable/question_icon" />
 
         </TableRow>
 
-
         <TableRow
             android:layout_width="match_parent"
-            android:layout_height="match_parent" >
+            android:layout_height="match_parent"
+            android:layout_marginTop="5dp">
 
             <TextView
                 android:id="@+id/textView3"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="New Name:"
+                android:text="@string/NewNameHeading"
                 android:textColor="#444"
                 android:textSize="22sp" />
 
@@ -67,21 +80,38 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="5dp"
                 android:background="@drawable/layout_border"
-                android:hint="New Name"
+                android:hint="@string/NewNameHint"
                 android:imeOptions="actionNext"
                 android:inputType="text"
+                android:maxWidth="200dp"
                 android:padding="5dp"
                 android:textSize="22sp" />
+
+            <ImageButton
+                android:id="@+id/iBtn_NewName"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_gravity="center_vertical"
+                android:adjustViewBounds="true"
+                android:backgroundTint="@android:color/transparent"
+                android:contentDescription="@string/NewNameToolTip"
+                android:longClickable="true"
+                android:scaleType="fitCenter"
+                android:scaleX="1.5"
+                android:scaleY="1.5"
+                app:srcCompat="@drawable/question_icon" />
         </TableRow>
 
-        <TableRow>
+        <TableRow
+            android:layout_height="28dp"
+            android:layout_marginTop="5dp">
 
             <TextView
                 android:id="@+id/textView5"
-                android:layout_width="158dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
-                android:text="Select Tank:"
+                android:text="@string/TankHeading"
                 android:textColor="#444"
                 android:textSize="22sp"
                 tools:layout_editor_absoluteX="29dp"
@@ -89,114 +119,222 @@
 
             <Spinner
                 android:id="@+id/spin_tanknumber"
-                android:layout_width="wrap_content"
-                android:layout_height="40dp"
+                android:layout_width="match_parent"
+                android:layout_height="45dp"
                 android:layout_marginStart="5dp"
+                android:layout_marginTop="5dp"
+                android:layout_marginBottom="5dp"
                 tools:layout_editor_absoluteX="229dp"
                 tools:layout_editor_absoluteY="110dp" />
 
         </TableRow>
 
-        <TableRow>
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="5dp">
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#ddd"
+                android:visibility="invisible" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnAddNewTank"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="start"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginEnd="10dp"
+                    android:background="@drawable/layout_border"
+                    android:paddingStart="10dp"
+                    android:paddingEnd="10dp"
+                    android:text="@string/BtnAddTank"
+                    android:textSize="18sp" />
+
+                <ImageButton
+                    android:id="@+id/iBtn_AddNewTank"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_gravity="center_vertical"
+                    android:adjustViewBounds="true"
+                    android:backgroundTint="@android:color/transparent"
+                    android:contentDescription="@string/AddTankToolTip"
+                    android:longClickable="true"
+                    android:scaleType="fitCenter"
+                    android:scaleX="1.5"
+                    android:scaleY="1.5"
+                    app:srcCompat="@drawable/question_icon" />
+            </LinearLayout>
+
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="42dp"
+            android:layout_marginTop="5dp">
 
             <TextView
                 android:id="@+id/tv_pumpontime"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Pump On Time:"
+                android:layout_gravity="center_vertical"
+                android:text="@string/PumpOnTimeHeading"
                 android:textColor="#444"
                 android:textSize="22sp"
                 tools:layout_editor_absoluteX="36dp"
                 tools:layout_editor_absoluteY="165dp" />
 
-            <EditText
-                android:id="@+id/edt_pumpOnTime"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="5dp"
-                android:inputType="number"
-                android:maxLength="4"
-                android:text="30"
-                android:textSize="22sp"
-                tools:layout_editor_absoluteX="207dp"
-                tools:layout_editor_absoluteY="165dp" />
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
 
+                <EditText
+                    android:id="@+id/edt_pumpOnTime"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="5dp"
+                    android:ems="5"
+                    android:inputType="number"
+                    android:maxLength="4"
+                    android:text="30"
+                    android:textSize="22sp"
+                    tools:layout_editor_absoluteX="207dp"
+                    tools:layout_editor_absoluteY="165dp" />
 
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="5dp"
+                    android:gravity="center_vertical"
+                    android:text="@string/InSeconds"
+                    android:textColor="#444"
+                    android:textSize="20sp" />
+            </LinearLayout>
+
+            <ImageButton
+                android:id="@+id/iBtn_PumpOnTime"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_gravity="center_vertical"
+                android:adjustViewBounds="true"
+                android:backgroundTint="@android:color/transparent"
+                android:contentDescription="@string/PumpOnTimeToolTip"
+                android:longClickable="true"
+                android:scaleType="fitCenter"
+                android:scaleX="1.5"
+                android:scaleY="1.5"
+                app:srcCompat="@drawable/question_icon" />
         </TableRow>
 
-        <TableRow>
+        <TableRow android:layout_marginTop="5dp">
 
             <TextView
                 android:id="@+id/tv_pumpofftime"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Pump Off Time:"
+                android:layout_gravity="center_vertical"
+                android:maxWidth="155dp"
+                android:text="@string/PumpOffTimeHeading"
                 android:textColor="#444"
                 android:textSize="22sp"
                 tools:layout_editor_absoluteX="24dp"
                 tools:layout_editor_absoluteY="222dp" />
 
-            <EditText
-                android:id="@+id/edt_pumpOffTime"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="5dp"
-                android:ems="5"
-                android:inputType="number"
-                android:maxLength="4"
-                android:text="30"
-                android:textSize="22sp"
-                tools:layout_editor_absoluteX="201dp"
-                tools:layout_editor_absoluteY="211dp" />
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
 
+                <EditText
+                    android:id="@+id/edt_pumpOffTime"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="5dp"
+                    android:ems="5"
+                    android:inputType="number"
+                    android:maxLength="4"
+                    android:text="30"
+                    android:textSize="22sp"
+                    tools:layout_editor_absoluteX="201dp"
+                    tools:layout_editor_absoluteY="211dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="5dp"
+                    android:gravity="center_vertical"
+                    android:text="@string/InSeconds"
+                    android:textColor="#444"
+                    android:textSize="20sp" />
+            </LinearLayout>
+
+            <ImageButton
+                android:id="@+id/iBtn_PumpOffTime"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_gravity="center_vertical"
+                android:adjustViewBounds="true"
+                android:backgroundTint="@android:color/transparent"
+                android:contentDescription="@string/PumpOffTimeToolTip"
+                android:longClickable="true"
+                android:scaleType="fitCenter"
+                android:scaleX="1.5"
+                android:scaleY="1.5"
+                app:srcCompat="@drawable/question_icon" />
         </TableRow>
 
         <TableRow
             android:layout_width="match_parent"
-            android:layout_height="match_parent" >
+            android:layout_height="match_parent"
+            android:layout_marginTop="5dp">
 
             <TextView
                 android:id="@+id/textView4"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Units Measured:"
+                android:layout_gravity="center_vertical"
+                android:maxWidth="155dp"
+                android:text="@string/PulseRatioHeading"
                 android:textColor="#444"
                 android:textSize="22sp" />
 
-            <EditText
-                android:id="@+id/edt_UnitsMeasured"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+            <Spinner
+                android:id="@+id/spin_pulseRatio"
+                android:layout_width="match_parent"
+                android:layout_height="45dp"
                 android:layout_marginStart="5dp"
-                android:inputType="number"
-                android:text="1"
-                android:textSize="22sp" />
+                android:layout_marginTop="5dp"
+                android:layout_marginBottom="5dp" />
+
+            <ImageButton
+                android:id="@+id/iBtn_PulseRatio"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_gravity="center_vertical"
+                android:adjustViewBounds="true"
+                android:backgroundTint="@android:color/transparent"
+                android:contentDescription="@string/PulseRatioToolTip"
+                android:longClickable="true"
+                android:scaleType="fitCenter"
+                android:scaleX="1.5"
+                android:scaleY="1.5"
+                app:srcCompat="@drawable/question_icon" />
+
         </TableRow>
 
-        <TableRow
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" >
-
-            <TextView
-                android:id="@+id/textView6"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Pulses:"
-                android:textColor="#444"
-                android:textSize="22sp" />
-
-            <EditText
-                android:id="@+id/edt_Pulses"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="5dp"
-                android:inputType="number"
-                android:maxLength="5"
-                android:text="20"
-                android:textSize="22sp" />
-        </TableRow>
-
-        <TableRow android:layout_marginTop="40dp">
+        <!--<TableRow
+            android:layout_marginTop="40dp">
 
             <TextView
                 android:id="@+id/tv_username"
@@ -222,10 +360,10 @@
                 tools:layout_editor_absoluteX="246dp"
                 tools:layout_editor_absoluteY="316dp" />
 
-        </TableRow>
+        </TableRow>-->
 
 
-        <TableRow
+        <!--<TableRow
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_marginTop="10dp">
@@ -254,16 +392,18 @@
                 tools:layout_editor_absoluteX="219dp"
                 tools:layout_editor_absoluteY="381dp" />
 
-        </TableRow>
+        </TableRow>-->
 
-        <TableRow
+        <!--<TableRow
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_marginTop="5dp">
 
-            <Space
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#ddd"
+                android:visibility="invisible" />
 
             <CheckBox
                 android:id="@+id/chkShowHidePassword"
@@ -272,11 +412,94 @@
                 android:text="Show Password"
                 android:textSize="18dp" />
 
+        </TableRow>-->
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="8dp">
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#ddd"
+                android:visibility="invisible" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="30dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingEnd="20dp">
+
+                <Button
+                    android:id="@+id/btnMap"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="start"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginEnd="50dp"
+                    android:background="@drawable/layout_border"
+                    android:backgroundTint="@color/colorPrimary"
+                    android:drawableLeft="@drawable/ic_baseline_location_on_24"
+                    android:drawablePadding="10dp"
+                    android:paddingStart="10dp"
+                    android:paddingEnd="20dp"
+                    android:text="@string/title_activity_maps"
+                    android:textColor="#FFF"
+                    android:textSize="20sp" />
+
+            </LinearLayout>
+
         </TableRow>
 
         <TableRow
-            android:layout_marginTop="50dp"
-            android:gravity="center">
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="10dp">
+
+            <TextView
+                android:id="@+id/textView6"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/AddressHeading"
+                android:textColor="#444"
+                android:textSize="22sp" />
+
+            <EditText
+                android:id="@+id/edt_StreetAddress"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="5dp"
+                android:background="@drawable/layout_border"
+                android:hint="@string/AddressHint"
+                android:imeOptions="actionNext"
+                android:inputType="text"
+                android:maxWidth="200dp"
+                android:padding="5dp"
+                android:textSize="22sp" />
+
+            <ImageButton
+                android:id="@+id/iBtn_StreetAddress"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_gravity="center_vertical"
+                android:adjustViewBounds="true"
+                android:backgroundTint="@android:color/transparent"
+                android:contentDescription="@string/AddressToolTip"
+                android:longClickable="true"
+                android:scaleType="fitCenter"
+                android:scaleX="1.5"
+                android:scaleY="1.5"
+                app:srcCompat="@drawable/question_icon" />
+
+        </TableRow>
+
+        <TableRow
+            android:layout_marginTop="40dp"
+            android:gravity="center"
+            android:weightSum="3">
 
             <Button
                 android:id="@+id/btn_cancel"
@@ -284,7 +507,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="5dp"
                 android:background="@drawable/layout_border"
-                android:text="Cancel"
+                android:text="@string/Cancel"
                 android:textSize="22sp"
                 tools:layout_editor_absoluteX="135dp"
                 tools:layout_editor_absoluteY="494dp" />
@@ -295,11 +518,10 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="5dp"
                 android:background="@drawable/layout_border"
-                android:text="Save"
+                android:text="@string/SaveBtn"
                 android:textSize="22sp"
                 tools:layout_editor_absoluteX="378dp"
                 tools:layout_editor_absoluteY="494dp" />
-
 
         </TableRow>
 

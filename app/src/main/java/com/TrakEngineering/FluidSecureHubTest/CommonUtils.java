@@ -97,6 +97,7 @@ public class CommonUtils {
     public static String FOLDER_PATH_FSVM_Firmware = Environment.getExternalStorageDirectory().getAbsolutePath() + "/www/FSVM/";
     public static String FOLDER_PATH_FSNP_Firmware = Environment.getExternalStorageDirectory().getAbsolutePath() + "/www/FSNP/";
     public static ArrayList<HashMap<String, String>> TankDataList = new ArrayList<>();
+    public static ArrayList<HashMap<String, String>> ProductDataList = new ArrayList<>();
 
     public static void LogMessage(String TAG, String TheMessage, Exception ex) {
         String logmessage = getTodaysDateInString();
@@ -2053,11 +2054,12 @@ public class CommonUtils {
 
     }
 
-    public static void BindTankData(String tanksForLinksObj){
+    public static void BindTankData(String tanksForLinksObj, boolean clearTankList) {
 
-        try{
-
-            TankDataList.clear();
+        try {
+            if (clearTankList) {
+                TankDataList.clear();
+            }
             JSONArray jsonArray = new JSONArray(tanksForLinksObj);
             for (int i = 0; i < jsonArray.length(); i++) {
 
@@ -2069,20 +2071,46 @@ public class CommonUtils {
                 String TankId = jsonObj.getString("TankId");
                 String FuelTypeId = jsonObj.getString("FuelTypeId");
 
-                HashMap<String,String> map = new HashMap<>();
-                map.put("TankNumber",TankNumber);
-                map.put("TankName",TankName);
-                map.put("ScheduleTankReading",ScheduleTankReading);
-                map.put("ReceiveDeliveryInformation",ReceiveDeliveryInformation);
-                map.put("TankId",TankId);
-                map.put("FuelTypeId",FuelTypeId);
+                HashMap<String, String> map = new HashMap<>();
+                map.put("TankNumber", TankNumber);
+                map.put("TankName", TankName);
+                map.put("ScheduleTankReading", ScheduleTankReading);
+                map.put("ReceiveDeliveryInformation", ReceiveDeliveryInformation);
+                map.put("TankId", TankId);
+                map.put("FuelTypeId", FuelTypeId);
 
                 TankDataList.add(map);
 
             }
-            Log.i(TAG,"TankDataList"+TankDataList.size());
+            Log.i(TAG, "TankDataList" + TankDataList.size());
 
-        }catch (Exception e){
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void BindProductData(String productsForTanksObj){
+
+        try {
+
+            ProductDataList.clear();
+            JSONArray jsonArray = new JSONArray(productsForTanksObj);
+            for (int i = 0; i < jsonArray.length(); i++) {
+
+                JSONObject jsonObj = jsonArray.getJSONObject(i);
+                String FuelTypeId = jsonObj.getString("FuelTypeID");
+                String FuelType = jsonObj.getString("FuelType");
+
+                HashMap<String, String> map = new HashMap<>();
+                map.put("FuelTypeId", FuelTypeId);
+                map.put("FuelType", FuelType);
+
+                ProductDataList.add(map);
+
+            }
+            Log.i(TAG, "ProductDataList" + ProductDataList.size());
+
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -2254,6 +2282,20 @@ public class CommonUtils {
             if (AppConstants.GenerateLogs)
                 AppConstants.WriteinFile(TAG + "Exception occurred in StoreLanguageSettings: " + e.getMessage());
         }
+    }
+
+    public static boolean CheckAllHTTPLinksAreFree() {
+        boolean flag = false;
+        try {
+            if (!AppConstants.isHTTPTxnRunningFS1 && !AppConstants.isHTTPTxnRunningFS2 && !AppConstants.isHTTPTxnRunningFS3 && !AppConstants.isHTTPTxnRunningFS4 && !AppConstants.isHTTPTxnRunningFS5 && !AppConstants.isHTTPTxnRunningFS6) {
+                flag = true;
+            }
+        } catch (Exception e) {
+            flag = false;
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + "Exception occurred in CheckAnyHTTPTxnIsRunning: " + e.getMessage());
+        }
+        return flag;
     }
 
 }

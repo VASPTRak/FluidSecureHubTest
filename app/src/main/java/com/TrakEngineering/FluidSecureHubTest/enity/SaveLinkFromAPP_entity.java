@@ -10,10 +10,11 @@ public class SaveLinkFromAPP_entity {
     public String fuelTypeId;
     public String TankNumber;
     public String TankId;
-    public String userName;
-    public String password;
+    //public String userName;
+    //public String password;
     public String NewName;
     public String UnitsMeasure;
     public String Pulses;
+    public String streetAddress;
 
 }
