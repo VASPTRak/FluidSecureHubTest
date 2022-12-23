@@ -45,15 +45,14 @@
             android:id="@+id/rdg_p_type">
 
             <RadioButton
+                android:id="@+id/type1"
                 android:layout_width="wrap_content"
                 android:layout_height="30dp"
-                android:text="1"
-                android:id="@+id/type1"
                 android:layout_gravity="center_horizontal"
+                android:layout_marginEnd="20dp"
                 android:checked="false"
-                android:textSize="20sp"
-                android:layout_marginStart="20dp"
-                android:layout_marginEnd="20dp" />
+                android:text="1"
+                android:textSize="20sp" />
 
             <RadioButton
                 android:layout_width="wrap_content"
@@ -75,6 +74,16 @@
                 android:textSize="20sp"
                 android:layout_marginEnd="20dp" />
 
+            <RadioButton
+                android:id="@+id/type4"
+                android:layout_width="wrap_content"
+                android:layout_height="30dp"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginEnd="5dp"
+                android:layout_weight="1"
+                android:text="4"
+                android:textSize="20sp" />
+
         </RadioGroup>
 
         <Button
@@ -82,13 +91,13 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_gravity="center_horizontal"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="20dp"
             android:layout_weight="1"
             android:background="@color/colorPrimary"
             android:text="SET"
             android:textColor="@color/white"
-            android:textSize="20sp"
-            android:layout_marginLeft="20dp"
-            android:layout_marginRight="20dp"/>
+            android:textSize="20sp" />
 
         <Button
             android:id="@+id/btnReconnect"

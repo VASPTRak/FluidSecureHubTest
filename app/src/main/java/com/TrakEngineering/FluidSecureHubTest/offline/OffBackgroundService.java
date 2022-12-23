@@ -1009,22 +1009,22 @@ public class OffBackgroundService extends Service {
                     }
 
                     if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + " Offline Department data download process completed Successfully");
+                        AppConstants.WriteinFile(TAG + " Offline Department data download process completed Successfully.");
 
                 } else {
                     if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + " GetAPIDepartmentDetails InPost Response fail" + result);
+                        AppConstants.WriteinFile(TAG + " GetAPIDepartmentDetails InPost Response fail: " + result);
                 }
 
             } catch (JSONException e) {
                 e.printStackTrace();
                 if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + " GetAPIDepartmentDetails InPost Ex:" + e.toString());
+                    AppConstants.WriteinFile(TAG + " GetAPIDepartmentDetails InPost Ex: " + e.toString());
             }
 
         } else {
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " GetAPIDepartmentDetails InPost Result err" + result);
+                AppConstants.WriteinFile(TAG + " GetAPIDepartmentDetails InPost Result err: " + result);
         }
     }
 

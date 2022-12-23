@@ -15218,7 +15218,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                         if (BTStatus.equalsIgnoreCase("Connected")) {
                             pd.dismiss();
-                            BTServiceSelectionFunction(LinkPosition);
+                            //BTServiceSelectionFunction(LinkPosition);
                             RedirectToOscilloscope(WifiSSId, LinkPosition);
                         } else {
                             counter++;

@@ -21,7 +21,6 @@ import android.widget.Toast;
 import androidx.annotation.RequiresApi;
 
 import com.TrakEngineering.FluidSecureHubTest.AppConstants;
-import com.TrakEngineering.FluidSecureHubTest.BT_Link_Oscilloscope_Activity;
 import com.TrakEngineering.FluidSecureHubTest.BackgroundService;
 import com.TrakEngineering.FluidSecureHubTest.CommonUtils;
 import com.TrakEngineering.FluidSecureHubTest.ConnectionDetector;
@@ -68,7 +67,7 @@ public class BackgroundService_BTSix extends Service {
     String Request = "", Response = "";
     String FDRequest = "", FDResponse = "";
     int PreviousRes = 0;
-    boolean stopTxtprocess, redpulseloop_on, RelayStatus, readScopeLoop_on;
+    boolean stopTxtprocess, redpulseloop_on, RelayStatus;
     int pulseCount = 0;
     int stopCount = 0;
     int RespCount = 0; //, LinkResponseCount = 0;
@@ -79,7 +78,7 @@ public class BackgroundService_BTSix extends Service {
     double fillqty = 0, numPulseRatio = 0, minFuelLimit = 0;
     long sqliteID = 0;
     String CurrentLinkMac = "", LinkCommunicationType = "", SERVER_IP = "", LinkName = "", printReceipt = "", IsFuelingStop = "0", IsLastTransaction = "0", OverrideQuantity = "0", OverridePulse = "0";
-    Timer timerBt6, timerBtScope;
+    Timer timerBt6;
     List<Timer> TimerList_ReadpulseBT6 = new ArrayList<Timer>();
     DBController controller = new DBController(BackgroundService_BTSix.this);
     Boolean IsThisBTTrnx;
@@ -92,7 +91,6 @@ public class BackgroundService_BTSix extends Service {
 
     SimpleDateFormat sdformat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
     ArrayList<HashMap<String, String>> quantityRecords = new ArrayList<>();
-    int scopeCounter = 0;
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -117,116 +115,100 @@ public class BackgroundService_BTSix extends Service {
                 Log.i(TAG, "-Started-");
                 if (AppConstants.GenerateLogs) AppConstants.WriteinFile(TAG + " BTLink 6: -Started-");
 
-                if (BTConstants.forOscilloscope) {
-                    LinkCommunicationType = "BT";
+                Constants.FS_6STATUS = "BUSY";
 
-                    //Register Broadcast receiver
-                    broadcastBlueLinkSixData = new BroadcastBlueLinkSixData();
-                    IntentFilter intentFilter = new IntentFilter("BroadcastBlueLinkSixData");
+                SharedPreferences sharedPref = this.getSharedPreferences(Constants.PREF_VehiFuel, Context.MODE_PRIVATE);
+                TransactionId = sharedPref.getString("TransactionId_FS6", "");
+                VehicleId = sharedPref.getString("VehicleId_FS6", "");
+                VehicleNumber = sharedPref.getString("VehicleNumber_FS6", "");
+                PhoneNumber = sharedPref.getString("PhoneNumber_FS6", "");
+                PersonId = sharedPref.getString("PersonId_FS6", "");
+                PulseRatio = sharedPref.getString("PulseRatio_FS6", "1");
+                MinLimit = sharedPref.getString("MinLimit_FS6", "0");
+                FuelTypeId = sharedPref.getString("FuelTypeId_FS6", "");
+                ServerDate = sharedPref.getString("ServerDate_FS6", "");
+                TransactionDateWithFormat = sharedPref.getString("TransactionDateWithFormat_FS6", "");
+                IntervalToStopFuel = sharedPref.getString("IntervalToStopFuel_FS6", "0");
+                IsTLDCall = sharedPref.getString("IsTLDCall_FS6", "False");
+                EnablePrinter = sharedPref.getString("EnablePrinter_FS6", "False");
+                PumpOnTime = sharedPref.getString("PumpOnTime_FS6", "0");
+
+                numPulseRatio = Double.parseDouble(PulseRatio);
+                minFuelLimit = Double.parseDouble(MinLimit);
+                stopAutoFuelSeconds = Long.parseLong(IntervalToStopFuel);
+
+                //UDP Connection..!!
+                if (WelcomeActivity.serverSSIDList != null && WelcomeActivity.serverSSIDList.size() > 0) {
+                    LinkCommunicationType = WelcomeActivity.serverSSIDList.get(WelcomeActivity.SelectedItemPos).get("LinkCommunicationType");
+                    CurrentLinkMac = WelcomeActivity.serverSSIDList.get(WelcomeActivity.SelectedItemPos).get("MacAddress");
+                }
+
+                // Offline functionality
+                if (!cd.isConnectingToInternet()) {
                     if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + " BTLink 6: <Registering Receiver.>");
-                    registerReceiver(broadcastBlueLinkSixData, intentFilter);
-                    isBroadcastReceiverRegistered = true;
-                    AppConstants.WriteinFile(TAG + " BTLink 6: <Registered successfully. (" + broadcastBlueLinkSixData + ")>");
+                        AppConstants.WriteinFile(TAG + " BTLink 6:-Offline mode--");
+                    offlineLogicBT6();
+                }
 
-                } else {
-                    Constants.FS_6STATUS = "BUSY";
+                //Register Broadcast receiver
+                broadcastBlueLinkSixData = new BroadcastBlueLinkSixData();
+                IntentFilter intentFilter = new IntentFilter("BroadcastBlueLinkSixData");
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " BTLink 6: <Registering Receiver.>");
+                registerReceiver(broadcastBlueLinkSixData, intentFilter);
+                isBroadcastReceiverRegistered = true;
+                AppConstants.WriteinFile(TAG + " BTLink 6: <Registered successfully. (" + broadcastBlueLinkSixData + ")>");
 
-                    SharedPreferences sharedPref = this.getSharedPreferences(Constants.PREF_VehiFuel, Context.MODE_PRIVATE);
-                    TransactionId = sharedPref.getString("TransactionId_FS6", "");
-                    VehicleId = sharedPref.getString("VehicleId_FS6", "");
-                    VehicleNumber = sharedPref.getString("VehicleNumber_FS6", "");
-                    PhoneNumber = sharedPref.getString("PhoneNumber_FS6", "");
-                    PersonId = sharedPref.getString("PersonId_FS6", "");
-                    PulseRatio = sharedPref.getString("PulseRatio_FS6", "1");
-                    MinLimit = sharedPref.getString("MinLimit_FS6", "0");
-                    FuelTypeId = sharedPref.getString("FuelTypeId_FS6", "");
-                    ServerDate = sharedPref.getString("ServerDate_FS6", "");
-                    TransactionDateWithFormat = sharedPref.getString("TransactionDateWithFormat_FS6", "");
-                    IntervalToStopFuel = sharedPref.getString("IntervalToStopFuel_FS6", "0");
-                    IsTLDCall = sharedPref.getString("IsTLDCall_FS6", "False");
-                    EnablePrinter = sharedPref.getString("EnablePrinter_FS6", "False");
-                    PumpOnTime = sharedPref.getString("PumpOnTime_FS6", "0");
+                AppConstants.isRelayON_fs6 = false;
+                LinkName = CommonUtils.getlinkName(5);
+                if (LinkCommunicationType.equalsIgnoreCase("BT")) {
+                    IsThisBTTrnx = true;
 
-                    numPulseRatio = Double.parseDouble(PulseRatio);
-                    minFuelLimit = Double.parseDouble(MinLimit);
-                    stopAutoFuelSeconds = Long.parseLong(IntervalToStopFuel);
-
-                    //UDP Connection..!!
-                    if (WelcomeActivity.serverSSIDList != null && WelcomeActivity.serverSSIDList.size() > 0) {
-                        LinkCommunicationType = WelcomeActivity.serverSSIDList.get(WelcomeActivity.SelectedItemPos).get("LinkCommunicationType");
-                        CurrentLinkMac = WelcomeActivity.serverSSIDList.get(WelcomeActivity.SelectedItemPos).get("MacAddress");
-                    }
-
-                    // Offline functionality
-                    if (!cd.isConnectingToInternet()) {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + " BTLink 6:-Offline mode--");
-                        offlineLogicBT6();
-                    }
-
-                    //Register Broadcast receiver
-                    broadcastBlueLinkSixData = new BroadcastBlueLinkSixData();
-                    IntentFilter intentFilter = new IntentFilter("BroadcastBlueLinkSixData");
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + " BTLink 6: <Registering Receiver.>");
-                    registerReceiver(broadcastBlueLinkSixData, intentFilter);
-                    isBroadcastReceiverRegistered = true;
-                    AppConstants.WriteinFile(TAG + " BTLink 6: <Registered successfully. (" + broadcastBlueLinkSixData + ")>");
-
-                    AppConstants.isRelayON_fs6 = false;
-                    LinkName = CommonUtils.getlinkName(5);
-                    if (LinkCommunicationType.equalsIgnoreCase("BT")) {
-                        IsThisBTTrnx = true;
-
-                        if (checkBTLinkStatus(false)) { //BTConstants.BTStatusStrSix.equalsIgnoreCase("Connected")
-                            if (!BTConstants.forOscilloscope) {
-                                BTLinkUpgradeCheck(); //infoCommand();
-                            }
-                        } else {
-                            if (CommonUtils.CheckAllHTTPLinksAreFree()) {
-                                if (AppConstants.GenerateLogs)
-                                    AppConstants.WriteinFile(TAG + " BTLink 6: Link not connected. Switching to wifi connection...");
-
-                                // Enable Wi-Fi
-                                WifiManager wifiManagerMM = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
-                                wifiManagerMM.setWifiEnabled(true);
-
-                                new Handler().postDelayed(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        IsThisBTTrnx = false;
-                                        BTConstants.SwitchedBTToUDP6 = true;
-                                        BeginProcessUsingUDP();
-                                    }
-                                }, 5000); //Comment this and uncomment below code to terminate BT transaction.
-                            } else {
-
-                                IsThisBTTrnx = false;
-                                CommonUtils.UpgradeTransactionStatusToSqlite(TransactionId, "6", BackgroundService_BTSix.this);
-                                Log.i(TAG, " BTLink 6: Link not connected. Please try again!");
-                                if (AppConstants.GenerateLogs)
-                                    AppConstants.WriteinFile(TAG + " BTLink 6: Link not connected.");
-                                AppConstants.TxnFailedCount6++;
-                                AppConstants.IsTransactionFailed6 = true;
-                                PostTransactionBackgroundTasks();
-                                CloseTransaction();
-                                this.stopSelf();
-                            }
-                        }
-                    } else if (LinkCommunicationType.equalsIgnoreCase("UDP")) {
-                        IsThisBTTrnx = false;
-                        infoCommand();
-                        //BeginProcessUsingUDP();
+                    if (checkBTLinkStatus(false)) { //BTConstants.BTStatusStrSix.equalsIgnoreCase("Connected")
+                        BTLinkUpgradeCheck(); //infoCommand();
                     } else {
-                        //Something went Wrong in hose selection.
-                        IsThisBTTrnx = false;
-                        Log.i(TAG, " BTLink 6: Something went Wrong in hose selection.");
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + " BTLink 6: Something went wrong in hose selection.");
-                        CloseTransaction();
-                        this.stopSelf();
+                        if (CommonUtils.CheckAllHTTPLinksAreFree()) {
+                            if (AppConstants.GenerateLogs)
+                                AppConstants.WriteinFile(TAG + " BTLink 6: Link not connected. Switching to wifi connection...");
+
+                            // Enable Wi-Fi
+                            WifiManager wifiManagerMM = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
+                            wifiManagerMM.setWifiEnabled(true);
+
+                            new Handler().postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    IsThisBTTrnx = false;
+                                    BTConstants.SwitchedBTToUDP6 = true;
+                                    BeginProcessUsingUDP();
+                                }
+                            }, 5000); //Comment this and uncomment below code to terminate BT transaction.
+                        } else {
+
+                            IsThisBTTrnx = false;
+                            CommonUtils.UpgradeTransactionStatusToSqlite(TransactionId, "6", BackgroundService_BTSix.this);
+                            Log.i(TAG, " BTLink 6: Link not connected. Please try again!");
+                            if (AppConstants.GenerateLogs)
+                                AppConstants.WriteinFile(TAG + " BTLink 6: Link not connected.");
+                            AppConstants.TxnFailedCount6++;
+                            AppConstants.IsTransactionFailed6 = true;
+                            PostTransactionBackgroundTasks();
+                            CloseTransaction();
+                            this.stopSelf();
+                        }
                     }
+                } else if (LinkCommunicationType.equalsIgnoreCase("UDP")) {
+                    IsThisBTTrnx = false;
+                    infoCommand();
+                    //BeginProcessUsingUDP();
+                } else {
+                    //Something went Wrong in hose selection.
+                    IsThisBTTrnx = false;
+                    Log.i(TAG, " BTLink 6: Something went Wrong in hose selection.");
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + " BTLink 6: Something went wrong in hose selection.");
+                    CloseTransaction();
+                    this.stopSelf();
                 }
             }
         } catch (Exception e) {
@@ -1005,7 +987,6 @@ public class BackgroundService_BTSix extends Service {
                 TimerList_ReadpulseBT6.get(i).cancel();
             }
             redpulseloop_on = false;
-            readScopeLoop_on = false;
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -1244,36 +1225,15 @@ public class BackgroundService_BTSix extends Service {
                     Log.i(TAG, "BTLink 6: Link Response>>" + Response);
                     //if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "BTLink 6: Link Response>>" + Response);
 
-                    if (BTConstants.forOscilloscope) {
-                        //Set Oscilloscope status.
-                        //AppConstants.WriteinFile(TAG + " BTLink 6: onReceive Response:" + Response.trim());
-                        if (Response.contains("pulser_type")) {
-                            BTConstants.ScopeStatus = "";
-                            getPulserType(Response);
-                        } else if (Response.contains("START")) {
-                            BTConstants.ScopeStatus = "START";
-                        } else if (Response.contains("OVER")) {
-                            BTConstants.ScopeStatus = "OVER";
-                        } else if (Response.contains("DONE")) {
-                            BTConstants.ScopeStatus = "DONE";
-                        } else if (Request.contains(BTConstants.scope_READ_cmd)) {
-                            if (!readScopeLoop_on && !BTConstants.ReadingProcessComplete) {
-                                ReadScope();
-                            }
-                        }
-
-                    } else {
-
-                        //Set Relay status.
-                        if (Response.contains("OFF")) {
-                            RelayStatus = false;
-                        } else if (Response.contains("ON")) {
-                            //AppConstants.WriteinFile(TAG + " BTLink 6: onReceive Response:" + Response.trim() + "; ReadPulse: " + redpulseloop_on);
-                            RelayStatus = true;
-                            AppConstants.isRelayON_fs6 = true;
-                            if (!redpulseloop_on) {
-                                ReadPulse();
-                            }
+                    //Set Relay status.
+                    if (Response.contains("OFF")) {
+                        RelayStatus = false;
+                    } else if (Response.contains("ON")) {
+                        //AppConstants.WriteinFile(TAG + " BTLink 6: onReceive Response:" + Response.trim() + "; ReadPulse: " + redpulseloop_on);
+                        RelayStatus = true;
+                        AppConstants.isRelayON_fs6 = true;
+                        if (!redpulseloop_on) {
+                            ReadPulse();
                         }
                     }
                 }
@@ -1398,7 +1358,7 @@ public class BackgroundService_BTSix extends Service {
 
         if (cd.isConnectingToInternet()) {
             //BTLink Rename functionality
-            if (BTConstants.BT6NeedRename) {
+            if (BTConstants.BT6NeedRename && !BTConstants.BT6REPLACEBLE_WIFI_NAME.isEmpty()) {
                 new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                     @Override
                     public void run() {
@@ -2032,83 +1992,6 @@ public class BackgroundService_BTSix extends Service {
                 if (AppConstants.GenerateLogs)
                     AppConstants.WriteinFile(TAG + " BTLink 6: UpgradeCurrentVersionWithUpgradableVersion onPostExecute Exception: " + e.getMessage());
             }
-        }
-    }
-
-    private void ReadScope() {
-        if (AppConstants.GenerateLogs)
-            AppConstants.WriteinFile(TAG + " BTLink 6: ReadScope started.");
-        readScopeLoop_on = true;
-        scopeCounter = 0;
-        timerBtScope = new Timer();
-        TimerList_ReadpulseBT6.add(timerBtScope);
-        TimerTask tt = new TimerTask() {
-            @RequiresApi(api = Build.VERSION_CODES.P)
-            @Override
-            public void run() {
-                Log.i(TAG, "BTLink 6: Timer count..");
-                scopeCounter++;
-                if (Response.contains("scope") && BTConstants.ScopeStatus.equalsIgnoreCase("OVER")) {
-                    scopeCount(Response, scopeCounter);
-                } else {
-                    BTConstants.BTLinkVoltageReadings.add(0);
-                    BT_Link_Oscilloscope_Activity.yValues.add(new Entry(0, 0));
-                }
-
-                if (scopeCounter > 1000) {
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + " BTLink 6: Readings >> " + BTConstants.BTLinkVoltageReadings.size());
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + " BTLink 6: ReadScope end.");
-                    BTConstants.ScopeStatus = "DONE";
-                    BTConstants.ReadingProcessComplete = true;
-                    scopeCounter = 0;
-                    CancelTimer();
-                    cancel();
-                    //StopScopeReading();
-                }
-                if (BTConstants.TerminateReadingProcess) {
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + " BTLink 6: Terminate Reading Process.");
-                    BTConstants.ScopeStatus = "";
-                    BTConstants.ReadingProcessComplete = true;
-                    scopeCounter = 0;
-                    CancelTimer();
-                    cancel();
-                }
-
-            }
-        };
-        timerBtScope.schedule(tt, 1000, 1000);
-    }
-
-    private void scopeCount(String response, int scopeCounter) {
-        try {
-            String scope;
-
-            if (response.contains("scope")) {
-                JSONObject jsonObj = new JSONObject(response);
-                scope = jsonObj.getString("scope");
-
-                BTConstants.BTLinkVoltageReadings.add(Integer.parseInt(scope));
-                BT_Link_Oscilloscope_Activity.yValues.add(new Entry(scopeCounter, Integer.parseInt(scope)));
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void getPulserType(String response) {
-        try {
-
-            if (response.contains("pulser_type")) {
-                JSONObject jsonObj = new JSONObject(response);
-                BTConstants.p_type = jsonObj.getString("pulser_type");
-            } else {
-                BTConstants.p_type = "";
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 

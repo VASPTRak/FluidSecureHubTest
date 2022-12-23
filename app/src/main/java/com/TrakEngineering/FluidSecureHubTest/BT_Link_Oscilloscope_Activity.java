@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -37,9 +38,11 @@ import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -54,17 +57,32 @@ public class BT_Link_Oscilloscope_Activity extends AppCompatActivity { // implem
     public RadioButton rdSelectedType;
     String LinkPosition, WifiSSId;
     int scopeWaitCounter = 0, stopCounter = 0;
-    public boolean chartBindStarted = false;
+    int readCounter = 0;
+    //public boolean chartBindStarted = false;
     public Timer timerBtScope;
+    public String p_type = "";
+    public static ArrayList<Integer> BTLinkVoltageReadings = new ArrayList<>();
+    ProgressDialog pdMain;
 
-    public static ArrayList<Entry> yValues = new ArrayList<>();
+    public ArrayList<Entry> yValues = new ArrayList<>();
     public boolean isScopeRecordStarted = false;
+
+    public BroadcastBlueLinkData broadcastBlueLinkData = null;
+    public IntentFilter intentFilter;
+
+    String Request = "", Response = "";
+    public boolean flag = true;
+    StringBuilder sBuilder = new StringBuilder();
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
 
-        //stopBTOscilloscopeService();
+        try {
+            UnregisterReceiver();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
     }
 
     @Override
@@ -82,14 +100,14 @@ public class BT_Link_Oscilloscope_Activity extends AppCompatActivity { // implem
         btnSet = findViewById(R.id.btnSet);
         btnStartScope = findViewById(R.id.btnStartScope);
         btnDisplay = findViewById(R.id.btnDisplay);
-        btnDisplay.setAlpha(0.5f);
-        btnDisplay.setEnabled(false);
+        //btnDisplay.setAlpha(0.5f);
+        //btnDisplay.setEnabled(false);
 
         rdg_p_type = (RadioGroup) findViewById(R.id.rdg_p_type);
         btnReconnect = findViewById(R.id.btnReconnect);
         btnReconnect.setVisibility(View.INVISIBLE);
 
-        myChart =  findViewById(R.id.lineChart);
+        myChart = findViewById(R.id.lineChart);
 
         myChart.setDragEnabled(true);
         myChart.setScaleEnabled(true);
@@ -99,50 +117,24 @@ public class BT_Link_Oscilloscope_Activity extends AppCompatActivity { // implem
 
         InitChart();
 
+        if (LinkPosition == null) {
+            LinkPosition = "0";
+        }
+
+        RegisterReceiver(LinkPosition);
+
         btnStartScope.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 try {
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(TAG + "Start button clicked");
-                    BTConstants.TerminateReadingProcess = true;
-                    BTConstants.BTLinkVoltageReadings.clear();
-                    yValues.clear();
+                    ClearPreviousChartAndData();
+
                     btnDisplay.setAlpha(0.5f);
                     btnDisplay.setEnabled(false);
 
-                    if (chartBindStarted) {
-                        new CountDownTimer(3000, 1000) {
-                            @Override
-                            public void onTick(long millisUntilFinished) {
-                                if (BTConstants.ReadingProcessComplete) {
-                                    ResetChart();
-                                    scopeOnCommand();
-                                    cancel();
-                                }
-                            }
-
-                            @Override
-                            public void onFinish() {
-                                if (BTConstants.ReadingProcessComplete) {
-                                    ResetChart();
-                                    scopeOnCommand();
-                                } else {
-                                    if (AppConstants.GenerateLogs)
-                                        AppConstants.WriteinFile(TAG + "Failed to start Record.");
-                                    new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            Toast.makeText(BT_Link_Oscilloscope_Activity.this, "Failed to start Record. Please try again.", Toast.LENGTH_SHORT).show();
-                                        }
-                                    }, 50);
-                                }
-                            }
-                        }.start();
-                    } else {
-                        ResetChart();
-                        scopeOnCommand();
-                    }
+                    scopeOnCommand();
 
                 } catch (Exception ex) {
                     if (AppConstants.GenerateLogs)
@@ -157,43 +149,50 @@ public class BT_Link_Oscilloscope_Activity extends AppCompatActivity { // implem
                 try {
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(TAG + "Display button clicked");
-                    if (!chartBindStarted) {
-                        BTConstants.TerminateReadingProcess = false;
-                        chartBindStarted = true;
-                        BTConstants.ReadingProcessComplete = false;
+                    ClearPreviousChartAndData();
 
-                        Toast.makeText(BT_Link_Oscilloscope_Activity.this, getResources().getString(R.string.PleaseWait), Toast.LENGTH_SHORT).show();
-                        scopeReadCommand();
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "Read started.");
+                    scopeReadCommand();
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + "Read started.");
+                    showLoader(getResources().getString(R.string.PleaseWait));
 
-                        timerBtScope = new Timer();
-                        TimerTask tt = new TimerTask() {
-                            @RequiresApi(api = Build.VERSION_CODES.P)
-                            @Override
-                            public void run() {
-                                GenerateChart();
-                                myChart.notifyDataSetChanged();
-                                myChart.invalidate();
-                                myChart.getAxisLeft().setAxisMinimum(0f);
-                                myChart.getAxisRight().setAxisMinimum(0f);
-                                myChart.setVisibleXRange(0, 6);
-                                myChart.moveViewToX(1000 - 6);
-                                if (BTConstants.ScopeStatus.equalsIgnoreCase("DONE")) {
-                                    if (AppConstants.GenerateLogs)
-                                        AppConstants.WriteinFile(TAG + "Read end.");
-                                    new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            showToast(BT_Link_Oscilloscope_Activity.this, "done");
-                                        }
-                                    }, 200);
-                                    cancel();
-                                }
+                    timerBtScope = new Timer();
+                    TimerTask tt = new TimerTask() {
+                        @RequiresApi(api = Build.VERSION_CODES.P)
+                        @Override
+                        public void run() {
+                            if (BTConstants.ScopeStatus.equalsIgnoreCase("DONE")) {
+                                if (AppConstants.GenerateLogs)
+                                    AppConstants.WriteinFile(TAG + "Read end.");
+                                new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        showToast(BT_Link_Oscilloscope_Activity.this, "done");
+                                        BindChartData();
+                                    }
+                                }, 100);
+                                hideLoader();
+                                cancel();
+                            } else {
+                                readCounter++;
                             }
-                        };
-                        timerBtScope.schedule(tt, 1000, 1000);
-                    }
+
+                            if (readCounter > 60) {
+                                if (AppConstants.GenerateLogs)
+                                    AppConstants.WriteinFile(TAG + "Read process not completed.");
+                                new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        Toast.makeText(BT_Link_Oscilloscope_Activity.this, "Please try again.", Toast.LENGTH_LONG).show();
+                                    }
+                                }, 50);
+                                hideLoader();
+                                cancel();
+                            }
+                        }
+                    };
+                    timerBtScope.schedule(tt, 1000, 1000);
+
                 } catch (Exception ex) {
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(TAG + "Exception in btnDisplay click: " + ex.getMessage());
@@ -214,15 +213,7 @@ public class BT_Link_Oscilloscope_Activity extends AppCompatActivity { // implem
                 if (AppConstants.GenerateLogs)
                     AppConstants.WriteinFile(TAG + "Reconnecting to the Link... ");
 
-                ProgressDialog pd;
-                String s = getResources().getString(R.string.ConnectingToTheLINK) + " " + getResources().getString(R.string.PleaseWait);
-                SpannableString ss2 = new SpannableString(s);
-                ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
-                ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
-                pd = new ProgressDialog(BT_Link_Oscilloscope_Activity.this);
-                pd.setMessage(ss2);
-                pd.setCancelable(true);
-                pd.show();
+                showLoader(getResources().getString(R.string.ConnectingToTheLINK) + " " + getResources().getString(R.string.PleaseWait));
 
                 BTSPPMain btspp = new BTSPPMain();
                 btspp.activity = BT_Link_Oscilloscope_Activity.this;
@@ -252,9 +243,9 @@ public class BT_Link_Oscilloscope_Activity extends AppCompatActivity { // implem
                 new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        pd.dismiss();
+                        hideLoader();
                     }
-                }, 5000);
+                }, 7000);
             }
         });
     }
@@ -267,12 +258,61 @@ public class BT_Link_Oscilloscope_Activity extends AppCompatActivity { // implem
 
     @Override
     public void onBackPressed() {
+        try {
+            UnregisterReceiver();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
         finish();
+    }
+
+    public void showLoader(String message) {
+
+        SpannableString ss2 = new SpannableString(message);
+        ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
+        ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
+        pdMain = new ProgressDialog(BT_Link_Oscilloscope_Activity.this);
+        pdMain.setMessage(ss2);
+        pdMain.setCancelable(true);
+        pdMain.show();
+    }
+
+    public void hideLoader() {
+
+        if (pdMain != null) {
+            pdMain.dismiss();
+        }
+    }
+
+    public void ClearPreviousChartAndData() {
+        try {
+            BTLinkVoltageReadings.clear();
+            ResetChart();
+            BTConstants.ScopeStatus = "";
+            readCounter = 0;
+            sBuilder.setLength(0);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void BindChartData() {
+        try {
+            GenerateChart();
+            myChart.notifyDataSetChanged();
+            myChart.invalidate();
+            myChart.getAxisLeft().setAxisMinimum(0f);
+            myChart.getAxisRight().setAxisMinimum(0f);
+            myChart.setVisibleXRange(0, 6);
+            myChart.moveViewToX(BTLinkVoltageReadings.size() - 6);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void SetP_TypeForLink() {
         try {
-            BTConstants.p_type = "";
+            p_type = "";
             int selectedSize = rdg_p_type.getCheckedRadioButtonId();
             rdSelectedType = (RadioButton) findViewById(selectedSize);
 
@@ -313,15 +353,15 @@ public class BT_Link_Oscilloscope_Activity extends AppCompatActivity { // implem
                 new Handler().postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        if (BTConstants.p_type.isEmpty()) {
+                        if (p_type.isEmpty()) {
                             if (AppConstants.GenerateLogs)
                                 AppConstants.WriteinFile(TAG + "Unable to set pulser type.");
                             Toast.makeText(BT_Link_Oscilloscope_Activity.this, "Unable to set pulser type. Please click the Reconnect button and try again.", Toast.LENGTH_LONG).show();
                         } else {
                             if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(TAG + "Pulser type is set: " + BTConstants.p_type);
-                            Toast.makeText(BT_Link_Oscilloscope_Activity.this, "Pulser Type: " + BTConstants.p_type, Toast.LENGTH_SHORT).show();
-                            Toast.makeText(BT_Link_Oscilloscope_Activity.this, getResources().getString(R.string.ConnectingToTheLINK) + " " + getResources().getString(R.string.PleaseWaitSeveralSeconds), Toast.LENGTH_SHORT).show();
+                                AppConstants.WriteinFile(TAG + "Pulser type is set: " + p_type);
+                            Toast.makeText(BT_Link_Oscilloscope_Activity.this, "Pulser Type: " + p_type, Toast.LENGTH_SHORT).show();
+                            showLoader(getResources().getString(R.string.ConnectingToTheLINK) + " " + getResources().getString(R.string.PleaseWaitSeveralSeconds));
 
                             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                 @Override
@@ -353,8 +393,15 @@ public class BT_Link_Oscilloscope_Activity extends AppCompatActivity { // implem
                                         default://Something went wrong in link selection please try again.
                                             break;
                                     }
+
+                                    new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            hideLoader();
+                                        }
+                                    }, 100);
                                 }
-                            }, 6000);
+                            }, 7000);
                         }
                         btnReconnect.setVisibility(View.VISIBLE);
                     }
@@ -371,15 +418,13 @@ public class BT_Link_Oscilloscope_Activity extends AppCompatActivity { // implem
 
     public void showToast(Context ctx, String message) {
         Toast toast = Toast.makeText(ctx, " " + message + " ", Toast.LENGTH_LONG);
-        toast.setGravity(Gravity.CENTER,-20,130);
+        toast.setGravity(Gravity.CENTER, -20, 130);
         toast.show();
     }
 
     private void scopeOnCommand() {
         try {
             btnReconnect.setVisibility(View.VISIBLE);
-            BTConstants.ReadingProcessComplete = false;
-            chartBindStarted = false;
             isScopeRecordStarted = false;
             scopeWaitCounter = 0;
             stopCounter = 0;
@@ -429,7 +474,7 @@ public class BT_Link_Oscilloscope_Activity extends AppCompatActivity { // implem
                         }, 50);
                     }
 
-                    if (!isScopeRecordStarted && scopeWaitCounter > 2) {
+                    if (!isScopeRecordStarted && scopeWaitCounter > 3) {
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + "Failed to start Record.");
                         new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
@@ -441,12 +486,11 @@ public class BT_Link_Oscilloscope_Activity extends AppCompatActivity { // implem
                         cancel();
                     }
 
-                    if (isScopeRecordStarted && scopeWaitCounter > 10) {
+                    if (isScopeRecordStarted) {
                         if (stopCounter < 30) {
                             if (BTConstants.ScopeStatus.equalsIgnoreCase("OVER")) {
                                 if (AppConstants.GenerateLogs)
                                     AppConstants.WriteinFile(TAG + "Record end.");
-                                chartBindStarted = false;
                                 new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                     @Override
                                     public void run() {
@@ -459,6 +503,14 @@ public class BT_Link_Oscilloscope_Activity extends AppCompatActivity { // implem
                                 stopCounter++;
                             }
                         } else {
+                            if (AppConstants.GenerateLogs)
+                                AppConstants.WriteinFile(TAG + "Failed to over Record.");
+                            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Toast.makeText(BT_Link_Oscilloscope_Activity.this, "Please try again.", Toast.LENGTH_LONG).show();
+                                }
+                            }, 50);
                             cancel();
                         }
                     } else {
@@ -471,7 +523,7 @@ public class BT_Link_Oscilloscope_Activity extends AppCompatActivity { // implem
         } catch (Exception e) {
             e.printStackTrace();
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " BTLink: scopeOnCommand Exception:>>" + e.getMessage());
+                AppConstants.WriteinFile(TAG + " BTLink: scopeOnCommand Exception: " + e.getMessage());
         }
     }
 
@@ -499,7 +551,7 @@ public class BT_Link_Oscilloscope_Activity extends AppCompatActivity { // implem
     public void InitChart() {
         try {
             //yValues.add(new Entry(0, 0));
-            BTConstants.BTLinkVoltageReadings.clear();
+            BTLinkVoltageReadings.clear();
             GenerateChart();
             myChart.getAxisLeft().setAxisMinimum(0f);
             myChart.getAxisRight().setAxisMinimum(0f);
@@ -543,16 +595,7 @@ public class BT_Link_Oscilloscope_Activity extends AppCompatActivity { // implem
 
     private void CreateDataForChart() {
         try {
-            /*yValues.clear();
-            if (BTConstants.BTLinkVoltageReadings.size() > 0) {
-                for (int i = 0; i < BTConstants.BTLinkVoltageReadings.size(); i++) {
-                    float yValue = BTConstants.BTLinkVoltageReadings.get(i);
-                    yValues.add(new Entry(i, yValue));
-                }
-            } else {
-                yValues.add(new Entry(0, 0));
-            }*/
-            if (BTConstants.BTLinkVoltageReadings.size() == 0) {
+            if (BTLinkVoltageReadings.size() == 0) {
                 yValues.clear();
                 yValues.add(new Entry(0, 0));
             }
@@ -561,7 +604,7 @@ public class BT_Link_Oscilloscope_Activity extends AppCompatActivity { // implem
         } catch (Exception e) {
             e.printStackTrace();
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "CreateDataForChart Exception:>>" + e.getMessage());
+                AppConstants.WriteinFile(TAG + "CreateDataForChart Exception: " + e.getMessage());
         }
     }
 
@@ -597,7 +640,159 @@ public class BT_Link_Oscilloscope_Activity extends AppCompatActivity { // implem
         } catch (Exception e) {
             e.printStackTrace();
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "ScopeReadCommand Exception:>>" + e.getMessage());
+                AppConstants.WriteinFile(TAG + "ScopeReadCommand Exception: " + e.getMessage());
+        }
+    }
+
+    private void RegisterReceiver(String linkPosition) {
+
+        broadcastBlueLinkData = new BroadcastBlueLinkData();
+        switch (linkPosition) {
+            case "0"://Link 1
+                intentFilter = new IntentFilter("BroadcastBlueLinkOneData");
+                break;
+            case "1"://Link 2
+                intentFilter = new IntentFilter("BroadcastBlueLinkTwoData");
+                break;
+            case "2"://Link 3
+                intentFilter = new IntentFilter("BroadcastBlueLinkThreeData");
+                break;
+            case "3"://Link 4
+                intentFilter = new IntentFilter("BroadcastBlueLinkFourData");
+                break;
+            case "4"://Link 5
+                intentFilter = new IntentFilter("BroadcastBlueLinkFiveData");
+                break;
+            case "5"://Link 6
+                intentFilter = new IntentFilter("BroadcastBlueLinkSixData");
+                break;
+        }
+        registerReceiver(broadcastBlueLinkData, intentFilter);
+
+    }
+
+    private void UnregisterReceiver() {
+        unregisterReceiver(broadcastBlueLinkData);
+    }
+
+    public class BroadcastBlueLinkData extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+
+            try {
+                Bundle notificationData = intent.getExtras();
+                String Action = notificationData.getString("Action");
+                String actionByPosition = "";
+                switch (LinkPosition) {
+                    case "0"://Link 1
+                        actionByPosition = "BlueLinkOne";
+                        break;
+                    case "1"://Link 2
+                        actionByPosition = "BlueLinkTwo";
+                        break;
+                    case "2"://Link 3
+                        actionByPosition = "BlueLinkThree";
+                        break;
+                    case "3"://Link 4
+                        actionByPosition = "BlueLinkFour";
+                        break;
+                    case "4"://Link 5
+                        actionByPosition = "BlueLinkFive";
+                        break;
+                    case "5"://Link 6
+                        actionByPosition = "BlueLinkSix";
+                        break;
+                    default://Something went wrong in link selection please try again.
+                        break;
+                }
+
+                if (Action.equalsIgnoreCase(actionByPosition)) {
+
+                    Request = notificationData.getString("Request");
+                    Response = notificationData.getString("Response");
+
+                    if (Response == null) {
+                        Response = "";
+                    }
+
+                    /*if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + "BTLink 1: Response from Link >>" + Response.trim());*/
+
+                    if (Response.contains("pulser_type")) {
+                        BTConstants.ScopeStatus = "";
+                        getPulserType(Response.trim());
+                    } else if (Response.contains("START")) {
+                        BTConstants.ScopeStatus = "START";
+                    } else if (Response.contains("OVER")) {
+                        BTConstants.ScopeStatus = "OVER";
+                    } else if (Response.contains("DONE")) {
+                        BTConstants.ScopeStatus = "DONE";
+                    }
+                    if (Request.equalsIgnoreCase(BTConstants.scope_READ_cmd)) {
+                        Response = Response.replace("}", "},");
+                        sBuilder.append(Response.trim());
+
+                        if (sBuilder.toString().contains("DONE")) {
+                            BTConstants.ScopeStatus = "DONE";
+                            parseScopeReadings(sBuilder.toString());
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + "BTLink: onReceive Exception: " + e.getMessage());
+            }
+        }
+    }
+
+    private void getPulserType(String response) {
+        try {
+            if (response.contains("pulser_type")) {
+                JSONObject jsonObj = new JSONObject(response);
+                p_type = jsonObj.getString("pulser_type");
+            } else {
+                p_type = "";
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void parseScopeReadings(String response) {
+        try {
+            if (response.endsWith(",")) {
+                response = response.substring(0, (response.length() - 1)); // To remove last comma
+            }
+
+            String[] scope = response.split(",");
+            scope = Arrays.copyOf(scope, scope.length - 1); // To remove last entry {"scope":"DONE"}
+
+            for (int i = 0; i < scope.length; i++) {
+                scopeCount(scope[i].trim(), i + 1);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + "parseScopeReadings Exception: " + e.getMessage());
+        }
+    }
+
+    private void scopeCount(String response, int scopeCounter) {
+        try {
+            String scope;
+
+            if (response.contains("scope")) {
+                JSONObject jsonObj = new JSONObject(response);
+                scope = jsonObj.getString("scope");
+
+                BTLinkVoltageReadings.add(Integer.parseInt(scope));
+                yValues.add(new Entry(scopeCounter, Integer.parseInt(scope)));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

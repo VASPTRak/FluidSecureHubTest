@@ -55,7 +55,6 @@
     <string name="OfflineMenu">Desconectado</string>
     <string name="CameraMenu">Cámara</string>
     <string name="ReloadMenu">Recargar</string>
-    <string name="AddLinkWarning">No podrá utilizar este HUB hasta que se asignen ENLACES. Por favor llame a Soporte para asistencia. Todavía tiene la opción de agregar ENLACES desde aplicación.</string>
     <string name="PleaseWaitForHotspotConnect">Conectando al hotspot. Espere por favor...</string>
 
     <string name="permission_camera_rationale">Access to the camera is needed for detection</string>
@@ -430,6 +429,7 @@
     <!-- Add New LINK -->
     <string name="NoLinksAssignedServerMessage">No hay ENLACES asignados a este HUB</string>
     <string name="NoLinksAssignedAppMessage">No hay ENLACES asignados actualmente a este HUB. ¿Le gustaría agregar ENLACE(s)?</string>
+    <string name="AddLinkWarning">No podrá utilizar este HUB hasta que se asignen ENLACES. Por favor llame a Soporte para asistencia. Todavía tiene la opción de agregar ENLACES desde aplicación.</string>
     <string name="LinkNameHeading">ENLACE Nombre:</string>
     <string name="LinkNameHint">ENLACE Nombre</string>
     <string name="LinkNameRequired">Por favor, introduzca el nombre del ENLACE.</string>

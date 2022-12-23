@@ -35,8 +35,7 @@ public class BTConstants {
     public static String deviceAddress6 = "";
     public static String deviceAddressOscilloscope = "";
     public static boolean forOscilloscope = false;
-    public static boolean TerminateReadingProcess = false;
-    public static boolean ReadingProcessComplete = false;
+
     public static boolean SwitchedBTToUDP1 = false;
     public static boolean SwitchedBTToUDP2 = false;
     public static boolean SwitchedBTToUDP3 = false;
@@ -55,11 +54,9 @@ public class BTConstants {
     //public static String linkUpgrade_cmd = "upgrade:";
     public static String linkUpgrade_cmd = "LK_COMM=upgrade ";
     public static String p_type_command = "LK_COMM=p_type:";
-    public static String p_type = "";
     public static String scope_ON_cmd = "LK_COMM=scope=ON";
     public static String scope_READ_cmd = "LK_COMM=scope=READ";
     public static String ScopeStatus = "";
-    public static ArrayList<Integer> BTLinkVoltageReadings = new ArrayList<>();
 
     public static boolean isPTypeCommandExecuted1 = false;
     public static boolean isPTypeCommandExecuted2 = false;

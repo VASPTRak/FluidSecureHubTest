@@ -54,7 +54,6 @@
     <string name="OfflineMenu">Offline</string>
     <string name="CameraMenu">Camera</string>
     <string name="ReloadMenu">Reload</string>
-    <string name="AddLinkWarning">You will be unable to utilize this HUB until LINKS are assigned. Please call into Support for assistance. You still have the option of adding LINKS from the App.</string>
     <string name="PleaseWaitForHotspotConnect">Connecting to the hotspot. Please wait...</string>
 
     <string name="permission_camera_rationale">Access to the camera is needed for detection</string>
@@ -430,6 +429,7 @@
     <!-- Add New LINK -->
     <string name="NoLinksAssignedServerMessage">There are no LINKS assigned to this HUB</string>
     <string name="NoLinksAssignedAppMessage">There are no LINKS currently assigned to this HUB. Would you like to add LINK(s)?</string>
+    <string name="AddLinkWarning">You will be unable to utilize this HUB until LINKS are assigned. Please call into Support for assistance. You still have the option of adding LINKS from the App.</string>
     <string name="LinkNameHeading">LINK Name:</string>
     <string name="LinkNameHint">LINK Name</string>
     <string name="LinkNameRequired">Please enter LINK Name.</string>
