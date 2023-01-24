@@ -412,6 +412,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     public int delayMillis = 100;
     public String st = "";
     public boolean ConfigurationStep1IsInProgress = false;
+    public boolean upgradeLoaderIsShown = false;
     public Menu myMenu;
 
     //============ Bluetooth reader Gatt end==============
@@ -527,26 +528,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             loading.show();
         }
 
-        boolean showLoader = false;
-        if (BTConstants.CurrentTransactionIsBT) {
-            if (BTConstants.UpgradeStatusBT1.equalsIgnoreCase("Started")) {
-                BTConstants.UpgradeStatusBT1 = "";
-                showLoader = true;
-            } else if (BTConstants.UpgradeStatusBT2.equalsIgnoreCase("Started")) {
-                BTConstants.UpgradeStatusBT2 = "";
-                showLoader = true;
-            } else if (BTConstants.UpgradeStatusBT3.equalsIgnoreCase("Started")) {
-                BTConstants.UpgradeStatusBT3 = "";
-                showLoader = true;
-            } else if (BTConstants.UpgradeStatusBT4.equalsIgnoreCase("Started")) {
-                BTConstants.UpgradeStatusBT4 = "";
-                showLoader = true;
-            }
-            if (showLoader) {
-                BTLinkUpgradeProcessLoader();
-            }
-            showUpgradeSpinnerMessage = true;
-        }
+        showUpgradeSpinnerMessage();
+
         UpdateFSUI_seconds();
         DeleteOldLogFiles();//Delete log files older than 1 month
         //Reconnect BT reader if disconnected
@@ -564,7 +547,39 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         ConnectAllAvailableBTLinks();
 
         DebugWindow();
+        AppConstants.showWelcomeDialogForAddNewLink = true;
 
+    }
+
+    private void showUpgradeSpinnerMessage() {
+        try {
+            if (upgradeLoaderIsShown) {
+                return;
+            }
+
+            boolean showLoader = false;
+            if (BTConstants.CurrentTransactionIsBT) {
+                if (BTConstants.UpgradeStatusBT1.equalsIgnoreCase("Started")) {
+                    BTConstants.UpgradeStatusBT1 = "";
+                    showLoader = true;
+                } else if (BTConstants.UpgradeStatusBT2.equalsIgnoreCase("Started")) {
+                    BTConstants.UpgradeStatusBT2 = "";
+                    showLoader = true;
+                } else if (BTConstants.UpgradeStatusBT3.equalsIgnoreCase("Started")) {
+                    BTConstants.UpgradeStatusBT3 = "";
+                    showLoader = true;
+                } else if (BTConstants.UpgradeStatusBT4.equalsIgnoreCase("Started")) {
+                    BTConstants.UpgradeStatusBT4 = "";
+                    showLoader = true;
+                }
+                if (showLoader) {
+                    BTLinkUpgradeProcessLoader();
+                }
+                showUpgradeSpinnerMessage = true;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -893,6 +908,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         AppConstants.WriteinFile(TAG + " HUB Name: " + userInfoEntity.PersonName);
         AppConstants.WriteinFile(TAG + " Site Name: " + userInfoEntity.FluidSecureSiteName);
         AppConstants.WriteinFile(TAG + " App Version: " + CommonUtils.getVersionCode(WelcomeActivity.this) + " " + AppConstants.getDeviceName() + " Android " + Build.VERSION.RELEASE + " ");
+
+        AppConstants.showWelcomeDialogForAddNewLink = true;
 
         wifiApManager = new WifiApManager(this);
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -1734,6 +1751,9 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 AppConstants.WriteinFile(TAG + "Exception in goButtonAction: single link selection. " + ex.getMessage());
         }
 
+        // Start background services (Change for #2108 & #2109)
+        SyncSqliteData();
+
         ///////////////////common online offline///////////////////////////////
         EntityHub obj = offcontroller.getOfflineHubDetails(WelcomeActivity.this);
 
@@ -1768,8 +1788,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                             if (IsTankEmpty.equalsIgnoreCase("True")) {
                                 if (AppConstants.GenerateLogs)
-                                    AppConstants.WriteinFile(TAG + "The system is low on fuel and must be refilled before fueling can start. Please contact your Manager.");
-                                CommonUtils.AlertDialogAutoClose(WelcomeActivity.this, "", "The system is low on fuel and must be refilled before fueling can start. Please contact your Manager.");
+                                    AppConstants.WriteinFile(TAG + getResources().getString(R.string.EmptyTankWarning));
+                                CommonUtils.AlertDialogAutoClose(WelcomeActivity.this, "", getResources().getString(R.string.EmptyTankWarning));
                                 tvSSIDName.setText(R.string.selectHose);
                                 btnGo.setVisibility(View.GONE);
 
@@ -3106,8 +3126,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                     if (IsTankEmpty != null && IsTankEmpty.equalsIgnoreCase("True")) {
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "The system is low on fuel and must be refilled before fueling can start. Please contact your Manager.");
-                        CommonUtils.AlertDialogAutoClose(WelcomeActivity.this, "", "The system is low on fuel and must be refilled before fueling can start. Please contact your Manager.");
+                            AppConstants.WriteinFile(TAG + getResources().getString(R.string.EmptyTankWarning));
+                        CommonUtils.AlertDialogAutoClose(WelcomeActivity.this, "", getResources().getString(R.string.EmptyTankWarning));
                         tvSSIDName.setText(R.string.selectHose);
                         btnGo.setVisibility(View.GONE);
 
@@ -4093,7 +4113,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                 Gson gson = new Gson();
                                 final String jsonData = gson.toJson(authEntityClass1);
 
-                                saveLinkMacAddressForReconfigure(jsonData);
+                                CommonUtils.saveLinkMacAddressForReconfigure(WelcomeActivity.this, jsonData);
 
                                 //setGlobalMobileDatConnection();
                                 cd = new ConnectionDetector(WelcomeActivity.this);
@@ -4140,7 +4160,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Started Reconfiguration process...");
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Started Reconfiguration process...");
             String s = getResources().getString(R.string.StartedReconfiguration);
             SpannableString ss2 = new SpannableString(s);
             ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
@@ -4175,7 +4196,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     WifiManager wifiManager = (WifiManager) WelcomeActivity.this.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
                     WifiInfo wifiInfo = wifiManager.getConnectionInfo();
 
-                    String ssid = wifiInfo.getSSID();
+                    String ssid = wifiInfo.getSSID().replace("\"", "");
+
                     if (ssid.contains(AppConstants.CURRENT_SELECTED_SSID)) {
 
                         setGlobalWifiConnection();
@@ -4254,7 +4276,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                                         new CommandsPOST_ChangeHotspotSettings().execute(URL_UPDATE_FS_INFO, jsonChangeUsernamePass);
 
                                                     } catch (Exception e) {
-                                                        AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "CommandsPOST_ChangeHotspotSettings. Exception: " + e.getMessage());
+                                                        if (AppConstants.GenerateLogs)
+                                                            AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "CommandsPOST_ChangeHotspotSettings. Exception: " + e.getMessage());
                                                     }
                                                     btnRetryWifi.setVisibility(View.GONE);
                                                 }
@@ -5787,6 +5810,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                 pdOnResume.dismiss();
                             }
                             if (pdUpgradeProcess != null & showUpgradeSpinnerMessage) {
+                                upgradeLoaderIsShown = true;
                                 //pdUpgradeProcess.setProgress(Integer.parseInt(BTConstants.upgradeProgress));
                                 pdUpgradeProcess.setMessage(GetSpinnerMessage(getResources().getString(R.string.SoftwareUpdateInProgress) + "\n" + getResources().getString(R.string.PleaseWaitSeveralSeconds) + " " + BTConstants.upgradeProgress));
                             }
@@ -5840,6 +5864,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                 pdOnResume.dismiss();
                             }
                             if (pdUpgradeProcess != null & showUpgradeSpinnerMessage) {
+                                upgradeLoaderIsShown = true;
                                 //pdUpgradeProcess.setProgress(Integer.parseInt(BTConstants.upgradeProgress));
                                 pdUpgradeProcess.setMessage(GetSpinnerMessage(getResources().getString(R.string.SoftwareUpdateInProgress) + "\n" + getResources().getString(R.string.PleaseWaitSeveralSeconds) + " " + BTConstants.upgradeProgress));
                             }
@@ -5893,6 +5918,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                 pdOnResume.dismiss();
                             }
                             if (pdUpgradeProcess != null & showUpgradeSpinnerMessage) {
+                                upgradeLoaderIsShown = true;
                                 //pdUpgradeProcess.setProgress(Integer.parseInt(BTConstants.upgradeProgress));
                                 pdUpgradeProcess.setMessage(GetSpinnerMessage(getResources().getString(R.string.SoftwareUpdateInProgress) + "\n" + getResources().getString(R.string.PleaseWaitSeveralSeconds) + " " + BTConstants.upgradeProgress));
                             }
@@ -5946,6 +5972,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                 pdOnResume.dismiss();
                             }
                             if (pdUpgradeProcess != null & showUpgradeSpinnerMessage) {
+                                upgradeLoaderIsShown = true;
                                 //pdUpgradeProcess.setProgress(Integer.parseInt(BTConstants.upgradeProgress));
                                 pdUpgradeProcess.setMessage(GetSpinnerMessage(getResources().getString(R.string.SoftwareUpdateInProgress) + "\n" + getResources().getString(R.string.PleaseWaitSeveralSeconds) + " " + BTConstants.upgradeProgress));
                             }
@@ -5999,6 +6026,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                 pdOnResume.dismiss();
                             }
                             if (pdUpgradeProcess != null & showUpgradeSpinnerMessage) {
+                                upgradeLoaderIsShown = true;
                                 //pdUpgradeProcess.setProgress(Integer.parseInt(BTConstants.upgradeProgress));
                                 pdUpgradeProcess.setMessage(GetSpinnerMessage(getResources().getString(R.string.SoftwareUpdateInProgress) + "\n" + getResources().getString(R.string.PleaseWaitSeveralSeconds) + " " + BTConstants.upgradeProgress));
                             }
@@ -6052,6 +6080,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                 pdOnResume.dismiss();
                             }
                             if (pdUpgradeProcess != null & showUpgradeSpinnerMessage) {
+                                upgradeLoaderIsShown = true;
                                 //pdUpgradeProcess.setProgress(Integer.parseInt(BTConstants.upgradeProgress));
                                 pdUpgradeProcess.setMessage(GetSpinnerMessage(getResources().getString(R.string.SoftwareUpdateInProgress) + "\n" + getResources().getString(R.string.PleaseWaitSeveralSeconds) + " " + BTConstants.upgradeProgress));
                             }
@@ -6130,6 +6159,9 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
         if (BTConstants.CurrentTransactionIsBT && showUpgradeSpinnerMessage) {
             ManageBTLinkUpgrade();
+        }
+        if (!upgradeLoaderIsShown) {
+            showUpgradeSpinnerMessage();
         }
 
         // Toast.makeText(getApplicationContext(),"FS_Count"+FS_Count,Toast.LENGTH_SHORT).show();
@@ -6219,6 +6251,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 fs1Cnt5Sec++;
             }
 
+            // BT Link reconnection attempt for interrupted transaction
             if (BTConstants.CurrentTransactionIsBT && !BTConstants.BTLinkOneStatus && AppConstants.isRelayON_fs1 && !BTConstants.SwitchedBTToUDP1) {
                 if (CountBeforeReconnectRelay1 >= 1) {
                     if (BTConstants.BTStatusStrOne.equalsIgnoreCase("Disconnect") && !BTConstants.isUpgradeInProgress_BT1) {
@@ -6237,6 +6270,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 }
             }
 
+            // BT Link reconnection attempt after p_type command
             if (BTConstants.isPTypeCommandExecuted1) {
                 BTConstants.isPTypeCommandExecuted1 = false;
                 if (AppConstants.GenerateLogs)
@@ -6351,6 +6385,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 fs2Cnt5Sec++;
             }
 
+            // BT Link reconnection attempt for interrupted transaction
             if (BTConstants.CurrentTransactionIsBT && !BTConstants.BTLinkTwoStatus && AppConstants.isRelayON_fs2 && !BTConstants.SwitchedBTToUDP2) {
                 if (CountBeforeReconnectRelay2 >= 1) {
                     if (BTConstants.BTStatusStrTwo.equalsIgnoreCase("Disconnect") && !BTConstants.isUpgradeInProgress_BT2) {
@@ -6369,6 +6404,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 }
             }
 
+            // BT Link reconnection attempt after p_type command
             if (BTConstants.isPTypeCommandExecuted2) {
                 BTConstants.isPTypeCommandExecuted2 = false;
                 if (AppConstants.GenerateLogs)
@@ -6482,6 +6518,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 fs3Cnt5Sec++;
             }
 
+            // BT Link reconnection attempt for interrupted transaction
             if (BTConstants.CurrentTransactionIsBT && !BTConstants.BTLinkThreeStatus && AppConstants.isRelayON_fs3 && !BTConstants.SwitchedBTToUDP3) {
                 if (CountBeforeReconnectRelay3 >= 1) {
                     if (BTConstants.BTStatusStrThree.equalsIgnoreCase("Disconnect") && !BTConstants.isUpgradeInProgress_BT3) {
@@ -6500,6 +6537,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 }
             }
 
+            // BT Link reconnection attempt after p_type command
             if (BTConstants.isPTypeCommandExecuted3) {
                 BTConstants.isPTypeCommandExecuted3 = false;
                 if (AppConstants.GenerateLogs)
@@ -6613,6 +6651,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 fs4Cnt5Sec++;
             }
 
+            // BT Link reconnection attempt for interrupted transaction
             if (BTConstants.CurrentTransactionIsBT && !BTConstants.BTLinkFourStatus && AppConstants.isRelayON_fs4 && !BTConstants.SwitchedBTToUDP4) {
                 if (CountBeforeReconnectRelay4 >= 1) {
                     if (BTConstants.BTStatusStrFour.equalsIgnoreCase("Disconnect") && !BTConstants.isUpgradeInProgress_BT4) {
@@ -6631,6 +6670,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 }
             }
 
+            // BT Link reconnection attempt after p_type command
             if (BTConstants.isPTypeCommandExecuted4) {
                 BTConstants.isPTypeCommandExecuted4 = false;
                 if (AppConstants.GenerateLogs)
@@ -6745,6 +6785,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 fs5Cnt5Sec++;
             }
 
+            // BT Link reconnection attempt for interrupted transaction
             if (BTConstants.CurrentTransactionIsBT && !BTConstants.BTLinkFiveStatus && AppConstants.isRelayON_fs5 && !BTConstants.SwitchedBTToUDP5) {
                 if (CountBeforeReconnectRelay5 >= 1) {
                     if (BTConstants.BTStatusStrFive.equalsIgnoreCase("Disconnect") && !BTConstants.isUpgradeInProgress_BT5) {
@@ -6763,6 +6804,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 }
             }
 
+            // BT Link reconnection attempt after p_type command
             if (BTConstants.isPTypeCommandExecuted5) {
                 BTConstants.isPTypeCommandExecuted5 = false;
                 if (AppConstants.GenerateLogs)
@@ -6876,6 +6918,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 fs6Cnt5Sec++;
             }
 
+            // BT Link reconnection attempt for interrupted transaction
             if (BTConstants.CurrentTransactionIsBT && !BTConstants.BTLinkSixStatus && AppConstants.isRelayON_fs6 && !BTConstants.SwitchedBTToUDP6) {
                 if (CountBeforeReconnectRelay6 >= 1) {
                     if (BTConstants.BTStatusStrSix.equalsIgnoreCase("Disconnect") && !BTConstants.isUpgradeInProgress_BT6) {
@@ -6894,6 +6937,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 }
             }
 
+            // BT Link reconnection attempt after p_type command
             if (BTConstants.isPTypeCommandExecuted6) {
                 BTConstants.isPTypeCommandExecuted6 = false;
                 if (AppConstants.GenerateLogs)
@@ -8043,8 +8087,11 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             case R.id.madd_link:
                 //Toast.makeText(getApplicationContext(), "FSnp upgrade", Toast.LENGTH_SHORT).show();
                 //new SppLinkFirmwareUpgrade().execute();
-                Intent in = new Intent(WelcomeActivity.this, AddNewLinkToCloud.class);
-                startActivity(in);
+                if (AppConstants.IsHoseBusyCheckLocally()) {
+                    AddNewLinkScreen();
+                } else {
+                    Toast.makeText(getApplicationContext(), getResources().getString(R.string.HoseIsBusy), Toast.LENGTH_SHORT).show();
+                }
                 break;
 
             case R.id.btLinkScope:
@@ -9866,7 +9913,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 tvLatLng.setText(getResources().getString(R.string.HoseListIsNotAvailable));
 
                 System.out.println("GetSSIDUsingLocation...." + result);
-
+                AppConstants.isAllLinksAreBTLinks = true;
                 serverSSIDList.clear();
                 // BackgroundServiceKeepDataTransferAlive.SSIDList.clear();//clear SSIDList
                 //AppConstants.DetailsServerSSIDList.clear();
@@ -10874,6 +10921,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 // BackgroundServiceKeepDataTransferAlive.SSIDList.clear();//clear SSIDList
                 //AppConstants.DetailsServerSSIDList.clear();
 
+                AppConstants.isAllLinksAreBTLinks = true;
                 String errMsg = "";
 
                 if (result != null && !result.isEmpty()) {
@@ -11399,6 +11447,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         try {
             serverSSIDList.clear();
             //AppConstants.DetailsServerSSIDList.clear();
+            AppConstants.isAllLinksAreBTLinks = true;
             String errMsg = "";
             if (result != null && !result.isEmpty()) {
 
@@ -11867,13 +11916,13 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     }
 
 
-    public void saveLinkMacAddressForReconfigure(String jsonData) {
+    /*public void saveLinkMacAddressForReconfigure(String jsonData) {
         SharedPreferences sharedPref = WelcomeActivity.this.getSharedPreferences(Constants.MAC_ADDR_RECONFIGURE, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPref.edit();
         editor.putString("jsonData", jsonData);
         editor.commit();
 
-    }
+    }*/
 
     public void clearMacAddressSharedPref() {
         SharedPreferences preferences = getSharedPreferences(Constants.MAC_ADDR_RECONFIGURE, Context.MODE_PRIVATE);
@@ -12311,7 +12360,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                 NetworkInfo mWifi = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);*/
 
                                 if (AppConstants.GenerateLogs)
-                                    AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + ssid + " =--= " + AppConstants.SELECTED_SSID_FOR_MANUALL); //+" IsWifi Connected: "+mWifi.isConnected()
+                                    AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Selected SSID: " + AppConstants.SELECTED_SSID_FOR_MANUALL +"; Connected to: " + ssid); //+" IsWifi Connected: "+mWifi.isConnected()
 
                             }
 
@@ -12345,7 +12394,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                     new WiFiConnectTask().execute();
                                 } else {
                                     if (AppConstants.GenerateLogs)
-                                        AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Step1 => Connected SSID: " + ssid +"; Selected SSID: " + AppConstants.SELECTED_SSID_FOR_MANUALL);
+                                        AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Step1 => Selected SSID: " + AppConstants.SELECTED_SSID_FOR_MANUALL +"; Connected SSID: " + ssid);
                                 }
                             }
 
@@ -12613,7 +12662,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
             Gson gson = new Gson();
             final String jsonData = gson.toJson(authEntityClass1);
-            saveLinkMacAddressForReconfigure(jsonData);
+            CommonUtils.saveLinkMacAddressForReconfigure(WelcomeActivity.this, jsonData);
 
             setGlobalMobileDatConnection();  //check if needed
             cd = new ConnectionDetector(WelcomeActivity.this);
@@ -15443,8 +15492,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
             @Override
             public void onClick(View v) {
-                Intent in = new Intent(WelcomeActivity.this, AddNewLinkToCloud.class);
-                startActivity(in);
+                AddNewLinkScreen();
                 dialogBus.dismiss();
             }
         });
@@ -15480,8 +15528,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
             @Override
             public void onClick(View v) {
-                Intent in = new Intent(WelcomeActivity.this, AddNewLinkToCloud.class);
-                startActivity(in);
+                AddNewLinkScreen();
                 dialogBus.dismiss();
             }
         });
@@ -15494,5 +15541,11 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 dialogBus.dismiss();
             }
         });
+    }
+
+    public void AddNewLinkScreen() {
+        AppConstants.newlyAddedLinks.clear();
+        Intent in = new Intent(WelcomeActivity.this, AddNewLinkToCloud.class);
+        startActivity(in);
     }
 }

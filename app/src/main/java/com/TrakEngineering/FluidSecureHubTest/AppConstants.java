@@ -197,6 +197,11 @@ public class AppConstants {
     public static boolean AUTH_CALL_SUCCESS = false;
     public static boolean serverCallInProgress;
 
+    public static boolean showWelcomeDialogForAddNewLink = true;
+    public static ArrayList<HashMap<String, String>> newlyAddedLinks = new ArrayList<>();
+    public static String NewlyAddedSiteId = "0";
+    //public static boolean enableHotspotAfterNewLinkConfigure = false;
+
     public static String LOG_FluidSecure_Auto = "";
     public static String Server_mesage = "Server Not Connected..!!!";
     public static String Server_Request;
@@ -329,6 +334,9 @@ public class AppConstants {
     public static String R_HOSE_ID;
     public static String R_SITE_ID;
     public static String SITE_ID;
+    public static String CURRENT_NEW_LINK_SELECTED_FOR_CONFIGURE;
+    public static String CURRENT_NEW_LINK_SITE_ID;
+    public static String NEW_LINK_UPDATE_MAC_ADDRESS;
 
     public static String WIFI_PASSWORD = "";
 

@@ -394,8 +394,13 @@ public class OffBackgroundService extends Service {
 
                         if (cd.isConnecting()) {
 
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(TAG + " <Offline Link,Vehicle,Pin data download started.>");
+                            if (IsDepartmentRequire.equalsIgnoreCase("true")) {
+                                if (AppConstants.GenerateLogs)
+                                    AppConstants.WriteinFile(TAG + " <Offline Link,Vehicle,Pin,Department data download started.>");
+                            } else {
+                                if (AppConstants.GenerateLogs)
+                                    AppConstants.WriteinFile(TAG + " <Offline Link,Vehicle,Pin data download started.>");
+                            }
 
                             new GetAPILinkDetails().execute();
 
@@ -404,8 +409,6 @@ public class OffBackgroundService extends Service {
                             new GetAPIPersonnelPinDetails().execute();
 
                             if (IsDepartmentRequire.equalsIgnoreCase("true")) {
-                                if (AppConstants.GenerateLogs)
-                                    AppConstants.WriteinFile(TAG + " <Offline Department data download started.>");
                                 new GetAPIDepartmentDetails().execute();
                             }
 

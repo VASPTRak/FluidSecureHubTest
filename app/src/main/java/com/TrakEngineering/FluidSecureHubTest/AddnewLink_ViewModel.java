@@ -322,11 +322,11 @@ public class AddnewLink_ViewModel extends AndroidViewModel implements LifecycleO
                     JSONObject jsonObject = new JSONObject(serverRes);
                     String ResponseMessage = jsonObject.getString("ResponseMessage");
                     String ResponseText = jsonObject.getString("ResponseText");
+                    AppConstants.NewlyAddedSiteId = jsonObject.getString("SiteId");
                     myRandomNumber.setValue(ResponseText);
                     if (ResponseMessage.equalsIgnoreCase("success")) {
-                        Log.i(TAG, "Something went wrong in server call");
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "LINK Added Successfully.");
+                            AppConstants.WriteinFile(TAG + "LINK saved successfully.");
                     } else {
                         Log.i(TAG, "Something went wrong in server call");
                         if (AppConstants.GenerateLogs)

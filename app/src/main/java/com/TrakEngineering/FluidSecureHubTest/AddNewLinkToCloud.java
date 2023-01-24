@@ -13,11 +13,15 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Looper;
+import android.provider.Settings;
 import android.text.Editable;
 import android.text.Html;
 import android.text.SpannableString;
@@ -51,6 +55,7 @@ import androidx.lifecycle.ProcessLifecycleOwner;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.TrakEngineering.FluidSecureHubTest.enity.AddTankFromAPP_entity;
+import com.TrakEngineering.FluidSecureHubTest.enity.UpdateMacAddressClass;
 import com.TrakEngineering.FluidSecureHubTest.offline.OfflineConstants;
 import com.TrakEngineering.FluidSecureHubTest.retrofit.AzureMapApi;
 import com.TrakEngineering.FluidSecureHubTest.retrofit.BusProvider;
@@ -58,6 +63,7 @@ import com.TrakEngineering.FluidSecureHubTest.retrofit.ErrorEvent;
 import com.TrakEngineering.FluidSecureHubTest.retrofit.Interface;
 import com.TrakEngineering.FluidSecureHubTest.retrofit.ServerEvent;
 import com.TrakEngineering.FluidSecureHubTest.retrofit.ServerResponse;
+import com.TrakEngineering.FluidSecureHubTest.server.ServerHandler;
 import com.azure.android.maps.control.AzureMap;
 import com.azure.android.maps.control.events.OnClick;
 import com.azure.android.maps.control.options.AnimationType;
@@ -85,7 +91,10 @@ import com.azure.android.maps.control.layer.SymbolLayer;
 import com.azure.android.maps.control.source.DataSource;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
 import java.util.HashMap;
+import java.util.concurrent.TimeUnit;
 
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Call;
@@ -93,6 +102,7 @@ import retrofit2.Callback;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 import retrofit2.converter.scalars.ScalarsConverterFactory;
+import com.TrakEngineering.FluidSecureHubTest.WifiHotspot.WifiApManager;
 
 
 public class AddNewLinkToCloud extends AppCompatActivity implements LifecycleObserver, AdapterView.OnItemClickListener, AdapterView.OnItemSelectedListener {
@@ -101,7 +111,7 @@ public class AddNewLinkToCloud extends AppCompatActivity implements LifecycleObs
     private String TAG = this.getClass().getSimpleName();
     private Spinner Spinner_tankNumber, spin_pulseRatio;
     private EditText edt_linkname, edt_pumpOnTime, edt_pumpOffTime; //, edt_username, edt_enter_password
-    private EditText edt_LinkNewName, edt_StreetAddress; // edt_UnitsMeasured, edt_Pulses
+    private EditText edt_LinkNewName; //, edt_StreetAddress, edt_UnitsMeasured, edt_Pulses
     private Button btn_cancel, btn_done, btnAddNewTank, btnMap;
     private String expression = "^[a-zA-Z0-9-_ ]*$";
     private ProgressDialog pd;
@@ -120,17 +130,62 @@ public class AddNewLinkToCloud extends AppCompatActivity implements LifecycleObs
     ArrayList<String> searchResults = new ArrayList<>();
     ArrayList<HashMap<String, String>> listOfPositions = new ArrayList<>();
     //public boolean isAddressSelected = false;
-    public String selectedAddress = "";
+    public String StreetAddress = "", selectedAddressFromMap = "";
+    private boolean configurationProcessStarted = false;
+
+    private ConnectionDetector cd = new ConnectionDetector(AddNewLinkToCloud.this);
+    static WifiApManager wifiApManager;
+    ProgressDialog loading = null;
+    CountDownTimer countDownTimerForConfigure = null;
+    public boolean ConfigurationStep1IsInProgress = false;
+    public boolean proceedAfterManualWifiConnect = false;
+    public boolean enableHotspotAfterNewLinkConfigure = false;
+    public boolean skipOnResume = false;
+    String HTTP_URL = "";
+    String URL_INFO = "";
+    String URL_UPDATE_FS_INFO = "";
 
     /*static {
         AzureMaps.setSubscriptionKey("FJ29LaayVFiy20Hp29hEe5mG7F6QTbhfyV6wuWwG7Sg");
     }*/
 
     @Override
+    protected void onResume() {
+        super.onResume();
+
+        if (skipOnResume && !proceedAfterManualWifiConnect) {
+            skipOnResume = false;
+            return;
+        }
+        if (configurationProcessStarted) {
+            ProceedToLinkConfiguration(true);
+        }
+
+        if (ConfigurationStep1IsInProgress) {
+            String s = getResources().getString(R.string.PleaseWaitForWifiConnect);
+            SpannableString ss2 = new SpannableString(s);
+            ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
+            ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
+            loading = new ProgressDialog(AddNewLinkToCloud.this);
+            loading.setMessage(ss2);
+            loading.setCancelable(false);
+            loading.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+            loading.show();
+        }
+
+        if (proceedAfterManualWifiConnect) {
+            proceedAfterManualWifiConnect = false;
+            new WiFiConnectTask().execute();
+        }
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mySavedInstanceState = savedInstanceState;
         setContentView(R.layout.activity_add_new_link_to_cloud);
+
+        wifiApManager = new WifiApManager(this);
 
         btn_done = (Button) findViewById(R.id.btn_done);
         btn_cancel = (Button) findViewById(R.id.btn_cancel);
@@ -145,7 +200,7 @@ public class AddNewLinkToCloud extends AppCompatActivity implements LifecycleObs
         edt_LinkNewName = (EditText) findViewById(R.id.edt_LinkNewName);
         //edt_UnitsMeasured = (EditText) findViewById(R.id.edt_UnitsMeasured);
         //edt_Pulses = (EditText) findViewById(R.id.edt_Pulses);
-        edt_StreetAddress = (EditText) findViewById(R.id.edt_StreetAddress);
+        //edt_StreetAddress = (EditText) findViewById(R.id.edt_StreetAddress);
         AppConstants.isLocationSelected = false;
 
         iBtn_LinkName = (ImageButton) findViewById(R.id.iBtn_LinkName);
@@ -181,16 +236,16 @@ public class AddNewLinkToCloud extends AppCompatActivity implements LifecycleObs
             @Override
             public void onChanged(@Nullable String s) {
                AlertDialogBox(AddNewLinkToCloud.this, s);
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + " SaveLinkFromAPP Response: " + s);
+                /*if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " SaveLinkFromAPP Response: " + s);*/
             }
         });
 
         LiveData<Boolean> IsUpdating = addnewlinkViewModel.getIsUpdating();
         IsUpdating.observe(this, new Observer<Boolean>() {
             @Override
-            public void onChanged(Boolean isupdating) {
-                if (isupdating){
+            public void onChanged(Boolean isUpdating) {
+                if (isUpdating){
                     ShowProgressDialog();
                 }else{
                     HideProgressDialog();
@@ -221,6 +276,7 @@ public class AddNewLinkToCloud extends AppCompatActivity implements LifecycleObs
         btn_done.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                //AlertDialogBox(AddNewLinkToCloud.this, "New success message");
                 if (validateData()) {
                     String UnitsMeasured = "1";
                     String Pulses = "20";
@@ -240,7 +296,7 @@ public class AddNewLinkToCloud extends AppCompatActivity implements LifecycleObs
                     }
                     addnewlinkViewModel.ProcessData(edt_linkname.getText().toString().trim(), edt_pumpOnTime.getText().toString().trim(),
                             edt_pumpOffTime.getText().toString().trim(), edt_LinkNewName.getText().toString().trim(),
-                            UnitsMeasured, Pulses, edt_StreetAddress.getText().toString().trim());
+                            UnitsMeasured, Pulses, StreetAddress.trim());
 
                     //, edt_username.getText().toString().trim(), edt_enter_password.getText().toString().trim()
                     //, edt_UnitsMeasured.getText().toString().trim(), edt_Pulses.getText().toString().trim()
@@ -251,7 +307,7 @@ public class AddNewLinkToCloud extends AppCompatActivity implements LifecycleObs
         btn_cancel.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                finish();
+                BackToWelcomeActivity();
             }
         });
 
@@ -266,6 +322,10 @@ public class AddNewLinkToCloud extends AppCompatActivity implements LifecycleObs
         });
 
         SetToolTips();
+
+        if (AppConstants.showWelcomeDialogForAddNewLink) {
+            welcomeDialog();
+        }
 
         /*chkShowHidePassword.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -381,10 +441,6 @@ public class AddNewLinkToCloud extends AppCompatActivity implements LifecycleObs
             mapControl.onCreate(mySavedInstanceState);
 
             // Address search functionality
-                /*for (int i = 0; i < 5; i++) {
-                    searchResults.add("ABC" + i);
-                    searchResults.add("PQR" + i);
-                }*/
             tv_SearchAddress = dialog.findViewById(R.id.tv_SearchAddress);
             autoAdapter = new ArrayAdapter<>(this, R.layout.support_simple_spinner_dropdown_item, searchResults);
             tv_SearchAddress.setAdapter(autoAdapter);
@@ -395,16 +451,17 @@ public class AddNewLinkToCloud extends AppCompatActivity implements LifecycleObs
                     //isAddressSelected = true;
                 }
 
+
                 @Override
                 public void onTextChanged(CharSequence s, int start, int before, int count) {
                     if (!s.toString().isEmpty()) {
-                        selectedAddress = "";
+                        selectedAddressFromMap = "";
                     }
                 }
 
                 @Override
                 public void afterTextChanged(Editable s) {
-                    if (s.toString().length() > 2 && !selectedAddress.equalsIgnoreCase(s.toString())) { // isAddressSelected) {
+                    if (s.toString().length() > 2 && !selectedAddressFromMap.equalsIgnoreCase(s.toString())) { // isAddressSelected) {
                         retrieveAddressDataFromApi(s.toString());
                     }
                 }
@@ -421,7 +478,7 @@ public class AddNewLinkToCloud extends AppCompatActivity implements LifecycleObs
                     @Override
                     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                         //Log.d(TAG, "Selected address is " + searchResults.get(position).toString());
-                        selectedAddress = searchResults.get(position).toString();
+                        selectedAddressFromMap = searchResults.get(position).toString();
                         //isAddressSelected = false;
                         tv_SearchAddress.dismissDropDown();
                         if (listOfPositions != null) {
@@ -677,11 +734,12 @@ public class AddNewLinkToCloud extends AppCompatActivity implements LifecycleObs
         } else if (!AppConstants.isLocationSelected) {
             showCustomMessageDialog(AddNewLinkToCloud.this, getResources().getString(R.string.LocationRequired));
             return false;
-        } else if (edt_StreetAddress.getText().toString().trim().isEmpty()) {
+        }
+        /*else if (edt_StreetAddress.getText().toString().trim().isEmpty()) {
             //edt_StreetAddress.setError(getResources().getString(R.string.AddressRequired));
             showCustomMessageDialog(AddNewLinkToCloud.this, getResources().getString(R.string.AddressRequired));
             return false;
-        }
+        }*/
         return true;
     }
 
@@ -700,26 +758,50 @@ public class AddNewLinkToCloud extends AppCompatActivity implements LifecycleObs
     }
 
     public void AlertDialogBox(final Context ctx, String message) {
-        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(ctx);
-        alertDialogBuilder.setMessage(message);
 
-        alertDialogBuilder.setPositiveButton(getResources().getString(R.string.ok), new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int arg1) {
-                        if (message.contains("success")) {
-                            dialog.dismiss();
-                            finish();
-                        } else {
-                            dialog.dismiss();
+        final Dialog dialogBus = new Dialog(AddNewLinkToCloud.this);
+        dialogBus.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialogBus.setCancelable(false);
+        dialogBus.setContentView(R.layout.custom_alertdialouge);
+        dialogBus.show();
+
+        TextView edt_message = (TextView) dialogBus.findViewById(R.id.edt_message);
+        edt_message.setTextSize(30);
+        Button btnAllow = (Button) dialogBus.findViewById(R.id.btnAllow);
+        edt_message.setText(message);
+
+        btnAllow.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                if (message.contains("success")) {
+                    dialogBus.dismiss();
+                    //finish();
+                    // Save newly added link into arraylist to configure
+                    String linkName = edt_linkname.getText().toString().trim();
+                    boolean linkNameExist = false;
+                    if (AppConstants.newlyAddedLinks != null) {
+                        for (HashMap<String, String> hashMap : AppConstants.newlyAddedLinks) {
+                            if (hashMap.containsValue(linkName)) {
+                                linkNameExist = true;
+                                break;
+                            }
                         }
                     }
-                }
-        );
+                    if (!linkNameExist) {
+                        HashMap<String, String> map = new HashMap<>();
+                        map.put("SiteId", AppConstants.NewlyAddedSiteId);
+                        map.put("LinkName", linkName);
+                        AppConstants.newlyAddedLinks.add(map);
+                    }
+                    //==============================================================
 
-        AlertDialog alertDialog = alertDialogBuilder.create();
-        alertDialog.show();
-        TextView textView = (TextView) alertDialog.findViewById(android.R.id.message);
-        textView.setTextSize(35);
+                    AddMultipleLinksDialog();
+                } else {
+                    dialogBus.dismiss();
+                }
+            }
+        });
     }
 
     public void ShowProgressDialog(){
@@ -1034,7 +1116,8 @@ public class AddNewLinkToCloud extends AppCompatActivity implements LifecycleObs
                                 if (pdAddress != null) {
                                     pdAddress.dismiss();
                                 }
-                                edt_StreetAddress.setText(freeformAddress);
+                                //edt_StreetAddress.setText(freeformAddress);
+                                StreetAddress = freeformAddress;
                             }
                         }
                     }
@@ -1126,7 +1209,7 @@ public class AddNewLinkToCloud extends AppCompatActivity implements LifecycleObs
                     autoAdapter = new ArrayAdapter<>(this, R.layout.support_simple_spinner_dropdown_item, searchResults);
                     //autoAdapter.notifyDataSetChanged();
                     tv_SearchAddress.setAdapter(autoAdapter);
-                    if (selectedAddress.isEmpty()) {
+                    if (selectedAddressFromMap.isEmpty()) {
                         tv_SearchAddress.showDropDown();
                     }
                 }
@@ -1135,5 +1218,825 @@ public class AddNewLinkToCloud extends AppCompatActivity implements LifecycleObs
             if (AppConstants.GenerateLogs)
                 AppConstants.WriteinFile(TAG + " parseAddressesFromResponse Exception: " + ex.getMessage());
         }
+    }
+
+    public void welcomeDialog() {
+
+        //Declare timer
+        CountDownTimer cTimer = null;
+        final Dialog dialogBus = new Dialog(AddNewLinkToCloud.this);
+        dialogBus.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialogBus.setCancelable(false);
+        dialogBus.setContentView(R.layout.custom_alertdialouge);
+        dialogBus.show();
+
+        String newString = getResources().getString(R.string.AddNewLinkWelcomeMessage);
+
+        TextView edt_message = (TextView) dialogBus.findViewById(R.id.edt_message);
+        Button btnAllow = (Button) dialogBus.findViewById(R.id.btnAllow);
+        edt_message.setText(Html.fromHtml(newString));
+
+        cTimer = new CountDownTimer(10000, 10000) {
+            public void onTick(long millisUntilFinished) {
+            }
+
+            public void onFinish() {
+                dialogBus.dismiss();
+            }
+        };
+        cTimer.start();
+
+        CountDownTimer finalCTimer = cTimer;
+        btnAllow.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                dialogBus.dismiss();
+                if (finalCTimer != null) {
+                    finalCTimer.cancel();
+                }
+            }
+
+        });
+    }
+
+    private void AddMultipleLinksDialog() {
+
+        final Dialog dialogBus = new Dialog(AddNewLinkToCloud.this);
+        dialogBus.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialogBus.setCancelable(false);
+        dialogBus.setContentView(R.layout.custom_alertdialougeinput);
+        dialogBus.show();
+
+        String msg = getResources().getString(R.string.AddMultipleLinksMessage);
+
+        TextView edt_message = (TextView) dialogBus.findViewById(R.id.edt_message);
+        Button btnYes = (Button) dialogBus.findViewById(R.id.btnYes);
+        Button btnNo = (Button) dialogBus.findViewById(R.id.btnNo);
+        edt_message.setText(msg);
+
+        btnYes.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                dialogBus.dismiss();
+                AppConstants.showWelcomeDialogForAddNewLink = false;
+                finish();
+                Intent in = new Intent(AddNewLinkToCloud.this, AddNewLinkToCloud.class);
+                startActivity(in);
+            }
+        });
+
+        btnNo.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                dialogBus.dismiss();
+                ProceedToLinkConfiguration(false);
+            }
+        });
+    }
+
+    private void ProceedToLinkConfiguration(boolean flagForWait) {
+        try {
+
+            int waitingTimeInMillis = 100;
+            if (flagForWait) {
+                //Thread.sleep(3000);
+                waitingTimeInMillis = 2000;
+            }
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    if (AppConstants.newlyAddedLinks != null) {
+                        if (AppConstants.newlyAddedLinks.size() > 0) {
+                            for (HashMap<String, String> hashMap : AppConstants.newlyAddedLinks) {
+                                String linkName = hashMap.get("LinkName");
+                                String siteId = hashMap.get("SiteId");
+                                String HubLinkCommunication = "HTTP";
+                                if (linkName != null && linkName.toUpperCase().contains("FS-")) {
+                                    HubLinkCommunication = "HTTP";
+                                } else {
+                                    HubLinkCommunication = "BT";
+                                }
+
+                                if (!configurationProcessStarted) {
+                                    configurationProcessStarted = true;
+                                }
+                                if (AppConstants.GenerateLogs)
+                                    AppConstants.WriteinFile(TAG + " Proceed to Link Configuration: " + linkName);
+                                if (HubLinkCommunication.equalsIgnoreCase("BT")) {
+                                    // BT link Configuration
+                                    AppConstants.newlyAddedLinks.remove(hashMap);
+                                    CommonUtils.AutoCloseBTLinkMessage(AddNewLinkToCloud.this, "", getResources().getString(R.string.BTLinkNotInPairList));
+
+                                } else {
+                                    // HTTP link Configuration
+                                    AppConstants.CURRENT_NEW_LINK_SELECTED_FOR_CONFIGURE = linkName;
+                                    AppConstants.CURRENT_NEW_LINK_SITE_ID = siteId;
+                                    enableHotspotAfterNewLinkConfigure = true;
+
+                                    String s = "Starting to configure " + linkName;
+                                    SpannableString ss2 = new SpannableString(s);
+                                    ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
+                                    ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
+                                    loading = new ProgressDialog(AddNewLinkToCloud.this);
+                                    loading.setMessage(ss2);
+                                    loading.setCancelable(false);
+                                    loading.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+                                    loading.show();
+
+                                    new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            AppConstants.newlyAddedLinks.remove(hashMap);
+                                            HTTPLinkConfiguration();
+                                        }
+                                    }, 2000);
+                                }
+                                break;
+                            }
+                        } else {
+                            BackToWelcomeActivity();
+                        }
+                    } else {
+                        BackToWelcomeActivity();
+                    }
+                }
+            }, waitingTimeInMillis);
+
+        } catch (Exception ex) {
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + " ProceedToLinkConfiguration Exception: " + ex.getMessage());
+        }
+    }
+
+    private void BackToWelcomeActivity() {
+
+        int waitingTime = 100;
+        if(enableHotspotAfterNewLinkConfigure) {
+            waitingTime = 2000;
+            Constants.hotspotstayOn = true;
+            skipOnResume = true;
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + " <Enabling hotspot.>");
+            wifiApManager.setWifiApEnabled(null, true);  //Hotspot enabled
+        }
+        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                finish();
+            }
+        }, waitingTime);
+    }
+
+    private void HTTPLinkConfiguration() {
+        try {
+
+            SharedPreferences sharedPref = AddNewLinkToCloud.this.getSharedPreferences("HotSpotDetails", Context.MODE_PRIVATE);
+            String HotSpotSSID = sharedPref.getString("HotSpotSSID", "");
+            String HotSpotPassword = sharedPref.getString("HotSpotPassword", "");
+            if (HotSpotSSID == null) {
+                HotSpotSSID = "";
+            }
+            if (HotSpotPassword == null) {
+                HotSpotPassword = "";
+            }
+            if (HotSpotSSID.isEmpty()) {
+                if (loading != null) {
+                    loading.dismiss();
+                }
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + " HotSpot SSID cannot be blank. Please contact Support.");
+                showMessageDialog(AddNewLinkToCloud.this, getResources().getString(R.string.HotSpotSSIDCannotBeBlank));
+            } else if (HotSpotPassword.isEmpty()) {
+                if (loading != null) {
+                    loading.dismiss();
+                }
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + " HotSpot Password cannot be blank. Please contact Support.");
+                showMessageDialog(AddNewLinkToCloud.this, getResources().getString(R.string.HotSpotPasswordCannotBeBlank));
+            } else {
+
+                configurationProcess();
+            }
+
+        } catch (Exception ex) {
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + " HTTPLinkConfiguration Exception: " + ex.getMessage());
+            ProceedToLinkConfiguration(true); // Continue to configure next link
+        }
+    }
+
+    private void configurationProcess() {
+
+        try {
+            Constants.hotspotstayOn = false; //hotspot enable/disable flag
+
+            if (CommonUtils.isHotspotEnabled(AddNewLinkToCloud.this)) {
+                skipOnResume = true;
+                wifiApManager.setWifiApEnabled(null, false);  //Disabled Hotspot
+            }
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            //Enable wifi
+            ChangeWifiState(true);
+
+            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    if (loading != null) {
+                        loading.dismiss();
+                    }
+                    countDownTimerForConfigure = null;
+                    countDownTimerForConfigureFun();
+
+                }
+            }, 3000);
+
+        } catch (Exception e) {
+            ChangeWifiState(false);//turn wifi off
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + " Link Configuration process -Step 1 Exception: " + e.getMessage());
+            ProceedToLinkConfiguration(true); // Continue to configure next link
+        }
+    }
+
+    public void countDownTimerForConfigureFun() {
+
+        String s = getResources().getString(R.string.PleaseWaitForWifiConnect);
+        SpannableString ss2 = new SpannableString(s);
+        ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
+        ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
+        loading = new ProgressDialog(AddNewLinkToCloud.this);
+        loading.setMessage(ss2);
+        loading.setCancelable(false);
+        loading.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        loading.show();
+
+        Constants.hotspotstayOn = false; //hotspot enable/disable flag
+        if (CommonUtils.isHotspotEnabled(AddNewLinkToCloud.this)) {
+            skipOnResume = true;
+            wifiApManager.setWifiApEnabled(null, false);
+        }
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        ChangeWifiState(true);
+
+        if (countDownTimerForConfigure == null) {
+            countDownTimerForConfigure = new CountDownTimer(30000, 6000) {
+
+                public void onTick(long millisUntilFinished) {
+                }
+
+                public void onFinish() {
+
+                    WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+                    WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+                    String ssid = wifiInfo.getSSID();
+
+                    ssid = ssid.replace("\"", "");
+
+                    if (ssid.equalsIgnoreCase(AppConstants.CURRENT_NEW_LINK_SELECTED_FOR_CONFIGURE)) {
+                        if (loading != null)
+                            loading.dismiss();
+                        new WiFiConnectTask().execute();
+
+                    } else {
+                        Constants.hotspotstayOn = false;
+                        configurationProcessStarted = false;
+                        if (loading != null)
+                            loading.dismiss();
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + " Unable to auto connect to " + AppConstants.CURRENT_NEW_LINK_SELECTED_FOR_CONFIGURE +". Started manual process..");
+                        AppConstants.colorToastBigFont(AddNewLinkToCloud.this, getResources().getString(R.string.UnableToAutoConnect) + " " + AppConstants.CURRENT_NEW_LINK_SELECTED_FOR_CONFIGURE + ". " + getResources().getString(R.string.StartedManualProcess), Color.BLUE);
+                        LinkConfigurationProcessStep1();
+                    }
+                }
+            }.start();
+        }
+    }
+
+    private void ChangeWifiState(boolean enable) {
+
+        skipOnResume = true;
+        WifiManager wifiManagerMM = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
+        if (enable) {
+            //Enable wifi
+            if (!wifiManagerMM.isWifiEnabled()) {
+                wifiManagerMM.setWifiEnabled(true);
+            }
+        } else {
+            //Disable wifi
+            if (wifiManagerMM.isWifiEnabled()) {
+                wifiManagerMM.setWifiEnabled(false);
+            }
+        }
+    }
+
+    private void LinkConfigurationProcessStep1() {
+
+        try {
+
+            Constants.hotspotstayOn = false; //hotspot enable/disable flag
+            if (CommonUtils.isHotspotEnabled(AddNewLinkToCloud.this)) {
+                skipOnResume = true;
+                wifiApManager.setWifiApEnabled(null, false);
+            }
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            //Enable wifi
+            ChangeWifiState(true);
+
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + " Step1 Link Configuration enable wifi manually.");
+
+                    AppConstants.colorToastBigFont(getApplicationContext(), getResources().getString(R.string.EnableWifiManually) + " " + AppConstants.CURRENT_NEW_LINK_SELECTED_FOR_CONFIGURE + " " + getResources().getString(R.string.UsingWifiList), Color.BLUE);
+                    startActivity(new Intent(Settings.ACTION_WIFI_SETTINGS));
+                    configurationProcessStarted = false;
+                    ConfigurationStep1IsInProgress = true;
+                    //mjconf
+                    new CountDownTimer(12000, 6000) {
+
+                        public void onTick(long millisUntilFinished) {
+
+                            WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+                            String ssid = "";
+                            if (wifiManager.isWifiEnabled()) {
+                                WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+                                ssid = wifiInfo.getSSID().trim().replace("\"", "");
+                            }
+
+                            if (AppConstants.GenerateLogs)
+                                AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + " Selected SSID: " + AppConstants.CURRENT_NEW_LINK_SELECTED_FOR_CONFIGURE +"; Connected to: " + ssid);
+                        }
+
+                        public void onFinish() {
+                            ConfigurationStep1IsInProgress = false;
+                            WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+                            String ssid = "";
+                            if (wifiManager.isWifiEnabled()) {
+                                WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+                                ssid = wifiInfo.getSSID().trim().replace("\"", "");
+                            }
+
+                            if (ssid.equalsIgnoreCase(AppConstants.CURRENT_NEW_LINK_SELECTED_FOR_CONFIGURE)) {
+                                if (loading != null) {
+                                    loading.dismiss();
+                                }
+                                proceedAfterManualWifiConnect = false;
+                                new WiFiConnectTask().execute();
+
+                            } else {
+                                if (loading != null) {
+                                    loading.dismiss();
+                                }
+                                /*ChangeWifiState(false);//turn wifi off*/
+                                proceedAfterManualWifiConnect = true;
+                                if (AppConstants.GenerateLogs)
+                                    AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + " Step1 => Selected SSID: " + AppConstants.CURRENT_NEW_LINK_SELECTED_FOR_CONFIGURE +"; Connected to: " + ssid);
+                                //ProceedToLinkConfiguration(true); // Continue to configure next link
+                            }
+                        }
+                    }.start();
+                }
+            }, 2000);
+
+        } catch (Exception e) {
+            ChangeWifiState(false);//turn wifi off
+            ConfigurationStep1IsInProgress = false;
+            Log.i(TAG, "Link Configuration process -Step 1 Exception" + e);
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + " Link Configuration process -Step 1 Exception " + e.getMessage());
+            ProceedToLinkConfiguration(true); // Continue to configure next link
+        }
+    }
+
+    private class WiFiConnectTask extends AsyncTask<String, Void, String> {
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + " Started configuration process...");
+            String s = "Started configuration process. Please wait...";
+            SpannableString ss2 = new SpannableString(s);
+            ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
+            ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
+
+            loading = new ProgressDialog(AddNewLinkToCloud.this);
+            loading.setMessage(ss2);
+            loading.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+            loading.setCancelable(false);
+            loading.show();
+        }
+
+        protected String doInBackground(String... asd) {
+            return "";
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+
+                    WifiManager wifiManager = (WifiManager) AddNewLinkToCloud.this.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+                    WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+
+                    String ssid = wifiInfo.getSSID().replace("\"", "");
+
+                    if (ssid.equalsIgnoreCase(AppConstants.CURRENT_NEW_LINK_SELECTED_FOR_CONFIGURE)) {
+
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + " Connected to wifi " + AppConstants.CURRENT_NEW_LINK_SELECTED_FOR_CONFIGURE);
+                        AppConstants.colorToastBigFont(AddNewLinkToCloud.this, getResources().getString(R.string.ConnectedToWifi) + " " + AppConstants.CURRENT_NEW_LINK_SELECTED_FOR_CONFIGURE, Color.parseColor("#4CAF50"));
+
+                        new Handler().postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+
+                                HTTP_URL = "http://192.168.4.1:80/";
+                                URL_INFO = HTTP_URL + "client?command=info";
+                                try {
+                                    if (AppConstants.GenerateLogs)
+                                        AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + " Sending INFO command to Link: " + AppConstants.CURRENT_NEW_LINK_SELECTED_FOR_CONFIGURE);
+                                    String result = new CommandsGET_INFO().execute(URL_INFO).get();
+                                    String mac_address = "";
+
+                                    if (AppConstants.GenerateLogs)
+                                        AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + " InfoCMD- " + ssid + " -Result >> " + result);
+
+                                    if (result.contains("Version")) {
+                                        JSONObject jsonObject = new JSONObject(result);
+                                        JSONObject joPulsarStat = jsonObject.getJSONObject("Version");
+                                        mac_address = joPulsarStat.getString("mac_address");//station_mac_address
+                                        AppConstants.NEW_LINK_UPDATE_MAC_ADDRESS = mac_address;
+
+                                        if (mac_address.equals("")) {
+                                            if (loading != null) {
+                                                loading.dismiss();
+                                            }
+                                            if (AppConstants.GenerateLogs)
+                                                AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + " Configuration process fail. Could not get mac address.");
+                                            AppConstants.colorToastBigFont(AddNewLinkToCloud.this, "Configuration process fail. Could not get mac address.", Color.BLUE);
+
+                                            //Disable wifi connection
+                                            ChangeWifiState(false);
+                                            ProceedToLinkConfiguration(true); // Continue to configure next link
+
+                                        } else {
+
+                                            //Set username and password to link
+                                            new Handler().postDelayed(new Runnable() {
+                                                @Override
+                                                public void run() {
+
+                                                    SharedPreferences sharedPref = AddNewLinkToCloud.this.getSharedPreferences("HotSpotDetails", Context.MODE_PRIVATE);
+                                                    String HotSpotSSID = sharedPref.getString("HotSpotSSID", "");
+                                                    String HotSpotPassword = sharedPref.getString("HotSpotPassword", "");
+
+                                                    if (AppConstants.GenerateLogs)
+                                                        AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + " Setting SSID and PASS to Link");
+                                                    AppConstants.colorToastBigFont(AddNewLinkToCloud.this, getResources().getString(R.string.SettingSSIDAndPASS), Color.BLUE);
+
+                                                    HTTP_URL = "http://192.168.4.1:80/";
+                                                    URL_UPDATE_FS_INFO = HTTP_URL + "config?command=wifi";
+
+                                                    String jsonChangeUsernamePass = "{\"Request\":{\"Station\":{\"Connect_Station\":{\"ssid\":\"" + HotSpotSSID + "\",\"password\":\"" + HotSpotPassword + "\" ,\"sta_connect\":1 }}}}";
+
+                                                    try {
+                                                        new CommandsPOST_ChangeHotspotSettings().execute(URL_UPDATE_FS_INFO, jsonChangeUsernamePass);
+
+                                                    } catch (Exception e) {
+                                                        if (loading != null) {
+                                                            loading.dismiss();
+                                                        }
+                                                        ChangeWifiState(false);//turn wifi off
+                                                        if (AppConstants.GenerateLogs)
+                                                            AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + " CommandsPOST_ChangeHotspotSettings. Exception: " + e.getMessage());
+                                                        ProceedToLinkConfiguration(true); // Continue to configure next link
+                                                    }
+                                                }
+                                            }, 1000);
+
+                                        }
+                                    } else {
+                                        if (loading != null) {
+                                            loading.dismiss();
+                                        }
+                                        if (AppConstants.GenerateLogs)
+                                            AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + " Configuration process fail.");
+                                        AppConstants.colorToastBigFont(AddNewLinkToCloud.this, "Configuration process fail. Please retry.", Color.BLUE);
+
+                                        //Disable wifi connection
+                                        ChangeWifiState(false);
+                                        ProceedToLinkConfiguration(true); // Continue to configure next link
+                                    }
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                    if (loading != null)
+                                        loading.dismiss();
+                                    if (AppConstants.GenerateLogs)
+                                        AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + " WiFiConnectTask OnPostExecution --Exception: " + e.getMessage());
+                                }
+                            }
+                        }, 1000);
+
+                    } else {
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + " WiFiConnectTask => Selected SSID: " + AppConstants.CURRENT_NEW_LINK_SELECTED_FOR_CONFIGURE +"; WiFi Connected to: " + ssid);
+                        AppConstants.colorToastBigFont(AddNewLinkToCloud.this, " Selected SSID: " + AppConstants.CURRENT_NEW_LINK_SELECTED_FOR_CONFIGURE +"; WiFi Connected to: " + ssid, Color.BLUE);
+                        if (loading != null)
+                            loading.dismiss();
+                        ChangeWifiState(false);//turn wifi off
+                        ProceedToLinkConfiguration(true); // Continue to configure next link
+                    }
+                }
+            }, 5000);
+
+        }
+    }
+
+    public class CommandsGET_INFO extends AsyncTask<String, Void, String> {
+
+        public String resp = "";
+
+        protected String doInBackground(String... param) {
+
+            try {
+
+                OkHttpClient client = new OkHttpClient();
+                client.setConnectTimeout(15, TimeUnit.SECONDS);
+                client.setReadTimeout(15, TimeUnit.SECONDS);
+                client.setWriteTimeout(15, TimeUnit.SECONDS);
+
+                Request request = new Request.Builder()
+                        .url(param[0])
+                        .build();
+
+                Response response = client.newCall(request).execute();
+                resp = response.body().string();
+
+            } catch (Exception e) {
+                ChangeWifiState(false);//turn wifi off
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " CommandsGET_INFO InBackground --Exception: " + e.getMessage());
+                if (loading != null) {
+                    loading.dismiss();
+                }
+            }
+            return resp;
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+
+            try {
+                System.out.println(" resp......." + result);
+                System.out.println("2:" + Calendar.getInstance().getTime());
+            } catch (Exception e) {
+                ChangeWifiState(false);//turn wifi off
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " CommandsGET_INFO PostExecute --Exception: " + e.getMessage());
+                Log.d("Ex", e.getMessage());
+            }
+        }
+    }
+
+    public class CommandsPOST_ChangeHotspotSettings extends AsyncTask<String, Void, String> {
+
+        public String resp = "";
+
+        protected String doInBackground(String... param) {
+
+            try {
+                MediaType JSON = MediaType.parse("application/json");
+                OkHttpClient client = new OkHttpClient();
+                client.setConnectTimeout(4, TimeUnit.SECONDS);
+                client.setReadTimeout(4, TimeUnit.SECONDS);
+                client.setWriteTimeout(4, TimeUnit.SECONDS);
+
+                RequestBody body = RequestBody.create(JSON, param[1]);
+                Request request = new Request.Builder()
+                        .url(param[0])
+                        .post(body)
+                        .build();
+
+                Response response = client.newCall(request).execute();
+                resp = response.body().string();
+
+            } catch (Exception e) {
+
+                ChangeWifiState(false);//turn wifi off
+                e.printStackTrace();
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + " Set SSID and PASS to Link (Link reset) InBackground-Exception: " + e.getMessage());
+            }
+            return resp;
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+
+            try {
+
+                if (result.equalsIgnoreCase("exception")) {
+                    ChangeWifiState(false);//turn wifi off
+                    AppConstants.colorToastBigFont(getApplicationContext(), "Configuration process fail. Please retry.", Color.BLUE);
+                    Log.i(TAG, "Step2 Failed while changing Hotspot Settings Please try again.. exception:" + result);
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + " Step2 Failed while changing Hotspot Settings Please try again.. exception: " + result);
+                    if (loading != null)
+                        loading.dismiss();
+                    try {
+                        Thread.sleep(2000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+
+                    ProceedToLinkConfiguration(true); // Continue to configure next link
+
+                } else {
+
+                    ChangeWifiState(false);//turn wifi off
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    //wifiApManager.setWifiApEnabled(null, true);
+
+                    Log.i(TAG, " Set SSID and PASS to Link (Result) " + result);
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + " Set SSID and PASS to Link Result >> " + result);
+
+                    //============================================================
+
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+
+                            AppConstants.colorToastBigFont(AddNewLinkToCloud.this, getResources().getString(R.string.MacAddressHeading) + " " + AppConstants.NEW_LINK_UPDATE_MAC_ADDRESS, Color.BLUE);
+                            if (AppConstants.GenerateLogs)
+                                AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + " Mac address: " + AppConstants.NEW_LINK_UPDATE_MAC_ADDRESS);
+
+                            //Update mac address to server and mac address status
+                            try {
+
+                                UpdateMacAddressClass authEntityClass1 = new UpdateMacAddressClass();
+                                authEntityClass1.SiteId = Integer.parseInt(AppConstants.CURRENT_NEW_LINK_SITE_ID);
+                                authEntityClass1.MACAddress = AppConstants.NEW_LINK_UPDATE_MAC_ADDRESS;
+                                authEntityClass1.RequestFrom = "AP";
+                                authEntityClass1.HubName = AppConstants.HubName;
+
+                                //------
+                                Gson gson = new Gson();
+                                final String jsonData = gson.toJson(authEntityClass1);
+
+                                CommonUtils.saveLinkMacAddressForReconfigure(AddNewLinkToCloud.this, jsonData);
+
+                                cd = new ConnectionDetector(AddNewLinkToCloud.this);
+                                if (cd.isConnectingToInternet()) {
+
+                                    new UpdateMacAsyncTask().execute(jsonData);
+
+                                } else {
+                                    if (AppConstants.GenerateLogs)
+                                        AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Please check Internet Connection.");
+                                    AppConstants.colorToast(AddNewLinkToCloud.this, getResources().getString(R.string.CheckInternet), Color.BLUE);
+                                }
+                            } catch (Exception e) {
+                                if (AppConstants.GenerateLogs)
+                                    AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + " ChangeHotspotSettings UpdateMacAddressClass --Exception: " + e.getMessage());
+                            }
+
+                            if (loading != null)
+                                loading.dismiss();
+                            ProceedToLinkConfiguration(true); // Continue to configure next link
+                        }
+                    }, 10000);
+                }
+
+            } catch (Exception e) {
+                ChangeWifiState(false);//turn wifi off
+                e.printStackTrace();
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + " Set SSID and PASS to Link (Link reset) -Exception: " + e.getMessage());
+            }
+        }
+    }
+
+    public class UpdateMacAsyncTask extends AsyncTask<String, Void, String> {
+
+        public String response = null;
+
+        @Override
+        protected String doInBackground(String... param) {
+
+            try {
+                ServerHandler serverHandler = new ServerHandler();
+                String jsonData = param[0];
+                String userEmail = CommonUtils.getCustomerDetails(AddNewLinkToCloud.this).PersonEmail;
+
+                //----------------------------------------------------------------------------------
+                String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(AddNewLinkToCloud.this) + ":" + userEmail + ":" + "UpdateMACAddress" + AppConstants.LANG_PARAM);
+                response = serverHandler.PostTextData(AddNewLinkToCloud.this, AppConstants.webURL, jsonData, authString);
+                //----------------------------------------------------------------------------------
+
+            } catch (Exception ex) {
+                if (loading != null)
+                    loading.dismiss();
+                CommonUtils.LogMessage("", "UpdateMACAddress ", ex);
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + " UpdateMacAsyncTask InBackground--Exception: " + ex.getMessage());
+                response = "err";
+            }
+            return response;
+        }
+
+        @Override
+        protected void onPostExecute(String serverRes) {
+
+            try {
+                if (serverRes.equalsIgnoreCase("err")) {
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + " Link Re-configuration is partially completed.");
+                    // AppConstants.alertBigFinishActivity(AddNewLinkToCloud.this, getResources().getString(R.string.PartiallyCompleted)); // Removed this to avoid app close
+                } else if (serverRes != null) {
+
+                    JSONObject jsonObject1 = new JSONObject(serverRes);
+
+                    String ResponceMessage = jsonObject1.getString("ResponceMessage");
+
+                    if (ResponceMessage.equalsIgnoreCase("success")) {
+
+                        AppConstants.clearSharedPrefByName(AddNewLinkToCloud.this, Constants.MAC_ADDR_RECONFIGURE);
+
+                        if (loading != null)
+                            loading.dismiss();
+                        AppConstants.colorToastBigFont(AddNewLinkToCloud.this, getResources().getString(R.string.MacAddressUpdated), Color.parseColor("#4CAF50"));
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + " Mac Address Updated.");
+                        ChangeWifiState(false);
+
+                    } else if (ResponceMessage.equalsIgnoreCase("fail")) {
+                        if (loading != null)
+                            loading.dismiss();
+                        AppConstants.colorToastBigFont(AddNewLinkToCloud.this, getResources().getString(R.string.MacAddressNotUpdated), Color.BLUE);
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + " MAC address could not be updated.");
+                        ChangeWifiState(false);
+                    }
+
+                } else {
+                    Log.i(TAG, "UpdateMacAsyncTask Server Response Empty!");
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + " UpdateMacAsyncTask Server Response Empty!");
+                }
+
+            } catch (Exception e) {
+
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + " UpdateMacAsyncTask onPostExecute--Exception: " + e.getMessage());
+            }
+        }
+    }
+
+    public void showMessageDialog(final Activity context, String message) {
+
+        final Dialog dialogBus = new Dialog(context);
+        dialogBus.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialogBus.setCancelable(false);
+        dialogBus.setContentView(R.layout.custom_alertdialouge);
+        dialogBus.show();
+
+        TextView edt_message = (TextView) dialogBus.findViewById(R.id.edt_message);
+        Button btnAllow = (Button) dialogBus.findViewById(R.id.btnAllow);
+        edt_message.setText(message);
+
+        btnAllow.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                dialogBus.dismiss();
+
+                ProceedToLinkConfiguration(false); // Continue to configure next link
+            }
+        });
     }
 }
