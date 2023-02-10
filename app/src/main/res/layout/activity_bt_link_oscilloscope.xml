@@ -151,9 +151,9 @@
             android:layout_marginTop="10sp"
             android:layout_weight="1"
             android:background="@color/colorFluid"
-            android:text="DISPLAY"
+            android:text="DISPLAY AND SEND TO SERVER"
             android:textColor="@color/white"
-            android:textSize="30sp" />
+            android:textSize="22sp" />
 
 
     </LinearLayout>

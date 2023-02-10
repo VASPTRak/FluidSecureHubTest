@@ -34,6 +34,7 @@ public class BTConstants {
     public static String deviceAddress5 = "";
     public static String deviceAddress6 = "";
     public static String deviceAddressOscilloscope = "";
+    public static String selectedSiteIdForScope = "0";
     public static boolean forOscilloscope = false;
 
     public static boolean SwitchedBTToUDP1 = false;
@@ -57,6 +58,7 @@ public class BTConstants {
     public static String scope_ON_cmd = "LK_COMM=scope=ON";
     public static String scope_READ_cmd = "LK_COMM=scope=READ";
     public static String ScopeStatus = "";
+    public static String[] p_types = {"1", "2", "3", "4"};
 
     public static boolean isPTypeCommandExecuted1 = false;
     public static boolean isPTypeCommandExecuted2 = false;

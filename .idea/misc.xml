@@ -1,44 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="DesignSurface">
-    <option name="filePathToZoomLevelMap">
-      <map>
-        <entry key="..\:/Android Workspace/FluidSecureHubTest/app/src/main/res/layout/activity_accept_dept.xml" value="0.38125" />
-        <entry key="..\:/Android Workspace/FluidSecureHubTest/app/src/main/res/layout/activity_accept_hours_acitvity.xml" value="0.38125" />
-        <entry key="..\:/Android Workspace/FluidSecureHubTest/app/src/main/res/layout/activity_accept_manual_odo_f.xml" value="0.38125" />
-        <entry key="..\:/Android Workspace/FluidSecureHubTest/app/src/main/res/layout/activity_accept_manualvehicle_f.xml" value="0.38125" />
-        <entry key="..\:/Android Workspace/FluidSecureHubTest/app/src/main/res/layout/activity_accept_odo.xml" value="0.38125" />
-        <entry key="..\:/Android Workspace/FluidSecureHubTest/app/src/main/res/layout/activity_accept_other.xml" value="0.38125" />
-        <entry key="..\:/Android Workspace/FluidSecureHubTest/app/src/main/res/layout/activity_accept_pin.xml" value="0.38125" />
-        <entry key="..\:/Android Workspace/FluidSecureHubTest/app/src/main/res/layout/activity_accept_pin_fob.xml" value="0.25416666666666665" />
-        <entry key="..\:/Android Workspace/FluidSecureHubTest/app/src/main/res/layout/activity_accept_vehicle.xml" value="0.2" />
-        <entry key="..\:/Android Workspace/FluidSecureHubTest/app/src/main/res/layout/activity_accept_vehicle_fob.xml" value="0.25416666666666665" />
-        <entry key="..\:/Android Workspace/FluidSecureHubTest/app/src/main/res/layout/activity_accept_vehicle_other_info.xml" value="0.25416666666666665" />
-        <entry key="..\:/Android Workspace/FluidSecureHubTest/app/src/main/res/layout/activity_add_new_link_to_cloud.xml" value="0.38125" />
-        <entry key="..\:/Android Workspace/FluidSecureHubTest/app/src/main/res/layout/activity_bt_link_oscilloscope.xml" value="0.4" />
-        <entry key="..\:/Android Workspace/FluidSecureHubTest/app/src/main/res/layout/activity_device_control_pin.xml" value="0.25416666666666665" />
-        <entry key="..\:/Android Workspace/FluidSecureHubTest/app/src/main/res/layout/activity_device_control_vehicle.xml" value="0.2" />
-        <entry key="..\:/Android Workspace/FluidSecureHubTest/app/src/main/res/layout/activity_display_meter.xml" value="0.25416666666666665" />
-        <entry key="..\:/Android Workspace/FluidSecureHubTest/app/src/main/res/layout/activity_fobreader.xml" value="0.25025641025641027" />
-        <entry key="..\:/Android Workspace/FluidSecureHubTest/app/src/main/res/layout/activity_login.xml" value="0.38125" />
-        <entry key="..\:/Android Workspace/FluidSecureHubTest/app/src/main/res/layout/activity_pair_device.xml" value="0.25416666666666665" />
-        <entry key="..\:/Android Workspace/FluidSecureHubTest/app/src/main/res/layout/activity_read_access_device_fob.xml" value="0.25416666666666665" />
-        <entry key="..\:/Android Workspace/FluidSecureHubTest/app/src/main/res/layout/activity_registration.xml" value="0.25416666666666665" />
-        <entry key="..\:/Android Workspace/FluidSecureHubTest/app/src/main/res/layout/activity_select_fs.xml" value="0.38125" />
-        <entry key="..\:/Android Workspace/FluidSecureHubTest/app/src/main/res/layout/activity_welcome.xml" value="0.25416666666666665" />
-        <entry key="..\:/Android Workspace/FluidSecureHubTest/app/src/main/res/layout/custom_alertdialouge.xml" value="0.25025641025641027" />
-        <entry key="..\:/Android Workspace/FluidSecureHubTest/app/src/main/res/layout/custom_alertdialouge_debugwindow.xml" value="0.25025641025641027" />
-        <entry key="..\:/Android Workspace/FluidSecureHubTest/app/src/main/res/layout/custom_alertdialouge_two.xml" value="0.25025641025641027" />
-        <entry key="..\:/Android Workspace/FluidSecureHubTest/app/src/main/res/layout/custom_alertdialougeinput.xml" value="0.25025641025641027" />
-        <entry key="..\:/Android Workspace/FluidSecureHubTest/app/src/main/res/layout/dialog_alert_big_finish.xml" value="0.25025641025641027" />
-        <entry key="..\:/Android Workspace/FluidSecureHubTest/app/src/main/res/layout/dialog_bt_link_list.xml" value="0.264" />
-        <entry key="..\:/Android Workspace/FluidSecureHubTest/app/src/main/res/layout/dialog_hose_list.xml" value="0.25416666666666665" />
-        <entry key="..\:/Android Workspace/FluidSecureHubTest/app/src/main/res/layout/item_hose.xml" value="0.25416666666666665" />
-        <entry key="..\:/Android Workspace/FluidSecureHubTest/app/src/main/res/layout/single_list.xml" value="0.25416666666666665" />
-        <entry key="..\:/Android Workspace/FluidSecureHubTest/app/src/main/res/menu/reader.xml" value="0.25416666666666665" />
-      </map>
-    </option>
-  </component>
+  <component name="ExternalStorageConfigurationManager" enabled="true" />
   <component name="ProjectRootManager" version="2" languageLevel="JDK_11" default="true" project-jdk-name="11" project-jdk-type="JavaSDK">
     <output url="file://$PROJECT_DIR$/build/classes" />
   </component>

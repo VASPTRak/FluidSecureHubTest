@@ -13,6 +13,7 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
@@ -32,17 +33,21 @@ import android.widget.Toast;
 
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTConstants;
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPPMain;
+import com.TrakEngineering.FluidSecureHubTest.enity.LINKPulserDataEntity;
+import com.TrakEngineering.FluidSecureHubTest.server.ServerHandler;
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
+import com.google.gson.Gson;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -61,7 +66,7 @@ public class BT_Link_Oscilloscope_Activity extends AppCompatActivity { // implem
     //public boolean chartBindStarted = false;
     public Timer timerBtScope;
     public String p_type = "";
-    public static ArrayList<Integer> BTLinkVoltageReadings = new ArrayList<>();
+    public static ArrayList<Double> BTLinkVoltageReadings = new ArrayList<>();
     ProgressDialog pdMain;
 
     public ArrayList<Entry> yValues = new ArrayList<>();
@@ -169,6 +174,7 @@ public class BT_Link_Oscilloscope_Activity extends AppCompatActivity { // implem
                                     public void run() {
                                         showToast(BT_Link_Oscilloscope_Activity.this, "done");
                                         BindChartData();
+                                        SendReadingsToServer();
                                     }
                                 }, 100);
                                 hideLoader();
@@ -198,6 +204,7 @@ public class BT_Link_Oscilloscope_Activity extends AppCompatActivity { // implem
                         AppConstants.WriteinFile(TAG + "Exception in btnDisplay click: " + ex.getMessage());
                 }
             }
+
         });
 
         btnSet.setOnClickListener(new View.OnClickListener() {
@@ -523,7 +530,7 @@ public class BT_Link_Oscilloscope_Activity extends AppCompatActivity { // implem
         } catch (Exception e) {
             e.printStackTrace();
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " BTLink: scopeOnCommand Exception: " + e.getMessage());
+                AppConstants.WriteinFile(TAG + "BTLink: scopeOnCommand Exception: " + e.getMessage());
         }
     }
 
@@ -718,6 +725,7 @@ public class BT_Link_Oscilloscope_Activity extends AppCompatActivity { // implem
 
                     /*if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(TAG + "BTLink 1: Response from Link >>" + Response.trim());*/
+                    //Log.i(TAG, "BTLink 1: Scope Response>>" + Response.trim());
 
                     if (Response.contains("pulser_type")) {
                         BTConstants.ScopeStatus = "";
@@ -788,11 +796,74 @@ public class BT_Link_Oscilloscope_Activity extends AppCompatActivity { // implem
                 JSONObject jsonObj = new JSONObject(response);
                 scope = jsonObj.getString("scope");
 
-                BTLinkVoltageReadings.add(Integer.parseInt(scope));
-                yValues.add(new Entry(scopeCounter, Integer.parseInt(scope)));
+                if (!scope.isEmpty()) {
+                    BTLinkVoltageReadings.add(Double.parseDouble(scope));
+                    yValues.add(new Entry(scopeCounter, Float.parseFloat(scope)));
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    private void SendReadingsToServer() {
+        try {
+            LINKPulserDataEntity objPulserData = new LINKPulserDataEntity();
+            objPulserData.SiteId = BTConstants.selectedSiteIdForScope;
+            objPulserData.LINKsPulsers = BTLinkVoltageReadings;
+            objPulserData.AddedDateTimeFromAPP = AppConstants.currentDateFormat("yyyy-MM-dd HH:mm");
+
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + "<Voltage Readings count: " + BTLinkVoltageReadings.size() + ">");
+
+            new SaveLINKPulserData(objPulserData).execute();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public class SaveLINKPulserData extends AsyncTask<Void, Void, String> {
+        LINKPulserDataEntity objPulserData;
+        public String response = null;
+
+        public SaveLINKPulserData(LINKPulserDataEntity objPulserData) {
+            this.objPulserData = objPulserData;
+        }
+
+        @Override
+        protected String doInBackground(Void... voids) {
+
+            try {
+                ServerHandler serverHandler = new ServerHandler();
+
+                Gson gson = new Gson();
+                String jsonData = gson.toJson(objPulserData);
+
+                String userEmail = CommonUtils.getCustomerDetails(BT_Link_Oscilloscope_Activity.this).PersonEmail;
+
+                //----------------------------------------------------------------------------------
+                String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(BT_Link_Oscilloscope_Activity.this) + ":" + userEmail + ":" + "SaveLINKPulserData" + AppConstants.LANG_PARAM);
+                response = serverHandler.PostTextData(BT_Link_Oscilloscope_Activity.this, AppConstants.webURL, jsonData, authString);
+                //----------------------------------------------------------------------------------
+
+            } catch (Exception ex) {
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + "SaveLINKPulserData InBackground Exception: " + ex.getMessage());
+            }
+            return response;
+        }
+
+        @Override
+        protected void onPostExecute(String res) {
+            try {
+                JSONObject jsonObject = new JSONObject(res);
+                String ResponseText = jsonObject.getString("ResponseText");
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + "SaveLINKPulserData Response: " + ResponseText);
+            } catch (Exception e) {
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + "SaveLINKPulserData onPostExecute Exception: " + e.getMessage());
+            }
         }
     }
 
