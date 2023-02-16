@@ -1722,7 +1722,9 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
         qrcodebleServiceOn();
         //launchCamera();     //Calling camera activity for image capture on GO button click
-
+        AppConstants.serverAuthCallCompleted = false;
+        AppConstants.serverCallInProgressForPin = false;
+        AppConstants.serverCallInProgressForVehicle = false;
         BTConstants.forOscilloscope = false;
         try {
             if (cd.isConnectingToInternet() && serverSSIDList != null && serverSSIDList.size() == 1) {
@@ -7280,7 +7282,9 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
     public void OnHoseSelected_OnClick(String position) {
 
-
+        AppConstants.serverAuthCallCompleted = false;
+        AppConstants.serverCallInProgressForPin = false;
+        AppConstants.serverCallInProgressForVehicle = false;
         String IpAddress = "";
         SelectedItemPos = Integer.parseInt(position);
         String ReconfigureLink = serverSSIDList.get(SelectedItemPos).get("ReconfigureLink");
@@ -10220,7 +10224,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                     if (AppConstants.GenerateLogs)
                                         AppConstants.WriteinFile(TAG + "GetSSIDUsingLocationOnResume: " + ResponceText);
                                     if (ResponceText.contains(getResources().getString(R.string.NoLinksAssignedServerMessage))) {
-                                        CustomMessageWithYesOrNo(WelcomeActivity.this, "", getResources().getString(R.string.NoLinksAssignedAppMessage));
+                                        CustomMessageWithYesOrNo(WelcomeActivity.this, getResources().getString(R.string.NoLinksAssignedAppMessage));
                                     } else {
                                         AppConstants.AlertDialogFinish(WelcomeActivity.this, ResponceText);
                                     }
@@ -11125,7 +11129,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                     if (AppConstants.GenerateLogs)
                                         AppConstants.WriteinFile(TAG + "GetSSIDUsingLocationGateHub: " + ResponceText);
                                     if (ResponceText.contains(getResources().getString(R.string.NoLinksAssignedServerMessage))) {
-                                        CustomMessageWithYesOrNo(WelcomeActivity.this, "", getResources().getString(R.string.NoLinksAssignedAppMessage));
+                                        CustomMessageWithYesOrNo(WelcomeActivity.this, getResources().getString(R.string.NoLinksAssignedAppMessage));
                                     } else {
                                         AppConstants.AlertDialogFinish(WelcomeActivity.this, ResponceText);
                                     }
@@ -11630,7 +11634,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                 if (AppConstants.GenerateLogs)
                                     AppConstants.WriteinFile(TAG + "GetSSIDUsingLocation: " + ResponceText);
                                 if (ResponceText.contains(getResources().getString(R.string.NoLinksAssignedServerMessage))) {
-                                    CustomMessageWithYesOrNo(WelcomeActivity.this, "", getResources().getString(R.string.NoLinksAssignedAppMessage));
+                                    CustomMessageWithYesOrNo(WelcomeActivity.this, getResources().getString(R.string.NoLinksAssignedAppMessage));
                                 } else {
                                     AppConstants.AlertDialogFinish(WelcomeActivity.this, ResponceText);
                                 }
@@ -15450,7 +15454,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     }
 
     @RequiresApi(api = Build.VERSION_CODES.N)
-    private void CustomMessageWithYesOrNo(final Activity context, String title, String message) {
+    private void CustomMessageWithYesOrNo(final Activity context, String message) {
 
         final Dialog dialogBus = new Dialog(context);
         dialogBus.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -15477,13 +15481,13 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             @Override
             public void onClick(View v) {
                 dialogBus.dismiss();
-                CustomMessageAddLinkWarning(context, "", getResources().getString(R.string.AddLinkWarning));
+                CustomMessageAddLinkWarning(context, getResources().getString(R.string.AddLinkWarning));
             }
         });
     }
 
     @RequiresApi(api = Build.VERSION_CODES.N)
-    private void CustomMessageAddLinkWarning(final Activity context, String title, String message) {
+    private void CustomMessageAddLinkWarning(final Activity context, String message) {
 
         final Dialog dialogBus = new Dialog(context);
         dialogBus.requestWindowFeature(Window.FEATURE_NO_TITLE);

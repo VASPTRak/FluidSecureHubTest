@@ -174,9 +174,15 @@ public class BT_Link_Oscilloscope_Activity extends AppCompatActivity { // implem
                                     public void run() {
                                         showToast(BT_Link_Oscilloscope_Activity.this, "done");
                                         BindChartData();
-                                        SendReadingsToServer();
+
+                                        if (AppConstants.GenerateLogs)
+                                            AppConstants.WriteinFile(TAG + "<Voltage Readings count: " + BTLinkVoltageReadings.size() + ">");
+
+                                        if (BTLinkVoltageReadings.size() > 0) { // To avoid sending empty data to the server.
+                                            SendReadingsToServer();
+                                        }
                                     }
-                                }, 100);
+                                }, 1000);
                                 hideLoader();
                                 cancel();
                             } else {
@@ -280,7 +286,7 @@ public class BT_Link_Oscilloscope_Activity extends AppCompatActivity { // implem
         ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
         pdMain = new ProgressDialog(BT_Link_Oscilloscope_Activity.this);
         pdMain.setMessage(ss2);
-        pdMain.setCancelable(true);
+        pdMain.setCancelable(false);
         pdMain.show();
     }
 
@@ -738,7 +744,7 @@ public class BT_Link_Oscilloscope_Activity extends AppCompatActivity { // implem
                         BTConstants.ScopeStatus = "DONE";
                     }
                     if (Request.equalsIgnoreCase(BTConstants.scope_READ_cmd)) {
-                        Response = Response.replace("}", "},");
+                        //Response = Response.replace("}", "},");
                         sBuilder.append(Response.trim());
 
                         if (sBuilder.toString().contains("DONE")) {
@@ -770,7 +776,53 @@ public class BT_Link_Oscilloscope_Activity extends AppCompatActivity { // implem
 
     public void parseScopeReadings(String response) {
         try {
-            if (response.endsWith(",")) {
+            // Create valid json format
+            // Changing {"scope":01,01,01,…..01,01,01,DONE"} to {"scope":"01,01,01,…..01,01,01,DONE"}
+            if (response.contains(":")) {
+                response = response.replace(":", ":\"");
+            }
+
+            if (response.contains("scope")) {
+                JSONObject jsonObj = new JSONObject(response);
+                String scopes = jsonObj.getString("scope");
+
+                if (!scopes.isEmpty()) {
+                    String[] scope = scopes.split(",");
+                    scope = Arrays.copyOf(scope, scope.length - 1); // To remove last entry 'DONE'
+
+                    for (int i = 0; i < scope.length; i++) {
+                        try {
+                            String scopeValue = scope[i];
+                            // Temp Hardcoded values
+                            /*if (i == 0) {
+                                scopeValue = "01";
+                            } else if ((i % 2) == 0) {
+                                scopeValue = "28";
+                            } else if ((i % 3) == 0) {
+                                scopeValue = "17";
+                            } else if ((i % 4) == 1) {
+                                scopeValue = "29";
+                            } else if ((i % 5) == 0) {
+                                scopeValue = "13";
+                            } else if ((i % 6) == 1) {
+                                scopeValue = "05";
+                            } else {
+                                scopeValue = "01";
+                            }*/
+                            //=======================
+
+                            BTLinkVoltageReadings.add(Double.parseDouble(scopeValue));
+                            yValues.add(new Entry((i + 1), Float.parseFloat(scopeValue)));
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                } else {
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + "onReceive: Unable to parse JSONObject. Response: " + response);
+                }
+            }
+            /*if (response.endsWith(",")) {
                 response = response.substring(0, (response.length() - 1)); // To remove last comma
             }
 
@@ -779,7 +831,7 @@ public class BT_Link_Oscilloscope_Activity extends AppCompatActivity { // implem
 
             for (int i = 0; i < scope.length; i++) {
                 scopeCount(scope[i].trim(), i + 1);
-            }
+            }*/
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -812,9 +864,6 @@ public class BT_Link_Oscilloscope_Activity extends AppCompatActivity { // implem
             objPulserData.SiteId = BTConstants.selectedSiteIdForScope;
             objPulserData.LINKsPulsers = BTLinkVoltageReadings;
             objPulserData.AddedDateTimeFromAPP = AppConstants.currentDateFormat("yyyy-MM-dd HH:mm");
-
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "<Voltage Readings count: " + BTLinkVoltageReadings.size() + ">");
 
             new SaveLINKPulserData(objPulserData).execute();
         } catch (Exception e) {

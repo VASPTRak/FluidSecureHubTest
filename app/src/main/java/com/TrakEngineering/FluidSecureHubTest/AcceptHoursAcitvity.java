@@ -625,6 +625,8 @@ public class AcceptHoursAcitvity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         // ActivityHandler.removeActivity(5);
+        AppConstants.serverCallInProgressForPin = false;
+        AppConstants.serverCallInProgressForVehicle = false;
         Istimeout_Sec = false;
         finish();
     }
