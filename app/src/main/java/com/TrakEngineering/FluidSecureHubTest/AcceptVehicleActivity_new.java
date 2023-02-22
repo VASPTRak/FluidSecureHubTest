@@ -279,7 +279,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
         //Constants.AccOther = "";
         //AppConstants.UP_Upgrade= true;
 
-        CheckForFirmwareUpgrade(); //BLE reader upgrade and link firmware download
+        //CheckForFirmwareUpgrade(); //BLE reader upgrade and link firmware download
 
         editVehicleNumber.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
@@ -3276,7 +3276,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
 
     }
 
-    private void CheckForFirmwareUpgrade() {
+    /*private void CheckForFirmwareUpgrade() {
 
         //LINK UPGRADE
         if (AppConstants.UP_Upgrade) {
@@ -3290,9 +3290,9 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                 success = folder.mkdirs();
             }
 
-            /*if (BTConstants.CurrentTransactionIsBT) {
+            *//*if (BTConstants.CurrentTransactionIsBT) {
                 AppConstants.UP_Upgrade_File_name = "BT_" + AppConstants.UP_Upgrade_File_name;
-            }*/
+            }*//*
             String LocalPath = binFolderPath + "/" + AppConstants.UP_Upgrade_File_name;
 
             File f = new File(LocalPath);
@@ -3313,9 +3313,9 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                 }
             }
         }
-    }
+    }*/
 
-    public class DownloadFileFromURL extends AsyncTask<String, String, String> {
+    /*public class DownloadFileFromURL extends AsyncTask<String, String, String> {
 
         ProgressDialog pd;
 
@@ -3384,7 +3384,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
         protected void onPostExecute(String file_url) {
             pd.dismiss();
         }
-    }
+    }*/
 
     private class sendBleVersionData extends AsyncTask<String, Void, String> {
         @Override

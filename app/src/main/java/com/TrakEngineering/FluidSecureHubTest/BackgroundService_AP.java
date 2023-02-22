@@ -1144,18 +1144,10 @@ public class BackgroundService_AP extends Service {
             secondsTime = 2000; //5000
         }
 
-
-        if (AppConstants.UP_Upgrade_fs2) {
-
-
+        /*if (AppConstants.UP_Upgrade_fs2) {
             new Handler().postDelayed(new Runnable() {
                 @Override
                 public void run() {
-
-
-                    /*if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " URL_UPGRADE_START:"+URL_UPGRADE_START);
-                    String command = "upgrade?command=start";
-                    new TCPCommandsPOST().execute(HTTP_URL, command);*/
 
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(TAG + "Sending UPGRADE START command to Link: " + LinkName);
@@ -1166,18 +1158,13 @@ public class BackgroundService_AP extends Service {
                     File f = new File(LocalPath);
 
                     if (f.exists()) {
-
                         new BackgroundService_AP.OkHttpFileUpload().execute(LocalPath, "application/binary");
-
                     } else {
                         Toast.makeText(getApplicationContext(), "File Not found " + LocalPath, Toast.LENGTH_LONG).show();
                     }
-
-
                 }
-
             }, 3000);
-        }
+        }*/
 
         new Handler().postDelayed(new Runnable() {
             @Override

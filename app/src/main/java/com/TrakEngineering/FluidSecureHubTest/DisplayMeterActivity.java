@@ -1284,7 +1284,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
             } catch (Exception e) {
                 if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + " GetUpgradeFirmwareStatus onPostExecute Exception " + e.getMessage());
+                    AppConstants.WriteinFile(TAG + "GetUpgradeFirmwareStatus onPostExecute Exception " + e.getMessage());
                 System.out.println(e.getMessage());
             }
         }

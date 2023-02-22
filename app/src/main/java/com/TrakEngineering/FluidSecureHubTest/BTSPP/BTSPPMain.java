@@ -34,7 +34,7 @@ import static com.TrakEngineering.FluidSecureHubTest.WelcomeActivity.service6;
 public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialListenerThree , SerialListenerFour, SerialListenerFive, SerialListenerSix {
 
     public Activity activity;
-    private static final String TAG = AppConstants.LOG_TXTN_BT + "-"; //BTSPPMain.class.getSimpleName();
+    private static final String TAG = ""; //AppConstants.LOG_TXTN_BT + "-"; //BTSPPMain.class.getSimpleName();
     private String newline = "\r\n";
     //private String deviceAddress1 = ""; //80:7D:3A:A4:67:22
     //private String deviceAddress2 = "";
@@ -80,13 +80,6 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         BTConstants.BTLinkOneStatus = false;
         status1("Disconnect");
         e.printStackTrace();
-        if (BTConstants.IsFileUploadCompleted) {
-            try {
-                connect1();
-            } catch (Exception ex) {
-                Log.e("Error: ", ex.getMessage());
-            }
-        }
         //AppConstants.WriteinFile(TAG + " onSerialConnectErrorOne Status: " + e.getMessage());
     }
 
@@ -100,15 +93,8 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         BTConstants.BTLinkOneStatus = false;
         status1("Disconnect");
         e.printStackTrace();
-        if (BTConstants.IsFileUploadCompleted) {
-            try {
-                connect1();
-            } catch (Exception ex) {
-                Log.e("Error: ", ex.getMessage());
-            }
-        }
         if (AppConstants.GenerateLogs)
-            AppConstants.WriteinFile(TAG + " BTSPPLink 1: SerialIoError: " + e.getMessage());
+            AppConstants.WriteinFile(TAG + "BTSPPLink 1: SerialIoError: " + e.getMessage());
     }
 
     public void connect1() {
@@ -134,7 +120,7 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
             Log.i(TAG, "BTSPPLink 1: Link not connected");
             //Toast.makeText(activity, "BTSPPLink 1: Link not connected", Toast.LENGTH_SHORT).show();
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " BTSPPLink 1: Link not connected");
+                AppConstants.WriteinFile(TAG + "BTSPPLink 1: Link not connected");
             return;
         }
         try {
@@ -153,7 +139,7 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
             BTConstants.CurrentCommand_LinkOne = "";
             Log.i(TAG, "BTSPPLink 1: Link not connected");
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " BTSPPLink 1: Link not connected");
+                AppConstants.WriteinFile(TAG + "BTSPPLink 1: Link not connected");
             return;
         }
         try {
@@ -227,13 +213,6 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         BTConstants.BTLinkTwoStatus = false;
         status2("Disconnect");
         e.printStackTrace();
-        if (BTConstants.IsFileUploadCompleted) {
-            try {
-                connect2();
-            } catch (Exception ex) {
-                Log.e("Error: ", ex.getMessage());
-            }
-        }
         //AppConstants.WriteinFile(TAG + " onSerialConnectErrorTwo Status: " + e.getMessage());
     }
 
@@ -247,15 +226,8 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         BTConstants.BTLinkTwoStatus = false;
         status2("Disconnect");
         e.printStackTrace();
-        if (BTConstants.IsFileUploadCompleted) {
-            try {
-                connect2();
-            } catch (Exception ex) {
-                Log.e("Error: ", ex.getMessage());
-            }
-        }
         if (AppConstants.GenerateLogs)
-            AppConstants.WriteinFile(TAG + " BTSPPLink 2: SerialIoError: " + e.getMessage());
+            AppConstants.WriteinFile(TAG + "BTSPPLink 2: SerialIoError: " + e.getMessage());
     }
 
     public void connect2() {
@@ -281,7 +253,7 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
             Log.i(TAG, "BTSPPLink 2: Link not connected");
             //Toast.makeText(activity, "BTSPPLink 2: Link not connected", Toast.LENGTH_SHORT).show();
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " BTSPPLink 2: Link not connected");
+                AppConstants.WriteinFile(TAG + "BTSPPLink 2: Link not connected");
             return;
         }
         try {
@@ -300,7 +272,7 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
             BTConstants.CurrentCommand_LinkTwo = "";
             Log.i(TAG, "BTSPPLink 2: Link not connected");
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " BTSPPLink 2: Link not connected");
+                AppConstants.WriteinFile(TAG + "BTSPPLink 2: Link not connected");
             return;
         }
         try {
@@ -373,13 +345,6 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         BTConstants.BTLinkThreeStatus = false;
         status3("Disconnect");
         e.printStackTrace();
-        if (BTConstants.IsFileUploadCompleted) {
-            try {
-                connect3();
-            } catch (Exception ex) {
-                Log.e("Error: ", ex.getMessage());
-            }
-        }
         //AppConstants.WriteinFile(TAG + " onSerialConnectErrorThree Status: " + e.getMessage());
     }
 
@@ -393,15 +358,8 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         BTConstants.BTLinkThreeStatus = false;
         status3("Disconnect");
         e.printStackTrace();
-        if (BTConstants.IsFileUploadCompleted) {
-            try {
-                connect3();
-            } catch (Exception ex) {
-                Log.e("Error: ", ex.getMessage());
-            }
-        }
         if (AppConstants.GenerateLogs)
-            AppConstants.WriteinFile(TAG + " BTSPPLink 3: SerialIoError: " + e.getMessage());
+            AppConstants.WriteinFile(TAG + "BTSPPLink 3: SerialIoError: " + e.getMessage());
     }
 
     public void connect3() {
@@ -427,7 +385,7 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
             Log.i(TAG, "BTSPPLink 3: Link not connected");
             //Toast.makeText(activity, "BTSPPLink 3: Link not connected", Toast.LENGTH_SHORT).show();
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " BTSPPLink 3: Link not connected");
+                AppConstants.WriteinFile(TAG + "BTSPPLink 3: Link not connected");
             return;
         }
         try {
@@ -446,7 +404,7 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
             BTConstants.CurrentCommand_LinkThree = "";
             Log.i(TAG, "BTSPPLink 3: Link not connected");
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " BTSPPLink 3: Link not connected");
+                AppConstants.WriteinFile(TAG + "BTSPPLink 3: Link not connected");
             return;
         }
         try {
@@ -520,13 +478,6 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         BTConstants.BTLinkFourStatus = false;
         status4("Disconnect");
         e.printStackTrace();
-        if (BTConstants.IsFileUploadCompleted) {
-            try {
-                connect4();
-            } catch (Exception ex) {
-                Log.e("Error: ", ex.getMessage());
-            }
-        }
         //AppConstants.WriteinFile(TAG + " onSerialConnectErrorFour Status: " + e.getMessage());
     }
 
@@ -540,15 +491,8 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         BTConstants.BTLinkFourStatus = false;
         status4("Disconnect");
         e.printStackTrace();
-        if (BTConstants.IsFileUploadCompleted) {
-            try {
-                connect4();
-            } catch (Exception ex) {
-                Log.e("Error: ", ex.getMessage());
-            }
-        }
         if (AppConstants.GenerateLogs)
-            AppConstants.WriteinFile(TAG + " BTSPPLink 4: SerialIoError: " + e.getMessage());
+            AppConstants.WriteinFile(TAG + "BTSPPLink 4: SerialIoError: " + e.getMessage());
     }
 
     public void connect4() {
@@ -574,7 +518,7 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
             Log.i(TAG, "BTSPPLink 4: Link not connected");
             //Toast.makeText(activity, "BTSPPLink 4: Link not connected", Toast.LENGTH_SHORT).show();
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " BTSPPLink 4: Link not connected");
+                AppConstants.WriteinFile(TAG + "BTSPPLink 4: Link not connected");
             return;
         }
         try {
@@ -593,7 +537,7 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
             BTConstants.CurrentCommand_LinkFour = "";
             Log.i(TAG, "BTSPPLink 4: Link not connected");
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " BTSPPLink 4: Link not connected");
+                AppConstants.WriteinFile(TAG + "BTSPPLink 4: Link not connected");
             return;
         }
         try {
@@ -666,13 +610,6 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         BTConstants.BTLinkFiveStatus = false;
         status5("Disconnect");
         e.printStackTrace();
-        if (BTConstants.IsFileUploadCompleted) {
-            try {
-                connect5();
-            } catch (Exception ex) {
-                Log.e("Error: ", ex.getMessage());
-            }
-        }
         //AppConstants.WriteinFile(TAG + " onSerialConnectErrorFive Status: " + e.getMessage());
     }
 
@@ -686,15 +623,8 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         BTConstants.BTLinkFiveStatus = false;
         status5("Disconnect");
         e.printStackTrace();
-        if (BTConstants.IsFileUploadCompleted) {
-            try {
-                connect5();
-            } catch (Exception ex) {
-                Log.e("Error: ", ex.getMessage());
-            }
-        }
         if (AppConstants.GenerateLogs)
-            AppConstants.WriteinFile(TAG + " BTSPPLink 5: SerialIoError: " + e.getMessage());
+            AppConstants.WriteinFile(TAG + "BTSPPLink 5: SerialIoError: " + e.getMessage());
     }
 
     public void connect5() {
@@ -719,7 +649,7 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
             BTConstants.CurrentCommand_LinkFive = "";
             Log.i(TAG, "BTSPPLink 5: Link not connected");
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " BTSPPLink 5: Link not connected");
+                AppConstants.WriteinFile(TAG + "BTSPPLink 5: Link not connected");
             return;
         }
         try {
@@ -739,7 +669,7 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
             Log.i(TAG, "BTSPPLink 5: Link not connected");
             //Toast.makeText(activity, "BTSPPLink 5: Link not connected", Toast.LENGTH_SHORT).show();
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " BTSPPLink 5: Link not connected");
+                AppConstants.WriteinFile(TAG + "BTSPPLink 5: Link not connected");
             return;
         }
         try {
@@ -813,13 +743,6 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         BTConstants.BTLinkSixStatus = false;
         status6("Disconnect");
         e.printStackTrace();
-        if (BTConstants.IsFileUploadCompleted) {
-            try {
-                connect6();
-            } catch (Exception ex) {
-                Log.e("Error: ", ex.getMessage());
-            }
-        }
         //AppConstants.WriteinFile(TAG + " onSerialConnectErrorSix Status: " + e.getMessage());
     }
 
@@ -833,15 +756,8 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         BTConstants.BTLinkSixStatus = false;
         status6("Disconnect");
         e.printStackTrace();
-        if (BTConstants.IsFileUploadCompleted) {
-            try {
-                connect6();
-            } catch (Exception ex) {
-                Log.e("Error: ", ex.getMessage());
-            }
-        }
         if (AppConstants.GenerateLogs)
-            AppConstants.WriteinFile(TAG + " BTSPPLink 6: SerialIoError: " + e.getMessage());
+            AppConstants.WriteinFile(TAG + "BTSPPLink 6: SerialIoError: " + e.getMessage());
     }
 
     public void connect6() {
@@ -867,7 +783,7 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
             Log.i(TAG, "BTSPPLink 6: Link not connected");
             //Toast.makeText(activity, "BTSPPLink 6: Link not connected", Toast.LENGTH_SHORT).show();
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " BTSPPLink 6: Link not connected");
+                AppConstants.WriteinFile(TAG + "BTSPPLink 6: Link not connected");
             return;
         }
         try {
@@ -886,7 +802,7 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
             BTConstants.CurrentCommand_LinkSix = "";
             Log.i(TAG, "BTSPPLink 6: Link not connected");
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " BTSPPLink 6: Link not connected");
+                AppConstants.WriteinFile(TAG + "BTSPPLink 6: Link not connected");
             return;
         }
         try {
