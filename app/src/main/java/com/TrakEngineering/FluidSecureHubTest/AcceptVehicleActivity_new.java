@@ -1959,7 +1959,6 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                         } else if (ValidationFailFor.equalsIgnoreCase("invalidfob")) {
 
                             AppConstants.colorToastBigFont(AcceptVehicleActivity_new.this, ResponceText, Color.BLUE);
-                            CommonUtils.showCustomMessageDilaog(AcceptVehicleActivity_new.this, "Message", ResponceText);
                             Intent i = new Intent(AcceptVehicleActivity_new.this, WelcomeActivity.class);
                             startActivity(i);
 
@@ -2068,7 +2067,8 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                                 int h = ActionBar.LayoutParams.WRAP_CONTENT;
                                 LinearLayout.LayoutParams par = new LinearLayout.LayoutParams(w, h);
                                 par.weight = 1;
-                                btnCancel.setTextSize(12);
+                                par.rightMargin = 20;
+                                btnCancel.setTextSize(18);
                                 btnCancel.setLayoutParams(par);
 
                                 btnSave.setVisibility(View.VISIBLE);
@@ -2358,7 +2358,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                 int h = ActionBar.LayoutParams.WRAP_CONTENT;
                 LinearLayout.LayoutParams par = new LinearLayout.LayoutParams(w, h);
                 par.topMargin = 700;
-                btnCancel.setTextSize(15);
+                btnCancel.setTextSize(18);
                 btnCancel.setLayoutParams(par);
             }
 
@@ -2636,44 +2636,34 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
 
     public void FstagCustomMessageDilaog(final Activity context, String title, String message) {
 
-        final Dialog dialogBus = new Dialog(context);
-        dialogBus.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        dialogBus.setCancelable(false);
-        dialogBus.setContentView(R.layout.custom_alertdialouge_two);
-        dialogBus.show();
+        androidx.appcompat.app.AlertDialog.Builder alertDialogBuilder = new androidx.appcompat.app.AlertDialog.Builder(context);
+        alertDialogBuilder.setMessage(message);
+        alertDialogBuilder.setCancelable(false);
 
-        TextView edt_message = (TextView) dialogBus.findViewById(R.id.edt_message);
-        Button btnAllow = (Button) dialogBus.findViewById(R.id.btnAllow);
-        Button btnCancel = (Button) dialogBus.findViewById(R.id.btnCancel);
-        edt_message.setText(message);
+        alertDialogBuilder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int arg1) {
+                        dialog.dismiss();
 
-        btnAllow.setOnClickListener(new View.OnClickListener() {
+                        CallSaveButtonFunctionality();
+                        InputMethodManager imm = (InputMethodManager) context.getSystemService(INPUT_METHOD_SERVICE);
+                        imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, InputMethodManager.HIDE_IMPLICIT_ONLY);
+                    }
+                }
+        );
 
-            @Override
-            public void onClick(View v) {
-                dialogBus.dismiss();
+        alertDialogBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int arg1) {
+                        dialog.dismiss();
 
-                CallSaveButtonFunctionality();
-                InputMethodManager imm = (InputMethodManager) context.getSystemService(INPUT_METHOD_SERVICE);
-                imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, InputMethodManager.HIDE_IMPLICIT_ONLY);
-
-
-            }
-        });
-
-        btnCancel.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                dialogBus.dismiss();
-
-                InputMethodManager imm = (InputMethodManager) context.getSystemService(INPUT_METHOD_SERVICE);
-                imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, InputMethodManager.HIDE_IMPLICIT_ONLY);
-
-
-            }
-        });
-
+                        InputMethodManager imm = (InputMethodManager) context.getSystemService(INPUT_METHOD_SERVICE);
+                        imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, InputMethodManager.HIDE_IMPLICIT_ONLY);
+                    }
+                }
+        );
+        androidx.appcompat.app.AlertDialog alertDialog = alertDialogBuilder.create();
+        alertDialog.show();
     }
 
     public void InCaseOfGatehub() {

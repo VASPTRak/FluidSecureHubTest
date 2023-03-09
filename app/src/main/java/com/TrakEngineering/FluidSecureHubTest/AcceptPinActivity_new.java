@@ -1181,7 +1181,7 @@ public class AcceptPinActivity_new extends AppCompatActivity {
 
 
             btnCancel.setVisibility(View.VISIBLE);
-            btnSave.setVisibility(View.INVISIBLE);
+            btnSave.setVisibility(View.GONE);
 
             int widthi = 0;
             int heighti = 0;
@@ -1207,7 +1207,7 @@ public class AcceptPinActivity_new extends AppCompatActivity {
                 int h = ActionBar.LayoutParams.WRAP_CONTENT;
                 LinearLayout.LayoutParams par = new LinearLayout.LayoutParams(w, h);
                 par.topMargin = 700;
-                btnCancel.setTextSize(15);
+                btnCancel.setTextSize(18);
                 btnCancel.setLayoutParams(par);
             }
             hideKeybord();
@@ -1853,7 +1853,6 @@ public class AcceptPinActivity_new extends AppCompatActivity {
                                 CommonUtils.AutoCloseCustomMessageDilaog(AcceptPinActivity_new.this, "Message", ResponceMessage);
                             } else {
                                 ResetTimeoutPinScreen();
-                                //CommonUtils.showCustomMessageDilaog(AcceptPinActivity_new.this, "Message", ResponceMessage);
                                 CommonUtils.AutoCloseCustomMessageDilaog(AcceptPinActivity_new.this, "Message", ResponceMessage);
 
                             }
@@ -1861,9 +1860,8 @@ public class AcceptPinActivity_new extends AppCompatActivity {
 
                         } else if (IsNewFob.equalsIgnoreCase("No")) {
                             AppConstants.APDU_FOB_KEY = "";
-                            onResume();
-
                             tv_fob_Reader.setVisibility(View.GONE);
+                            onResume();
 
                             /*int width = ActionBar.LayoutParams.WRAP_CONTENT;
                             int height = ActionBar.LayoutParams.WRAP_CONTENT;
@@ -1873,7 +1871,6 @@ public class AcceptPinActivity_new extends AppCompatActivity {
                             tv_ok.setText("Invalid Access Device or Unassigned FOB");/
 */
                             ResetTimeoutPinScreen();
-                            //CommonUtils.showCustomMessageDilaog(AcceptPinActivity_new.this, "Message", ResponceMessage);
                             CommonUtils.AutoCloseCustomMessageDilaog(AcceptPinActivity_new.this, "Message", ResponceMessage);
 
                         } else if (IsNewMagneticCardReaderNumber.equalsIgnoreCase("yes")) {
@@ -1890,13 +1887,12 @@ public class AcceptPinActivity_new extends AppCompatActivity {
                                 int h = ActionBar.LayoutParams.WRAP_CONTENT;
                                 LinearLayout.LayoutParams par = new LinearLayout.LayoutParams(w, h);
                                 par.weight = 1;
-                                btnCancel.setTextSize(12);
+                                btnCancel.setTextSize(18);
                                 btnCancel.setLayoutParams(par);
                                 btnSave.setVisibility(View.VISIBLE);
                                 CommonUtils.AutoCloseCustomMessageDilaog(AcceptPinActivity_new.this, "Message", ResponceMessage);
                             } else {
                                 ResetTimeoutPinScreen();
-                                //CommonUtils.showCustomMessageDilaog(AcceptPinActivity_new.this, "Message", ResponceMessage);
                                 CommonUtils.AutoCloseCustomMessageDilaog(AcceptPinActivity_new.this, "Message", ResponceMessage);
                             }
 
@@ -1912,7 +1908,8 @@ public class AcceptPinActivity_new extends AppCompatActivity {
                             int h = ActionBar.LayoutParams.WRAP_CONTENT;
                             LinearLayout.LayoutParams par = new LinearLayout.LayoutParams(w, h);
                             par.weight = 1;
-                            btnCancel.setTextSize(12);
+                            par.rightMargin = 20;
+                            btnCancel.setTextSize(18);
                             btnCancel.setLayoutParams(par);
                             btnSave.setVisibility(View.VISIBLE);
                             CommonUtils.AutoCloseCustomMessageDilaog(AcceptPinActivity_new.this, "Message", ResponceMessage);
@@ -1930,7 +1927,6 @@ public class AcceptPinActivity_new extends AppCompatActivity {
                                 CommonUtils.AutoCloseCustomMessageDilaog(AcceptPinActivity_new.this, "Message", ResponceMessage);
                             } else {
                                 ResetTimeoutPinScreen();
-                                //CommonUtils.showCustomMessageDilaog(AcceptPinActivity_new.this, "Message", ResponceMessage);
                                 CommonUtils.AutoCloseCustomMessageDilaog(AcceptPinActivity_new.this, "Message", Barcode_pin_val + " - " + ResponceMessage);
                             }
                         }
@@ -3022,7 +3018,7 @@ public class AcceptPinActivity_new extends AppCompatActivity {
 
     public void AutoCloseCustomMessageDilaog(final Activity context, String title, String message) {
 
-        //Declare timer
+        /*//Declare timer
         CountDownTimer cTimer = null;
         final Dialog dialogBus = new Dialog(context);
         dialogBus.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -3064,11 +3060,51 @@ public class AcceptPinActivity_new extends AppCompatActivity {
                 InputMethodManager imm = (InputMethodManager) context.getSystemService(INPUT_METHOD_SERVICE);
                 imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, InputMethodManager.HIDE_IMPLICIT_ONLY);
                 onResume();
-
             }
+        });*/ // Commented above code as per #1465
 
-        });
+        final Timer timer = new Timer();
+        androidx.appcompat.app.AlertDialog.Builder alertDialogBuilder = new androidx.appcompat.app.AlertDialog.Builder(context);
 
+        String newString1 = message.replaceAll("PERSONNEL", "<font color='red'> " + "<U> PERSONNEL </U>" + " </font>");
+        String newString = newString1.replaceAll("VEHICLE", "<font color='red'> " + "<U> VEHICLE </U>" + " </font>");
+
+        alertDialogBuilder.setMessage(Html.fromHtml(newString));
+        alertDialogBuilder.setCancelable(false);
+
+        alertDialogBuilder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int arg1) {
+                        dialog.dismiss();
+
+                        if (timer != null) {
+                            timer.cancel();
+                        }
+
+                        InputMethodManager imm = (InputMethodManager) context.getSystemService(INPUT_METHOD_SERVICE);
+                        imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, InputMethodManager.HIDE_IMPLICIT_ONLY);
+                        onResume();
+                    }
+                }
+        );
+
+        androidx.appcompat.app.AlertDialog alertDialog = alertDialogBuilder.create();
+
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+
+                if (alertDialog.isShowing()) {
+                    alertDialog.dismiss();
+                }
+                timer.cancel();
+                InputMethodManager imm = (InputMethodManager) context.getSystemService(INPUT_METHOD_SERVICE);
+                imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, InputMethodManager.HIDE_IMPLICIT_ONLY);
+                onResume();
+            }
+        }, 4000);
+
+        alertDialog.show();
     }
 
     private void retryConnect() {

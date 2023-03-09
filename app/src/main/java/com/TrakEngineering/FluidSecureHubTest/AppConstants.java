@@ -483,12 +483,8 @@ public class AppConstants {
                     @Override
                     public void onClick(DialogInterface dialog, int arg1) {
                         dialog.dismiss();
-
-
                     }
                 }
-
-
         );
 
         AlertDialog alertDialog = alertDialogBuilder.create();

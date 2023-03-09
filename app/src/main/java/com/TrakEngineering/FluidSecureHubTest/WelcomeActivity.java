@@ -195,8 +195,6 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
     OffDBController offcontroller = new OffDBController(WelcomeActivity.this);
 
-    public boolean reconfigureForOnResume = false;
-
     public static HashMap<String, Date> lastFSNPDate = new HashMap<>();
     private ArrayList<String> NearByBTDevices = new ArrayList<>();
     public static int countFSVMUpgrade;
@@ -411,6 +409,9 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     public Menu myMenu;
     public String BTStatusStr = "";
     public int connectionAttemptCount = 0;
+    public boolean proceedAfterManualWifiConnect = false;
+    public boolean skipOnResume = false;
+    public int linkPositionForUpgrade = 0;
 
     // ============ Bluetooth receiver for Upgrade =========//
     public BroadcastBlueLinkData broadcastBlueLinkData = null;
@@ -433,6 +434,15 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
         IsHotspotEnabled();
         AppConstants.IsBTLinkSelectedCurrently = false;
+
+        if (skipOnResume && !proceedAfterManualWifiConnect) {
+            skipOnResume = false;
+            return;
+        }
+        if (proceedAfterManualWifiConnect) {
+            proceedAfterManualWifiConnect = false;
+            new WiFiConnectTask().execute();
+        }
 
         AppConstants.showReaderStatus = false;
         //AppConstants.selectHosePressed = false;
@@ -1083,6 +1093,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         startBTSppMain(0); //BT link connection
 
         cancelThinDownloadManager();
+
     }
 
     public void cancelThinDownloadManager() {
@@ -3834,12 +3845,13 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
     public class CommandsPOST extends AsyncTask<String, Void, String> {
 
-        public String resp = "";
+        public String resp = "", URL_INFO_AFTER_RESET = "";
 
         protected String doInBackground(String... param) {
 
             System.out.println("url" + HTTP_URL);
             try {
+                URL_INFO_AFTER_RESET = param[2];
                 MediaType JSON = MediaType.parse("application/json");
 
                 OkHttpClient client = new OkHttpClient();
@@ -3867,9 +3879,25 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
             try {
                 consoleString += "OUTPUT- " + result + "\n";
-                // tvConsole.setText(consoleString);
 
-                System.out.println(result);
+                if (!URL_INFO_AFTER_RESET.isEmpty()) {
+                    String resInfo = new CommandsGET_INFO().execute(URL_INFO_AFTER_RESET).get();
+                    if (resInfo.startsWith("{") && resInfo.contains("Version")) {
+
+                        try {
+                            JSONObject jsonObj = new JSONObject(resInfo);
+                            String userData = jsonObj.getString("Version");
+                            JSONObject jsonObject = new JSONObject(userData);
+
+                            iot_version = jsonObject.getString("iot_version");
+
+                            storeUpgradeFSVersion(WelcomeActivity.this, linkPositionForUpgrade, iot_version, "HTTP");
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
 
             } catch (Exception e) {
                 e.printStackTrace();
@@ -4024,6 +4052,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
+                    skipOnResume = true;
                     wifiApManager.setWifiApEnabled(null, true);
 
                     System.out.println(result);
@@ -4315,6 +4344,10 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     } else {
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "WiFiConnectTask => Connected SSID: " + ssid +"; Selected SSID: " + AppConstants.CURRENT_SELECTED_SSID);
+                        AppConstants.colorToastBigFont(WelcomeActivity.this, " Selected SSID: " + AppConstants.CURRENT_NEW_LINK_SELECTED_FOR_CONFIGURE +"; WiFi Connected to: " + ssid, Color.BLUE);
+                        if (loading != null)
+                            loading.dismiss();
+                        ChangeWifiState(false);//turn wifi off
                     }
                 }
             }, 5000);
@@ -4433,6 +4466,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         AppConstants.colorToastBigFont(WelcomeActivity.this, getResources().getString(R.string.MacAddressUpdated), Color.parseColor("#4CAF50"));
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Mac Address Updated.");
+                        skipOnResume = true;
                         wifiApManager.setWifiApEnabled(null, true);
                         ChangeWifiState(false);
                         alertHotspotOnOffAfterReconfigure();
@@ -4444,6 +4478,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         AppConstants.colorToastBigFont(WelcomeActivity.this, getResources().getString(R.string.MacAddressNotUpdated), Color.BLUE);
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "MAC address could not be updated.");
+                        skipOnResume = true;
                         wifiApManager.setWifiApEnabled(null, true);
                         ChangeWifiState(false);
                     }
@@ -6665,7 +6700,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
             consoleString += "RENAME:\n" + jsonRename;
 
-            new CommandsPOST().execute(URL_WIFI, jsonRename);
+            new CommandsPOST().execute(URL_WIFI, jsonRename, "");
 
         }
 
@@ -6778,6 +6813,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 //Link Reconfigure process start
                 ReconfigureCountdown();
                 Constants.hotspotstayOn = false;//hotspot enable/disable flag
+                skipOnResume = true;
                 wifiApManager.setWifiApEnabled(null, false);  //Disabled Hotspot
 
                 //Enable wifi
@@ -9958,6 +9994,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         System.out.println("MJ- connectWiFiLibrary" + asd);
 
         Constants.hotspotstayOn = false; //hotspot enable/disable flag
+        skipOnResume = true;
         wifiApManager.setWifiApEnabled(null, false);
 
 
@@ -10010,6 +10047,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
         Constants.hotspotstayOn = false; //hotspot enable/disable flag
         if (CommonUtils.isHotspotEnabled(this)) {
+            skipOnResume = true;
             wifiApManager.setWifiApEnabled(null, false);
         }
 
@@ -10141,6 +10179,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     public void connectWiFiLibrary2Attempt() {
 
         Constants.hotspotstayOn = false; //hotspot enable/disable flag
+        skipOnResume = true;
         wifiApManager.setWifiApEnabled(null, false);
 
 
@@ -10218,6 +10257,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     public void connectWiFiLibrary3Attempt() {
 
         Constants.hotspotstayOn = false; //hotspot enable/disable flag
+        skipOnResume = true;
         wifiApManager.setWifiApEnabled(null, false);
 
 
@@ -11506,6 +11546,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             public void run() {
 
                 if (!CommonUtils.isHotspotEnabled(WelcomeActivity.this)) {
+                    skipOnResume = true;
                     wifiApManager.setWifiApEnabled(null, true);
                 }
                 ChangeWifiState(false);
@@ -11756,7 +11797,10 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 AppConstants.enableHotspotManuallyWindow = false;
                 Constants.hotspotstayOn = false; //hotspot enable/disable flag
                 ReconfigureCountdown();
-                wifiApManager.setWifiApEnabled(null, false);  //Disabled Hotspot
+                if (CommonUtils.isHotspotEnabled(WelcomeActivity.this)) {
+                    skipOnResume = true;
+                    wifiApManager.setWifiApEnabled(null, false);  //Disabled Hotspot
+                }
                 //Enable wifi
                 WifiManager wifiManagerMM = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
                 wifiManagerMM.setWifiEnabled(true);
@@ -11789,6 +11833,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
     private void ChangeWifiState(boolean enable) {
 
+        skipOnResume = true;
         WifiManager wifiManagerMM = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
         if (enable) {
             //Enable wifi
@@ -11814,6 +11859,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 //Enable wifi
                 ChangeWifiState(true);
                 if (CommonUtils.isHotspotEnabled(WelcomeActivity.this)) {
+                    skipOnResume = true;
                     wifiApManager.setWifiApEnabled(null, false);
                 }
 
@@ -11877,8 +11923,10 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                             LinkReConfigurationProcessStep2();
                                         }
                                     }, 1000);*/
+                                    proceedAfterManualWifiConnect = false;
                                     new WiFiConnectTask().execute();
                                 } else {
+                                    proceedAfterManualWifiConnect = true;
                                     if (AppConstants.GenerateLogs)
                                         AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Step1 => Selected SSID: " + AppConstants.SELECTED_SSID_FOR_MANUALL +"; Connected SSID: " + ssid);
                                 }
@@ -11997,6 +12045,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        skipOnResume = true;
         wifiApManager.setWifiApEnabled(null, true); //one try for auto on
         try {
             Thread.sleep(6000);
@@ -12299,6 +12348,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         Log.i(TAG, "Step4 Mac Address Updated");
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Step4 Mac Address Updated");
+                        skipOnResume = true;
                         wifiApManager.setWifiApEnabled(null, true);
                         ChangeWifiState(false);
                         //alertHotspotOnOffAfterReconfigure();
@@ -12310,6 +12360,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         Log.i(TAG, "Step4 MAC address could not be updated");
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Step4 MAC address could not be updated");
+                        skipOnResume = true;
                         wifiApManager.setWifiApEnabled(null, true);
                         ChangeWifiState(false);
                     }
@@ -13935,106 +13986,6 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
     }
 
-    private void NormalLinkConnectionIssue(int position) {
-
-        try {
-
-            switch (position) {
-
-                case 0:
-                    if (NL1State < 10) {
-                        NL1State = NL1State + 1;
-                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", getResources().getString(R.string.HoseUnavailableMessage));
-                    } else if (NL1State == 10) {
-                        NL1State = NL1State + 1;
-                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", getResources().getString(R.string.HavingTroubleConnectingToLINK));
-                        //send an email to support@fluidsecure.com
-                        new LinkConnectionIssueEmail().execute();
-                    } else {
-                        ///NL1State = 0;
-                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", getResources().getString(R.string.HavingTroubleConnectingToLINK));
-                    }
-                    break;
-                case 1:
-
-                    if (NL2State < 10) {
-                        NL2State = NL2State + 1;
-                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", getResources().getString(R.string.HoseUnavailableMessage));
-                    } else if (NL2State == 10) {
-                        NL2State = NL2State + 1;
-                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", getResources().getString(R.string.HavingTroubleConnectingToLINK));
-                        //send an email to support@fluidsecure.com
-                        new LinkConnectionIssueEmail().execute();
-                    } else {
-                        ///NL2State = 0;
-                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", getResources().getString(R.string.HavingTroubleConnectingToLINK));
-                    }
-                    break;
-                case 2:
-                    if (NL3State < 10) {
-                        NL3State = NL3State + 1;
-                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", getResources().getString(R.string.HoseUnavailableMessage));
-                    } else if (NL3State == 10) {
-                        NL3State = NL3State + 1;
-                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", getResources().getString(R.string.HavingTroubleConnectingToLINK));
-                        //send an email to support@fluidsecure.com
-                        new LinkConnectionIssueEmail().execute();
-                    } else {
-                        ///NL3State = 0;
-                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", getResources().getString(R.string.HavingTroubleConnectingToLINK));
-                    }
-                    break;
-                case 3:
-                    if (NL4State < 10) {
-                        NL4State = NL4State + 1;
-                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", getResources().getString(R.string.HoseUnavailableMessage));
-                    } else if (NL4State == 10) {
-                        NL4State = NL4State + 1;
-                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", getResources().getString(R.string.HavingTroubleConnectingToLINK));
-                        //send an email to support@fluidsecure.com
-                        new LinkConnectionIssueEmail().execute();
-                    } else {
-                        ///NL4State = 0;
-                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", getResources().getString(R.string.HavingTroubleConnectingToLINK));
-                    }
-                    break;
-                case 4:
-                    if (NL5State < 10) {
-                        NL5State = NL5State + 1;
-                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", getResources().getString(R.string.HoseUnavailableMessage));
-                    } else if (NL5State == 10) {
-                        NL5State = NL5State + 1;
-                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", getResources().getString(R.string.HavingTroubleConnectingToLINK));
-                        //send an email to support@fluidsecure.com
-                        new LinkConnectionIssueEmail().execute();
-                    } else {
-                        ///NL5State = 0;
-                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", getResources().getString(R.string.HavingTroubleConnectingToLINK));
-                    }
-                    break;
-                case 5:
-                    if (NL6State < 10) {
-                        NL6State = NL6State + 1;
-                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", getResources().getString(R.string.HoseUnavailableMessage));
-                    } else if (NL6State == 10) {
-                        NL6State = NL6State + 1;
-                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", getResources().getString(R.string.HavingTroubleConnectingToLINK));
-                        //send an email to support@fluidsecure.com
-                        new LinkConnectionIssueEmail().execute();
-                    } else {
-                        ///NL6State = 0;
-                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", getResources().getString(R.string.HavingTroubleConnectingToLINK));
-                    }
-                    break;
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-    }
-
-
     public class LinkReconnectionEmail extends AsyncTask<Void, Void, String> {
 
 
@@ -14274,25 +14225,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     AppConstants.IsProblemWhileEnableHotspot = true;
                 }
             }*/
-            //ShowHotspotDisabledErrorMessage();
         } catch (Exception e) {
             e.printStackTrace();
-        }
-    }
-
-    private void ShowHotspotDisabledErrorMessage() {
-        if (!CommonUtils.isHotspotEnabled(this) && !AppConstants.IsBTLinkSelectedCurrently && AppConstants.IsProblemWhileEnableHotspot && Constants.hotspotstayOn && !AppConstants.ManuallReconfigure) {
-
-            AppConstants.IsProblemWhileEnableHotspot = false;
-            HotspotEnableErrorCount = 0; // reset error Count
-            AppConstants.WriteinFile("Error occurred while enabling the hotspot.");
-            CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Error Message", "HotSpot is disabled, please contact customer support.");
-            stopService(new Intent(WelcomeActivity.this, BackgroundServiceHotspotCheck.class));
-            Intent name = new Intent(WelcomeActivity.this, BackgroundServiceHotspotCheck.class);
-            PendingIntent pintent = PendingIntent.getService(getApplicationContext(), 0, name, 0);
-            AlarmManager alarm = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-            pintent.cancel();
-            alarm.cancel(pintent);
         }
     }
 
@@ -14721,7 +14655,6 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         pd.dismiss();
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + "BT LINK not connected.");
-                        //Toast.makeText(getApplicationContext(), "BT LINK not connected.", Toast.LENGTH_SHORT).show();
                         CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", getResources().getString(R.string.UnableToConnectToHoseMessage));
                     }
                 }
@@ -14921,70 +14854,57 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     @RequiresApi(api = Build.VERSION_CODES.N)
     private void CustomMessageWithYesOrNo(final Activity context, String message) {
 
-        final Dialog dialogBus = new Dialog(context);
-        dialogBus.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        dialogBus.setCancelable(false);
-        dialogBus.setContentView(R.layout.custom_alertdialougeinput);
-        dialogBus.show();
+        androidx.appcompat.app.AlertDialog.Builder alertDialogBuilder = new androidx.appcompat.app.AlertDialog.Builder(context);
+        alertDialogBuilder.setMessage(message);
+        alertDialogBuilder.setCancelable(false);
 
-        TextView edt_message = (TextView) dialogBus.findViewById(R.id.edt_message);
-        Button btnYes = (Button) dialogBus.findViewById(R.id.btnYes);
-        Button btnNo = (Button) dialogBus.findViewById(R.id.btnNo);
-        edt_message.setText(message); //Html.fromHtml(message, Html.FROM_HTML_MODE_LEGACY)
+        alertDialogBuilder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int arg1) {
+                        dialog.dismiss();
+                        AddNewLinkScreen();
+                    }
+                }
+        );
 
-        btnYes.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                dialogBus.dismiss();
-                AddNewLinkScreen();
-            }
-        });
-
-        btnNo.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                dialogBus.dismiss();
-                CustomMessageAddLinkWarning(context, getResources().getString(R.string.AddLinkWarning));
-            }
-        });
+        alertDialogBuilder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int arg1) {
+                        dialog.dismiss();
+                        CustomMessageAddLinkWarning(context, getResources().getString(R.string.AddLinkWarning));
+                    }
+                }
+        );
+        androidx.appcompat.app.AlertDialog alertDialog = alertDialogBuilder.create();
+        alertDialog.show();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.N)
     private void CustomMessageAddLinkWarning(final Activity context, String message) {
 
-        final Dialog dialogBus = new Dialog(context);
-        dialogBus.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        dialogBus.setCancelable(false);
-        dialogBus.setContentView(R.layout.custom_alertdialougeinput);
+        androidx.appcompat.app.AlertDialog.Builder alertDialogBuilder = new androidx.appcompat.app.AlertDialog.Builder(context);
+        alertDialogBuilder.setMessage(message);
+        alertDialogBuilder.setCancelable(false);
 
-        TextView edt_message = (TextView) dialogBus.findViewById(R.id.edt_message);
-        Button btnYes = (Button) dialogBus.findViewById(R.id.btnYes);
-        Button btnNo = (Button) dialogBus.findViewById(R.id.btnNo);
-        btnYes.setText(R.string.AddLink);
-        btnNo.setText(R.string.CloseBtn);
-        edt_message.setText(message); //Html.fromHtml(message, Html.FROM_HTML_MODE_LEGACY)
+        alertDialogBuilder.setPositiveButton(getResources().getString(R.string.AddLink), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int arg1) {
+                        dialog.dismiss();
+                        AddNewLinkScreen();
+                    }
+                }
+        );
 
-        dialogBus.show();
-
-        btnYes.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                dialogBus.dismiss();
-                AddNewLinkScreen();
-            }
-        });
-
-        btnNo.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                dialogBus.dismiss();
-                context.finish();
-            }
-        });
+        alertDialogBuilder.setNegativeButton(getResources().getString(R.string.CloseBtn), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int arg1) {
+                        dialog.dismiss();
+                        context.finish();
+                    }
+                }
+        );
+        androidx.appcompat.app.AlertDialog alertDialog = alertDialogBuilder.create();
+        alertDialog.show();
     }
 
     public void AddNewLinkScreen() {
@@ -15199,6 +15119,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             }
 
             if (!ipAddress.trim().isEmpty()) {
+                linkPositionForUpgrade = linkPosition;
                 HTTPLinkUpgradeFunctionality(LinkName, ipAddress);
             } else {
                 ContinueToTheTransaction();
@@ -15229,7 +15150,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_HTTP + "-" + TAG + "Sending UPGRADE START command to Link: " + LinkName);
-                    new CommandsPOST().execute(URL_UPGRADE_START, "");
+                    new CommandsPOST().execute(URL_UPGRADE_START, "", "");
 
                     new OkHttpFileUpload().execute(LocalPath, "application/binary", ipAddress, LinkName);
                 }
@@ -15243,7 +15164,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
     public class OkHttpFileUpload extends AsyncTask<String, Void, String> {
 
-        public String resp = "", HTTP_URL = "", URL_RESET = "", LinkName = "";
+        public String resp = "", HTTP_URL = "", URL_RESET = "", URL_INFO_AFTER_RESET = "", LinkName = "";
         ProgressDialog pd;
 
         @Override
@@ -15262,6 +15183,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 String LocalContentType = param[1];
                 HTTP_URL = "http://" + param[2] + ":80/";
                 URL_RESET = HTTP_URL + "upgrade?command=reset";
+                URL_INFO_AFTER_RESET = HTTP_URL + "client?command=info";
                 LinkName = param[3];
 
                 MediaType contentType = MediaType.parse(LocalContentType);
@@ -15297,7 +15219,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     public void run() {
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_HTTP + "-" + TAG + "Sending RESET command to Link: " + LinkName);
-                        new CommandsPOST().execute(URL_RESET, "");
+                        new CommandsPOST().execute(URL_RESET, "", URL_INFO_AFTER_RESET);
                     }
                 }, 5000);
 
@@ -16068,7 +15990,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     pdUpgradeProcess.setMessage(GetSpinnerMessage(getResources().getString(R.string.ConnectingToTheLINK) + "\n" + getResources().getString(R.string.PleaseWaitSeveralSeconds)));
                 }
 
-                storeUpgradeFSVersion(WelcomeActivity.this, linkPosition, AppConstants.UP_FirmwareVersion);
+                storeUpgradeFSVersion(WelcomeActivity.this, linkPosition, AppConstants.UP_FirmwareVersion, "BT");
 
                 Handler handler = new Handler();
                 int delay = 10000;
@@ -16123,38 +16045,68 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         }
     }
 
-    public void storeUpgradeFSVersion(Context context, int linkPosition, String fsVersion) {
+    public void storeUpgradeFSVersion(Context context, int linkPosition, String fsVersion, String linkType) {
         try {
             String strHoseId = "", strFsVersion = "", hoseId = "";
             switch (linkPosition) {
                 case 0://Link 1
-                    strHoseId = "hoseid_bt1";
-                    strFsVersion = "fsversion_bt1";
+                    if (linkType.equalsIgnoreCase("BT")) {
+                        strHoseId = "hoseid_bt1";
+                        strFsVersion = "fsversion_bt1";
+                    } else {
+                        strHoseId = "hoseid_fs1";
+                        strFsVersion = "fsversion_fs1";
+                    }
                     hoseId = AppConstants.UP_HoseId_fs1;
                     break;
                 case 1://Link 2
-                    strHoseId = "hoseid_bt2";
-                    strFsVersion = "fsversion_bt2";
+                    if (linkType.equalsIgnoreCase("BT")) {
+                        strHoseId = "hoseid_bt2";
+                        strFsVersion = "fsversion_bt2";
+                    } else {
+                        strHoseId = "hoseid_fs2";
+                        strFsVersion = "fsversion_fs2";
+                    }
                     hoseId = AppConstants.UP_HoseId_fs2;
                     break;
                 case 2://Link 3
-                    strHoseId = "hoseid_bt3";
-                    strFsVersion = "fsversion_bt3";
+                    if (linkType.equalsIgnoreCase("BT")) {
+                        strHoseId = "hoseid_bt3";
+                        strFsVersion = "fsversion_bt3";
+                    } else {
+                        strHoseId = "hoseid_fs3";
+                        strFsVersion = "fsversion_fs3";
+                    }
                     hoseId = AppConstants.UP_HoseId_fs3;
                     break;
                 case 3://Link 4
-                    strHoseId = "hoseid_bt4";
-                    strFsVersion = "fsversion_bt4";
+                    if (linkType.equalsIgnoreCase("BT")) {
+                        strHoseId = "hoseid_bt4";
+                        strFsVersion = "fsversion_bt4";
+                    } else {
+                        strHoseId = "hoseid_fs4";
+                        strFsVersion = "fsversion_fs4";
+                    }
                     hoseId = AppConstants.UP_HoseId_fs4;
                     break;
                 case 4://Link 5
-                    strHoseId = "hoseid_bt5";
-                    strFsVersion = "fsversion_bt5";
+                    if (linkType.equalsIgnoreCase("BT")) {
+                        strHoseId = "hoseid_bt5";
+                        strFsVersion = "fsversion_bt5";
+                    } else {
+                        strHoseId = "hoseid_fs5";
+                        strFsVersion = "fsversion_fs5";
+                    }
                     hoseId = AppConstants.UP_HoseId_fs5;
                     break;
                 case 5://Link 6
-                    strHoseId = "hoseid_bt6";
-                    strFsVersion = "fsversion_bt6";
+                    if (linkType.equalsIgnoreCase("BT")) {
+                        strHoseId = "hoseid_bt6";
+                        strFsVersion = "fsversion_bt6";
+                    } else {
+                        strHoseId = "hoseid_fs6";
+                        strFsVersion = "fsversion_fs6";
+                    }
                     hoseId = AppConstants.UP_HoseId_fs6;
                     break;
             }
@@ -16164,10 +16116,69 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             editor.putString(strHoseId, hoseId);
             editor.putString(strFsVersion, fsVersion);
             editor.commit();
+
+
+            UpgradeVersionEntity objEntityClass = new UpgradeVersionEntity();
+            objEntityClass.IMEIUDID = AppConstants.getIMEI(WelcomeActivity.this);
+            objEntityClass.Email = CommonUtils.getCustomerDetails_backgroundServiceBT(WelcomeActivity.this).PersonEmail;
+            objEntityClass.HoseId = hoseId;
+            objEntityClass.Version = fsVersion;
+
+            if (hoseId != null && !hoseId.trim().isEmpty()) {
+                new UpgradeCurrentVersionWithUpgradableVersion(objEntityClass, linkPosition).execute();
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
+    public class UpgradeCurrentVersionWithUpgradableVersion extends AsyncTask<Void, Void, String> {
+        UpgradeVersionEntity objUpgrade;
+        int linkPosition;
+        public String response = null;
+
+        public UpgradeCurrentVersionWithUpgradableVersion(UpgradeVersionEntity objUpgrade, int linkPosition) {
+            this.objUpgrade = objUpgrade;
+            this.linkPosition = linkPosition;
+        }
+
+        @Override
+        protected String doInBackground(Void... voids) {
+
+            try {
+                ServerHandler serverHandler = new ServerHandler();
+
+                Gson gson = new Gson();
+                String jsonData = gson.toJson(objUpgrade);
+
+                //----------------------------------------------------------------------------------
+                String authString = "Basic " + AppConstants.convertStingToBase64(objUpgrade.IMEIUDID + ":" + objUpgrade.Email + ":" + "UpgradeCurrentVersionWithUgradableVersion" + AppConstants.LANG_PARAM);
+                response = serverHandler.PostTextData(WelcomeActivity.this, AppConstants.webURL, jsonData, authString);
+                //----------------------------------------------------------------------------------
+
+            } catch (Exception ex) {
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + getBTLinkIndexByPosition(linkPosition) + " UpgradeCurrentVersionWithUpgradableVersion Exception: " + ex.getMessage());
+            }
+            return response;
+        }
+
+        @Override
+        protected void onPostExecute(String aVoid) {
+            try {
+                AppConstants.UP_Upgrade = false;
+                JSONObject jsonObject = new JSONObject(aVoid);
+                String ResponceMessage = jsonObject.getString("ResponceMessage");
+                String ResponceText = jsonObject.getString("ResponceText");
+
+                if (ResponceMessage.equalsIgnoreCase("success")) {
+                    AppConstants.clearSharedPrefByName(WelcomeActivity.this, Constants.PREF_FS_UPGRADE);
+                }
+            } catch (Exception e) {
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + getBTLinkIndexByPosition(linkPosition) + " UpgradeCurrentVersionWithUpgradableVersion onPostExecute Exception: " + e.getMessage());
+            }
+        }
+    }
     //endregion
 }

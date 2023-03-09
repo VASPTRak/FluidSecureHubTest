@@ -454,14 +454,17 @@ public class RegistrationActivity extends AppCompatActivity {
                             IsVehicleNumberRequire, Integer.parseInt(WifiChannelToUse), "", "", "", "",
                             "", "", "");
 
+                    Log.i(TAG, " Clearing previous offline data after new registration.");
+                    CommonUtils.ClearOfflineData(RegistrationActivity.this); // To clear offline data of Links, Vehicle, Personnel and Department.
+
                     AlertDialogBox(RegistrationActivity.this, getResources().getString(R.string.RegistrationSuccess));
                 } else if (ResponceMessage.equalsIgnoreCase("fail")) {
                     String ResponseText = jsonObj.getString(AppConstants.RES_TEXT);
                     String ValidationFailFor = jsonObj.getString(AppConstants.VALIDATION_FOR_TEXT);
 
-                    if (ValidationFailFor.equalsIgnoreCase("askreplacehub")){
-                        CustomMessage2Input(RegistrationActivity.this,"",getString(R.string.askreplacehub));
-                    }else{
+                    if (ValidationFailFor.equalsIgnoreCase("askreplacehub")) {
+                        CustomMessage2Input(RegistrationActivity.this, "", getString(R.string.askreplacehub));
+                    } else {
                         AppConstants.AlertDialogBox(RegistrationActivity.this, ResponseText);
                     }
 
@@ -483,55 +486,46 @@ public class RegistrationActivity extends AppCompatActivity {
     @RequiresApi(api = Build.VERSION_CODES.N)
     private void CustomMessage2Input(final Activity context, String title, String message) {
 
-        final Dialog dialogBus = new Dialog(context);
-        dialogBus.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        dialogBus.setCancelable(false);
-        dialogBus.setContentView(R.layout.custom_alertdialougeinput);
-        dialogBus.show();
+        androidx.appcompat.app.AlertDialog.Builder alertDialogBuilder = new androidx.appcompat.app.AlertDialog.Builder(context);
+        alertDialogBuilder.setMessage(message);
+        alertDialogBuilder.setCancelable(false);
 
-        TextView edt_message = (TextView) dialogBus.findViewById(R.id.edt_message);
-        Button btnYes = (Button) dialogBus.findViewById(R.id.btnYes);
-        Button btnNo = (Button) dialogBus.findViewById(R.id.btnNo);
-        edt_message.setText(Html.fromHtml(message));
+        alertDialogBuilder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int arg1) {
+                        dialog.dismiss();
+                        //save to cloud call
+                        btnSubmit.setVisibility(View.GONE);
 
-        btnYes.setOnClickListener(new View.OnClickListener() {
+                        tv_enter_username.setVisibility(View.VISIBLE);
+                        edt_username.setVisibility(View.VISIBLE);
+                        edt_password.setVisibility(View.VISIBLE);
+                        tv_enter_password.setVisibility(View.VISIBLE);
+                        btnReplaceHub.setVisibility(View.VISIBLE);
+                    }
+                }
+        );
 
-            @Override
-            public void onClick(View v) {
-                dialogBus.dismiss();
-                //save to cloud call
-                btnSubmit.setVisibility(View.GONE);
+        alertDialogBuilder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int arg1) {
+                        dialog.dismiss();
 
-                tv_enter_username.setVisibility(View.VISIBLE);
-                edt_username.setVisibility(View.VISIBLE);
-                edt_password.setVisibility(View.VISIBLE);
-                tv_enter_password.setVisibility(View.VISIBLE);
-                btnReplaceHub.setVisibility(View.VISIBLE);
+                        btnSubmit.setVisibility(View.VISIBLE);
 
-            }
-        });
+                        tv_enter_username.setVisibility(View.GONE);
+                        edt_username.setVisibility(View.GONE);
+                        edt_password.setVisibility(View.GONE);
+                        tv_enter_password.setVisibility(View.GONE);
+                        btnReplaceHub.setVisibility(View.GONE);
 
-        btnNo.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                dialogBus.dismiss();
-
-                btnSubmit.setVisibility(View.VISIBLE);
-
-                tv_enter_username.setVisibility(View.GONE);
-                edt_username.setVisibility(View.GONE);
-                edt_password.setVisibility(View.GONE);
-                tv_enter_password.setVisibility(View.GONE);
-                btnReplaceHub.setVisibility(View.GONE);
-//                editVehicleNumber.requestFocus();
-                InputMethodManager imm = (InputMethodManager) context.getSystemService(INPUT_METHOD_SERVICE);
-                imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, InputMethodManager.HIDE_IMPLICIT_ONLY);
-
-
-            }
-        });
-
+                        InputMethodManager imm = (InputMethodManager) context.getSystemService(INPUT_METHOD_SERVICE);
+                        imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, InputMethodManager.HIDE_IMPLICIT_ONLY);
+                    }
+                }
+        );
+        androidx.appcompat.app.AlertDialog alertDialog = alertDialogBuilder.create();
+        alertDialog.show();
     }
 
     public class ReplaceHUBFromApp extends AsyncTask<String, Void, String> {
