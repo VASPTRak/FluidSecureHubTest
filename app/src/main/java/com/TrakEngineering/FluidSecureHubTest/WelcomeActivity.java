@@ -3881,22 +3881,14 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 consoleString += "OUTPUT- " + result + "\n";
 
                 if (!URL_INFO_AFTER_RESET.isEmpty()) {
-                    String resInfo = new CommandsGET_INFO().execute(URL_INFO_AFTER_RESET).get();
-                    if (resInfo.startsWith("{") && resInfo.contains("Version")) {
-
-                        try {
-                            JSONObject jsonObj = new JSONObject(resInfo);
-                            String userData = jsonObj.getString("Version");
-                            JSONObject jsonObject = new JSONObject(userData);
-
-                            iot_version = jsonObject.getString("iot_version");
-
-                            storeUpgradeFSVersion(WelcomeActivity.this, linkPositionForUpgrade, iot_version, "HTTP");
-
-                        } catch (JSONException e) {
-                            e.printStackTrace();
+                    new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (AppConstants.GenerateLogs)
+                                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_HTTP + "-" + TAG + "Sending INFO command (After upgrade) to the Link.");
+                            new CommandsGET_INFO_AfterUpgrade().execute(URL_INFO_AFTER_RESET);
                         }
-                    }
+                    }, 5000);
                 }
 
             } catch (Exception e) {
@@ -3950,6 +3942,67 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 ChangeWifiState(false);//turn wifi off
                 if (AppConstants.GenerateLogs)
                     AppConstants.WriteinFile(TAG + "CommandsGET_INFO onPostExecute --Exception: " + e.getMessage());
+                Log.d("Ex", e.getMessage());
+                Constants.hotspotstayOn = true;
+            }
+        }
+    }
+
+    public class CommandsGET_INFO_AfterUpgrade extends AsyncTask<String, Void, String> {
+
+        public String resp = "";
+
+        protected String doInBackground(String... param) {
+
+            try {
+                OkHttpClient client = new OkHttpClient();
+                client.setConnectTimeout(15, TimeUnit.SECONDS);
+                client.setReadTimeout(15, TimeUnit.SECONDS);
+                client.setWriteTimeout(15, TimeUnit.SECONDS);
+
+                Request request = new Request.Builder()
+                        .url(param[0])
+                        .build();
+
+                Response response = client.newCall(request).execute();
+                resp = response.body().string();
+
+            } catch (Exception e) {
+                ChangeWifiState(false);//turn wifi off
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + "CommandsGET_INFO_AfterUpgrade InBackground --Exception: " + e.getMessage());
+                Log.d("Ex", e.getMessage());
+                Constants.hotspotstayOn = true;
+                if (loading != null) {
+                    loading.dismiss();
+                }
+            }
+            return resp;
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+
+            try {
+                if (result.startsWith("{") && result.contains("Version")) {
+
+                    try {
+                        JSONObject jsonObj = new JSONObject(result);
+                        String userData = jsonObj.getString("Version");
+                        JSONObject jsonObject = new JSONObject(userData);
+
+                        iot_version = jsonObject.getString("iot_version");
+
+                        storeUpgradeFSVersion(WelcomeActivity.this, linkPositionForUpgrade, iot_version, "HTTP");
+
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            } catch (Exception e) {
+                ChangeWifiState(false);//turn wifi off
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + "CommandsGET_INFO_AfterUpgrade onPostExecute --Exception: " + e.getMessage());
                 Log.d("Ex", e.getMessage());
                 Constants.hotspotstayOn = true;
             }
@@ -14931,8 +14984,10 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             isBroadcastReceiverRegistered = false;
             UnregisterReceiver();
         }
-        if (pdUpgradeProcess != null && pdUpgradeProcess.isShowing()) {
-            pdUpgradeProcess.dismiss();
+        if (pdUpgradeProcess != null) {
+            if (pdUpgradeProcess.isShowing()) {
+                pdUpgradeProcess.dismiss();
+            }
         }
         goButtonAction(null);
     }
@@ -14959,7 +15014,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     AppConstants.WriteinFile(logUpgrade + "-" + TAG + "Link upgrade firmware file (" + AppConstants.UP_Upgrade_File_name + ") already exist. Skip download.");
                 // Continue to upgrade
                 if (linkType.equalsIgnoreCase("BT")) {
-                    CheckBTLinkStatusForUpgrade(linkPosition);
+                    CheckBTLinkStatusForUpgrade(linkPosition, false);
                 } else {
                     CheckHTTPLinkStatusForUpgrade(linkPosition);
                 }
@@ -15058,7 +15113,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 public void run() {
                     // Continue to upgrade
                     if (linkType.equalsIgnoreCase("BT")) {
-                        CheckBTLinkStatusForUpgrade(linkPosition);
+                        CheckBTLinkStatusForUpgrade(linkPosition, false);
                     } else {
                         CheckHTTPLinkStatusForUpgrade(linkPosition);
                     }
@@ -15122,12 +15177,16 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 linkPositionForUpgrade = linkPosition;
                 HTTPLinkUpgradeFunctionality(LinkName, ipAddress);
             } else {
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + "Upgrade process skipped.");
                 ContinueToTheTransaction();
             }
 
         } catch (Exception e) {
-            if (pdUpgradeProcess != null && pdUpgradeProcess.isShowing()) {
-                pdUpgradeProcess.dismiss();
+            if (pdUpgradeProcess != null) {
+                if (pdUpgradeProcess.isShowing()) {
+                    pdUpgradeProcess.dismiss();
+                }
             }
             if (AppConstants.GenerateLogs)
                 AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_HTTP + "-" + TAG + "CheckHTTPLinkStatusForUpgrade Exception:>>" + e.getMessage());
@@ -15142,8 +15201,10 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    if (pdUpgradeProcess != null && pdUpgradeProcess.isShowing()) {
-                        pdUpgradeProcess.dismiss();
+                    if (pdUpgradeProcess != null) {
+                        if (pdUpgradeProcess.isShowing()) {
+                            pdUpgradeProcess.dismiss();
+                        }
                     }
                     //upgrade bin
                     String LocalPath = getApplicationContext().getExternalFilesDir(AppConstants.FOLDER_BIN) + "/" + AppConstants.UP_Upgrade_File_name;
@@ -15158,6 +15219,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         } catch (Exception ex) {
             if (AppConstants.GenerateLogs)
                 AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_HTTP + "-" + TAG + "HTTPLinkUpgradeFunctionality Exception: " + ex.getMessage());
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + "Upgrade process skipped.");
             ContinueToTheTransaction();
         }
     }
@@ -15231,7 +15294,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         }
                         ContinueToTheTransaction();
                     }
-                }, 8000);
+                }, 12000);
 
             } catch (Exception e) {
                 if (pd != null && pd.isShowing()) {
@@ -15414,9 +15477,11 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         }
     }
 
-    private void CheckBTLinkStatusForUpgrade(int linkPosition) {
+    private void CheckBTLinkStatusForUpgrade(int linkPosition, boolean retryAttempt) {
         try {
-            ShowUpgradeProcessLoader(getResources().getString(R.string.PleaseWaitSeveralSeconds));
+            if (!retryAttempt) {
+                ShowUpgradeProcessLoader(getResources().getString(R.string.PleaseWaitSeveralSeconds));
+            }
 
             new CountDownTimer(10000, 2000) {
                 public void onTick(long millisUntilFinished) {
@@ -15451,11 +15516,14 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         }, 1000);
                     } else {
                         if (connectionAttemptCount > 0) {
+                            connectionAttemptCount = 0;
                             if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Link not connected. Upgrade process skipped.");
+                                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Link not connected.");
                             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
+                                    if (AppConstants.GenerateLogs)
+                                        AppConstants.WriteinFile(TAG + "Upgrade process skipped.");
                                     ContinueToTheTransaction();
                                 }
                             }, 100);
@@ -15465,6 +15533,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                 public void run() {
                                     connectionAttemptCount++;
                                     retryBTConnection(linkPosition);
+                                    CheckBTLinkStatusForUpgrade(linkPosition, true);
                                 }
                             }, 100);
                         }
@@ -15475,6 +15544,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         } catch (Exception e) {
             if (AppConstants.GenerateLogs)
                 AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " CheckBTLinkStatusForUpgrade Exception:>>" + e.getMessage());
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + "Upgrade process skipped.");
             ContinueToTheTransaction();
         }
     }
@@ -15594,7 +15665,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         } catch (Exception e) {
             if (AppConstants.GenerateLogs)
                 AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " SendBTCommands Exception:>>" + e.getMessage());
-            ContinueToTheTransaction();
+            //ContinueToTheTransaction();
         }
     }
 
@@ -15624,8 +15695,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             }
         } catch (Exception e) {
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " SendBTCommands Exception:>>" + e.getMessage());
-            ContinueToTheTransaction();
+                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " SendBytes Exception:>>" + e.getMessage());
+            ///ContinueToTheTransaction();
         }
     }
 
@@ -15724,8 +15795,10 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                             new Handler().postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
-                                    if (pdUpgradeProcess != null && pdUpgradeProcess.isShowing()) {
-                                        pdUpgradeProcess.setMessage(GetSpinnerMessage(getResources().getString(R.string.SoftwareUpdateInProgress) + "\n" + getResources().getString(R.string.PleaseWaitSeveralSeconds)));
+                                    if (pdUpgradeProcess != null) {
+                                        if (pdUpgradeProcess.isShowing()) {
+                                            pdUpgradeProcess.setMessage(GetSpinnerMessage(getResources().getString(R.string.SoftwareUpdateInProgress) + "\n" + getResources().getString(R.string.PleaseWaitSeveralSeconds)));
+                                        }
                                     }
                                     upgradeCommand(linkPosition);
                                 }
@@ -15757,18 +15830,22 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         new Handler().postDelayed(new Runnable() {
                             @Override
                             public void run() {
-                                if (pdUpgradeProcess != null && pdUpgradeProcess.isShowing()) {
-                                    pdUpgradeProcess.setMessage(GetSpinnerMessage(getResources().getString(R.string.SoftwareUpdateInProgress) + "\n" + getResources().getString(R.string.PleaseWaitSeveralSeconds)));
+                                if (pdUpgradeProcess != null) {
+                                    if (pdUpgradeProcess.isShowing()) {
+                                        pdUpgradeProcess.setMessage(GetSpinnerMessage(getResources().getString(R.string.SoftwareUpdateInProgress) + "\n" + getResources().getString(R.string.PleaseWaitSeveralSeconds)));
+                                    }
                                 }
                                 upgradeCommand(linkPosition);
                             }
                         }, 1000);
                     } else {
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Checking Info command response (before upgrade). Response: false. Upgrade process skipped.");
+                            AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Checking Info command response (before upgrade). Response: false.");
                         new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                             @Override
                             public void run() {
+                                if (AppConstants.GenerateLogs)
+                                    AppConstants.WriteinFile(TAG + "Upgrade process skipped.");
                                 ContinueToTheTransaction();
                             }
                         }, 100);
@@ -15874,13 +15951,17 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     } else {
                         // Terminating the transaction as per Bolong's comment in #2120 => DO NOT send any command after sending upgrade command.
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Checking upgrade command response. Response: false. Upgrade process skipped.");
-                        if (pdUpgradeProcess != null && pdUpgradeProcess.isShowing()) {
-                            pdUpgradeProcess.setMessage(GetSpinnerMessage(getResources().getString(R.string.LINKConnectionLost) + "\n" + getResources().getString(R.string.TryAgainLater)));
+                            AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Checking upgrade command response. Response: false.");
+                        if (pdUpgradeProcess != null) {
+                            if (pdUpgradeProcess.isShowing()) {
+                                pdUpgradeProcess.setMessage(GetSpinnerMessage(getResources().getString(R.string.LINKConnectionLost) + "\n" + getResources().getString(R.string.TryAgainLater)));
+                            }
                         }
                         new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                             @Override
                             public void run() {
+                                if (AppConstants.GenerateLogs)
+                                    AppConstants.WriteinFile(TAG + "Upgrade process skipped.");
                                 ContinueToTheTransaction();
                             }
                         }, 2000);
@@ -15936,8 +16017,10 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         bytesWritten += amountOfBytesRead;
                         int progressValue = (int) (100 * ((double) bytesWritten) / ((double) file_size));
 
-                        if (pdUpgradeProcess != null && pdUpgradeProcess.isShowing()) {
-                            pdUpgradeProcess.setMessage(GetSpinnerMessage((getResources().getString(R.string.SoftwareUpdateInProgress) + "\n" + getResources().getString(R.string.PleaseWaitSeveralSeconds)) + " " + String.valueOf(progressValue) + " %"));
+                        if (pdUpgradeProcess != null) {
+                            if (pdUpgradeProcess.isShowing()) {
+                                pdUpgradeProcess.setMessage(GetSpinnerMessage((getResources().getString(R.string.SoftwareUpdateInProgress) + "\n" + getResources().getString(R.string.PleaseWaitSeveralSeconds)) + " " + String.valueOf(progressValue) + " %"));
+                            }
                         }
                         //publishProgress(String.valueOf(progressValue));
 
@@ -15986,8 +16069,10 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Upgrade Completed. Connecting to the LINK: " + LinkName + " (" + GetBTLinksMacAddress(linkPosition) + ")");
                 BTConstants.BTUpgradeStatus = "";
 
-                if (pdUpgradeProcess != null && pdUpgradeProcess.isShowing()) {
-                    pdUpgradeProcess.setMessage(GetSpinnerMessage(getResources().getString(R.string.ConnectingToTheLINK) + "\n" + getResources().getString(R.string.PleaseWaitSeveralSeconds)));
+                if (pdUpgradeProcess != null) {
+                    if (pdUpgradeProcess.isShowing()) {
+                        pdUpgradeProcess.setMessage(GetSpinnerMessage(getResources().getString(R.string.ConnectingToTheLINK) + "\n" + getResources().getString(R.string.PleaseWaitSeveralSeconds)));
+                    }
                 }
 
                 storeUpgradeFSVersion(WelcomeActivity.this, linkPosition, AppConstants.UP_FirmwareVersion, "BT");
@@ -16013,8 +16098,10 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                             } else {
                                 if (AppConstants.GenerateLogs)
                                     AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Failed to connect to the link. (Status: " + getBTStatusStr(linkPosition) + ")");
-                                if (pdUpgradeProcess != null && pdUpgradeProcess.isShowing()) {
-                                    pdUpgradeProcess.setMessage(GetSpinnerMessage(getResources().getString(R.string.LINKConnectionLost) + "\n" + getResources().getString(R.string.TryAgainLater)));
+                                if (pdUpgradeProcess != null) {
+                                    if (pdUpgradeProcess.isShowing()) {
+                                        pdUpgradeProcess.setMessage(GetSpinnerMessage(getResources().getString(R.string.LINKConnectionLost) + "\n" + getResources().getString(R.string.TryAgainLater)));
+                                    }
                                 }
                                 new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                     @Override
@@ -16032,8 +16119,10 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " LINK connection lost.");
                 BTConstants.BTUpgradeStatus = "";
 
-                if (pdUpgradeProcess != null && pdUpgradeProcess.isShowing()) {
-                    pdUpgradeProcess.setMessage(GetSpinnerMessage(getResources().getString(R.string.LINKConnectionLost) + "\n" + getResources().getString(R.string.TryAgainLater)));
+                if (pdUpgradeProcess != null) {
+                    if (pdUpgradeProcess.isShowing()) {
+                        pdUpgradeProcess.setMessage(GetSpinnerMessage(getResources().getString(R.string.LINKConnectionLost) + "\n" + getResources().getString(R.string.TryAgainLater)));
+                    }
                 }
                 new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                     @Override

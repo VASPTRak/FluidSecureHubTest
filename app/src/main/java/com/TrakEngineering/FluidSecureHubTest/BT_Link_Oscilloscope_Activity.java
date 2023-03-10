@@ -36,10 +36,10 @@ import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPPMain;
 import com.TrakEngineering.FluidSecureHubTest.enity.LINKPulserDataEntity;
 import com.TrakEngineering.FluidSecureHubTest.server.ServerHandler;
 import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
-import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 import com.google.gson.Gson;
 
 import org.json.JSONArray;
@@ -316,8 +316,9 @@ public class BT_Link_Oscilloscope_Activity extends AppCompatActivity { // implem
             myChart.invalidate();
             myChart.getAxisLeft().setAxisMinimum(0f);
             myChart.getAxisRight().setAxisMinimum(0f);
-            myChart.setVisibleXRange(0, 6);
-            myChart.moveViewToX(BTLinkVoltageReadings.size() - 6);
+            myChart.setVisibleXRange(0, 30);
+            //myChart.moveViewToX(BTLinkVoltageReadings.size() - 6);
+            myChart.getXAxis().setPosition(XAxis.XAxisPosition.BOTTOM);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -568,9 +569,10 @@ public class BT_Link_Oscilloscope_Activity extends AppCompatActivity { // implem
             GenerateChart();
             myChart.getAxisLeft().setAxisMinimum(0f);
             myChart.getAxisRight().setAxisMinimum(0f);
-            myChart.setVisibleXRange(0, 6);
+            myChart.setVisibleXRange(0, 30);
             //yValues.clear();
             //myChart.getDescription().setText("START");
+            myChart.getXAxis().setPosition(XAxis.XAxisPosition.BOTTOM);
         } catch (Exception ex) {
             if (AppConstants.GenerateLogs)
                 AppConstants.WriteinFile(TAG + "Exception in InitChart: " + ex.getMessage());
@@ -582,22 +584,21 @@ public class BT_Link_Oscilloscope_Activity extends AppCompatActivity { // implem
 
             CreateDataForChart();
 
-            LineDataSet set1 = new LineDataSet(yValues, "Readings...");
+            LineDataSet line = new LineDataSet(yValues, "Readings...");
 
-            set1.setColor(Color.BLUE);
-            set1.setCircleColor(Color.GREEN);
-            set1.setDrawCircles(true);
-            set1.setDrawCircleHole(true);
-            set1.setLineWidth(5);
-            set1.setCircleRadius(8);
-            set1.setCircleHoleRadius(8);
-            set1.setValueTextSize(15);
-            set1.setValueTextColor(Color.BLACK);
+            line.setColor(Color.RED);
+            line.setCircleColor(Color.RED);
+            line.setDrawCircles(true);
+            line.setDrawCircleHole(true);
+            line.setLineWidth(3);
+            line.setCircleRadius(5);
+            line.setCircleHoleRadius(5);
+            //line.setValueTextSize(15);
+            //line.setValueTextColor(Color.BLACK);
+            line.setDrawValues(false);
 
-            ArrayList<ILineDataSet> iLineDataSets = new ArrayList<>();
-            iLineDataSets.add(set1);
-
-            LineData data = new LineData(iLineDataSets);
+            LineData data = new LineData();
+            data.addDataSet(line);
             myChart.setData(data);
 
         } catch (Exception ex) {
