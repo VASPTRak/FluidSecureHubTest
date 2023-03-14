@@ -769,6 +769,8 @@ public class AddNewLinkToCloud extends AppCompatActivity implements LifecycleObs
                     @Override
                     public void onClick(DialogInterface dialog, int arg1) {
                         if (message.contains("success")) {
+                            AppConstants.isLocationSelected = false;
+                            StreetAddress = "";
                             dialog.dismiss();
                             //finish();
                             // Save newly added link into arraylist to configure
@@ -1019,7 +1021,8 @@ public class AddNewLinkToCloud extends AppCompatActivity implements LifecycleObs
     }
 
     public void showCustomMessageDialog(final Activity context, String message) {
-
+        if (AppConstants.GenerateLogs)
+            AppConstants.WriteinFile(TAG + " " + message);
         androidx.appcompat.app.AlertDialog.Builder alertDialogBuilder = new androidx.appcompat.app.AlertDialog.Builder(context);
         alertDialogBuilder.setMessage(message);
         alertDialogBuilder.setCancelable(false);
