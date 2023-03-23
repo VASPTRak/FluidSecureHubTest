@@ -16,23 +16,22 @@ import android.graphics.Color;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Looper;
 import android.provider.Settings;
 import android.text.Editable;
-import android.text.Html;
 import android.text.SpannableString;
 import android.text.TextWatcher;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.RelativeSizeSpan;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
-import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -40,13 +39,9 @@ import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.ProgressBar;
 import android.widget.Spinner;
-import android.widget.TextView;
 
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.LifecycleObserver;
 import androidx.lifecycle.LiveData;
@@ -54,25 +49,25 @@ import androidx.lifecycle.Observer;
 import androidx.lifecycle.ProcessLifecycleOwner;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.TrakEngineering.FluidSecureHubTest.WifiHotspot.WifiApManager;
 import com.TrakEngineering.FluidSecureHubTest.enity.AddTankFromAPP_entity;
 import com.TrakEngineering.FluidSecureHubTest.enity.UpdateMacAddressClass;
 import com.TrakEngineering.FluidSecureHubTest.offline.OfflineConstants;
 import com.TrakEngineering.FluidSecureHubTest.retrofit.AzureMapApi;
-import com.TrakEngineering.FluidSecureHubTest.retrofit.BusProvider;
-import com.TrakEngineering.FluidSecureHubTest.retrofit.ErrorEvent;
-import com.TrakEngineering.FluidSecureHubTest.retrofit.Interface;
-import com.TrakEngineering.FluidSecureHubTest.retrofit.ServerEvent;
-import com.TrakEngineering.FluidSecureHubTest.retrofit.ServerResponse;
 import com.TrakEngineering.FluidSecureHubTest.server.ServerHandler;
 import com.azure.android.maps.control.AzureMap;
+import com.azure.android.maps.control.AzureMaps;
+import com.azure.android.maps.control.Control;
+import com.azure.android.maps.control.MapControl;
+import com.azure.android.maps.control.controls.ZoomControl;
 import com.azure.android.maps.control.events.OnClick;
+import com.azure.android.maps.control.layer.SymbolLayer;
 import com.azure.android.maps.control.options.AnimationType;
-import com.azure.android.maps.control.options.StyleOptions;
+import com.azure.android.maps.control.source.DataSource;
 import com.github.xizzhu.simpletooltip.ToolTip;
 import com.github.xizzhu.simpletooltip.ToolTipView;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import com.mapbox.geojson.Feature;
 import com.mapbox.geojson.Point;
 import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.OkHttpClient;
@@ -83,15 +78,7 @@ import com.squareup.okhttp.Response;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import com.azure.android.maps.control.AzureMaps;
-import com.azure.android.maps.control.MapControl;
-import com.azure.android.maps.control.Control;
-import com.azure.android.maps.control.controls.ZoomControl;
-import com.azure.android.maps.control.layer.SymbolLayer;
-import com.azure.android.maps.control.source.DataSource;
-
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Timer;
@@ -104,7 +91,6 @@ import retrofit2.Callback;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 import retrofit2.converter.scalars.ScalarsConverterFactory;
-import com.TrakEngineering.FluidSecureHubTest.WifiHotspot.WifiApManager;
 
 
 public class AddNewLinkToCloud extends AppCompatActivity implements LifecycleObserver, AdapterView.OnItemClickListener, AdapterView.OnItemSelectedListener {
@@ -342,6 +328,71 @@ public class AddNewLinkToCloud extends AppCompatActivity implements LifecycleObs
             }
         });*/
 
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.reader, menu);
+
+        menu.findItem(R.id.mreboot_reader).setVisible(false);
+        menu.findItem(R.id.mreconnect_ble_readers).setVisible(false);
+        menu.findItem(R.id.mcamera_back).setVisible(false);
+        menu.findItem(R.id.mcamera_front).setVisible(false);
+        menu.findItem(R.id.mreload).setVisible(false);
+        menu.findItem(R.id.btLinkScope).setVisible(false);
+        menu.findItem(R.id.monline).setVisible(false);
+        menu.findItem(R.id.mofline).setVisible(false);
+        menu.findItem(R.id.mclose).setVisible(false);
+        menu.findItem(R.id.enable_debug_window).setVisible(false);
+        menu.findItem(R.id.madd_link).setVisible(false);
+        menu.findItem(R.id.mshow_reader_status).setVisible(false);
+
+        SharedPreferences sharedPref = AddNewLinkToCloud.this.getSharedPreferences("LanguageSettings", Context.MODE_PRIVATE);
+        String language = sharedPref.getString("language", "");
+
+        MenuItem itemSp = menu.findItem(R.id.menuSpanish);
+        MenuItem itemEng = menu.findItem(R.id.menuEnglish);
+
+        if (language.trim().equalsIgnoreCase("es")) {
+            itemSp.setVisible(false);
+            itemEng.setVisible(true);
+        } else {
+            itemSp.setVisible(true);
+            itemEng.setVisible(false);
+        }
+
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        switch (item.getItemId()) {
+
+            case R.id.mrestartapp:
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + "<Restart app.>");
+                Intent i = new Intent(AddNewLinkToCloud.this, SplashActivity.class);
+                i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(i);
+                break;
+
+            case R.id.menuSpanish:
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " <Spanish language selected.>");
+                //AppConstants.languageChanged = true;
+                CommonUtils.StoreLanguageSettings(AddNewLinkToCloud.this, "es", true);
+                break;
+
+            case R.id.menuEnglish:
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " <English language selected.>");
+                //AppConstants.languageChanged = true;
+                CommonUtils.StoreLanguageSettings(AddNewLinkToCloud.this, "en", true);
+                break;
+
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     private void SetSubscriptionKeyForAzureMap() {
@@ -1373,6 +1424,11 @@ public class AddNewLinkToCloud extends AppCompatActivity implements LifecycleObs
         new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
             @Override
             public void run() {
+                //if (AppConstants.languageChanged) {
+                //    AppConstants.languageChanged = false;
+                Intent i = new Intent(AddNewLinkToCloud.this, WelcomeActivity.class);
+                startActivity(i);
+                //}
                 finish();
             }
         }, waitingTime);

@@ -456,6 +456,7 @@ public class RegistrationActivity extends AppCompatActivity {
 
                     Log.i(TAG, " Clearing previous offline data after new registration.");
                     CommonUtils.ClearOfflineData(RegistrationActivity.this); // To clear offline data of Links, Vehicle, Personnel and Department.
+                    AppConstants.clearSharedPrefByName(RegistrationActivity.this, "OfflineData");
 
                     AlertDialogBox(RegistrationActivity.this, getResources().getString(R.string.RegistrationSuccess));
                 } else if (ResponceMessage.equalsIgnoreCase("fail")) {

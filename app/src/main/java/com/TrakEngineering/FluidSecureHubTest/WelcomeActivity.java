@@ -649,6 +649,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_welcome);
         //getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -7662,6 +7663,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 break;
 
             case R.id.madd_link:
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + "<Add Link option selected.>");
                 if (AppConstants.IsHoseBusyCheckLocally()) {
                     AddNewLinkScreen();
                 } else {
@@ -14963,7 +14966,9 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     public void AddNewLinkScreen() {
         AppConstants.newlyAddedLinks.clear();
         Intent in = new Intent(WelcomeActivity.this, AddNewLinkToCloud.class);
+        in.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         startActivity(in);
+        finish();
     }
 
     public void LinkUpgradeFunctionality(String linkType, int linkPosition) {

@@ -786,7 +786,7 @@ public class AcceptPinActivity_FOB extends AppCompatActivity {
                         objEntityClass.IMEIUDID = AppConstants.getIMEI(AcceptPinActivity_FOB.this);
                         objEntityClass.PersonnelPIN = AppConstants.AddPin;
                         objEntityClass.FOBNumber = AppConstants.AddFobKey;
-                        objEntityClass.MagneticCardNumber =  AppConstants.AddMagCard_FobKey;
+                        objEntityClass.MagneticCardNumber = AppConstants.AddMagCard_FobKey;
                         objEntityClass.Barcode = AppConstants.AddBarcode_val;
                         objEntityClass.ReplaceAccessDevice = "y";
 
