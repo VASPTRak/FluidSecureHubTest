@@ -196,6 +196,12 @@ public class AcceptOdoActivity extends AppCompatActivity {
             editOdoTenths.setInputType(InputType.TYPE_CLASS_TEXT);
         }
 
+        try {
+            editOdoTenths.requestFocus();
+        } catch (Exception e) {
+            System.out.println("keyboard open exception");
+        }
+
         tv_swipekeybord.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -535,7 +541,6 @@ public class AcceptOdoActivity extends AppCompatActivity {
                                                 if (AppConstants.GenerateLogs)
                                                     AppConstants.WriteinFile(TAG + "Please enter Correct " + ScreenNameForOdometer);
                                                 CommonUtils.showMessageDilaog(AcceptOdoActivity.this, "Message", getResources().getString(R.string.IncorrectOdo).replace("Odometer", ScreenNameForOdometer));
-                                                //AppConstants.colorToastBigFont(getApplicationContext(),"Please enter Correct Odometer", Color.BLUE);
                                             }
                                         }
                                     } else {
@@ -553,7 +558,6 @@ public class AcceptOdoActivity extends AppCompatActivity {
                                             if (AppConstants.GenerateLogs)
                                                 AppConstants.WriteinFile(TAG + "Please enter Correct " + ScreenNameForOdometer);
                                             CommonUtils.showMessageDilaog(AcceptOdoActivity.this, "Message", getResources().getString(R.string.IncorrectOdo).replace("Odometer", ScreenNameForOdometer));
-                                            //AppConstants.colorToastBigFont(getApplicationContext(),"Please enter Correct Odometer", Color.BLUE);
                                         }
 
                                     }

@@ -1,16 +1,12 @@
 package com.TrakEngineering.FluidSecureHubTest;
 
-import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.Application;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Looper;
 import android.util.Log;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
@@ -191,10 +187,11 @@ public class AddnewLink_ViewModel extends AndroidViewModel implements LifecycleO
         return fuelTypeId;
     }
 
-    public ArrayList<String> getTankSpinnerList() {
+    public ArrayList<String> getTankSpinnerList(Context context) {
 
         ArrayList<String> tankNumbers = new ArrayList<>();
         tankNumbers.clear();
+        tankNumbers.add(context.getResources().getString(R.string.BtnAddTank));
         for (int i = 0; i < CommonUtils.TankDataList.size(); i++) {
             String TankName = CommonUtils.TankDataList.get(i).get("TankName");
             String TankNumber = CommonUtils.TankDataList.get(i).get("TankNumber");

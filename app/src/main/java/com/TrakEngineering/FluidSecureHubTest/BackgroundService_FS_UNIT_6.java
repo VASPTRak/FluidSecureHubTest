@@ -34,6 +34,7 @@ import com.TrakEngineering.FluidSecureHubTest.offline.OffDBController;
 import com.TrakEngineering.FluidSecureHubTest.offline.OffTranzSyncService;
 import com.TrakEngineering.FluidSecureHubTest.offline.OfflineConstants;
 import com.TrakEngineering.FluidSecureHubTest.server.ServerHandler;
+import com.example.fs_ipneigh30.FS_ArpNDK;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.gson.Gson;
@@ -55,6 +56,8 @@ import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.net.SocketException;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
@@ -170,7 +173,11 @@ public class BackgroundService_FS_UNIT_6 extends Service {
 
             if (LinkName == null || LinkName.isEmpty()) {
                 try {
-                    LinkName = AppConstants.DetailsServerSSIDList.get(5).get("WifiSSId");
+                    if (AppConstants.DetailsServerSSIDList != null) {
+                        if (AppConstants.DetailsServerSSIDList.size() > 5) {
+                            LinkName = AppConstants.DetailsServerSSIDList.get(5).get("WifiSSId");
+                        }
+                    }
                 } catch (Exception e) {
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(TAG + "Something went wrong please check Link name Ex:" + e.toString());
@@ -781,15 +788,19 @@ public class BackgroundService_FS_UNIT_6 extends Service {
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(TAG + "GETPulsarQuantity onFailure Exception: " + e.toString());
                     //stopTimer = false;
-                    Constants.FS_6STATUS = "FREE";
-                    clearEditTextFields();
-                    stopSelf();
+                    //Constants.FS_6STATUS = "FREE";
+                    //clearEditTextFields();
+                    //stopSelf();
                 }
                 if (GetPulsarAttemptFailCount == 3) {
                     stopTimer = false;
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(TAG + "Sending RELAY OFF command to Link: " + LinkName);
                     new CommandsPOST().execute(URL_RELAY, jsonRelayOff);
+                    Constants.FS_6STATUS = "FREE";
+                    clearEditTextFields();
+                    PostTransactionBackgroundTasks();
+                    stopSelf();
                 }
             }
 
@@ -895,9 +906,15 @@ public class BackgroundService_FS_UNIT_6 extends Service {
                 } else {
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(TAG + "pulsarQtyLogic: Count from the link: " + counts + "; Last count: " + CNT_LAST);
+
+                    if (CNT_LAST > 0 && CNT_current > 0 && CNT_LAST > CNT_current) {
+                        CNT_current = CNT_LAST + CNT_current;
+                        convertCountToQuantity(String.valueOf(CNT_current));
+                    }
                 }
 
                 if (countForZeroPulses > 2) {
+                    countForZeroPulses = 0;
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(TAG + "<Auto Stop Hit.>");
                     stopTimer = false;
@@ -941,7 +958,7 @@ public class BackgroundService_FS_UNIT_6 extends Service {
                         System.out.println("APFS_PIPE Auto Stop! Count down timer completed");
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + "Link:" + LinkName + " Auto Stop! Count down timer completed");
-                        AppConstants.colorToastBigFont(this, AppConstants.FS6_CONNECTED_SSID + " Auto Stop!\n\nCount down timer completed.", Color.BLUE);
+                        AppConstants.colorToastBigFont(BackgroundService_FS_UNIT_6.this, AppConstants.FS6_CONNECTED_SSID + " Auto Stop!\n\nCount down timer completed.", Color.BLUE);
                         stopButtonFunctionality();
                         this.stopSelf();
                     }
@@ -2118,8 +2135,12 @@ public class BackgroundService_FS_UNIT_6 extends Service {
 
     public void getipOverOSVersion() {
         listOfConnectedIP_UNIT_6.clear();
+        /*if (Build.VERSION.SDK_INT >= 31) {
+            GetDetailsFromARP();
+        } else*/
         if (Build.VERSION.SDK_INT >= 29) {
-            ListConnectedHotspotIPOS10_FS_UNIT_6AsyncCall();
+            //ListConnectedHotspotIPOS10_FS_UNIT_6AsyncCall(); // Not working with Android 11 and sdk 31 combination
+            GetDetailsFromARP();
         } else {
             ListConnectedHotspotIP_FS_UNIT_6AsyncCall();
         }
@@ -2457,5 +2478,83 @@ public class BackgroundService_FS_UNIT_6 extends Service {
         editor = pref.edit();
         editor.remove(txnId);
         editor.commit();
+    }
+
+    public void GetDetailsFromARP() {
+        try {
+            String arpTable = FS_ArpNDK.getARP();
+            if (!arpTable.isEmpty()) {
+                String[] lines = arpTable.split("\n");
+                if (lines.length > 0) {
+                    for (String line : lines) {
+                        if (!line.isEmpty()) {
+                            String[] splitted = line.split(" ");
+
+                            if (splitted != null && splitted.length >= 4) {
+
+                                String ip = splitted[0];
+                                String mac = splitted[4];
+
+                                if (ip.contains(".") && mac.contains(":")) {
+                                    System.out.println("***IPAddress" + ip);
+                                    System.out.println("***macAddress" + mac);
+
+                                    try {
+                                        boolean isReachable = new checkIpAddressReachable().execute(ip, "80", "2000").get();
+                                        if (!isReachable) {
+                                            continue;
+                                        }
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
+
+                                    listOfConnectedIP_UNIT_6.add("http://" + ip + ":80/");
+                                } else {
+                                    System.out.println("###IPAddress" + ip);
+                                    System.out.println("###macAddress" + mac);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    public class checkIpAddressReachable extends AsyncTask<String, Void, Boolean> {
+        String address;
+        int port, timeout;
+
+        protected Boolean doInBackground(String... urls) {
+            try {
+                Socket mSocket = new Socket();
+
+                try {
+                    address = urls[0];
+                    port = Integer.parseInt(urls[1]);
+                    timeout = Integer.parseInt(urls[2]);
+
+                    // Connects this socket to the server with a specified timeout value.
+                    mSocket.connect(new InetSocketAddress(address, port), timeout);
+                    // Return true if connection successful
+                    System.out.println(address + " is reachable");
+                    return true;
+                } catch (IOException exception) {
+                    exception.printStackTrace();
+                    // Return false if connection fails
+                    System.out.println(address + " is not reachable");
+                    return false;
+                } finally {
+                    mSocket.close();
+                }
+            } catch (Exception e) {
+                return false;
+            }
+        }
+
+        protected void onPostExecute(String res) {
+        }
     }
 }

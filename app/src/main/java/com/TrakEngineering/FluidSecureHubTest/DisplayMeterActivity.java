@@ -34,7 +34,6 @@ import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -225,6 +224,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
     public boolean onResumeAlreadyCalled = false;
     private boolean skipOnResumeForHotspot = false;
     private boolean skipOnPostResumeForHotspot = false;
+    private Dialog toastDialog = null;
 
     @Override
     protected void onPostResume() {
@@ -241,7 +241,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
             if (AppConstants.GenerateLogs)
                 AppConstants.WriteinFile(TAG + "<Enabling hotspot.>");
             wifiApManager.setWifiApEnabled(null, true);  //Hotspot enabled
-            AppConstants.colorToastBigFont(DisplayMeterActivity.this, getResources().getString(R.string.PleaseWaitForHotspotConnect), Color.BLUE);
+            toastDialog = AppConstants.colorToastBigFont(DisplayMeterActivity.this, getResources().getString(R.string.PleaseWaitForHotspotConnect), Color.BLUE);
             if (AppConstants.GenerateLogs)
                 AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "<" + getResources().getString(R.string.PleaseWaitForHotspotConnect) + ">");
 
@@ -939,7 +939,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                         } else {
                             if (AppConstants.GenerateLogs)
                                 AppConstants.WriteinFile(TAG + "Offline Access not granted to this HUB.");
-                            AppConstants.colorToastBigFont(getApplicationContext(), AppConstants.OFF1, Color.BLUE);
+                            toastDialog = AppConstants.colorToastBigFont(DisplayMeterActivity.this, AppConstants.OFF1, Color.BLUE);
                             Istimeout_Sec = true;
                             ResetTimeoutDisplayMeterScreen();
                         }
@@ -1141,7 +1141,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                 }*/
             }
         } else {
-            AppConstants.colorToastBigFont(getApplicationContext(), getResources().getString(R.string.CheckInternet), Color.BLUE);
+            toastDialog = AppConstants.colorToastBigFont(DisplayMeterActivity.this, getResources().getString(R.string.CheckInternet), Color.BLUE);
             Istimeout_Sec = true;
             ResetTimeoutDisplayMeterScreen();
         }
@@ -1163,7 +1163,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
         if (cd.isConnectingToInternet() && AppConstants.NETWORK_STRENGTH)
             new GetUpgradeFirmwareStatus().execute(FS_selected, jsonData, authString);
         else {
-            AppConstants.colorToastBigFont(getApplicationContext(), getResources().getString(R.string.CheckInternet), Color.BLUE);
+            toastDialog = AppConstants.colorToastBigFont(DisplayMeterActivity.this, getResources().getString(R.string.CheckInternet), Color.BLUE);
             Istimeout_Sec = true;
             ResetTimeoutDisplayMeterScreen();
         }
@@ -1471,7 +1471,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                         if (qtyFrequencyCount()) {
 
                             //qty is same for some time
-                            AppConstants.colorToastBigFont(DisplayMeterActivity.this, "Auto Stop!\n\nQuantity is same for last " + stopAutoFuelSeconds + " seconds.", Color.BLUE);
+                            toastDialog = AppConstants.colorToastBigFont(DisplayMeterActivity.this, "Auto Stop!\n\nQuantity is same for last " + stopAutoFuelSeconds + " seconds.", Color.BLUE);
                             stopButtonFunctionality();
                             stopTimer = false;
 
@@ -1797,7 +1797,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
                     pulsarConnected = false;
                     if (!pulsarConnected) {
-                        AppConstants.colorToastBigFont(DisplayMeterActivity.this, "Auto Stop!\n\nPulsar disconnected", Color.BLUE);
+                        toastDialog = AppConstants.colorToastBigFont(DisplayMeterActivity.this, "Auto Stop!\n\nPulsar disconnected", Color.BLUE);
                         stopButtonFunctionality();
                     }
                 }
@@ -1833,7 +1833,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                         linearTimer.setVisibility(View.GONE);
                         tvCountDownTimer.setText("1");
 
-                        AppConstants.colorToastBigFont(DisplayMeterActivity.this, "Auto Stop!\n\nCount down timer completed.", Color.BLUE);
+                        toastDialog = AppConstants.colorToastBigFont(DisplayMeterActivity.this, "Auto Stop!\n\nCount down timer completed.", Color.BLUE);
                         stopButtonFunctionality();
                     }
 
@@ -1859,7 +1859,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                     if (minFuelLimit > 0) {
                         if (fillqty >= minFuelLimit) {
 
-                            AppConstants.colorToastBigFont(DisplayMeterActivity.this, "Auto Stop!\n\nYou reached MAX fuel limit.", Color.BLUE);
+                            toastDialog = AppConstants.colorToastBigFont(DisplayMeterActivity.this, "Auto Stop!\n\nYou reached MAX fuel limit.", Color.BLUE);
                             Istimeout_Sec = true;
                             ResetTimeoutDisplayMeterScreen();
                             stopButtonFunctionality();
@@ -3662,7 +3662,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                             pd.dismiss();
                             //unable to start (start never appeared): Potential Wifi Connection Issue = 6
                             UpdateDiffStatusMessages("6");
-                            AppConstants.colorToastBigFont(DisplayMeterActivity.this, "The link is busy, please try after some time.", Color.BLUE);
+                            toastDialog = AppConstants.colorToastBigFont(DisplayMeterActivity.this, "The link is busy, please try after some time.", Color.BLUE);
                             Istimeout_Sec = true;
                             ResetTimeoutDisplayMeterScreen();
                             AppConstants.ClearEdittextFielsOnBack(DisplayMeterActivity.this); //Clear EditText on move to welcome activity.
@@ -3900,6 +3900,11 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
         }
         if (receiver != null) {
             this.unregisterReceiver(receiver);
+        }
+        if (toastDialog != null) {
+            if (toastDialog.isShowing()) {
+                toastDialog.dismiss();
+            }
         }
     }
 
@@ -4936,8 +4941,12 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
     }
 
     public void getIpOverOSVersion() {
+        /*if (Build.VERSION.SDK_INT >= 31) {
+            CommonUtils.GetDetailsFromARP();
+        } else*/
         if (Build.VERSION.SDK_INT >= 29) {
-            new GetConnectedDevicesIPOS10().execute();
+            //new GetConnectedDevicesIPOS10().execute(); // Not working with Android 11 and sdk 31 combination
+            CommonUtils.GetDetailsFromARP();
         } else {
             new GetConnectedDevicesIP().execute();
         }

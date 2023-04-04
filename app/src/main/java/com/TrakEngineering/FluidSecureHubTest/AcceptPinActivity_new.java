@@ -371,7 +371,7 @@ public class AcceptPinActivity_new extends AppCompatActivity {
                                 }
                             }
                         } else {
-                            AppConstants.colorToastBigFont(getApplicationContext(), getResources().getString(R.string.CheckInternet), Color.BLUE);
+                            AppConstants.colorToastBigFont(AcceptPinActivity_new.this, getResources().getString(R.string.CheckInternet), Color.BLUE);
                         }
 
                     } else if (pin.equalsIgnoreCase("") && !FKey.equalsIgnoreCase("")) {
@@ -381,7 +381,7 @@ public class AcceptPinActivity_new extends AppCompatActivity {
                                 new GetPinNuOnFobKeyDetection().execute();
                             }
                         } else {
-                            AppConstants.colorToastBigFont(getApplicationContext(), getResources().getString(R.string.CheckInternet), Color.BLUE);
+                            AppConstants.colorToastBigFont(AcceptPinActivity_new.this, getResources().getString(R.string.CheckInternet), Color.BLUE);
                         }
 
                     } else if (!pin.equalsIgnoreCase("") && !FKey.equalsIgnoreCase("")) {
@@ -392,7 +392,7 @@ public class AcceptPinActivity_new extends AppCompatActivity {
                                 new GetPinNuOnFobKeyDetection().execute();
                             }
                         } else {
-                            AppConstants.colorToastBigFont(getApplicationContext(), getResources().getString(R.string.CheckInternet), Color.BLUE);
+                            AppConstants.colorToastBigFont(AcceptPinActivity_new.this, getResources().getString(R.string.CheckInternet), Color.BLUE);
                         }
                     }
                 } else {
@@ -459,6 +459,12 @@ public class AcceptPinActivity_new extends AppCompatActivity {
         } catch (Exception e) {
             System.out.println("keyboard exception");
             etPersonnelPin.setInputType(InputType.TYPE_CLASS_TEXT);
+        }
+
+        try {
+            etPersonnelPin.requestFocus();
+        } catch (Exception e) {
+            System.out.println("keyboard open exception");
         }
 
         tv_swipekeybord.setOnClickListener(new View.OnClickListener() {
@@ -1057,7 +1063,7 @@ public class AcceptPinActivity_new extends AppCompatActivity {
                     }
 
                 } else {
-                    AppConstants.colorToastBigFont(getApplicationContext(), "Access Device not found", Color.BLUE);
+                    AppConstants.colorToastBigFont(AcceptPinActivity_new.this, "Access Device not found", Color.BLUE);
                 }
 
             }
@@ -2280,7 +2286,6 @@ public class AcceptPinActivity_new extends AppCompatActivity {
                             if (AppConstants.GenerateLogs)
                                 AppConstants.WriteinFile(TAG + "Vehicle is not assigned for this PIN");
                             CommonUtils.AutoCloseCustomMessageDilaog(AcceptPinActivity_new.this, "Message", ScreenNameForVehicle + " not assigned for this PIN");
-                            //AppConstants.colorToastBigFont(getApplicationContext(), "Vehicle is not assigned for this PIN", Color.BLUE);
                         }
 
 

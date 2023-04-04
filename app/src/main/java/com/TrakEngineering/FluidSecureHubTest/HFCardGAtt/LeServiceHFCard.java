@@ -128,8 +128,6 @@ public class LeServiceHFCard extends Service {
 
         String str1 = bytesToHex(data);
 
-        // AppConstants.colorToastBigFont(getApplicationContext(),"RFID--"+str1, Color.BLUE);
-
         //System.out.println("HF data1----"+str1);
 
         if (data != null && data.length > 0) {

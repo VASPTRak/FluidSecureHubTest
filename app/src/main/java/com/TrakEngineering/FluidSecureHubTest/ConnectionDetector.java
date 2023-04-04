@@ -105,7 +105,6 @@ public class ConnectionDetector {
                 default:
                     Constants.CurrentNetworkType = "_unknown";
                     return false;
-
             }
         } else {
             return false;

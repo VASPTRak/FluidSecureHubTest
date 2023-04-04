@@ -303,6 +303,11 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
             editVehicleNumber.setInputType(InputType.TYPE_CLASS_TEXT);
         }
 
+        try {
+            editVehicleNumber.requestFocus();
+        } catch (Exception e) {
+            System.out.println("keyboard open exception");
+        }
 
         tv_swipekeybord.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -981,7 +986,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
             }
 
         } else {
-            AppConstants.colorToastBigFont(getApplicationContext(), "Access Device not found", Color.BLUE);
+            AppConstants.colorToastBigFont(AcceptVehicleActivity_new.this, "Access Device not found", Color.BLUE);
         }
     }
 
@@ -2799,7 +2804,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                             new GetVehicleByFSTagMacAddress().execute();
                         }
                     } else {
-                        AppConstants.colorToastBigFont(getApplicationContext(), getResources().getString(R.string.CheckInternet), Color.BLUE);
+                        AppConstants.colorToastBigFont(AcceptVehicleActivity_new.this, getResources().getString(R.string.CheckInternet), Color.BLUE);
                     }
 
 
@@ -2907,7 +2912,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                 if (data != null) {
 
                     Barcode_val = data.getStringExtra("Barcode").trim();
-                    AppConstants.colorToast(getApplicationContext(), "Barcode Read: " + Barcode_val, Color.BLACK);
+                    AppConstants.colorToast(AcceptVehicleActivity_new.this, "Barcode Read: " + Barcode_val, Color.BLACK);
                     Log.d(TAG, "Barcode read: " + data.getStringExtra("Barcode").trim());
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(TAG + "Vehicle Barcode read success: " + Barcode_val);
@@ -3059,7 +3064,6 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                             if (AppConstants.GenerateLogs)
                                 AppConstants.WriteinFile(TAG + "Vehicle is not allowed for selected Link");
                             CommonUtils.AutoCloseCustomMessageDilaog(AcceptVehicleActivity_new.this, "Message", ScreenNameForVehicle + " is not allowed for selected Link");
-                            //AppConstants.colorToastBigFont(getApplicationContext(), "Vehicle is not allowed for selected Link", Color.BLUE);
                         }
 
                     }
@@ -3069,7 +3073,6 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(TAG + "Vehicle is not active");
                     CommonUtils.AutoCloseCustomMessageDilaog(AcceptVehicleActivity_new.this, "Message", ScreenNameForVehicle + " is not active");
-                    //AppConstants.colorToastBigFont(getApplicationContext(), "Vehicle is not active", Color.BLUE);
                 }
             }
         } else {

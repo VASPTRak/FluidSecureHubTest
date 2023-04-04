@@ -528,7 +528,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             if (OfflineConstants.isOfflineAccess(WelcomeActivity.this)) {
                 new GetOfflineSSIDUsingLocationOnResume().execute();
             } else {
-                AppConstants.colorToastBigFont(getApplicationContext(), AppConstants.OFF1, Color.BLUE);
+                AppConstants.colorToastBigFont(WelcomeActivity.this, AppConstants.OFF1, Color.BLUE);
             }
         }
 
@@ -933,7 +933,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         btnRetryWifi.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                AppConstants.colorToastBigFont(getApplicationContext(), "Please wait for few seconds....", Color.BLUE);
+                AppConstants.colorToastBigFont(WelcomeActivity.this, "Please wait for few seconds....", Color.BLUE);
                 Log.i(TAG, "Please wait for few seconds....");
                 if (AppConstants.GenerateLogs)
                     AppConstants.WriteinFile(TAG + "Please wait for few seconds....");
@@ -1136,7 +1136,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
         Calendar cal = Calendar.getInstance();
         Intent name = new Intent(WelcomeActivity.this, BackgroundServiceFSNP.class);
-        PendingIntent pintent = PendingIntent.getService(getApplicationContext(), 0, name, 0);
+        PendingIntent pintent = PendingIntent.getService(getApplicationContext(), 0, name, PendingIntent.FLAG_IMMUTABLE);
         AlarmManager alarm = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         alarm.setRepeating(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), 60000, pintent);
     }
@@ -1146,7 +1146,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         boolean screenOff = true;
         Calendar cal = Calendar.getInstance();
         Intent name = new Intent(WelcomeActivity.this, BackgroundServiceHotspotCheck.class);
-        PendingIntent pintent = PendingIntent.getService(getApplicationContext(), 0, name, 0);
+        PendingIntent pintent = PendingIntent.getService(getApplicationContext(), 0, name, PendingIntent.FLAG_IMMUTABLE);
         AlarmManager alarm = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         alarm.setRepeating(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), 60000 * 60, pintent); //60000 * 60 = 1 hour
         //scan and enable hotspot if OFF
@@ -1170,7 +1170,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         cal.set(Calendar.MONTH, cur_cal.get(Calendar.MONTH));
 
         Intent name = new Intent(WelcomeActivity.this, BackgroundServiceScheduleReboot.class);
-        PendingIntent pintent = PendingIntent.getService(getApplicationContext(), REBOOT_INTENT_ID, name, 0);
+        PendingIntent pintent = PendingIntent.getService(getApplicationContext(), REBOOT_INTENT_ID, name, PendingIntent.FLAG_IMMUTABLE);
         AlarmManager alarm = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         alarm.setExact(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), pintent);
         //alarm.set(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), pintent);
@@ -1185,7 +1185,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         cal.set(Calendar.MINUTE, 1);
 
         Intent name = new Intent(WelcomeActivity.this, BackgroundServiceMidNightTasks.class);
-        PendingIntent pintent = PendingIntent.getService(getApplicationContext(), REBOOT_INTENT_ID, name, 0);
+        PendingIntent pintent = PendingIntent.getService(getApplicationContext(), REBOOT_INTENT_ID, name, PendingIntent.FLAG_IMMUTABLE);
         AlarmManager alarm = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         alarm.setExact(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), pintent);
 
@@ -1195,7 +1195,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     public void clearOlderPictures() {
         Calendar cal = Calendar.getInstance();
         Intent name = new Intent(WelcomeActivity.this, BackgroundServiceClearOlderPictures.class);
-        PendingIntent pintent = PendingIntent.getService(getApplicationContext(), 0, name, 0);
+        PendingIntent pintent = PendingIntent.getService(getApplicationContext(), 0, name, PendingIntent.FLAG_IMMUTABLE);
         AlarmManager alarm = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         alarm.setRepeating(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), 86400000, pintent); //86400000
     }
@@ -1204,7 +1204,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
         Calendar cal = Calendar.getInstance();
         Intent name = new Intent(WelcomeActivity.this, BackgroundServiceKeepDataTransferAlive.class);
-        PendingIntent pintent = PendingIntent.getService(getApplicationContext(), 0, name, 0);
+        PendingIntent pintent = PendingIntent.getService(getApplicationContext(), 0, name, PendingIntent.FLAG_IMMUTABLE);
         AlarmManager alarm = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         alarm.setRepeating(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), 20000, pintent); //180000
 
@@ -1913,13 +1913,13 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                         startActivity(intent);
 
                                     } else {
-                                        AppConstants.colorToastBigFont(getApplicationContext(), "Fuel screen", Color.BLUE);
+                                        AppConstants.colorToastBigFont(WelcomeActivity.this, "Fuel screen", Color.BLUE);
                                         if (AppConstants.GenerateLogs)
                                             AppConstants.WriteinFile(TAG + "Fuel screen");
 
                                     }
                                 } else {
-                                    AppConstants.colorToastBigFont(getApplicationContext(), "Unauthorised day or timings", Color.BLUE);
+                                    AppConstants.colorToastBigFont(WelcomeActivity.this, "Unauthorised day or timings", Color.BLUE);
                                     if (AppConstants.GenerateLogs)
                                         AppConstants.WriteinFile(TAG + "Unauthorised day or timings");
                                 }
@@ -1947,7 +1947,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 }
 
             } else {
-                AppConstants.colorToastBigFont(getApplicationContext(), AppConstants.OFF1, Color.BLUE);
+                AppConstants.colorToastBigFont(WelcomeActivity.this, AppConstants.OFF1, Color.BLUE);
             }
         }
     }
@@ -2854,7 +2854,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
             } else {
                 hoseClicked = false;
-                AppConstants.colorToastBigFont(getApplicationContext(), AppConstants.OFF1, Color.BLUE);
+                AppConstants.colorToastBigFont(WelcomeActivity.this, AppConstants.OFF1, Color.BLUE);
             }
         }
     }
@@ -2887,7 +2887,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     case Activity.RESULT_OK:
                         Log.i("Splash", "User agreed to make required location settings changes.");
 
-                        AppConstants.colorToast(getApplicationContext(), getResources().getString(R.string.PleaseWait), Color.BLACK);
+                        AppConstants.colorToast(WelcomeActivity.this, getResources().getString(R.string.PleaseWait), Color.BLACK);
 
                         goButtonAction(null);
 
@@ -2895,7 +2895,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     case Activity.RESULT_CANCELED:
                         Log.i("Splash", "User chose not to make required location settings changes.");
 
-                        AppConstants.colorToastBigFont(getApplicationContext(), "Please On GPS to connect WiFi", Color.BLUE);
+                        AppConstants.colorToastBigFont(WelcomeActivity.this, "Please On GPS to connect WiFi", Color.BLUE);
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + "Please On GPS to connect WiFi");
                         break;
@@ -3144,14 +3144,13 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                             CheckBTConnection(SelectedItemPos, selSSID, BTselMacAddress);
                         } else {
-                            //AppConstants.colorToastBigFont(getApplicationContext(), "Selected Link not in BT paired list", Color.BLUE);
                             CommonUtils.AutoCloseBTLinkMessage(WelcomeActivity.this, "", getResources().getString(R.string.BTLinkNotInPairList));
                             BTConstants.CurrentSelectedLinkBT = 0;
                             RestrictHoseSelection(getResources().getString(R.string.PairingMode)); //"Please try again later" changed as per #1899.
                         }
                     } else if (LinkCommunicationType.equalsIgnoreCase("UDP")) {
 
-                        AppConstants.colorToastBigFont(getApplicationContext(), "UDP Link Selected", Color.BLUE);
+                        AppConstants.colorToastBigFont(WelcomeActivity.this, "UDP Link Selected", Color.BLUE);
                         tvSSIDName.setText(getResources().getString(R.string.TryAgainLater));
                         BTConstants.CurrentSelectedLinkBT = 0;
                         btnGo.setVisibility(View.GONE);
@@ -3276,7 +3275,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                             }
 
                                         } else {
-                                            AppConstants.colorToastBigFont(getApplicationContext(), getResources().getString(R.string.HoseIsBusy), Color.BLUE);
+                                            AppConstants.colorToastBigFont(WelcomeActivity.this, getResources().getString(R.string.HoseIsBusy), Color.BLUE);
                                         }
                                     } else if (IsLinkFlagged != null && IsLinkFlagged.equalsIgnoreCase("True")) {
                                         if (AppConstants.GenerateLogs)
@@ -3716,8 +3715,12 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     }
 
     public void getipOverOSVersion() {
+        /*if (Build.VERSION.SDK_INT >= 31) {
+            CommonUtils.GetDetailsFromARP();
+        } else*/
         if (Build.VERSION.SDK_INT >= 29) {
-            new GetConnectedDevicesIPOS10().execute();
+            //new GetConnectedDevicesIPOS10().execute(); // Not working with Android 11 and sdk 31 combination
+            CommonUtils.GetDetailsFromARP();
         } else {
             new GetConnectedDevicesIP().execute();
         }
@@ -3971,7 +3974,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             } catch (Exception e) {
                 ChangeWifiState(false);//turn wifi off
                 if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "CommandsGET_INFO_AfterUpgrade InBackground --Exception: " + e.getMessage());
+                    AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_HTTP + "-" + TAG + "CommandsGET_INFO_AfterUpgrade InBackground --Exception: " + e.getMessage());
                 Log.d("Ex", e.getMessage());
                 Constants.hotspotstayOn = true;
                 if (loading != null) {
@@ -3999,11 +4002,17 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
+                } else {
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_HTTP + "-" + TAG + "CommandsGET_INFO_AfterUpgrade Response: " + result);
+                    if (!AppConstants.UP_FirmwareVersion.isEmpty()) {
+                        storeUpgradeFSVersion(WelcomeActivity.this, linkPositionForUpgrade, AppConstants.UP_FirmwareVersion, "HTTP");
+                    }
                 }
             } catch (Exception e) {
                 ChangeWifiState(false);//turn wifi off
                 if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "CommandsGET_INFO_AfterUpgrade onPostExecute --Exception: " + e.getMessage());
+                    AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_HTTP + "-" + TAG + "CommandsGET_INFO_AfterUpgrade onPostExecute --Exception: " + e.getMessage());
                 Log.d("Ex", e.getMessage());
                 Constants.hotspotstayOn = true;
             }
@@ -4082,7 +4091,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             try {
                 if (result.equalsIgnoreCase("exception")) {
                     ChangeWifiState(false);//turn wifi off
-                    AppConstants.colorToastBigFont(getApplicationContext(), getResources().getString(R.string.ReconfigurationFailedRetry), Color.BLUE);
+                    AppConstants.colorToastBigFont(WelcomeActivity.this, getResources().getString(R.string.ReconfigurationFailedRetry), Color.BLUE);
                     Log.i(TAG, "Step2 Failed while changing Hotspot Settings Please try again.. exception:" + result);
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Step2 Failed while changing Hotspot Settings Please try again.. exception: " + result);
@@ -5855,10 +5864,10 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "BS_FS1: Hose is Unavailable.");
                 }
                 if (AppConstants.TxnFailedCount1 == 1) {
-                    CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", getResources().getString(R.string.UnableToConnectToHoseMessage));
+                    CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.UnableToConnectToHoseMessage));
                 } else {
                     AppConstants.TxnFailedCount1 = 0;
-                    CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", getResources().getString(R.string.HoseUnavailableMessage));
+                    CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.HoseUnavailableMessage));
                 }
             }
 
@@ -5973,10 +5982,10 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "BS_FS2: Hose is Unavailable.");
                 }
                 if (AppConstants.TxnFailedCount2 == 1) {
-                    CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", getResources().getString(R.string.UnableToConnectToHoseMessage));
+                    CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.UnableToConnectToHoseMessage));
                 } else {
                     AppConstants.TxnFailedCount2 = 0;
-                    CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", getResources().getString(R.string.HoseUnavailableMessage));
+                    CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.HoseUnavailableMessage));
                 }
             }
 
@@ -6088,10 +6097,10 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "BS_FS3: Hose is Unavailable.");
                 }
                 if (AppConstants.TxnFailedCount3 == 1) {
-                    CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", getResources().getString(R.string.UnableToConnectToHoseMessage));
+                    CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.UnableToConnectToHoseMessage));
                 } else {
                     AppConstants.TxnFailedCount3 = 0;
-                    CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", getResources().getString(R.string.HoseUnavailableMessage));
+                    CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.HoseUnavailableMessage));
                 }
             }
 
@@ -6203,10 +6212,10 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "BS_FS4: Hose is Unavailable.");
                 }
                 if (AppConstants.TxnFailedCount4 == 1) {
-                    CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", getResources().getString(R.string.UnableToConnectToHoseMessage));
+                    CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.UnableToConnectToHoseMessage));
                 } else {
                     AppConstants.TxnFailedCount4 = 0;
-                    CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", getResources().getString(R.string.HoseUnavailableMessage));
+                    CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.HoseUnavailableMessage));
                 }
             }
 
@@ -6319,10 +6328,10 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "BS_FS5: Hose is Unavailable.");
                 }
                 if (AppConstants.TxnFailedCount5 == 1) {
-                    CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", getResources().getString(R.string.UnableToConnectToHoseMessage));
+                    CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.UnableToConnectToHoseMessage));
                 } else {
                     AppConstants.TxnFailedCount5 = 0;
-                    CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", getResources().getString(R.string.HoseUnavailableMessage));
+                    CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.HoseUnavailableMessage));
                 }
             }
 
@@ -6434,10 +6443,10 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "BS_FS6: Hose is Unavailable.");
                 }
                 if (AppConstants.TxnFailedCount6 == 1) {
-                    CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", getResources().getString(R.string.UnableToConnectToHoseMessage));
+                    CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.UnableToConnectToHoseMessage));
                 } else {
                     AppConstants.TxnFailedCount6 = 0;
-                    CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", getResources().getString(R.string.HoseUnavailableMessage));
+                    CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.HoseUnavailableMessage));
                 }
             }
 
@@ -9721,7 +9730,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                                             try {
                                                 Intent name = new Intent(WelcomeActivity.this, BackgroundServiceScheduleReboot.class);
-                                                PendingIntent pintent = PendingIntent.getService(getApplicationContext(), REBOOT_INTENT_ID, name, 0);
+                                                PendingIntent pintent = PendingIntent.getService(getApplicationContext(), REBOOT_INTENT_ID, name, PendingIntent.FLAG_IMMUTABLE);
                                                 AlarmManager alarm = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
                                                 pintent.cancel();
                                                 alarm.cancel(pintent);
@@ -10216,7 +10225,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
             } else {
 
-                AppConstants.colorToastBigFont(getApplicationContext(), "Connected to wrong Wifi Please try again..", Color.BLUE);
+                AppConstants.colorToastBigFont(WelcomeActivity.this, "Connected to wrong Wifi Please try again..", Color.BLUE);
 
             }
 
@@ -10224,7 +10233,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
 
             AppConstants.ManuallReconfigure = false;
-            AppConstants.colorToastBigFont(getApplicationContext(), "Connecting to " + AppConstants.CURRENT_SELECTED_SSID + " Attempt " + 2, Color.BLUE);
+            AppConstants.colorToastBigFont(WelcomeActivity.this, "Connecting to " + AppConstants.CURRENT_SELECTED_SSID + " Attempt " + 2, Color.BLUE);
             connectWiFiLibrary2Attempt();
 
 
@@ -10271,6 +10280,12 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 .onConnectionResult(WelcomeActivity.this::checkResult2Attempt)
                 .start();
 
+        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                loading.dismiss();
+            }
+        }, 5000);
     }
 
     private void checkResult2Attempt(boolean isSuccess) {
@@ -10294,7 +10309,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
             } else {
 
-                AppConstants.colorToastBigFont(getApplicationContext(), "Connected to wrong Wifi Please try again..", Color.BLUE);
+                AppConstants.colorToastBigFont(WelcomeActivity.this, "Connected to wrong Wifi Please try again..", Color.BLUE);
 
             }
 
@@ -10302,7 +10317,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
 
             AppConstants.ManuallReconfigure = false;
-            AppConstants.colorToastBigFont(getApplicationContext(), "Connecting to " + AppConstants.CURRENT_SELECTED_SSID + " Attempt 3", Color.BLUE);
+            AppConstants.colorToastBigFont(WelcomeActivity.this, "Connecting to " + AppConstants.CURRENT_SELECTED_SSID + " Attempt 3", Color.BLUE);
             connectWiFiLibrary3Attempt();
 
 
@@ -10349,6 +10364,12 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 .onConnectionResult(WelcomeActivity.this::checkResult3Attempt)
                 .start();
 
+        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                loading.dismiss();
+            }
+        }, 5000);
     }
 
     private void checkResult3Attempt(boolean isSuccess) {
@@ -10372,7 +10393,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
             } else {
 
-                AppConstants.colorToastBigFont(getApplicationContext(), "Connected to wrong Wifi Please try again..", Color.BLUE);
+                AppConstants.colorToastBigFont(WelcomeActivity.this, "Connected to wrong Wifi Please try again..", Color.BLUE);
 
             }
 
@@ -10382,7 +10403,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             Constants.hotspotstayOn = false;
             AppConstants.ManuallReconfigure = true;
 
-            AppConstants.colorToastBigFont(getApplicationContext(), "Connect manually to: " + AppConstants.CURRENT_SELECTED_SSID, Color.BLUE);
+            AppConstants.colorToastBigFont(WelcomeActivity.this, "Connect manually to: " + AppConstants.CURRENT_SELECTED_SSID, Color.BLUE);
             if (AppConstants.GenerateLogs)
                 AppConstants.WriteinFile(TAG + "Connect manually to: " + AppConstants.CURRENT_SELECTED_SSID + " and try..!! ");
 
@@ -10940,7 +10961,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
         Calendar cal = Calendar.getInstance();
         Intent name = new Intent(WelcomeActivity.this, BatteryBackgroundService.class);
-        PendingIntent pintent = PendingIntent.getService(getApplicationContext(), 0, name, 0);
+        PendingIntent pintent = PendingIntent.getService(getApplicationContext(), 0, name, PendingIntent.FLAG_IMMUTABLE);
         AlarmManager alarm = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         alarm.setRepeating(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), 1800000, pintent);
 
@@ -10976,6 +10997,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             try {
 
                 serverSSIDList = offcontroller.getAllLinks();
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + "Offline Link data size: " + serverSSIDList.size());
 
             } catch (Exception e) {
                 hoseClicked = false;
@@ -11015,10 +11038,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 if (AppConstants.GenerateLogs)
                     AppConstants.WriteinFile(TAG + "GetSSIDUsingLocation offline onPostExecute --Exception: " + e.getMessage());
             }
-
         }
     }
-
 
     public void oo_post_getssid(String result) {
         linearHose.setClickable(true);//Enable hose Selection
@@ -11333,6 +11354,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
             try {
                 serverSSIDList = offcontroller.getAllLinks();
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + "Offline Link data size (in OnResume): " + serverSSIDList.size());
 
             } catch (Exception e) {
                 pd.dismiss();
@@ -11346,7 +11369,9 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         @Override
         protected void onPostExecute(String result) {
 
-            pd.dismiss();
+            if (pd.isShowing()) {
+                pd.dismiss();
+            }
 
             try {
 
@@ -11377,7 +11402,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             startService(serviceIntent);
 
         } else {
-            AppConstants.colorToastBigFont(getApplicationContext(), "Please select link and try..", Color.BLUE);
+            AppConstants.colorToastBigFont(WelcomeActivity.this, "Please select link and try..", Color.BLUE);
             if (AppConstants.GenerateLogs)
                 AppConstants.WriteinFile(TAG + "ConfigureTld Please select link and try..");
         }
@@ -11607,6 +11632,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 }
                 ChangeWifiState(false);
                 getipOverOSVersion();
+                loading.dismiss();
             }
         }, 5000);
         //=============================================
@@ -11928,7 +11954,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                             AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Step1 Link ReConfiguration enable wifi manually.");
 
                         AppConstants.SELECTED_SSID_FOR_MANUALL = AppConstants.CURRENT_SELECTED_SSID; //ReconfigSSID;
-                        AppConstants.colorToastBigFont(getApplicationContext(), getResources().getString(R.string.EnableWifiManually) + " " + AppConstants.SELECTED_SSID_FOR_MANUALL + " " + getResources().getString(R.string.UsingWifiList), Color.BLUE);
+                        AppConstants.colorToastBigFont(WelcomeActivity.this, getResources().getString(R.string.EnableWifiManually) + " " + AppConstants.SELECTED_SSID_FOR_MANUALL + " " + getResources().getString(R.string.UsingWifiList), Color.BLUE);
                         startActivity(new Intent(Settings.ACTION_WIFI_SETTINGS));
                         ConfigurationStep1IsInProgress = true;
                         //mjconf
@@ -12323,7 +12349,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 if (result.equalsIgnoreCase("exception")) {
 
                     ChangeWifiState(false);//turn wifi off
-                    AppConstants.colorToastBigFont(getApplicationContext(), "Step2 Failed while changing Hotspot Settings Please try again..", Color.BLUE);
+                    AppConstants.colorToastBigFont(WelcomeActivity.this, "Step2 Failed while changing Hotspot Settings Please try again..", Color.BLUE);
                     Log.i(TAG, "Step2 Failed while changing Hotspot Settings Please try again.. exception:" + result);
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Step2 Failed while changing Hotspot Settings aboveAndroid9.");
@@ -12456,7 +12482,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                             AppConstants.WriteinFile(TAG + "Step1 UDP Link ReConfiguration enable wifi manually.");
 
                         AppConstants.SELECTED_SSID_FOR_MANUALL = AppConstants.CURRENT_SELECTED_SSID;//ReconfigSSID;
-                        AppConstants.colorToastBigFont(getApplicationContext(), getResources().getString(R.string.EnableWifiManually) + " " + AppConstants.SELECTED_SSID_FOR_MANUALL + " " + getResources().getString(R.string.UsingWifiList), Color.BLUE);
+                        AppConstants.colorToastBigFont(WelcomeActivity.this, getResources().getString(R.string.EnableWifiManually) + " " + AppConstants.SELECTED_SSID_FOR_MANUALL + " " + getResources().getString(R.string.UsingWifiList), Color.BLUE);
                         startActivity(new Intent(Settings.ACTION_WIFI_SETTINGS));
 
                         new CountDownTimer(180000, 2000) {
@@ -12504,7 +12530,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                                 ChangeWifiState(false);
                                 Log.i(TAG, "Step1 onFinish ssid Not connected. Please try again..");
-                                AppConstants.colorToastBigFont(getApplicationContext(), "Failed to connect to " + AppConstants.SELECTED_SSID_FOR_MANUALL + " Please try again..", Color.BLUE);
+                                AppConstants.colorToastBigFont(WelcomeActivity.this, "Failed to connect to " + AppConstants.SELECTED_SSID_FOR_MANUALL + " Please try again..", Color.BLUE);
                                 Log.i(TAG, "Step1 Failed to connect to " + AppConstants.SELECTED_SSID_FOR_MANUALL + " Please try again..");
                                 if (AppConstants.GenerateLogs)
                                     AppConstants.WriteinFile(TAG + "Step1 Failed to connect to " + AppConstants.SELECTED_SSID_FOR_MANUALL + " Please try again..");
@@ -12608,7 +12634,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
                     } else {
                         ChangeWifiState(false);//turn wifi off
-                        AppConstants.colorToastBigFont(getApplicationContext(), "Step2 Failed while changing Hotspot Settings Please try again..", Color.BLUE);
+                        AppConstants.colorToastBigFont(WelcomeActivity.this, "Step2 Failed while changing Hotspot Settings Please try again..", Color.BLUE);
                         Log.i(TAG, "Step2 Failed while changing Hotspot Settings Please try again.. exception:" + linkstation_response);
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + "Step2 Failed while changing Hotspot Settings UDPLink. exception: " + linkstation_response);
@@ -12918,7 +12944,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         }, delay);
 
                     } else {
-                        AppConstants.colorToast(getApplicationContext(), getResources().getString(R.string.MakeSureBTMacIsSet), Color.BLUE);
+                        AppConstants.colorToast(WelcomeActivity.this, getResources().getString(R.string.MakeSureBTMacIsSet), Color.BLUE);
                     }
                 }
                 break;
@@ -12962,7 +12988,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         }, delay);
 
                     } else {
-                        AppConstants.colorToast(getApplicationContext(), getResources().getString(R.string.MakeSureBTMacIsSet), Color.BLUE);
+                        AppConstants.colorToast(WelcomeActivity.this, getResources().getString(R.string.MakeSureBTMacIsSet), Color.BLUE);
                     }
                 }
                 break;
@@ -13007,7 +13033,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         }, delay);
 
                     } else {
-                        AppConstants.colorToast(getApplicationContext(), getResources().getString(R.string.MakeSureBTMacIsSet), Color.BLUE);
+                        AppConstants.colorToast(WelcomeActivity.this, getResources().getString(R.string.MakeSureBTMacIsSet), Color.BLUE);
                     }
                 }
 
@@ -13053,7 +13079,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         }, delay);
 
                     } else {
-                        AppConstants.colorToast(getApplicationContext(), getResources().getString(R.string.MakeSureBTMacIsSet), Color.BLUE);
+                        AppConstants.colorToast(WelcomeActivity.this, getResources().getString(R.string.MakeSureBTMacIsSet), Color.BLUE);
                     }
                 }
                 break;
@@ -13098,7 +13124,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         }, delay);
 
                     } else {
-                        AppConstants.colorToast(getApplicationContext(), getResources().getString(R.string.MakeSureBTMacIsSet), Color.BLUE);
+                        AppConstants.colorToast(WelcomeActivity.this, getResources().getString(R.string.MakeSureBTMacIsSet), Color.BLUE);
                     }
                 }
                 break;
@@ -13143,7 +13169,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         }, delay);
 
                     } else {
-                        AppConstants.colorToast(getApplicationContext(), getResources().getString(R.string.MakeSureBTMacIsSet), Color.BLUE);
+                        AppConstants.colorToast(WelcomeActivity.this, getResources().getString(R.string.MakeSureBTMacIsSet), Color.BLUE);
                     }
                 }
                 break;
@@ -14711,7 +14737,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         pd.dismiss();
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + "BT LINK not connected.");
-                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "Message", getResources().getString(R.string.UnableToConnectToHoseMessage));
+                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.UnableToConnectToHoseMessage));
                     }
                 }
             }, delay);
@@ -14748,7 +14774,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         }, delay);
 
                     } else {
-                        AppConstants.colorToast(getApplicationContext(), getResources().getString(R.string.MakeSureBTMacIsSet), Color.BLUE);
+                        AppConstants.colorToast(WelcomeActivity.this, getResources().getString(R.string.MakeSureBTMacIsSet), Color.BLUE);
                     }
                 }
                 break;
@@ -14778,7 +14804,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         }, delay);
 
                     } else {
-                        AppConstants.colorToast(getApplicationContext(), getResources().getString(R.string.MakeSureBTMacIsSet), Color.BLUE);
+                        AppConstants.colorToast(WelcomeActivity.this, getResources().getString(R.string.MakeSureBTMacIsSet), Color.BLUE);
                     }
                 }
                 break;
@@ -14809,7 +14835,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         }, delay);
 
                     } else {
-                        AppConstants.colorToast(getApplicationContext(), getResources().getString(R.string.MakeSureBTMacIsSet), Color.BLUE);
+                        AppConstants.colorToast(WelcomeActivity.this, getResources().getString(R.string.MakeSureBTMacIsSet), Color.BLUE);
                     }
                 }
                 break;
@@ -14839,7 +14865,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         }, delay);
 
                     } else {
-                        AppConstants.colorToast(getApplicationContext(), getResources().getString(R.string.MakeSureBTMacIsSet), Color.BLUE);
+                        AppConstants.colorToast(WelcomeActivity.this, getResources().getString(R.string.MakeSureBTMacIsSet), Color.BLUE);
                     }
                 }
                 break;
@@ -14869,7 +14895,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         }, delay);
 
                     } else {
-                        AppConstants.colorToast(getApplicationContext(), getResources().getString(R.string.MakeSureBTMacIsSet), Color.BLUE);
+                        AppConstants.colorToast(WelcomeActivity.this, getResources().getString(R.string.MakeSureBTMacIsSet), Color.BLUE);
                     }
                 }
                 break;
@@ -14899,7 +14925,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         }, delay);
 
                     } else {
-                        AppConstants.colorToast(getApplicationContext(), getResources().getString(R.string.MakeSureBTMacIsSet), Color.BLUE);
+                        AppConstants.colorToast(WelcomeActivity.this, getResources().getString(R.string.MakeSureBTMacIsSet), Color.BLUE);
                     }
                 }
                 break;
@@ -14966,9 +14992,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     public void AddNewLinkScreen() {
         AppConstants.newlyAddedLinks.clear();
         Intent in = new Intent(WelcomeActivity.this, AddNewLinkToCloud.class);
-        in.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         startActivity(in);
-        finish();
     }
 
     public void LinkUpgradeFunctionality(String linkType, int linkPosition) {

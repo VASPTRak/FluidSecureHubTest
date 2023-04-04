@@ -227,6 +227,12 @@ public class AcceptDeptActivity extends AppCompatActivity {
             etDeptNumber.setInputType(InputType.TYPE_CLASS_TEXT);
         }
 
+        try {
+            etDeptNumber.requestFocus();
+        } catch (Exception e) {
+            System.out.println("keyboard open exception");
+        }
+
         tv_swipekeybord.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

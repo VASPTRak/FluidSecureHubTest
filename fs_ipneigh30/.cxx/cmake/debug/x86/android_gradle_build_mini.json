@@ -1,0 +1,33 @@
+{
+  "buildFiles": [
+    "D:\\Android Backup\\FluidSecureHubTest\\fs_ipneigh30\\src\\main\\cpp\\CMakeLists.txt"
+  ],
+  "cleanCommandsComponents": [
+    [
+      "C:\\Users\\Admin\\AppData\\Local\\Android\\Sdk\\cmake\\3.10.2.4988404\\bin\\ninja.exe",
+      "-C",
+      "D:\\Android Backup\\FluidSecureHubTest\\fs_ipneigh30\\.cxx\\cmake\\debug\\x86",
+      "clean"
+    ]
+  ],
+  "buildTargetsCommandComponents": [
+    "C:\\Users\\Admin\\AppData\\Local\\Android\\Sdk\\cmake\\3.10.2.4988404\\bin\\ninja.exe",
+    "-C",
+    "D:\\Android Backup\\FluidSecureHubTest\\fs_ipneigh30\\.cxx\\cmake\\debug\\x86",
+    "{LIST_OF_TARGETS_TO_BUILD}"
+  ],
+  "libraries": {
+    "fs_ipneigh30-android-Debug-x86": {
+      "artifactName": "fs_ipneigh30-android",
+      "buildCommandComponents": [
+        "C:\\Users\\Admin\\AppData\\Local\\Android\\Sdk\\cmake\\3.10.2.4988404\\bin\\ninja.exe",
+        "-C",
+        "D:\\Android Backup\\FluidSecureHubTest\\fs_ipneigh30\\.cxx\\cmake\\debug\\x86",
+        "fs_ipneigh30-android"
+      ],
+      "abi": "x86",
+      "output": "D:\\Android Backup\\FluidSecureHubTest\\fs_ipneigh30\\build\\intermediates\\cmake\\debug\\obj\\x86\\libfs_ipneigh30-android.so",
+      "runtimeFiles": []
+    }
+  }
+}
