@@ -306,6 +306,7 @@ public class AppConstants {
     public static String FOB_KEY_VEHICLE = "";
     public static String HUB_ID = "";
 
+    public static boolean isTestTransaction = false;
 
     public static String FS1_CONNECTED_SSID;
     public static String FS2_CONNECTED_SSID;
@@ -663,7 +664,6 @@ public class AppConstants {
 
 
     public static Dialog colorToastBigFont(Context ctx, String msg, int colr) {
-        AppConstants.WriteinFile("<in colorToastBigFont => msg: " + msg);
         /*Toast toast = Toast.makeText(ctx, " " + msg + " ", Toast.LENGTH_LONG);
         toast.getView().setBackgroundColor(colr);
         toast.setGravity(Gravity.TOP | Gravity.CENTER, 0, 280);

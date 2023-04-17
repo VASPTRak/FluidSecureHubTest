@@ -1,7 +1,7 @@
                     Executable : C:\Users\Admin\AppData\Local\Android\Sdk\cmake\3.10.2.4988404\bin\cmake.exe
 arguments : 
--HD:\Android Backup\FluidSecureHubTest\fs_ipneigh30\src\main\cpp
--DCMAKE_FIND_ROOT_PATH=D:\Android Backup\FluidSecureHubTest\fs_ipneigh30\.cxx\cmake\debug\prefab\x86\prefab
+-HD:\Android Workspace\FluidSecureHubTest\fs_ipneigh30\src\main\cpp
+-DCMAKE_FIND_ROOT_PATH=D:\Android Workspace\FluidSecureHubTest\fs_ipneigh30\.cxx\cmake\debug\prefab\x86\prefab
 -DCMAKE_BUILD_TYPE=Debug
 -DCMAKE_TOOLCHAIN_FILE=C:\Users\Admin\AppData\Local\Android\Sdk\ndk\21.0.6113669\build\cmake\android.toolchain.cmake
 -DANDROID_ABI=x86
@@ -10,12 +10,12 @@ arguments :
 -DCMAKE_ANDROID_ARCH_ABI=x86
 -DCMAKE_ANDROID_NDK=C:\Users\Admin\AppData\Local\Android\Sdk\ndk\21.0.6113669
 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
--DCMAKE_LIBRARY_OUTPUT_DIRECTORY=D:\Android Backup\FluidSecureHubTest\fs_ipneigh30\build\intermediates\cmake\debug\obj\x86
--DCMAKE_RUNTIME_OUTPUT_DIRECTORY=D:\Android Backup\FluidSecureHubTest\fs_ipneigh30\build\intermediates\cmake\debug\obj\x86
+-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=D:\Android Workspace\FluidSecureHubTest\fs_ipneigh30\build\intermediates\cmake\debug\obj\x86
+-DCMAKE_RUNTIME_OUTPUT_DIRECTORY=D:\Android Workspace\FluidSecureHubTest\fs_ipneigh30\build\intermediates\cmake\debug\obj\x86
 -DCMAKE_MAKE_PROGRAM=C:\Users\Admin\AppData\Local\Android\Sdk\cmake\3.10.2.4988404\bin\ninja.exe
 -DCMAKE_SYSTEM_NAME=Android
 -DCMAKE_SYSTEM_VERSION=24
--BD:\Android Backup\FluidSecureHubTest\fs_ipneigh30\.cxx\cmake\debug\x86
+-BD:\Android Workspace\FluidSecureHubTest\fs_ipneigh30\.cxx\cmake\debug\x86
 -GNinja
 jvmArgs : 
 
