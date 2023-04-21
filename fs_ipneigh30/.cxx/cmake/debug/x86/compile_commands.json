@@ -1,7 +1,7 @@
 [
 {
-  "directory": "D:/Android Workspace/FluidSecureHubTest/fs_ipneigh30/.cxx/cmake/debug/x86",
-  "command": "C:\\Users\\Admin\\AppData\\Local\\Android\\Sdk\\ndk\\21.0.6113669\\toolchains\\llvm\\prebuilt\\windows-x86_64\\bin\\clang.exe --target=i686-none-linux-android24 --gcc-toolchain=C:/Users/Admin/AppData/Local/Android/Sdk/ndk/21.0.6113669/toolchains/llvm/prebuilt/windows-x86_64 --sysroot=C:/Users/Admin/AppData/Local/Android/Sdk/ndk/21.0.6113669/toolchains/llvm/prebuilt/windows-x86_64/sysroot -Dfs_ipneigh30_android_EXPORTS -I\"D:/Android Workspace/FluidSecureHubTest/fs_ipneigh30/src/main/cpp/includes\"  -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -O0 -fno-limit-debug-info  -fPIC   -o CMakeFiles\\fs_ipneigh30-android.dir\\fs_ipneigh.c.o   -c \"D:\\Android Workspace\\FluidSecureHubTest\\fs_ipneigh30\\src\\main\\cpp\\fs_ipneigh.c\"",
-  "file": "D:\\Android Workspace\\FluidSecureHubTest\\fs_ipneigh30\\src\\main\\cpp\\fs_ipneigh.c"
+  "directory": "D:/Android_Workspace/FluidSecureHubTest/fs_ipneigh30/.cxx/cmake/debug/x86",
+  "command": "C:\\Users\\Admin\\AppData\\Local\\Android\\Sdk\\ndk\\21.0.6113669\\toolchains\\llvm\\prebuilt\\windows-x86_64\\bin\\clang.exe --target=i686-none-linux-android24 --gcc-toolchain=C:/Users/Admin/AppData/Local/Android/Sdk/ndk/21.0.6113669/toolchains/llvm/prebuilt/windows-x86_64 --sysroot=C:/Users/Admin/AppData/Local/Android/Sdk/ndk/21.0.6113669/toolchains/llvm/prebuilt/windows-x86_64/sysroot -Dfs_ipneigh30_android_EXPORTS -ID:/Android_Workspace/FluidSecureHubTest/fs_ipneigh30/src/main/cpp/includes  -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -O0 -fno-limit-debug-info  -fPIC   -o CMakeFiles\\fs_ipneigh30-android.dir\\fs_ipneigh.c.o   -c D:\\Android_Workspace\\FluidSecureHubTest\\fs_ipneigh30\\src\\main\\cpp\\fs_ipneigh.c",
+  "file": "D:\\Android_Workspace\\FluidSecureHubTest\\fs_ipneigh30\\src\\main\\cpp\\fs_ipneigh.c"
 }
 ]

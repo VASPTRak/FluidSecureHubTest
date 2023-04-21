@@ -6,12 +6,12 @@
     "deprecated": false,
     "default": true
   },
-  "originalCxxBuildFolder": "D:\\Android Workspace\\FluidSecureHubTest\\fs_ipneigh30\\.cxx\\cmake\\debug\\x86",
-  "cxxBuildFolder": "D:\\Android Workspace\\FluidSecureHubTest\\fs_ipneigh30\\.cxx\\cmake\\debug\\x86",
+  "originalCxxBuildFolder": "D:\\Android_Workspace\\FluidSecureHubTest\\fs_ipneigh30\\.cxx\\cmake\\debug\\x86",
+  "cxxBuildFolder": "D:\\Android_Workspace\\FluidSecureHubTest\\fs_ipneigh30\\.cxx\\cmake\\debug\\x86",
   "abiPlatformVersion": 24,
   "cmake": {
-    "cmakeWrappingBaseFolder": "D:\\Android Workspace\\FluidSecureHubTest\\fs_ipneigh30\\.cxx\\cxx\\debug\\x86",
-    "cmakeArtifactsBaseFolder": "D:\\Android Workspace\\FluidSecureHubTest\\fs_ipneigh30\\.cxx\\cmake\\debug\\x86",
+    "cmakeWrappingBaseFolder": "D:\\Android_Workspace\\FluidSecureHubTest\\fs_ipneigh30\\.cxx\\cxx\\debug\\x86",
+    "cmakeArtifactsBaseFolder": "D:\\Android_Workspace\\FluidSecureHubTest\\fs_ipneigh30\\.cxx\\cmake\\debug\\x86",
     "effectiveConfiguration": {
       "name": "traditional-android-studio-cmake-environment",
       "description": "Composite reified CMakeSettings configuration",
@@ -19,13 +19,13 @@
       "inheritEnvironments": [
         "ndk"
       ],
-      "buildRoot": "D:\\Android Workspace\\FluidSecureHubTest\\fs_ipneigh30\\.cxx\\cmake\\debug\\x86",
+      "buildRoot": "D:\\Android_Workspace\\FluidSecureHubTest\\fs_ipneigh30\\.cxx\\cmake\\debug\\x86",
       "cmakeToolchain": "C:\\Users\\Admin\\AppData\\Local\\Android\\Sdk\\ndk\\21.0.6113669\\build\\cmake\\android.toolchain.cmake",
       "cmakeExecutable": "C:\\Users\\Admin\\AppData\\Local\\Android\\Sdk\\cmake\\3.10.2.4988404\\bin\\cmake.exe",
       "variables": [
         {
           "name": "CMAKE_FIND_ROOT_PATH",
-          "value": "D:\\Android Workspace\\FluidSecureHubTest\\fs_ipneigh30\\.cxx\\cmake\\debug\\prefab\\x86\\prefab"
+          "value": "D:\\Android_Workspace\\FluidSecureHubTest\\fs_ipneigh30\\.cxx\\cmake\\debug\\prefab\\x86\\prefab"
         },
         {
           "name": "CMAKE_BUILD_TYPE",
@@ -61,11 +61,11 @@
         },
         {
           "name": "CMAKE_LIBRARY_OUTPUT_DIRECTORY",
-          "value": "D:\\Android Workspace\\FluidSecureHubTest\\fs_ipneigh30\\build\\intermediates\\cmake\\debug\\obj\\x86"
+          "value": "D:\\Android_Workspace\\FluidSecureHubTest\\fs_ipneigh30\\build\\intermediates\\cmake\\debug\\obj\\x86"
         },
         {
           "name": "CMAKE_RUNTIME_OUTPUT_DIRECTORY",
-          "value": "D:\\Android Workspace\\FluidSecureHubTest\\fs_ipneigh30\\build\\intermediates\\cmake\\debug\\obj\\x86"
+          "value": "D:\\Android_Workspace\\FluidSecureHubTest\\fs_ipneigh30\\build\\intermediates\\cmake\\debug\\obj\\x86"
         },
         {
           "name": "CMAKE_MAKE_PROGRAM",
@@ -81,7 +81,7 @@
         }
       ]
     },
-    "cmakeServerLogFile": "D:\\Android Workspace\\FluidSecureHubTest\\fs_ipneigh30\\.cxx\\cmake\\debug\\x86\\cmake_server_log.txt"
+    "cmakeServerLogFile": "D:\\Android_Workspace\\FluidSecureHubTest\\fs_ipneigh30\\.cxx\\cmake\\debug\\x86\\cmake_server_log.txt"
   },
   "variant": {
     "buildSystemArgumentList": [],
@@ -90,8 +90,8 @@
       ""
     ],
     "variantName": "debug",
-    "objFolder": "D:\\Android Workspace\\FluidSecureHubTest\\fs_ipneigh30\\build\\intermediates\\cmake\\debug\\obj",
-    "soFolder": "D:\\Android Workspace\\FluidSecureHubTest\\fs_ipneigh30\\build\\intermediates\\cmake\\debug\\lib",
+    "objFolder": "D:\\Android_Workspace\\FluidSecureHubTest\\fs_ipneigh30\\build\\intermediates\\cmake\\debug\\obj",
+    "soFolder": "D:\\Android_Workspace\\FluidSecureHubTest\\fs_ipneigh30\\build\\intermediates\\cmake\\debug\\lib",
     "isDebuggableEnabled": true,
     "validAbiList": [
       "ARMEABI_V7A",
@@ -103,13 +103,13 @@
     "implicitBuildTargetSet": [],
     "cmakeSettingsConfiguration": "android-gradle-plugin-predetermined-name",
     "module": {
-      "cxxFolder": "D:\\Android Workspace\\FluidSecureHubTest\\fs_ipneigh30\\.cxx",
+      "cxxFolder": "D:\\Android_Workspace\\FluidSecureHubTest\\fs_ipneigh30\\.cxx",
       "splitsAbiFilterSet": [],
-      "intermediatesFolder": "D:\\Android Workspace\\FluidSecureHubTest\\fs_ipneigh30\\build\\intermediates",
+      "intermediatesFolder": "D:\\Android_Workspace\\FluidSecureHubTest\\fs_ipneigh30\\build\\intermediates",
       "gradleModulePathName": ":fs_ipneigh30",
-      "moduleRootFolder": "D:\\Android Workspace\\FluidSecureHubTest\\fs_ipneigh30",
-      "moduleBuildFile": "D:\\Android Workspace\\FluidSecureHubTest\\fs_ipneigh30\\build.gradle",
-      "makeFile": "D:\\Android Workspace\\FluidSecureHubTest\\fs_ipneigh30\\src\\main\\cpp\\CMakeLists.txt",
+      "moduleRootFolder": "D:\\Android_Workspace\\FluidSecureHubTest\\fs_ipneigh30",
+      "moduleBuildFile": "D:\\Android_Workspace\\FluidSecureHubTest\\fs_ipneigh30\\build.gradle",
+      "makeFile": "D:\\Android_Workspace\\FluidSecureHubTest\\fs_ipneigh30\\src\\main\\cpp\\CMakeLists.txt",
       "buildSystem": "CMAKE",
       "ndkFolder": "C:\\Users\\Admin\\AppData\\Local\\Android\\Sdk\\ndk\\21.0.6113669",
       "ndkVersion": "21.0.6113669",
@@ -194,9 +194,9 @@
         "SYSTEM": {}
       },
       "project": {
-        "rootBuildGradleFolder": "D:\\Android Workspace\\FluidSecureHubTest",
-        "cxxFolder": "D:\\Android Workspace\\FluidSecureHubTest\\.cxx",
-        "compilerSettingsCacheFolder": "D:\\Android Workspace\\FluidSecureHubTest\\.cxx",
+        "rootBuildGradleFolder": "D:\\Android_Workspace\\FluidSecureHubTest",
+        "cxxFolder": "D:\\Android_Workspace\\FluidSecureHubTest\\.cxx",
+        "compilerSettingsCacheFolder": "D:\\Android_Workspace\\FluidSecureHubTest\\.cxx",
         "sdkFolder": "C:\\Users\\Admin\\AppData\\Local\\Android\\Sdk",
         "isNativeCompilerSettingsCacheEnabled": false,
         "isBuildOnlyTargetAbiEnabled": true,
@@ -206,10 +206,10 @@
       },
       "nativeBuildOutputLevel": "QUIET"
     },
-    "prefabDirectory": "D:\\Android Workspace\\FluidSecureHubTest\\fs_ipneigh30\\.cxx\\cmake\\debug\\prefab"
+    "prefabDirectory": "D:\\Android_Workspace\\FluidSecureHubTest\\fs_ipneigh30\\.cxx\\cmake\\debug\\prefab"
   },
   "buildSettings": {
     "environmentVariables": []
   },
-  "prefabFolder": "D:\\Android Workspace\\FluidSecureHubTest\\fs_ipneigh30\\.cxx\\cmake\\debug\\prefab\\x86"
+  "prefabFolder": "D:\\Android_Workspace\\FluidSecureHubTest\\fs_ipneigh30\\.cxx\\cmake\\debug\\prefab\\x86"
 }

@@ -664,6 +664,7 @@ public class AppConstants {
 
 
     public static Dialog colorToastBigFont(Context ctx, String msg, int colr) {
+        AppConstants.WriteinFile("Showing dialog. Message: " + msg);
         /*Toast toast = Toast.makeText(ctx, " " + msg + " ", Toast.LENGTH_LONG);
         toast.getView().setBackgroundColor(colr);
         toast.setGravity(Gravity.TOP | Gravity.CENTER, 0, 280);
@@ -877,8 +878,8 @@ public class AppConstants {
             bufferWritter.close();
 
         } catch (IOException e) {
-            WriteinFile("WriteinFile Exception" + e);
-
+            //WriteinFile("WriteinFile Exception: " + e);
+            System.out.println("WriteinFile Exception: " + e);
         }
     }
 
