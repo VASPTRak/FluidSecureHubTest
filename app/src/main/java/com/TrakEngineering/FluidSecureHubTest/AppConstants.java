@@ -23,9 +23,7 @@ import androidx.core.app.NotificationCompat;
 import androidx.appcompat.app.AlertDialog;
 
 import android.telephony.TelephonyManager;
-import android.text.SpannableString;
 import android.text.TextUtils;
-import android.text.style.RelativeSizeSpan;
 import android.util.Base64;
 import android.view.Gravity;
 import android.view.View;
@@ -33,7 +31,6 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
-import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -50,8 +47,6 @@ import java.util.List;
 import java.util.Stack;
 
 import static com.TrakEngineering.FluidSecureHubTest.CommonUtils.GetDateString;
-
-import com.google.android.material.snackbar.Snackbar;
 
 /**
  * Created by Administrator on 5/19/2016.
@@ -664,7 +659,6 @@ public class AppConstants {
 
 
     public static Dialog colorToastBigFont(Context ctx, String msg, int colr) {
-        AppConstants.WriteinFile("Showing dialog. Message: " + msg);
         /*Toast toast = Toast.makeText(ctx, " " + msg + " ", Toast.LENGTH_LONG);
         toast.getView().setBackgroundColor(colr);
         toast.setGravity(Gravity.TOP | Gravity.CENTER, 0, 280);
@@ -816,7 +810,8 @@ public class AppConstants {
 
     public static void WriteTimeStamp(String str) {
         try {
-            File file = new File(Environment.getExternalStorageDirectory() + "/FSTimeStamp");
+            //File file = new File(Environment.getExternalStorageDirectory() + "/FSTimeStamp");
+            File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS) + "/FSTimeStamp");
 
             if (!file.exists()) {
                 if (file.mkdirs()) {
@@ -852,7 +847,8 @@ public class AppConstants {
 
             System.out.println(str);
 
-            File file = new File(Environment.getExternalStorageDirectory() + "/FSLog");
+            //File file = new File(Environment.getExternalStorageDirectory() + "/FSLog");
+            File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS) + "/FSLog");
 
             if (!file.exists()) {
                 if (file.mkdirs()) {

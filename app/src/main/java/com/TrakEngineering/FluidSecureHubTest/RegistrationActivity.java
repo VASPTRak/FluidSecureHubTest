@@ -52,6 +52,7 @@ import org.json.JSONObject;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -113,6 +114,8 @@ public class RegistrationActivity extends AppCompatActivity {
         } else {
             tv_hint.setText(Html.fromHtml(content));
         }
+        tv_hint.setText("");
+        tv_hint.setVisibility(View.GONE);
 
         try {
             TelephonyManager tMgr = (TelephonyManager) getApplicationContext().getSystemService(Context.TELEPHONY_SERVICE);
@@ -146,24 +149,26 @@ public class RegistrationActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                if (edt_username.getText().toString().trim().isEmpty()) {
+                if (!ValidateHUBName(etFName.getText().toString().trim())) {
+                    AppConstants.WriteinFile(TAG + " " + getResources().getString(R.string.HUBNameInvalid));
+                    CommonUtils.showMessageDilaog(RegistrationActivity.this, "Error Message", getResources().getString(R.string.HUBNameInvalid));
+                    etFName.requestFocus();
+                } else if (edt_username.getText().toString().trim().isEmpty()) {
                     //redToast(RegistrationActivity.this, "Please Enter User Name");
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + "Please enter User Name");
+                    AppConstants.WriteinFile(TAG + " " + getResources().getString(R.string.RequiredUserName));
                     CommonUtils.showMessageDilaog(RegistrationActivity.this, "Error Message", getResources().getString(R.string.RequiredUserName));
                     edt_username.requestFocus();
                 } else if (edt_password.getText().toString().trim().isEmpty()) {
                     //redToast(RegistrationActivity.this, "Please Enter Password");
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + "Please enter Password");
+                    AppConstants.WriteinFile(TAG + " " + getResources().getString(R.string.RequiredUserPassword));
                     CommonUtils.showMessageDilaog(RegistrationActivity.this, "Error Message", getResources().getString(R.string.RequiredUserPassword));
                     edt_password.requestFocus();
                 } else {
-
                     String hubName = etFName.getText().toString().trim();
                     String userName = edt_username.getText().toString().trim();
                     String userPass = edt_password.getText().toString().trim();
                     String imeiNumber = AppConstants.getIMEI(RegistrationActivity.this);
+                    String userMobile = etMobile.getText().toString().trim();
 
                     /*if (Build.VERSION.SDK_INT >= 29) {
                         String uUUID = UUID.randomUUID().toString();
@@ -172,12 +177,12 @@ public class RegistrationActivity extends AppCompatActivity {
                         imeiNumber = AppConstants.getIMEIOnlyForBelowOS10(RegistrationActivity.this);
                     }*/
 
-
-                    if (imeiNumber.isEmpty()){
+                    if (imeiNumber.isEmpty()) {
+                        AppConstants.WriteinFile(TAG + " Your IMEI Number is Empty!");
                         AlertDialogBox(RegistrationActivity.this, "Your IMEI Number is Empty!");
-                    }else if (cd.isConnectingToInternet()){
-                        new ReplaceHUBFromApp().execute(hubName,imeiNumber,userName,userPass);
-                    }else {
+                    } else if (cd.isConnectingToInternet()) {
+                        new ReplaceHUBFromApp().execute(hubName, imeiNumber, userName, userPass, userMobile);
+                    } else {
                         CommonUtils.showNoInternetDialog(RegistrationActivity.this);
                     }
                 }
@@ -189,11 +194,9 @@ public class RegistrationActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-
                 if (etFName.getText().toString().trim().isEmpty()) {
                     //redToast(RegistrationActivity.this, "Please enter HUB Name");
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + "Please enter HUB Name");
+                    AppConstants.WriteinFile(TAG + " " + getResources().getString(R.string.HUBNameRequired));
                     CommonUtils.showMessageDilaog(RegistrationActivity.this, "Error Message", getResources().getString(R.string.HUBNameRequired));
                     etFName.requestFocus();
                 }/* else if (etMobile.getText().toString().trim().isEmpty()) {
@@ -216,13 +219,18 @@ public class RegistrationActivity extends AppCompatActivity {
                 } else if (etCompany.getText().toString().trim().isEmpty()) {
                     redToast(RegistrationActivity.this, "Please enter Company");
                     etCompany.requestFocus();
-                }*/ else {
-
+                }*/
+                else if (!ValidateHUBName(etFName.getText().toString().trim())) {
+                    AppConstants.WriteinFile(TAG + " " + getResources().getString(R.string.HUBNameInvalid));
+                    CommonUtils.showMessageDilaog(RegistrationActivity.this, "Error Message", getResources().getString(R.string.HUBNameInvalid));
+                    etFName.requestFocus();
+                } else {
+                    AppConstants.WriteinFile(TAG + " Entered HUB Name: " + etFName.getText().toString());
+                    String hubName = etFName.getText().toString().trim();
                     //------------Collect information for Registration------------------------------
                     //------------------------------------------------------------------------------
-                    storeINFO(RegistrationActivity.this, etFName.getText().toString().trim(), etMobile.getText().toString().trim(), etEmail.getText().toString().trim(), AppConstants.getIMEI(RegistrationActivity.this));
+                    storeINFO(RegistrationActivity.this, hubName, etMobile.getText().toString().trim(), etEmail.getText().toString().trim(), AppConstants.getIMEI(RegistrationActivity.this));
 
-                    String userName = etFName.getText().toString().trim();
                     String userMobile = etMobile.getText().toString().trim();
                     String userEmail = etEmail.getText().toString().trim();
                     String userCompany = etCompany.getText().toString().trim();
@@ -235,17 +243,32 @@ public class RegistrationActivity extends AppCompatActivity {
                         imeiNumber = AppConstants.getIMEIOnlyForBelowOS10(RegistrationActivity.this);
                     }
 
-                    SplashActivity.writeIMEI_UUIDInFile(RegistrationActivity.this, imeiNumber); ;
+                    SplashActivity.writeIMEI_UUIDInFile(RegistrationActivity.this, imeiNumber);
 
-                    new RegisterUser(userName, userMobile, userEmail, imeiNumber, AppConstants.DEVICE_TYPE, userCompany).execute();
-
+                    new RegisterUser(hubName, userMobile, userEmail, imeiNumber, AppConstants.DEVICE_TYPE, userCompany).execute();
 
                     //------------------------------------------------------------------------------
-
 
                 }
             }
         });
+    }
+
+    private boolean ValidateHUBName(String hubName) {
+        boolean isValid = false;
+        try {
+            if (hubName.toUpperCase().startsWith("HUB")) {
+                String number = hubName.toUpperCase().replace("HUB", "");
+                String regex = "[0-9]+";
+                Pattern pattern = Pattern.compile(regex);
+                Matcher m = pattern.matcher(number);
+
+                isValid = m.matches();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return isValid;
     }
 
     @Override
@@ -296,22 +319,19 @@ public class RegistrationActivity extends AppCompatActivity {
         switch (item.getItemId()) {
 
             case R.id.mrestartapp:
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + " Restart app.");
+                AppConstants.WriteinFile(TAG + " Restart app.");
                 Intent i = new Intent(RegistrationActivity.this, SplashActivity.class);
                 i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                 startActivity(i);
                 break;
 
             case R.id.menuSpanish:
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + " <Spanish language selected.>");
+                AppConstants.WriteinFile(TAG + " <Spanish language selected.>");
                 CommonUtils.StoreLanguageSettings(RegistrationActivity.this, "es", true);
                 break;
 
             case R.id.menuEnglish:
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + " <English language selected.>");
+                AppConstants.WriteinFile(TAG + " <English language selected.>");
                 CommonUtils.StoreLanguageSettings(RegistrationActivity.this, "en", true);
                 break;
 
@@ -428,21 +448,17 @@ public class RegistrationActivity extends AppCompatActivity {
 
                 resp = serverHandler.PostTextData(RegistrationActivity.this, AppConstants.webURL, sendData, AUTH_TOKEN);
 
-
             } catch (Exception e) {
                 Log.d("Ex", e.getMessage());
             }
-
             return resp;
         }
-
 
         @Override
         protected void onPostExecute(String result) {
 
             pd.dismiss();
             try {
-
                 CommonUtils.LogMessage(TAG, " RegisterUser :" + result, new Exception("Test for All"));
 
                 JSONObject jsonObj = new JSONObject(result);
@@ -458,27 +474,30 @@ public class RegistrationActivity extends AppCompatActivity {
                     Log.i(TAG, " Clearing previous offline data after new registration.");
                     CommonUtils.ClearOfflineData(RegistrationActivity.this); // To clear offline data of Links, Vehicle, Personnel and Department.
                     AppConstants.clearSharedPrefByName(RegistrationActivity.this, "OfflineData");
-
+                    AppConstants.WriteinFile(TAG + " Registration successful. Thank you for registering.");
                     AlertDialogBox(RegistrationActivity.this, getResources().getString(R.string.RegistrationSuccess));
                 } else if (ResponceMessage.equalsIgnoreCase("fail")) {
                     String ResponseText = jsonObj.getString(AppConstants.RES_TEXT);
                     String ValidationFailFor = jsonObj.getString(AppConstants.VALIDATION_FOR_TEXT);
 
                     if (ValidationFailFor.equalsIgnoreCase("askreplacehub")) {
+                        AppConstants.WriteinFile(TAG + " RegisterUser fail: HUB Name is entered that already has an existing device assigned.");
                         CustomMessage2Input(RegistrationActivity.this, "", getString(R.string.askreplacehub));
                     } else {
+                        AppConstants.WriteinFile(TAG + " RegisterUser fail: " + ResponseText);
                         AppConstants.AlertDialogBox(RegistrationActivity.this, ResponseText);
                     }
 
                 } else if (ResponceMessage.equalsIgnoreCase("exists")) {
+                    AppConstants.WriteinFile(TAG + " " + getResources().getString(R.string.IMEIAlreadyExist));
                     AlertDialogBox(RegistrationActivity.this, getResources().getString(R.string.IMEIAlreadyExist));
                 } else {
+                    AppConstants.WriteinFile(TAG + " " + getResources().getString(R.string.CheckInternet));
                     AlertDialogBox(RegistrationActivity.this, getResources().getString(R.string.CheckInternet));
                 }
 
-
             } catch (Exception e) {
-
+                AppConstants.WriteinFile(TAG + " RegisterUser Exception: " + e.getMessage());
                 CommonUtils.LogMessage(TAG, " RegisterUser :" + result, e);
             }
 
@@ -532,6 +551,7 @@ public class RegistrationActivity extends AppCompatActivity {
 
     public class ReplaceHUBFromApp extends AsyncTask<String, Void, String> {
 
+        private static final String TAG = "ReplaceHUBFromApp :";
         public String resp = "";
         ProgressDialog pd;
 
@@ -559,6 +579,7 @@ public class RegistrationActivity extends AppCompatActivity {
                 objEntityClass.deviceId = param[1];
                 objEntityClass.userName = param[2];
                 objEntityClass.password = param[3];
+                objEntityClass.devicePhoneNumber = param[4];
 
                 Gson gson = new Gson();
                 String jsonData = gson.toJson(objEntityClass);
@@ -596,18 +617,22 @@ public class RegistrationActivity extends AppCompatActivity {
 
                 if (ResponceMessage.equalsIgnoreCase("success")) {
                     //CommonUtils.SaveUserInPref(RegistrationActivity.this, userName, userMobile, userEmail, "","","","","", "", "","","", FluidSecureSiteName,ISVehicleHasFob, IsPersonHasFob,IsVehicleNumberRequire, Integer.parseInt(WifiChannelToUse),"","","");
+                    AppConstants.WriteinFile(TAG + " Registration successful. Thank you for registering.");
                     AlertDialogBox(RegistrationActivity.this, getResources().getString(R.string.regiThankYou));
                 } else if (ResponceMessage.equalsIgnoreCase("fail")) {
                     String ResponseText = jsonObj.getString("ResponseText");
+                    AppConstants.WriteinFile(TAG + " " + ResponseText);
                     AppConstants.AlertDialogBox(RegistrationActivity.this, ResponseText);
                 } else if (ResponceMessage.equalsIgnoreCase("exists")) {
+                    AppConstants.WriteinFile(TAG + " Your IMEI Number already EXISTS!");
                     AlertDialogBox(RegistrationActivity.this, "Your IMEI Number already EXISTS!");
                 } else {
+                    AppConstants.WriteinFile(TAG + " Network Error");
                     AlertDialogBox(RegistrationActivity.this, "Network Error");
                 }
 
             } catch (Exception e) {
-                CommonUtils.LogMessage(TAG, " ReplaceHUBFromApp :" + result, e);
+                CommonUtils.LogMessage(TAG, " ReplaceHUBFromApp Exception:" + result, e);
             }
 
 

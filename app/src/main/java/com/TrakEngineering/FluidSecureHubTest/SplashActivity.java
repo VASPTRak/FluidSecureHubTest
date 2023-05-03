@@ -1,6 +1,5 @@
 package com.TrakEngineering.FluidSecureHubTest;
 
-
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
@@ -67,13 +66,14 @@ import org.json.JSONObject;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.net.SocketTimeoutException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.concurrent.TimeUnit;
-
 
 public class SplashActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
@@ -142,7 +142,7 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
                 Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS);
                 intent.setData(Uri.parse("package:" + SplashActivity.this.getPackageName()));
                 startActivityForResult(intent, CODE_WRITE_SETTINGS_PERMISSION);
-                return;
+                //return;
             } else {
                 ActivityCompat.requestPermissions(SplashActivity.this, new String[]{Manifest.permission.WRITE_SETTINGS}, CODE_WRITE_SETTINGS_PERMISSION);
             }
@@ -152,7 +152,7 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
         //storagePermission = ContextCompat.checkSelfPermission(SplashActivity.this, Manifest.permission.MANAGE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
 
         //if (!storagePermission) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+        /*if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             if (!Environment.isExternalStorageManager()) {
                 checkSystemPermission = true;
                 SystemPermissionCode = CODE_MANAGE_ALL_FILES_PERMISSION;
@@ -169,7 +169,7 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
                 }
                 return;
             }
-        }
+        }*/
         //}
 
         if (!cd.isConnecting() && OfflineConstants.isOfflineAccess(SplashActivity.this)) {
@@ -310,7 +310,7 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
     protected void onResume() {
         super.onResume();
 
-        try {
+        /*try {
             if (isSystemPermissionPrompted) {
                 switch (SystemPermissionCode) {
                     case CODE_WRITE_SETTINGS_PERMISSION:
@@ -347,7 +347,7 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
             }
         } catch (Exception e) {
             e.printStackTrace();
-        }
+        }*/
     }
 
     @Override
@@ -471,13 +471,13 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
         boolean isGranted = false;
 
         try {
-            String[] permissions = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.READ_PHONE_STATE, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.RECORD_AUDIO, Manifest.permission.BLUETOOTH, Manifest.permission.CAMERA};
+            String[] permissions = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.READ_PHONE_STATE, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.RECORD_AUDIO, Manifest.permission.BLUETOOTH, Manifest.permission.CAMERA, Manifest.permission.READ_PHONE_NUMBERS};
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            /*if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 permissions = new String[] {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.READ_PHONE_STATE, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.RECORD_AUDIO, Manifest.permission.BLUETOOTH, Manifest.permission.CAMERA, Manifest.permission.READ_PHONE_NUMBERS, Manifest.permission.BLUETOOTH_CONNECT, Manifest.permission.BLUETOOTH_SCAN};
             } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 permissions = new String[] {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.READ_PHONE_STATE, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.RECORD_AUDIO, Manifest.permission.BLUETOOTH, Manifest.permission.CAMERA, Manifest.permission.READ_PHONE_NUMBERS};
-            }
+            }*/
 
             for (int i = 0; i < permissions.length; i++) {
                 isGranted = checkPermission(SplashActivity.this, permissions[i]);
@@ -594,8 +594,6 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
     private void actionOnResult(String response) {
 
         try {
-
-            //CheckAllPermissions();
 
             JSONObject jsonObj = new JSONObject(response);
 
@@ -792,6 +790,7 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
                             }
                         }
                     } else {
+                        AppConstants.WriteinFile( "CheckApproved: " + getResources().getString(R.string.RegistrationNotApproved));
                         CommonUtils.showMessageDilaog(SplashActivity.this, "Error Message", getResources().getString(R.string.RegistrationNotApproved));
                     }
                 } catch (Exception ex) {
@@ -807,43 +806,30 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
                     finish();
 
                 } else if (ResponceText.equalsIgnoreCase("notapproved")) {
-
+                    AppConstants.WriteinFile( "CheckApproved: " + getResources().getString(R.string.regiNotApproved));
                     AlertDialogBox(SplashActivity.this, getResources().getString(R.string.regiNotApproved));
 
                 } else if (ResponceText.equalsIgnoreCase("IMEI not exists")) {
-
-                    //CommonUtils.showMessageDilaog(SplashActivity.this, "Error Message", ResponceText);
+                    AppConstants.WriteinFile( "CheckApproved: " + ResponceText);
                     AppConstants.AlertDialogFinish(SplashActivity.this, ResponceText);
 
                 } else if (ResponceText.equalsIgnoreCase("No data found")) {
-
+                    AppConstants.WriteinFile( "CheckApproved: " + ResponceText);
                     AppConstants.AlertDialogFinish(SplashActivity.this, ResponceText);
 
                 } else {
+                    AppConstants.WriteinFile( "CheckApproved: " + ResponceText);
                     AppConstants.AlertDialogFinish(SplashActivity.this, ResponceText);
                 }
 
             } else {
+                AppConstants.WriteinFile( "CheckApproved: No Internet");
                 AppConstants.AlertDialogFinishWithTitle(SplashActivity.this, "", "No Internet");
             }
 
 
         } catch (Exception e) {
             CommonUtils.LogMessage(TAG, "", e);
-        }
-    }
-
-    private void CheckAllPermissions() {
-        try {
-            String[] permissions = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.READ_PHONE_STATE, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.RECORD_AUDIO, Manifest.permission.BLUETOOTH, Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.CAMERA};
-            String grantedPermissions = "";
-            for (int i = 0; i < permissions.length; i++) {
-                boolean isGranted = checkPermission(SplashActivity.this, permissions[i]);
-                grantedPermissions = grantedPermissions + "(" + permissions[i] + " => IsGranted: " + isGranted + "); ";
-            }
-            AppConstants.WriteinFile(TAG + "grantedPermissions: [" + grantedPermissions + "]");
-        } catch (Exception e) {
-            CommonUtils.LogMessage(TAG, "CheckAllPermissions", e);
         }
     }
 
@@ -1182,7 +1168,8 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
 
             String encryptedString = AES.encrypt(simple_string, AES.credential);
 
-            File file = new File(Environment.getExternalStorageDirectory() + "/" + imei_mob_folder_name);
+            //File file = new File(Environment.getExternalStorageDirectory() + "/" + imei_mob_folder_name);
+            File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS) + "/" + imei_mob_folder_name);
 
             if (!file.exists()) {
                 if (file.mkdirs()) {
@@ -1197,17 +1184,14 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
                 gpxfile.delete();
             }
 
-
             if (!gpxfile.exists()) {
                 gpxfile.createNewFile();
             }
-
 
             FileWriter fileWritter = new FileWriter(gpxfile, false);
             BufferedWriter bufferWritter = new BufferedWriter(fileWritter);
             bufferWritter.write(encryptedString);
             bufferWritter.close();
-
 
         } catch (Exception e) {
             AppConstants.WriteinFile("writeIMEI_UUIDInFile- " + e.getMessage());
@@ -1218,16 +1202,30 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
         String file_content = "";
         try {
 
-            File gpxfile = new File(Environment.getExternalStorageDirectory() + "/" + imei_mob_folder_name + "/" + "encrypt.txt");
-            if (!gpxfile.exists()) {
-                return "";
+            File uuidFileOldPath = new File(Environment.getExternalStorageDirectory() + "/" + imei_mob_folder_name + "/" + "encrypt.txt");
+            File uuidFileNewPath = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS) + "/" + imei_mob_folder_name + "/" + "encrypt.txt");
+            File uuidFileNewPathFolder = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS) + "/" + imei_mob_folder_name);
+
+            if (!uuidFileNewPath.exists()) {
+                if (!uuidFileOldPath.exists()) {
+                    return "";
+                } else {
+                    if (uuidFileOldPath.canRead()) {
+                        copyIMEIFileToNewPath(uuidFileOldPath, uuidFileNewPath, uuidFileNewPathFolder);
+                    } else {
+                        return "";
+                    }
+                }
             }
 
+            if (!uuidFileNewPath.exists()) {
+                return "";
+            }
 
             FileOutputStream os = null;
             StringBuilder text = new StringBuilder();
             try {
-                BufferedReader br = new BufferedReader(new FileReader(gpxfile));
+                BufferedReader br = new BufferedReader(new FileReader(uuidFileNewPath));
                 String line;
                 while ((line = br.readLine()) != null) {
                     text.append(line);
@@ -1239,12 +1237,39 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
             }
             file_content = text.toString();
 
-
         } catch (Exception e) {
             AppConstants.WriteinFile( "readIMEIMobileNumFile- " + e.getMessage());
         }
 
         return file_content;
+    }
+
+    private static void copyIMEIFileToNewPath(File uuidFileOldPath, File uuidFileNewPath, File uuidFileNewPathFolder) {
+        try {
+            if (!uuidFileNewPathFolder.exists()) {
+                if (uuidFileNewPathFolder.mkdirs()) {
+                    //System.out.println("Create UUID Folder");
+                } else {
+                    // System.out.println("Fail to create UUID folder");
+                }
+            }
+            InputStream is = null;
+            OutputStream os = null;
+            try {
+                is = new FileInputStream(uuidFileOldPath);
+                os = new FileOutputStream(uuidFileNewPath);
+                byte[] buffer = new byte[1024];
+                int length;
+                while ((length = is.read(buffer)) > 0) {
+                    os.write(buffer, 0, length);
+                }
+            } finally {
+                is.close();
+                os.close();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @RequiresApi(api = Build.VERSION_CODES.N)

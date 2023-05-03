@@ -6,4 +6,5 @@ public class ReplaceHUBFromAppEntity {
     public String deviceId;
     public String userName;
     public String password;
+    public String devicePhoneNumber;
 }

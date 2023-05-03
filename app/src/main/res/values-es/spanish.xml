@@ -388,6 +388,7 @@
     <string name="HubNameHint">INSINUACIÓN: Su nombre HUB consistirá en las palabras HUB seguidas de 8 números.</string>
     <string name="Example">Ejemplo</string>
     <string name="HUBNameRequired">Ingrese el nombre del HUB</string>
+    <string name="HUBNameInvalid">Ingrese un nombre de HUB válido</string>
     <string name="regiThankYou">Gracias por registrarte.</string>
     <string name="RegistrationSuccess">Gracias por registrarte. \n\nSu solicitud ha sido enviada para su aprobación. Podrá continuar con la aplicación después de que el administrador haya aprobado su solicitud.</string>
     <string name="regiNotApproved">Su solicitud de registro aún no ha sido aprobada.\nEstá marcado como Inactivo en el Software de la empresa.\nPóngase en contacto con el administrador de su empresa.</string>

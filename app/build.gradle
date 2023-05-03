@@ -1,8 +1,10 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 31
-    buildToolsVersion "30.0.3"
+    compileSdkVersion 28
+    buildToolsVersion '28.0.3'
+    /*compileSdkVersion 31
+    buildToolsVersion "30.0.3"*/
 
     dexOptions {
         preDexLibraries = false
@@ -12,9 +14,10 @@ android {
     defaultConfig {
         applicationId "com.TrakEngineering.FluidSecureHubTest"
         minSdkVersion 25
-        targetSdkVersion 31
+        targetSdkVersion 28
+        //targetSdkVersion 31
         versionCode 49
-        versionName "0.51(2208)"
+        versionName "0.52(2217)"
         multiDexEnabled true
 
         ndk {
@@ -100,6 +103,6 @@ dependencies {
     implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0'
     implementation 'com.github.xizzhu:simple-tool-tip:0.7.0'
 
-    implementation 'com.azure.android:azure-maps-control:1.3.0'
+    implementation 'com.azure.android:azure-maps-control:1.0.0'
 
 }
