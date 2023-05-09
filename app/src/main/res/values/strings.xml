@@ -478,4 +478,6 @@
     <string name="LocationRequired">Please select a location on the map.</string>
     <string name="SearchAddressHint">Search here..</string>
 
+    <!-- PIN Screen (Test Transaction) -->
+    <string name="PersonnelIdHeading">PERSONNEL ID</string>
 </resources>
