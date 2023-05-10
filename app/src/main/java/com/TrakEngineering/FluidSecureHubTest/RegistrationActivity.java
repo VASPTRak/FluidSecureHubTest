@@ -69,10 +69,10 @@ public class RegistrationActivity extends AppCompatActivity {
 
     private Pattern EMAIL_PATTERN;
     private Pattern US_PHONE_PATTERN;
-    EditText etFName, etMobile, etCompany,edt_username,edt_password;
-    TextView tv_hint,tv_enter_password,tv_enter_username;
+    EditText etFName, etMobile, etCompany; //,edt_username,edt_password;
+    //TextView tv_hint,tv_enter_password,tv_enter_username;
     AutoCompleteTextView etEmail;
-    Button btnSubmit,btnReplaceHub;
+    Button btnSubmit; //,btnReplaceHub;
     private static String TAG = RegistrationActivity.class.getSimpleName();
     private ConnectionDetector cd = new ConnectionDetector(RegistrationActivity.this);
 
@@ -91,31 +91,31 @@ public class RegistrationActivity extends AppCompatActivity {
 
         getSupportActionBar().setTitle(getResources().getString(R.string.NewHUBRegistration));
 
-        edt_password = (EditText) findViewById(R.id.edt_password);
-        edt_username = (EditText) findViewById(R.id.edt_username);
+        //edt_password = (EditText) findViewById(R.id.edt_password);
+        //edt_username = (EditText) findViewById(R.id.edt_username);
         etFName = (EditText) findViewById(R.id.etFName);
         etMobile = (EditText) findViewById(R.id.etMobile);
         etCompany = (EditText) findViewById(R.id.etCompany);
         etEmail = (AutoCompleteTextView) findViewById(R.id.etEmail);
         btnSubmit = (Button) findViewById(R.id.btnSubmit);
-        btnReplaceHub = (Button) findViewById(R.id.btnReplaceHub);
+        //btnReplaceHub = (Button) findViewById(R.id.btnReplaceHub);
 
-        tv_hint = (TextView)findViewById(R.id.tv_hint);
-        tv_enter_username = (TextView)findViewById(R.id.tv_enter_username);
-        tv_enter_password = (TextView)findViewById(R.id.tv_enter_password);
+        //tv_hint = (TextView)findViewById(R.id.tv_hint);
+        //tv_enter_username = (TextView)findViewById(R.id.tv_enter_username);
+        //tv_enter_password = (TextView)findViewById(R.id.tv_enter_password);
         TextView tvVersionNum = (TextView) findViewById(R.id.tvVersionNum);
         tvVersionNum.setText(getResources().getString(R.string.VersionHeading) + ": " + CommonUtils.getVersionCode(RegistrationActivity.this));
         AppConstants.WriteinFile(TAG + " App Version: " + CommonUtils.getVersionCode(RegistrationActivity.this) + " " + AppConstants.getDeviceName() + " Android " + Build.VERSION.RELEASE + " ");
 
-        String content = getResources().getString(R.string.HubNameHint) + " <i>" + getResources().getString(R.string.Example) + ":</i> HUB00000903";
+        /*String content = getResources().getString(R.string.HubNameHint) + " <i>" + getResources().getString(R.string.Example) + ":</i> HUB00000903";
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             tv_hint.setText(Html.fromHtml(content, Html.FROM_HTML_MODE_LEGACY));
         } else {
             tv_hint.setText(Html.fromHtml(content));
-        }
-        tv_hint.setText("");
-        tv_hint.setVisibility(View.GONE);
+        }*/
+        //tv_hint.setText("");
+        //tv_hint.setVisibility(View.GONE);
 
         try {
             TelephonyManager tMgr = (TelephonyManager) getApplicationContext().getSystemService(Context.TELEPHONY_SERVICE);
@@ -145,7 +145,7 @@ public class RegistrationActivity extends AppCompatActivity {
         etFName.setFocusable(true);
         showKeybord();
 
-        btnReplaceHub.setOnClickListener(new View.OnClickListener() {
+        /*btnReplaceHub.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
@@ -170,13 +170,6 @@ public class RegistrationActivity extends AppCompatActivity {
                     String imeiNumber = AppConstants.getIMEI(RegistrationActivity.this);
                     String userMobile = etMobile.getText().toString().trim();
 
-                    /*if (Build.VERSION.SDK_INT >= 29) {
-                        String uUUID = UUID.randomUUID().toString();
-                        imeiNumber = uUUID;
-                    } else {
-                        imeiNumber = AppConstants.getIMEIOnlyForBelowOS10(RegistrationActivity.this);
-                    }*/
-
                     if (imeiNumber.isEmpty()) {
                         AppConstants.WriteinFile(TAG + " Your IMEI Number is Empty!");
                         AlertDialogBox(RegistrationActivity.this, "Your IMEI Number is Empty!");
@@ -188,7 +181,7 @@ public class RegistrationActivity extends AppCompatActivity {
                 }
 
             }
-        });
+        });*/
 
         btnSubmit.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -372,7 +365,6 @@ public class RegistrationActivity extends AppCompatActivity {
         pref = context.getSharedPreferences("storeINFO", 0);
         editor = pref.edit();
 
-
         // Storing
         editor.putString("name", name);
         editor.putString("mobile", mobile);
@@ -380,7 +372,6 @@ public class RegistrationActivity extends AppCompatActivity {
         editor.putString("IMEInum", IMEInum);
 
         editor.commit();
-
 
     }
 
@@ -391,7 +382,6 @@ public class RegistrationActivity extends AppCompatActivity {
         alertDialogBuilder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int arg1) {
-
 
                         dialog.dismiss();
 
@@ -481,10 +471,10 @@ public class RegistrationActivity extends AppCompatActivity {
                     String ValidationFailFor = jsonObj.getString(AppConstants.VALIDATION_FOR_TEXT);
 
                     if (ValidationFailFor.equalsIgnoreCase("askreplacehub")) {
-                        AppConstants.WriteinFile(TAG + " RegisterUser fail: HUB Name is entered that already has an existing device assigned.");
+                        AppConstants.WriteinFile(TAG + " Registration fail: Replacement confirmation");
                         CustomMessage2Input(RegistrationActivity.this, "", getString(R.string.askreplacehub));
                     } else {
-                        AppConstants.WriteinFile(TAG + " RegisterUser fail: " + ResponseText);
+                        AppConstants.WriteinFile(TAG + " Registration fail: " + ResponseText);
                         AppConstants.AlertDialogBox(RegistrationActivity.this, ResponseText);
                     }
 
@@ -515,14 +505,29 @@ public class RegistrationActivity extends AppCompatActivity {
                     @Override
                     public void onClick(DialogInterface dialog, int arg1) {
                         dialog.dismiss();
-                        //save to cloud call
-                        btnSubmit.setVisibility(View.GONE);
+                        // HUB Replace server call
+                        String hubName = etFName.getText().toString().trim();
+                        String userName = "";
+                        String userPass = "";
+                        String imeiNumber = AppConstants.getIMEI(RegistrationActivity.this);
+                        String userMobile = etMobile.getText().toString().trim();
 
-                        tv_enter_username.setVisibility(View.VISIBLE);
+                        if (imeiNumber.isEmpty()) {
+                            AppConstants.WriteinFile(TAG + " Your IMEI Number is Empty!");
+                            AlertDialogBox(RegistrationActivity.this, "Your IMEI Number is Empty!");
+                        } else if (cd.isConnectingToInternet()) {
+                            new ReplaceHUBFromApp().execute(hubName, imeiNumber, userName, userPass, userMobile);
+                        } else {
+                            CommonUtils.showNoInternetDialog(RegistrationActivity.this);
+                        }
+
+                        //save to cloud call
+                        //btnSubmit.setVisibility(View.GONE);
+                        /*tv_enter_username.setVisibility(View.VISIBLE);
                         edt_username.setVisibility(View.VISIBLE);
                         edt_password.setVisibility(View.VISIBLE);
                         tv_enter_password.setVisibility(View.VISIBLE);
-                        btnReplaceHub.setVisibility(View.VISIBLE);
+                        btnReplaceHub.setVisibility(View.VISIBLE);*/
                     }
                 }
         );
@@ -532,13 +537,12 @@ public class RegistrationActivity extends AppCompatActivity {
                     public void onClick(DialogInterface dialog, int arg1) {
                         dialog.dismiss();
 
-                        btnSubmit.setVisibility(View.VISIBLE);
-
-                        tv_enter_username.setVisibility(View.GONE);
+                        //btnSubmit.setVisibility(View.VISIBLE);
+                        /*tv_enter_username.setVisibility(View.GONE);
                         edt_username.setVisibility(View.GONE);
                         edt_password.setVisibility(View.GONE);
                         tv_enter_password.setVisibility(View.GONE);
-                        btnReplaceHub.setVisibility(View.GONE);
+                        btnReplaceHub.setVisibility(View.GONE);*/
 
                         InputMethodManager imm = (InputMethodManager) context.getSystemService(INPUT_METHOD_SERVICE);
                         imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, InputMethodManager.HIDE_IMPLICIT_ONLY);
@@ -617,11 +621,11 @@ public class RegistrationActivity extends AppCompatActivity {
 
                 if (ResponceMessage.equalsIgnoreCase("success")) {
                     //CommonUtils.SaveUserInPref(RegistrationActivity.this, userName, userMobile, userEmail, "","","","","", "", "","","", FluidSecureSiteName,ISVehicleHasFob, IsPersonHasFob,IsVehicleNumberRequire, Integer.parseInt(WifiChannelToUse),"","","");
-                    AppConstants.WriteinFile(TAG + " Registration successful. Thank you for registering.");
-                    AlertDialogBox(RegistrationActivity.this, getResources().getString(R.string.regiThankYou));
+                    AppConstants.WriteinFile(TAG + " Replacement successful."); // Thank you for registering.
+                    AlertDialogBox(RegistrationActivity.this, getResources().getString(R.string.ReplacementSuccess));
                 } else if (ResponceMessage.equalsIgnoreCase("fail")) {
                     String ResponseText = jsonObj.getString("ResponseText");
-                    AppConstants.WriteinFile(TAG + " " + ResponseText);
+                    AppConstants.WriteinFile(TAG + " Replacement fail: " + ResponseText);
                     AppConstants.AlertDialogBox(RegistrationActivity.this, ResponseText);
                 } else if (ResponceMessage.equalsIgnoreCase("exists")) {
                     AppConstants.WriteinFile(TAG + " Your IMEI Number already EXISTS!");
