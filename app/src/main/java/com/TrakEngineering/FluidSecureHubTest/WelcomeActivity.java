@@ -7706,7 +7706,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 if (AppConstants.IsHoseBusyCheckLocally()) {
                     AddNewLinkScreen();
                 } else {
-                    Toast.makeText(getApplicationContext(), getResources().getString(R.string.HoseIsBusy), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), getResources().getString(R.string.OneOfTheHoseIsBusy), Toast.LENGTH_SHORT).show();
                 }
                 break;
 
@@ -7714,7 +7714,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 if (AppConstants.IsHoseBusyCheckLocally()) {
                     OscilloscopeLinkSelection();
                 } else {
-                    Toast.makeText(getApplicationContext(), getResources().getString(R.string.HoseIsBusy), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), getResources().getString(R.string.OneOfTheHoseIsBusy), Toast.LENGTH_SHORT).show();
                 }
                 break;
 
@@ -7724,7 +7724,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 if (AppConstants.IsHoseBusyCheckLocally()) {
                     CommonUtils.StoreLanguageSettings(WelcomeActivity.this, "es", true);
                 } else {
-                    Toast.makeText(getApplicationContext(), getResources().getString(R.string.HoseIsBusy), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), getResources().getString(R.string.OneOfTheHoseIsBusy), Toast.LENGTH_SHORT).show();
                 }
                 break;
 
@@ -7734,7 +7734,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 if (AppConstants.IsHoseBusyCheckLocally()) {
                     CommonUtils.StoreLanguageSettings(WelcomeActivity.this, "en", true);
                 } else {
-                    Toast.makeText(getApplicationContext(), getResources().getString(R.string.HoseIsBusy), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), getResources().getString(R.string.OneOfTheHoseIsBusy), Toast.LENGTH_SHORT).show();
                 }
                 break;
 

@@ -31,6 +31,7 @@ import com.TrakEngineering.FluidSecureHubTest.WelcomeActivity;
 import com.TrakEngineering.FluidSecureHubTest.enity.RenameHose;
 import com.TrakEngineering.FluidSecureHubTest.enity.SwitchTimeBounce;
 import com.TrakEngineering.FluidSecureHubTest.enity.TrazComp;
+import com.TrakEngineering.FluidSecureHubTest.enity.UpdatePulserTypeOfLINK_entity;
 import com.TrakEngineering.FluidSecureHubTest.enity.UpgradeVersionEntity;
 import com.TrakEngineering.FluidSecureHubTest.offline.EntityOffTranz;
 import com.TrakEngineering.FluidSecureHubTest.offline.OffDBController;
@@ -90,6 +91,7 @@ public class BackgroundService_BTFive extends Service {
     String ipForUDP = "192.168.4.1";
     public int infoCommandAttempt = 0;
     public boolean isConnected = false;
+    public boolean isHotspotDisabled = false;
 
     SimpleDateFormat sdformat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
     ArrayList<HashMap<String, String>> quantityRecords = new ArrayList<>();
@@ -197,6 +199,17 @@ public class BackgroundService_BTFive extends Service {
                 if (AppConstants.GenerateLogs)
                     AppConstants.WriteinFile(TAG + " BTLink 5: Link not connected. Switching to UDP connection...");
 
+                // Disable Hotspot
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + "<Disabling hotspot.>");
+                WifiApManager wifiApManager = new WifiApManager(BackgroundService_BTFive.this);
+                wifiApManager.setWifiApEnabled(null, false);
+                isHotspotDisabled = true;
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
                 // Enable Wi-Fi
                 WifiManager wifiManagerMM = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
                 wifiManagerMM.setWifiEnabled(true);
@@ -578,10 +591,12 @@ public class BackgroundService_BTFive extends Service {
                         }
                     }.start();
                 } else {
-                    transactionIdCommand(TransactionId); // Continue to transactionId Command
+                    GetPulserTypeCommand();
+                    //transactionIdCommand(TransactionId); // Continue to transactionId Command
                 }
             } else {
-                transactionIdCommand(TransactionId); // Continue to transactionId Command
+                GetPulserTypeCommand();
+                //transactionIdCommand(TransactionId); // Continue to transactionId Command
             }
 
         } catch (Exception e) {
@@ -637,6 +652,98 @@ public class BackgroundService_BTFive extends Service {
             e.printStackTrace();
             if (AppConstants.GenerateLogs)
                 AppConstants.WriteinFile(TAG + " BTLink 5: WaitForReconnectToLink Exception:>>" + e.getMessage());
+        }
+    }
+
+    private void GetPulserTypeCommand() {
+        try {
+            //Execute p_type Command (to get the pulser type from LINK)
+            Request = "";
+            Response = "";
+
+            if (IsThisBTTrnx) {
+                BTSPPMain btspp = new BTSPPMain();
+                btspp.send5(BTConstants.get_p_type_command);
+            }
+
+            new CountDownTimer(4000, 1000) {
+                public void onTick(long millisUntilFinished) {
+                    long attempt = (4 - (millisUntilFinished / 1000));
+                    if (attempt > 0) {
+                        if (Request.contains(BTConstants.get_p_type_command) && Response.contains("pulser_type")) {
+                            ParsePulserTypeCommandResponse(Response.trim());
+                            transactionIdCommand(TransactionId); // Continue to transactionId Command
+                            cancel();
+                        }
+                    }
+                }
+
+                public void onFinish() {
+                    if (Request.contains(BTConstants.get_p_type_command) && Response.contains("pulser_type")) {
+                        ParsePulserTypeCommandResponse(Response.trim());
+                    }
+                    transactionIdCommand(TransactionId); // Continue to transactionId Command
+                }
+            }.start();
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + " BTLink 5: P_Type_Command (to get the pulser type from LINK) Exception:>>" + e.getMessage());
+            transactionIdCommand(TransactionId); // Continue to transactionId Command
+        }
+    }
+
+    private void ParsePulserTypeCommandResponse(String response) {
+        try {
+            String pulserType;
+
+            if (response.contains("pulser_type")) {
+                JSONObject jsonObj = new JSONObject(response);
+                pulserType = jsonObj.getString("pulser_type");
+
+                if (!pulserType.isEmpty() && Arrays.asList(BTConstants.p_types).contains(pulserType)) {
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + " BTLink 5: Pulser Type: " + pulserType);
+                    // Create object and save data to upload
+                    String userEmail = CommonUtils.getCustomerDetails_backgroundServiceBT(BackgroundService_BTFive.this).PersonEmail;
+
+                    String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(BackgroundService_BTFive.this) + ":" + userEmail + ":" + "UpdatePulserTypeOfLINK" + AppConstants.LANG_PARAM);
+
+                    UpdatePulserTypeOfLINK_entity updatePulserTypeOfLINK = new UpdatePulserTypeOfLINK_entity();
+                    updatePulserTypeOfLINK.IMEIUDID = AppConstants.getIMEI(BackgroundService_BTFive.this);
+                    updatePulserTypeOfLINK.Email = userEmail;
+                    updatePulserTypeOfLINK.SiteId = BTConstants.BT5SITE_ID;
+                    updatePulserTypeOfLINK.PulserType = pulserType;
+
+                    Gson gson = new Gson();
+                    String jsonData = gson.toJson(updatePulserTypeOfLINK);
+
+                    storePulserTypeDetails(BackgroundService_BTFive.this, jsonData, authString);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + " BTLink 5: Exception in ParsePulserTypeCommandResponse. response>> " + response + "; Exception>>" + e.getMessage());
+        }
+    }
+
+    private void storePulserTypeDetails(Context context, String jsonData, String authString) {
+        try {
+            SharedPreferences pref;
+            SharedPreferences.Editor editor;
+
+            pref = context.getSharedPreferences("UpdatePulserType5", 0);
+            editor = pref.edit();
+
+            // Storing
+            editor.putString("jsonData", jsonData);
+            editor.putString("authString", authString);
+
+            // commit changes
+            editor.commit();
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
     }
 
@@ -1107,7 +1214,7 @@ public class BackgroundService_BTFive extends Service {
             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    if (BTConstants.isHotspotDisabled) {
+                    if (isHotspotDisabled) {
                         //Enable Hotspot
                         WifiApManager wifiApManager = new WifiApManager(BackgroundService_BTFive.this);
                         if (!CommonUtils.isHotspotEnabled(BackgroundService_BTFive.this) && !AppConstants.isAllLinksAreBTLinks) {
@@ -1115,7 +1222,7 @@ public class BackgroundService_BTFive extends Service {
                                 AppConstants.WriteinFile(TAG + "<Enabling hotspot.>");
                             wifiApManager.setWifiApEnabled(null, true);
                         }
-                        BTConstants.isHotspotDisabled = false;
+                        isHotspotDisabled = false;
                     }
                     if (cd.isConnectingToInternet()) {
                         boolean BSRunning = CommonUtils.checkServiceRunning(BackgroundService_BTFive.this, AppConstants.PACKAGE_BACKGROUND_SERVICE);

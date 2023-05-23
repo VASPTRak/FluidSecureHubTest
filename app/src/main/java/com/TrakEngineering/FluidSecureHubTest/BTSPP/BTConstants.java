@@ -43,7 +43,7 @@ public class BTConstants {
     public static boolean SwitchedBTToUDP4 = false;
     public static boolean SwitchedBTToUDP5 = false;
     public static boolean SwitchedBTToUDP6 = false;
-    public static boolean isHotspotDisabled = false;
+    //public static boolean isHotspotDisabled = false;
 
     public static String info_cmd = "LK_COMM=info";
     public static String transaction_id_cmd = "LK_COMM=txtnid:";
@@ -55,6 +55,7 @@ public class BTConstants {
     //public static String linkUpgrade_cmd = "upgrade:";
     public static String linkUpgrade_cmd = "LK_COMM=upgrade ";
     public static String p_type_command = "LK_COMM=p_type:";
+    public static String get_p_type_command = "LK_COMM=p_type?";
     public static String scope_ON_cmd = "LK_COMM=scope=ON";
     public static String scope_READ_cmd = "LK_COMM=scope=READ";
     public static String ScopeStatus = "";
