@@ -439,7 +439,8 @@ public class BackgroundService_BTThree extends Service {
                                 new Handler().postDelayed(new Runnable() {
                                     @Override
                                     public void run() {
-                                        if (IsThisBTTrnx && BTConstants.isNewVersionLinkThree) {
+                                        if (IsThisBTTrnx && BTConstants.isNewVersionLinkThree && BTConstants.isPTypeSupportedLinkThree) {
+                                            BTConstants.isPTypeSupportedLinkThree = false; // reset
                                             P_Type_Command();
                                         } else {
                                             transactionIdCommand(TransactionId);
@@ -481,7 +482,8 @@ public class BackgroundService_BTThree extends Service {
                             new Handler().postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
-                                    if (IsThisBTTrnx && BTConstants.isNewVersionLinkThree) {
+                                    if (IsThisBTTrnx && BTConstants.isNewVersionLinkThree && BTConstants.isPTypeSupportedLinkThree) {
+                                        BTConstants.isPTypeSupportedLinkThree = false; // reset
                                         P_Type_Command();
                                     } else {
                                         transactionIdCommand(TransactionId);
@@ -714,6 +716,7 @@ public class BackgroundService_BTThree extends Service {
                     updatePulserTypeOfLINK.Email = userEmail;
                     updatePulserTypeOfLINK.SiteId = BTConstants.BT3SITE_ID;
                     updatePulserTypeOfLINK.PulserType = pulserType;
+                    updatePulserTypeOfLINK.DateTimeFromApp = AppConstants.currentDateFormat("MM/dd/yyyy HH:mm:ss");
 
                     Gson gson = new Gson();
                     String jsonData = gson.toJson(updatePulserTypeOfLINK);
@@ -1718,6 +1721,7 @@ public class BackgroundService_BTThree extends Service {
             if (AppConstants.GenerateLogs)
                 AppConstants.WriteinFile(TAG + " BTLink 3: LINK Version >> " + version);
             storeUpgradeFSVersion(BackgroundService_BTThree.this, AppConstants.UP_HoseId_fs3, version);
+            BTConstants.isPTypeSupportedLinkThree = CommonUtils.CheckPTypeSupportedLink(version);
 
         } catch (Exception e) {
             e.printStackTrace();

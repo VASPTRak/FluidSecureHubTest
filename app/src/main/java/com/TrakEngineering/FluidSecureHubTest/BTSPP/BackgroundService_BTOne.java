@@ -438,7 +438,8 @@ public class BackgroundService_BTOne extends Service {
                                 new Handler().postDelayed(new Runnable() {
                                     @Override
                                     public void run() {
-                                        if (IsThisBTTrnx && BTConstants.isNewVersionLinkOne) {
+                                        if (IsThisBTTrnx && BTConstants.isNewVersionLinkOne && BTConstants.isPTypeSupportedLinkOne) {
+                                            BTConstants.isPTypeSupportedLinkOne = false; // reset
                                             P_Type_Command();
                                         } else {
                                             transactionIdCommand(TransactionId);
@@ -480,7 +481,8 @@ public class BackgroundService_BTOne extends Service {
                             new Handler().postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
-                                    if (IsThisBTTrnx && BTConstants.isNewVersionLinkOne) {
+                                    if (IsThisBTTrnx && BTConstants.isNewVersionLinkOne && BTConstants.isPTypeSupportedLinkOne) {
+                                        BTConstants.isPTypeSupportedLinkOne = false; // reset
                                         P_Type_Command();
                                     } else {
                                         transactionIdCommand(TransactionId);
@@ -713,6 +715,7 @@ public class BackgroundService_BTOne extends Service {
                     updatePulserTypeOfLINK.Email = userEmail;
                     updatePulserTypeOfLINK.SiteId = BTConstants.BT1SITE_ID;
                     updatePulserTypeOfLINK.PulserType = pulserType;
+                    updatePulserTypeOfLINK.DateTimeFromApp = AppConstants.currentDateFormat("MM/dd/yyyy HH:mm:ss");
 
                     Gson gson = new Gson();
                     String jsonData = gson.toJson(updatePulserTypeOfLINK);
@@ -1728,6 +1731,7 @@ public class BackgroundService_BTOne extends Service {
             if (AppConstants.GenerateLogs)
                 AppConstants.WriteinFile(TAG + " BTLink 1: LINK Version >> " + version);
             storeUpgradeFSVersion(BackgroundService_BTOne.this, AppConstants.UP_HoseId_fs1, version);
+            BTConstants.isPTypeSupportedLinkOne = CommonUtils.CheckPTypeSupportedLink(version);
 
         } catch (Exception e) {
             e.printStackTrace();

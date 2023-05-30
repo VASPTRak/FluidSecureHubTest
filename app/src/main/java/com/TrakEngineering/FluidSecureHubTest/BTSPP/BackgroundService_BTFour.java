@@ -439,7 +439,8 @@ public class BackgroundService_BTFour extends Service {
                                 new Handler().postDelayed(new Runnable() {
                                     @Override
                                     public void run() {
-                                        if (IsThisBTTrnx && BTConstants.isNewVersionLinkFour) {
+                                        if (IsThisBTTrnx && BTConstants.isNewVersionLinkFour && BTConstants.isPTypeSupportedLinkFour) {
+                                            BTConstants.isPTypeSupportedLinkFour = false; // reset
                                             P_Type_Command();
                                         } else {
                                             transactionIdCommand(TransactionId);
@@ -481,7 +482,8 @@ public class BackgroundService_BTFour extends Service {
                             new Handler().postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
-                                    if (IsThisBTTrnx && BTConstants.isNewVersionLinkFour) {
+                                    if (IsThisBTTrnx && BTConstants.isNewVersionLinkFour && BTConstants.isPTypeSupportedLinkFour) {
+                                        BTConstants.isPTypeSupportedLinkFour = false; // reset
                                         P_Type_Command();
                                     } else {
                                         transactionIdCommand(TransactionId);
@@ -714,6 +716,7 @@ public class BackgroundService_BTFour extends Service {
                     updatePulserTypeOfLINK.Email = userEmail;
                     updatePulserTypeOfLINK.SiteId = BTConstants.BT4SITE_ID;
                     updatePulserTypeOfLINK.PulserType = pulserType;
+                    updatePulserTypeOfLINK.DateTimeFromApp = AppConstants.currentDateFormat("MM/dd/yyyy HH:mm:ss");
 
                     Gson gson = new Gson();
                     String jsonData = gson.toJson(updatePulserTypeOfLINK);
@@ -1718,6 +1721,7 @@ public class BackgroundService_BTFour extends Service {
             if (AppConstants.GenerateLogs)
                 AppConstants.WriteinFile(TAG + " BTLink 4: LINK Version >> " + version);
             storeUpgradeFSVersion(BackgroundService_BTFour.this, AppConstants.UP_HoseId_fs4, version);
+            BTConstants.isPTypeSupportedLinkFour = CommonUtils.CheckPTypeSupportedLink(version);
 
         } catch (Exception e) {
             e.printStackTrace();

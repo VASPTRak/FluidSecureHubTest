@@ -439,7 +439,8 @@ public class BackgroundService_BTFive extends Service {
                                 new Handler().postDelayed(new Runnable() {
                                     @Override
                                     public void run() {
-                                        if (IsThisBTTrnx && BTConstants.isNewVersionLinkFive) {
+                                        if (IsThisBTTrnx && BTConstants.isNewVersionLinkFive && BTConstants.isPTypeSupportedLinkFive) {
+                                            BTConstants.isPTypeSupportedLinkFive = false; // reset
                                             P_Type_Command();
                                         } else {
                                             transactionIdCommand(TransactionId);
@@ -481,7 +482,8 @@ public class BackgroundService_BTFive extends Service {
                             new Handler().postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
-                                    if (IsThisBTTrnx && BTConstants.isNewVersionLinkFive) {
+                                    if (IsThisBTTrnx && BTConstants.isNewVersionLinkFive && BTConstants.isPTypeSupportedLinkFive) {
+                                        BTConstants.isPTypeSupportedLinkFive = false; // reset
                                         P_Type_Command();
                                     } else {
                                         transactionIdCommand(TransactionId);
@@ -714,6 +716,7 @@ public class BackgroundService_BTFive extends Service {
                     updatePulserTypeOfLINK.Email = userEmail;
                     updatePulserTypeOfLINK.SiteId = BTConstants.BT5SITE_ID;
                     updatePulserTypeOfLINK.PulserType = pulserType;
+                    updatePulserTypeOfLINK.DateTimeFromApp = AppConstants.currentDateFormat("MM/dd/yyyy HH:mm:ss");
 
                     Gson gson = new Gson();
                     String jsonData = gson.toJson(updatePulserTypeOfLINK);
@@ -1718,6 +1721,7 @@ public class BackgroundService_BTFive extends Service {
             if (AppConstants.GenerateLogs)
                 AppConstants.WriteinFile(TAG + " BTLink 5: LINK Version >> " + version);
             storeUpgradeFSVersion(BackgroundService_BTFive.this, AppConstants.UP_HoseId_fs5, version);
+            BTConstants.isPTypeSupportedLinkFive = CommonUtils.CheckPTypeSupportedLink(version);
 
         } catch (Exception e) {
             e.printStackTrace();

@@ -5,4 +5,5 @@ public class UpdatePulserTypeOfLINK_entity {
     public String Email;
     public String SiteId;
     public String PulserType;
+    public String DateTimeFromApp;
 }
