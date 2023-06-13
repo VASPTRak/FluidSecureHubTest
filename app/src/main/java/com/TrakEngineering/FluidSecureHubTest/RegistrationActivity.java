@@ -253,6 +253,8 @@ public class RegistrationActivity extends AppCompatActivity {
             String number;
             if (hubName.toUpperCase().startsWith("HUB")) {
                 number = hubName.toUpperCase().replace("HUB", "");
+            } else if (hubName.toUpperCase().startsWith("SPARE")) {
+                number = hubName.toUpperCase().replace("SPARE", "");
             } else {
                 number = hubName;
             }

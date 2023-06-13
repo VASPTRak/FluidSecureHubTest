@@ -71,7 +71,7 @@ public class TestTransactionPinActivity extends AppCompatActivity {
     private static final String TAG = "TestTransaction_Pin ";
     RelativeLayout footer_keyboard;
     LinearLayout Linear_layout_Save_back_buttons;
-    TextView tv_title, tv_return, tv_swipekeyboard;
+    TextView tv_title, tv_return, tv_swipekeyboard, tv_warning;
     EditText etPersonnelPin;
 
     boolean Istimeout_Sec = true;
@@ -110,7 +110,8 @@ public class TestTransactionPinActivity extends AppCompatActivity {
         btnSave = (Button) findViewById(R.id.btnSave);
         btnCancel = (Button) findViewById(R.id.btnCancel);
 
-        tv_title.setText(getResources().getString(R.string.PersonnelIdHeading).replace("PERSONNEL", ScreenNameForPersonnel.toUpperCase()));
+        //tv_title.setText(getResources().getString(R.string.TestTxnPINScreenHeading).replace("PERSONNEL", ScreenNameForPersonnel.toUpperCase()));
+        tv_warning.setText(getResources().getString(R.string.TestTxnPINScreenWarning).replace("personnel", ScreenNameForPersonnel.toUpperCase()));
         etPersonnelPin.setText("");
 
         getSupportActionBar().setTitle(R.string.fs_name);
@@ -145,8 +146,9 @@ public class TestTransactionPinActivity extends AppCompatActivity {
 
                 String pin = etPersonnelPin.getText().toString().trim();
 
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "Entered PIN num: " + pin);
+                // As per #2252, Removed PIN from the logs (Only for Test Transaction)
+                //if (AppConstants.GenerateLogs)
+                //    AppConstants.WriteinFile(TAG + "Entered PIN num: " + pin);
 
                 if (cd.isConnectingToInternet()) {
 
@@ -157,24 +159,24 @@ public class TestTransactionPinActivity extends AppCompatActivity {
                             AppConstants.WriteinFile(TAG + "Please enter " + ScreenNameForPersonnel + ". If you still have issues, please contact your Manager.");
                         CommonUtils.showCustomMessageDilaog(TestTransactionPinActivity.this, "Error Message", getResources().getString(R.string.pePersonnel).replace("Personnel", ScreenNameForPersonnel));
                     }
-                } else if (AppConstants.GenerateLogs) {
+                } else {
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(TAG + getResources().getString(R.string.CheckInternet));
                     AppConstants.colorToastBigFont(TestTransactionPinActivity.this, getResources().getString(R.string.CheckInternet), Color.BLUE);
                 }
             }
         });
-
+        String keyboardType = "2";
         try {
-            etPersonnelPin.setInputType(Integer.parseInt(KeyboardType));
-            if (KeyboardType.equals("2")) { // Numeric keyboard
+            etPersonnelPin.setInputType(Integer.parseInt(keyboardType));
+            if (keyboardType.equals("2")) { // Numeric keyboard
                 tv_swipekeyboard.setText(getResources().getString(R.string.PressForABC));
             } else {
                 tv_swipekeyboard.setText(getResources().getString(R.string.PressFor123));
             }
         } catch (Exception e) {
             System.out.println("keyboard exception");
-            etPersonnelPin.setInputType(InputType.TYPE_CLASS_TEXT);
+            etPersonnelPin.setInputType(InputType.TYPE_CLASS_NUMBER);
         }
 
         try {
@@ -264,8 +266,8 @@ public class TestTransactionPinActivity extends AppCompatActivity {
                     objEntityClass.Barcode = "";
                     objEntityClass.IsTestTransaction = "y";
 
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + "PIN Entered Manually: " + etPersonnelPin.getText().toString().trim());
+                    //if (AppConstants.GenerateLogs)
+                    //    AppConstants.WriteinFile(TAG + "PIN Entered Manually: " + etPersonnelPin.getText().toString().trim());
 
                     Gson gson = new Gson();
                     String jsonData = gson.toJson(objEntityClass);
@@ -328,11 +330,14 @@ public class TestTransactionPinActivity extends AppCompatActivity {
 
                     String ResponceText = jsonObject.getString("ResponceText");
                     String ResponceMessage = jsonObject.getString("ResponceMessage");
+                    String PersonName = jsonObject.getString("PersonName");
 
                     System.out.println("ResponceText.." + ResponceText);
                     System.out.println("ResponceMessage.." + ResponceMessage);
 
                     if (ResponceText.equalsIgnoreCase("success")) {
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + "Support Test Transaction performed by " + PersonName);
 
                         btnSave.setClickable(false);
 
@@ -395,6 +400,7 @@ public class TestTransactionPinActivity extends AppCompatActivity {
         tv_return = (TextView) findViewById(R.id.tv_return);
         tv_swipekeyboard = (TextView) findViewById(R.id.tv_swipekeybord);
         tv_title = (TextView) findViewById(R.id.tv_title);
+        tv_warning = (TextView) findViewById(R.id.tv_warning);
 
     }
 
