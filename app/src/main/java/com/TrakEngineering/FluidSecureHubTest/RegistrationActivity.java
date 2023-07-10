@@ -22,13 +22,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
 import android.telephony.TelephonyManager;
-import android.text.Html;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
@@ -483,7 +481,7 @@ public class RegistrationActivity extends AppCompatActivity {
                     String ValidationFailFor = jsonObj.getString(AppConstants.VALIDATION_FOR_TEXT);
 
                     if (ValidationFailFor.equalsIgnoreCase("askreplacehub")) {
-                        AppConstants.WriteinFile(TAG + " Registration fail: Replacement confirmation");
+                        AppConstants.WriteinFile(TAG + " Registration fail: Asking for Replacement");
                         CustomMessage2Input(RegistrationActivity.this, "", getString(R.string.askreplacehub));
                     } else {
                         AppConstants.WriteinFile(TAG + " Registration fail: " + ResponseText);
@@ -517,6 +515,8 @@ public class RegistrationActivity extends AppCompatActivity {
                     @Override
                     public void onClick(DialogInterface dialog, int arg1) {
                         dialog.dismiss();
+                        AppConstants.WriteinFile(TAG + " Replacement confirmation -> Yes");
+
                         // HUB Replace server call
                         String hubName = etFName.getText().toString().trim();
                         String userName = "";
@@ -548,6 +548,8 @@ public class RegistrationActivity extends AppCompatActivity {
                     @Override
                     public void onClick(DialogInterface dialog, int arg1) {
                         dialog.dismiss();
+                        AppConstants.WriteinFile(TAG + " Replacement confirmation -> No");
+
 
                         //btnSubmit.setVisibility(View.VISIBLE);
                         /*tv_enter_username.setVisibility(View.GONE);
@@ -640,11 +642,11 @@ public class RegistrationActivity extends AppCompatActivity {
                     AppConstants.WriteinFile(TAG + " Replacement fail: " + ResponseText);
                     AppConstants.AlertDialogBox(RegistrationActivity.this, ResponseText);
                 } else if (ResponceMessage.equalsIgnoreCase("exists")) {
-                    AppConstants.WriteinFile(TAG + " Your IMEI Number already EXISTS!");
-                    AlertDialogBox(RegistrationActivity.this, "Your IMEI Number already EXISTS!", false);
+                    AppConstants.WriteinFile(TAG + " " + getResources().getString(R.string.IMEIAlreadyExist));
+                    AlertDialogBox(RegistrationActivity.this, getResources().getString(R.string.IMEIAlreadyExist), false);
                 } else {
-                    AppConstants.WriteinFile(TAG + " Network Error");
-                    AlertDialogBox(RegistrationActivity.this, "Network Error", false);
+                    AppConstants.WriteinFile(TAG + " " + getResources().getString(R.string.CheckInternet));
+                    AlertDialogBox(RegistrationActivity.this, getResources().getString(R.string.CheckInternet), false);
                 }
 
             } catch (Exception e) {
