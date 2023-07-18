@@ -10,7 +10,7 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
-import com.TrakEngineering.FluidSecureHubTest.enity.WifiEntityClass;
+import com.TrakEngineering.FluidSecureHubTest.entity.WifiEntityClass;
 
 
 public class ListAdapter extends ArrayAdapter<WifiEntityClass> {

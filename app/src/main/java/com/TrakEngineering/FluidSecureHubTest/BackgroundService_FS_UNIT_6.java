@@ -19,16 +19,15 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.util.Log;
-import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 
-import com.TrakEngineering.FluidSecureHubTest.enity.RenameHose;
-import com.TrakEngineering.FluidSecureHubTest.enity.SocketErrorEntityClass;
-import com.TrakEngineering.FluidSecureHubTest.enity.TankMonitorEntity;
-import com.TrakEngineering.FluidSecureHubTest.enity.TrazComp;
-import com.TrakEngineering.FluidSecureHubTest.enity.UpdateTransactionStatusClass;
-import com.TrakEngineering.FluidSecureHubTest.enity.UpgradeVersionEntity;
+import com.TrakEngineering.FluidSecureHubTest.entity.RenameHose;
+import com.TrakEngineering.FluidSecureHubTest.entity.SocketErrorEntityClass;
+import com.TrakEngineering.FluidSecureHubTest.entity.TankMonitorEntity;
+import com.TrakEngineering.FluidSecureHubTest.entity.TrazComp;
+import com.TrakEngineering.FluidSecureHubTest.entity.UpdateTransactionStatusClass;
+import com.TrakEngineering.FluidSecureHubTest.entity.UpgradeVersionEntity;
 import com.TrakEngineering.FluidSecureHubTest.offline.EntityOffTranz;
 import com.TrakEngineering.FluidSecureHubTest.offline.OffDBController;
 import com.TrakEngineering.FluidSecureHubTest.offline.OffTranzSyncService;

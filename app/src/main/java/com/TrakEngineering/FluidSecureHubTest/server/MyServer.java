@@ -12,9 +12,9 @@ import com.TrakEngineering.FluidSecureHubTest.CommonUtils;
 import com.TrakEngineering.FluidSecureHubTest.ConnectionDetector;
 import com.TrakEngineering.FluidSecureHubTest.Constants;
 import com.TrakEngineering.FluidSecureHubTest.WelcomeActivity;
-import com.TrakEngineering.FluidSecureHubTest.enity.FsvmChipInfo;
-import com.TrakEngineering.FluidSecureHubTest.enity.FsvmInfo;
-import com.TrakEngineering.FluidSecureHubTest.enity.TankMonitorEntity;
+import com.TrakEngineering.FluidSecureHubTest.entity.FsvmChipInfo;
+import com.TrakEngineering.FluidSecureHubTest.entity.FsvmInfo;
+import com.TrakEngineering.FluidSecureHubTest.entity.TankMonitorEntity;
 import com.TrakEngineering.FluidSecureHubTest.offline.OffDBController;
 import com.google.gson.Gson;
 

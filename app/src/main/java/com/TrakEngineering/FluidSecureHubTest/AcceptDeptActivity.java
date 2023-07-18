@@ -29,7 +29,7 @@ import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.TrakEngineering.FluidSecureHubTest.enity.DepartmentValidationEntity;
+import com.TrakEngineering.FluidSecureHubTest.entity.DepartmentValidationEntity;
 import com.TrakEngineering.FluidSecureHubTest.offline.EntityHub;
 import com.TrakEngineering.FluidSecureHubTest.offline.OffDBController;
 import com.TrakEngineering.FluidSecureHubTest.offline.OfflineConstants;

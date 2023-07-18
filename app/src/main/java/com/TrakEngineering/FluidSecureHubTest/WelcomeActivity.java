@@ -36,7 +36,6 @@ import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
-import android.net.NetworkInfo;
 import android.net.NetworkRequest;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiConfiguration;
@@ -79,7 +78,6 @@ import android.widget.Toast;
 
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
 
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTConstants;
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPPMain;
@@ -108,12 +106,12 @@ import com.TrakEngineering.FluidSecureHubTest.MagV2GAtt.ServiceMagV2;
 import com.TrakEngineering.FluidSecureHubTest.QRCodeGAtt.ServiceQRCode;
 import com.TrakEngineering.FluidSecureHubTest.TLD_GattServer.DeviceControlActivity_tld;
 import com.TrakEngineering.FluidSecureHubTest.WifiHotspot.WifiApManager;
-import com.TrakEngineering.FluidSecureHubTest.enity.AuthEntityClass;
-import com.TrakEngineering.FluidSecureHubTest.enity.RenameHose;
-import com.TrakEngineering.FluidSecureHubTest.enity.StatusForUpgradeVersionEntity;
-import com.TrakEngineering.FluidSecureHubTest.enity.UpdateMacAddressClass;
-import com.TrakEngineering.FluidSecureHubTest.enity.UpgradeVersionEntity;
-import com.TrakEngineering.FluidSecureHubTest.enity.UserInfoEntity;
+import com.TrakEngineering.FluidSecureHubTest.entity.AuthEntityClass;
+import com.TrakEngineering.FluidSecureHubTest.entity.RenameHose;
+import com.TrakEngineering.FluidSecureHubTest.entity.StatusForUpgradeVersionEntity;
+import com.TrakEngineering.FluidSecureHubTest.entity.UpdateMacAddressClass;
+import com.TrakEngineering.FluidSecureHubTest.entity.UpgradeVersionEntity;
+import com.TrakEngineering.FluidSecureHubTest.entity.UserInfoEntity;
 import com.TrakEngineering.FluidSecureHubTest.offline.EntityHub;
 import com.TrakEngineering.FluidSecureHubTest.offline.OffBackgroundService;
 import com.TrakEngineering.FluidSecureHubTest.offline.OffDBController;
@@ -1691,6 +1689,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 FirmwareFileName = "";
             }
 
+            SetHoseIdByLinkPosition(0, hoseID);
             if (!IsUpgrade.isEmpty() && !AppConstants.isTestTransaction) {
                 SetUpgradeFirmwareDetails(0, IsUpgrade, FirmwareVersion, FirmwareFileName, selSiteId, hoseID);
             }
@@ -3101,14 +3100,17 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                     String ReconfigureLink = serverSSIDList.get(SelectedItemPos).get("ReconfigureLink");
                     String LinkCommunicationType = serverSSIDList.get(SelectedItemPos).get("LinkCommunicationType");
                     String IsTankEmpty = serverSSIDList.get(SelectedItemPos).get("IsTankEmpty");
-                    AppConstants.PulserTimingAdjust = serverSSIDList.get(SelectedItemPos).get("PulserTimingAdjust");
                     String IsLinkFlagged = serverSSIDList.get(SelectedItemPos).get("IsLinkFlagged");
                     String LinkFlaggedMessage = serverSSIDList.get(SelectedItemPos).get("LinkFlaggedMessage");
                     String IsUpgrade = serverSSIDList.get(SelectedItemPos).get("IsUpgrade");
                     String UPFilePath = serverSSIDList.get(SelectedItemPos).get("UPFilePath");
                     String FirmwareVersion = serverSSIDList.get(SelectedItemPos).get("FirmwareVersion");
                     String FirmwareFileName = serverSSIDList.get(SelectedItemPos).get("FirmwareFileName");
-                    AppConstants.IsResetSwitchTimeBounce = serverSSIDList.get(SelectedItemPos).get("IsResetSwitchTimeBounce");
+                    String PulserTimingAdjust = serverSSIDList.get(SelectedItemPos).get("PulserTimingAdjust");
+                    String IsResetSwitchTimeBounce = serverSSIDList.get(SelectedItemPos).get("IsResetSwitchTimeBounce");
+                    String IsBypassPumpReset = serverSSIDList.get(SelectedItemPos).get("IsBypassPumpReset");
+                    SaveCalibrationDetailsInSharedPref(SelectedItemPos, PulserTimingAdjust, IsResetSwitchTimeBounce, IsBypassPumpReset);
+
                     if (ReconfigureLink == null) {
                         ReconfigureLink = "";
                     }
@@ -3170,7 +3172,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         } else if (CommonFunctions.CheckIfPresentInPairedDeviceList(BTselMacAddress)) {
                             AppConstants.SELECTED_MACADDRESS = BTselMacAddress;
                             OfflineConstants.storeCurrentTransaction(WelcomeActivity.this, "", selSiteId, "", "", "", "", "", AppConstants.currentDateFormat("yyyy-MM-dd HH:mm"), "", "", "", "");
-
+                            SetHoseIdByLinkPosition(position, hoseID);
                             if (!IsUpgrade.isEmpty() && !AppConstants.isTestTransaction) {
                                 SetUpgradeFirmwareDetails(position, IsUpgrade, FirmwareVersion, FirmwareFileName, selSiteId, hoseID);
                             }
@@ -3241,10 +3243,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                             AppConstants.SELECTED_MACADDRESS = selMacAddress;
                             String IsHoseNameReplaced = serverSSIDList.get(SelectedItemPos).get("IsHoseNameReplaced");
                             String ReplaceableHoseName = serverSSIDList.get(SelectedItemPos).get("ReplaceableHoseName");
-                            String PulserTimingAd = serverSSIDList.get(SelectedItemPos).get("PulserTimingAdjust");
                             IsDefective = serverSSIDList.get(SelectedItemPos).get("IsDefective");
-                            AppConstants.PulserTimingAdjust = PulserTimingAd;
-                            AppConstants.IsResetSwitchTimeBounce = serverSSIDList.get(SelectedItemPos).get("IsResetSwitchTimeBounce");
 
                             //tld is upgrade
                             String IsTLDFirmwareUpgrade = serverSSIDList.get(SelectedItemPos).get("IsTLDFirmwareUpgrade");
@@ -3255,7 +3254,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                             CommonUtils.SaveTldDetailsInPref(WelcomeActivity.this, IsTLDCall, IsTLDFirmwareUpgrade, TLDFirmwareFilePath, TLDFIrmwareVersion, PROBEMacAddress, selMacAddress);
 
                             /////////////////////////////////////////////////////
-
+                            SetHoseIdByLinkPosition(position, hoseID);
                             if (!IsUpgrade.isEmpty() && !AppConstants.isTestTransaction) {
                                 SetUpgradeFirmwareDetails(position, IsUpgrade, FirmwareVersion, FirmwareFileName, selSiteId, hoseID);
                             }
@@ -6927,12 +6926,14 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         AppConstants.SELECTED_MACADDRESS = selMacAddress;
         String IsHoseNameReplaced = serverSSIDList.get(SelectedItemPos).get("IsHoseNameReplaced");
         String ReplaceableHoseName = serverSSIDList.get(SelectedItemPos).get("ReplaceableHoseName");
-        AppConstants.PulserTimingAdjust = serverSSIDList.get(SelectedItemPos).get("PulserTimingAdjust");
         String IsLinkFlagged = serverSSIDList.get(SelectedItemPos).get("IsLinkFlagged");
         String LinkFlaggedMessage = serverSSIDList.get(SelectedItemPos).get("LinkFlaggedMessage");
         String LinkCommunicationType = serverSSIDList.get(SelectedItemPos).get("LinkCommunicationType");
         AppConstants.UP_FilePath = serverSSIDList.get(SelectedItemPos).get("UPFilePath");
-        AppConstants.IsResetSwitchTimeBounce = serverSSIDList.get(SelectedItemPos).get("IsResetSwitchTimeBounce");
+        String PulserTimingAdjust = serverSSIDList.get(SelectedItemPos).get("PulserTimingAdjust");
+        String IsResetSwitchTimeBounce = serverSSIDList.get(SelectedItemPos).get("IsResetSwitchTimeBounce");
+        String IsBypassPumpReset = serverSSIDList.get(SelectedItemPos).get("IsBypassPumpReset");
+        SaveCalibrationDetailsInSharedPref(SelectedItemPos, PulserTimingAdjust, IsResetSwitchTimeBounce, IsBypassPumpReset);
 
         if (IsHoseNameReplaced == null) {
             IsHoseNameReplaced = "";
@@ -7216,6 +7217,57 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
     }
 
+    private void SaveCalibrationDetailsInSharedPref(int selectedLinkPos, String PulserTimingAdjust, String IsResetSwitchTimeBounce, String IsBypassPumpReset) {
+        try {
+            SharedPreferences calibrationPref = this.getSharedPreferences(Constants.PREF_CalibrationDetails, Context.MODE_PRIVATE);
+            switch (selectedLinkPos) {
+                case 0:
+                    SharedPreferences.Editor editor1 = calibrationPref.edit();
+                    editor1.putString("PulserTimingAdjust_FS1", PulserTimingAdjust);
+                    editor1.putString("IsResetSwitchTimeBounce_FS1", IsResetSwitchTimeBounce);
+                    editor1.putString("IsBypassPumpReset_FS1", IsBypassPumpReset);
+                    editor1.commit();
+                    break;
+                case 1:
+                    SharedPreferences.Editor editor2 = calibrationPref.edit();
+                    editor2.putString("PulserTimingAdjust_FS2", PulserTimingAdjust);
+                    editor2.putString("IsResetSwitchTimeBounce_FS2", IsResetSwitchTimeBounce);
+                    editor2.putString("IsBypassPumpReset_FS2", IsBypassPumpReset);
+                    editor2.commit();
+                    break;
+                case 2:
+                    SharedPreferences.Editor editor3 = calibrationPref.edit();
+                    editor3.putString("PulserTimingAdjust_FS3", PulserTimingAdjust);
+                    editor3.putString("IsResetSwitchTimeBounce_FS3", IsResetSwitchTimeBounce);
+                    editor3.putString("IsBypassPumpReset_FS3", IsBypassPumpReset);
+                    editor3.commit();
+                    break;
+                case 3:
+                    SharedPreferences.Editor editor4 = calibrationPref.edit();
+                    editor4.putString("PulserTimingAdjust_FS4", PulserTimingAdjust);
+                    editor4.putString("IsResetSwitchTimeBounce_FS4", IsResetSwitchTimeBounce);
+                    editor4.putString("IsBypassPumpReset_FS4", IsBypassPumpReset);
+                    editor4.commit();
+                    break;
+                case 4:
+                    SharedPreferences.Editor editor5 = calibrationPref.edit();
+                    editor5.putString("PulserTimingAdjust_FS5", PulserTimingAdjust);
+                    editor5.putString("IsResetSwitchTimeBounce_FS5", IsResetSwitchTimeBounce);
+                    editor5.putString("IsBypassPumpReset_FS5", IsBypassPumpReset);
+                    editor5.commit();
+                    break;
+                case 5:
+                    SharedPreferences.Editor editor6 = calibrationPref.edit();
+                    editor6.putString("PulserTimingAdjust_FS6", PulserTimingAdjust);
+                    editor6.putString("IsResetSwitchTimeBounce_FS6", IsResetSwitchTimeBounce);
+                    editor6.putString("IsBypassPumpReset_FS6", IsBypassPumpReset);
+                    editor6.commit();
+                    break;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     //========================ends=========================================
 
@@ -9686,6 +9738,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                 String IsLinkFlagged = c.getString("IsLinkFlagged");
                                 String LinkFlaggedMessage = c.getString("LinkFlaggedMessage");
                                 String IsResetSwitchTimeBounce = c.getString("IsResetSwitchTimeBounce");
+                                String IsBypassPumpReset = c.getString("IsBypassPumpReset");
                                 String FirmwareFileName = c.getString("FirmwareFileName");
 
                                 SetBTLinksMacAddress(i, BTMacAddress);
@@ -9794,6 +9847,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                 map.put("IsLinkFlagged", IsLinkFlagged);
                                 map.put("LinkFlaggedMessage", LinkFlaggedMessage);
                                 map.put("IsResetSwitchTimeBounce", IsResetSwitchTimeBounce);
+                                map.put("IsBypassPumpReset", IsBypassPumpReset);
                                 map.put("FirmwareFileName", FirmwareFileName);
 
                                 if (ResponceMessage.equalsIgnoreCase("success")) {
@@ -10727,6 +10781,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                 String IsLinkFlagged = c.getString("IsLinkFlagged");
                                 String LinkFlaggedMessage = c.getString("LinkFlaggedMessage");
                                 String IsResetSwitchTimeBounce = c.getString("IsResetSwitchTimeBounce");
+                                String IsBypassPumpReset = c.getString("IsBypassPumpReset");
                                 String FirmwareFileName = c.getString("FirmwareFileName");
 
                                 AppConstants.UP_FilePath = FilePath;
@@ -10770,6 +10825,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                 map.put("IsLinkFlagged", IsLinkFlagged);
                                 map.put("LinkFlaggedMessage", LinkFlaggedMessage);
                                 map.put("IsResetSwitchTimeBounce", IsResetSwitchTimeBounce);
+                                map.put("IsBypassPumpReset", IsBypassPumpReset);
                                 map.put("FirmwareFileName", FirmwareFileName);
 
                                 if (ResponceMessage.equalsIgnoreCase("success")) {
@@ -11226,6 +11282,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                             String IsLinkFlagged = c.getString("IsLinkFlagged");
                             String LinkFlaggedMessage = c.getString("LinkFlaggedMessage");
                             String IsResetSwitchTimeBounce = c.getString("IsResetSwitchTimeBounce");
+                            String IsBypassPumpReset = c.getString("IsBypassPumpReset");
                             String FirmwareFileName = c.getString("FirmwareFileName");
 
                             ///tld upgrade
@@ -11276,6 +11333,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                             map.put("IsLinkFlagged", IsLinkFlagged);
                             map.put("LinkFlaggedMessage", LinkFlaggedMessage);
                             map.put("IsResetSwitchTimeBounce", IsResetSwitchTimeBounce);
+                            map.put("IsBypassPumpReset", IsBypassPumpReset);
                             map.put("FirmwareFileName", FirmwareFileName);
 
                             if (IsTLDFirmwareUpgrade.trim().toLowerCase().equalsIgnoreCase("y")) {
@@ -14608,6 +14666,28 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         }
     }
 
+    public void SetHoseIdByLinkPosition(int position, String hoseId) {
+        try {
+            if (String.valueOf(position).equalsIgnoreCase("0")) {
+                AppConstants.UP_HoseId_fs1 = hoseId;
+            } else if (String.valueOf(position).equalsIgnoreCase("1")) {
+                AppConstants.UP_HoseId_fs2 = hoseId;
+            } else if (String.valueOf(position).equalsIgnoreCase("2")) {
+                AppConstants.UP_HoseId_fs3 = hoseId;
+            } else if (String.valueOf(position).equalsIgnoreCase("3")) {
+                AppConstants.UP_HoseId_fs4 = hoseId;
+            } else if (String.valueOf(position).equalsIgnoreCase("4")) {
+                AppConstants.UP_HoseId_fs5 = hoseId;
+            } else if (String.valueOf(position).equalsIgnoreCase("5")) {
+                AppConstants.UP_HoseId_fs6 = hoseId;
+            }
+        } catch (Exception ex) {
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + "Exception in SetHoseIdByLinkPosition. " + ex.getMessage() + ";position: " + position);
+            System.out.println(ex);
+        }
+    }
+
     public boolean HoseAvailabilityCheckTwoAttempts(ArrayList<String> NearByBTDevices, String deviceAddress) {
         boolean isConnected = false;
         try {
@@ -16026,8 +16106,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 // New Link version
                 JSONObject jsonObject = new JSONObject(response);
 
-                JSONObject versionJsonArray = jsonObject.getJSONObject("version");
-                String version = versionJsonArray.getString("version");
+                JSONObject versionJsonObj = jsonObject.getJSONObject("version");
+                String version = versionJsonObj.getString("version");
                 if (AppConstants.GenerateLogs)
                     AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " LINK Version (Before Upgrade) >> " + version);
             } else {

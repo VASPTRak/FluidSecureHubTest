@@ -1,4 +1,4 @@
-package com.TrakEngineering.FluidSecureHubTest.enity;
+package com.TrakEngineering.FluidSecureHubTest.entity;
 
 /**
  * Created by intel on 4/15/2016.

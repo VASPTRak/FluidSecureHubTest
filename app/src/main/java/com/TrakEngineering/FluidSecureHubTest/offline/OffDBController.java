@@ -11,7 +11,7 @@ import android.util.Log;
 
 import com.TrakEngineering.FluidSecureHubTest.AppConstants;
 import com.TrakEngineering.FluidSecureHubTest.CommonUtils;
-import com.TrakEngineering.FluidSecureHubTest.enity.TankMonitorEntity;
+import com.TrakEngineering.FluidSecureHubTest.entity.TankMonitorEntity;
 import com.google.gson.Gson;
 
 import java.util.ArrayList;
@@ -725,7 +725,7 @@ public class OffDBController extends SQLiteOpenHelper {
                 } while (cursor.moveToNext());
             }
 
-            EnityTranzSync ets = new EnityTranzSync();
+            EntityTranzSync ets = new EntityTranzSync();
             ets.TransactionsModelsObj = allData;
             Gson gson = new Gson();
             apiJSON = gson.toJson(ets);
@@ -794,7 +794,7 @@ public class OffDBController extends SQLiteOpenHelper {
                 } while (cursor.moveToNext());
             }
 
-            EnityTranzSync ets = new EnityTranzSync();
+            EntityTranzSync ets = new EntityTranzSync();
             ets.TransactionsModelsObj = allData;
             Gson gson = new Gson();
             apiJSON = gson.toJson(ets);

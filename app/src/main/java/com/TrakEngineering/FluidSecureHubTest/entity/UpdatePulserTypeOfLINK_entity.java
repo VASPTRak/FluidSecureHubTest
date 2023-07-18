@@ -1,4 +1,4 @@
-package com.TrakEngineering.FluidSecureHubTest.enity;
+package com.TrakEngineering.FluidSecureHubTest.entity;
 
 public class UpdatePulserTypeOfLINK_entity {
     public String IMEIUDID;

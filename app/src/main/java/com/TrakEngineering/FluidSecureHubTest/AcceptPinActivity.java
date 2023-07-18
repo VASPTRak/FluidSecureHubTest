@@ -27,8 +27,8 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.TrakEngineering.FluidSecureHubTest.enity.CheckPinFobEntity;
-import com.TrakEngineering.FluidSecureHubTest.enity.VehicleRequireEntity;
+import com.TrakEngineering.FluidSecureHubTest.entity.CheckPinFobEntity;
+import com.TrakEngineering.FluidSecureHubTest.entity.VehicleRequireEntity;
 import com.TrakEngineering.FluidSecureHubTest.server.ServerHandler;
 import com.google.gson.Gson;
 

@@ -56,6 +56,7 @@ public class BTConstants {
     public static String linkUpgrade_cmd = "LK_COMM=upgrade ";
     public static String p_type_command = "LK_COMM=p_type:";
     public static String get_p_type_command = "LK_COMM=p_type?";
+    public static String bypass_pump_reset_command = "LK_COMM=rm_delay_time:4";
     public static String scope_ON_cmd = "LK_COMM=scope=ON";
     public static String scope_READ_cmd = "LK_COMM=scope=READ";
     public static String ScopeStatus = "";
@@ -74,13 +75,6 @@ public class BTConstants {
     public static boolean isNewVersionLinkFour = false;
     public static boolean isNewVersionLinkFive = false;
     public static boolean isNewVersionLinkSix = false;
-
-    public static boolean isPTypeSupportedLinkOne = false;
-    public static boolean isPTypeSupportedLinkTwo = false;
-    public static boolean isPTypeSupportedLinkThree = false;
-    public static boolean isPTypeSupportedLinkFour = false;
-    public static boolean isPTypeSupportedLinkFive = false;
-    public static boolean isPTypeSupportedLinkSix = false;
 
     public static boolean isRelayOnAfterReconnect1 = false;
     public static boolean isRelayOnAfterReconnect2 = false;

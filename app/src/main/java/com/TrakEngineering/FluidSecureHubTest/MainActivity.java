@@ -25,8 +25,8 @@ import android.widget.GridView;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import com.TrakEngineering.FluidSecureHubTest.enity.UserInfoEntity;
-import com.TrakEngineering.FluidSecureHubTest.enity.WifiEntityClass;
+import com.TrakEngineering.FluidSecureHubTest.entity.UserInfoEntity;
+import com.TrakEngineering.FluidSecureHubTest.entity.WifiEntityClass;
 import com.TrakEngineering.FluidSecureHubTest.server.ServerHandler;
 
 import org.json.JSONArray;

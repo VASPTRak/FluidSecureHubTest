@@ -13,7 +13,6 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.content.res.Resources;
-import android.graphics.Color;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.ConnectivityManager;
@@ -41,9 +40,9 @@ import android.widget.TextView;
 
 import com.TrakEngineering.FluidSecureHubTest.BackgroundServiceNew.MyService_FSNP;
 import com.TrakEngineering.FluidSecureHubTest.EddystoneScanner.EddystoneScannerService;
-import com.TrakEngineering.FluidSecureHubTest.enity.AuthEntityClass;
-import com.TrakEngineering.FluidSecureHubTest.enity.StatusForUpgradeVersionEntity;
-import com.TrakEngineering.FluidSecureHubTest.enity.UserInfoEntity;
+import com.TrakEngineering.FluidSecureHubTest.entity.AuthEntityClass;
+import com.TrakEngineering.FluidSecureHubTest.entity.StatusForUpgradeVersionEntity;
+import com.TrakEngineering.FluidSecureHubTest.entity.UserInfoEntity;
 import com.TrakEngineering.FluidSecureHubTest.offline.OffDBController;
 import com.google.gson.Gson;
 import com.squareup.okhttp.OkHttpClient;
@@ -2418,21 +2417,21 @@ public class CommonUtils {
 
     }
 
-    public static boolean CheckP_TypeCommandIsSent(Context activity, String prefName) {
-        boolean isAlreadySent = false;
+    public static boolean CheckDataStoredInSharedPref(Context activity, String prefName) {
+        boolean isDataFound = false;
         try {
             SharedPreferences FSPref = activity.getSharedPreferences(prefName, 0);
             String jsonData = FSPref.getString("jsonData", "");
             String authString = FSPref.getString("authString", "");
 
             if (!jsonData.trim().isEmpty() && !authString.trim().isEmpty()) {
-                isAlreadySent = true;
+                isDataFound = true;
             }
         } catch (Exception ex) {
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "Exception occurred in CheckP_TypeCommandIsSent: " + ex.getMessage());
+                AppConstants.WriteinFile(TAG + "Exception occurred in CheckDataStoredInSharedPref: " + ex.getMessage());
         }
-        return isAlreadySent;
+        return isDataFound;
     }
 
     public static void ClearOfflineData(Context context) {
@@ -2533,18 +2532,15 @@ public class CommonUtils {
         }
     }
 
-    public static boolean CheckPTypeSupportedLink(String versionFromLink) {
-        boolean isSupported = false;
+    public static int GetVersionNumberFromLink(String versionFromLink) {
+        int versionNum = 0;
         try {
             String version = versionFromLink.replaceAll("[^0-9]", "");
-            int versionNum = Integer.parseInt(version);
-            if (versionNum >= 123) {
-                isSupported = true;
-            }
+            versionNum = Integer.parseInt(version);
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
-        return isSupported;
+        return versionNum;
     }
 
 }
