@@ -756,7 +756,7 @@ public class BackgroundService_BTFour extends Service {
     }
 
     public void ContinueToNextCommand() {
-        if (versionNumberOfLinkFour == 148) { // Bypass pump reset supported in this version
+        if (versionNumberOfLinkFour >= 148) { // Bypass pump reset supported from this version onwards
             BypassPumpResetCommand();
         } else {
             // Continue to transactionId Command
