@@ -412,6 +412,7 @@ public class BackgroundService_BTTwo extends Service {
         try {
             BTConstants.isNewVersionLinkTwo = false;
             AppConstants.TxnFailedCount2 = 0;
+            AppConstants.isInfoCommandSuccess_fs2 = false;
             //Execute info command
             Request = "";
             Response = "";
@@ -450,6 +451,7 @@ public class BackgroundService_BTTwo extends Service {
                                 new Handler().postDelayed(new Runnable() {
                                     @Override
                                     public void run() {
+                                        AppConstants.isInfoCommandSuccess_fs2 = true;
                                         if (IsThisBTTrnx && BTConstants.isNewVersionLinkTwo && (versionNumberOfLinkTwo >= 123)) {
                                             P_Type_Command();
                                         } else {
@@ -492,6 +494,7 @@ public class BackgroundService_BTTwo extends Service {
                             new Handler().postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
+                                    AppConstants.isInfoCommandSuccess_fs2 = true;
                                     if (IsThisBTTrnx && BTConstants.isNewVersionLinkTwo && (versionNumberOfLinkTwo >= 123)) {
                                         P_Type_Command();
                                     } else {
@@ -1126,6 +1129,7 @@ public class BackgroundService_BTTwo extends Service {
             CommonUtils.AddRemovecurrentTransactionList(false, TransactionId);
             Constants.FS_2STATUS = "FREE";
             Constants.FS_2Pulse = "00";
+            AppConstants.isInfoCommandSuccess_fs2 = false;
             BTConstants.SwitchedBTToUDP2 = false;
             DisableWifiConnection();
             CancelTimer();

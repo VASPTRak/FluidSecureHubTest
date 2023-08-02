@@ -412,6 +412,7 @@ public class BackgroundService_BTThree extends Service {
         try {
             BTConstants.isNewVersionLinkThree = false;
             AppConstants.TxnFailedCount3 = 0;
+            AppConstants.isInfoCommandSuccess_fs3 = false;
             //Execute info command
             Request = "";
             Response = "";
@@ -450,6 +451,7 @@ public class BackgroundService_BTThree extends Service {
                                 new Handler().postDelayed(new Runnable() {
                                     @Override
                                     public void run() {
+                                        AppConstants.isInfoCommandSuccess_fs3 = true;
                                         if (IsThisBTTrnx && BTConstants.isNewVersionLinkThree && (versionNumberOfLinkThree >= 123)) {
                                             P_Type_Command();
                                         } else {
@@ -492,6 +494,7 @@ public class BackgroundService_BTThree extends Service {
                             new Handler().postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
+                                    AppConstants.isInfoCommandSuccess_fs3 = true;
                                     if (IsThisBTTrnx && BTConstants.isNewVersionLinkThree && (versionNumberOfLinkThree >= 123)) {
                                         P_Type_Command();
                                     } else {
@@ -1126,6 +1129,7 @@ public class BackgroundService_BTThree extends Service {
             CommonUtils.AddRemovecurrentTransactionList(false, TransactionId);
             Constants.FS_3STATUS = "FREE";
             Constants.FS_3Pulse = "00";
+            AppConstants.isInfoCommandSuccess_fs3 = false;
             BTConstants.SwitchedBTToUDP3 = false;
             DisableWifiConnection();
             CancelTimer();

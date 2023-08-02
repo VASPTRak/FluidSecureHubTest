@@ -412,6 +412,7 @@ public class BackgroundService_BTFive extends Service {
         try {
             BTConstants.isNewVersionLinkFive = false;
             AppConstants.TxnFailedCount5 = 0;
+            AppConstants.isInfoCommandSuccess_fs5 = false;
             //Execute info command
             Request = "";
             Response = "";
@@ -450,6 +451,7 @@ public class BackgroundService_BTFive extends Service {
                                 new Handler().postDelayed(new Runnable() {
                                     @Override
                                     public void run() {
+                                        AppConstants.isInfoCommandSuccess_fs5 = true;
                                         if (IsThisBTTrnx && BTConstants.isNewVersionLinkFive && (versionNumberOfLinkFive >= 123)) {
                                             P_Type_Command();
                                         } else {
@@ -492,6 +494,7 @@ public class BackgroundService_BTFive extends Service {
                             new Handler().postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
+                                    AppConstants.isInfoCommandSuccess_fs5 = true;
                                     if (IsThisBTTrnx && BTConstants.isNewVersionLinkFive && (versionNumberOfLinkFive >= 123)) {
                                         P_Type_Command();
                                     } else {
@@ -1126,6 +1129,7 @@ public class BackgroundService_BTFive extends Service {
             CommonUtils.AddRemovecurrentTransactionList(false, TransactionId);
             Constants.FS_5STATUS = "FREE";
             Constants.FS_5Pulse = "00";
+            AppConstants.isInfoCommandSuccess_fs5 = false;
             BTConstants.SwitchedBTToUDP5 = false;
             DisableWifiConnection();
             CancelTimer();

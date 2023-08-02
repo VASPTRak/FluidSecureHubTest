@@ -117,6 +117,13 @@ public class AppConstants {
     public static boolean isRelayON_fs5 = false;
     public static boolean isRelayON_fs6 = false;
 
+    public static boolean isInfoCommandSuccess_fs1 = false;
+    public static boolean isInfoCommandSuccess_fs2 = false;
+    public static boolean isInfoCommandSuccess_fs3 = false;
+    public static boolean isInfoCommandSuccess_fs4 = false;
+    public static boolean isInfoCommandSuccess_fs5 = false;
+    public static boolean isInfoCommandSuccess_fs6 = false;
+
     public static final String LinkConnectionIssuePref = "LinkConnectionIssuePref";
 
     public static final String IsGateHub = "IsGateHub";

@@ -240,8 +240,9 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     TextView off_db_info, tvSSIDName, tv_NFS1, tv_NFS2, tv_NFS3, tv_NFS4, tv_NFS5, tv_NFS6, tv_FA_message, support_phone, support_email, tv_BTlinkconnection;//tv_fs1_pulse
     TextView tv_request, tv_response, tv_Display_msg, tv_file_address;
     LinearLayout linear_debug_window, linearHose, linear_fs_1, linear_fs_2, linear_fs_3, linear_fs_4, linear_fs_5, linear_fs_6,
-            Fs1_beginFuel, Fs3_beginFuel, Fs2_beginFuel, Fs4_beginFuel, Fs5_beginFuel, Fs6_beginFuel,
+            Fs1_beginFuel, Fs2_beginFuel, Fs3_beginFuel, Fs4_beginFuel, Fs5_beginFuel, Fs6_beginFuel,
             linearLayout_MainActivity, layout_support_info;
+    TextView tvFs1_beginFuel, tvFs2_beginFuel, tvFs3_beginFuel, tvFs4_beginFuel, tvFs5_beginFuel, tvFs6_beginFuel;
     WifiManager mainWifi;
     StringBuilder sb = new StringBuilder();
     private MyServer server;
@@ -468,12 +469,19 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             }
         }
 
+        tvFs1_beginFuel.setText(R.string.BeforeStartFueling);
         Fs1_beginFuel.setVisibility(View.GONE);
+        tvFs2_beginFuel.setText(R.string.BeforeStartFueling);
         Fs2_beginFuel.setVisibility(View.GONE);
+        tvFs3_beginFuel.setText(R.string.BeforeStartFueling);
         Fs3_beginFuel.setVisibility(View.GONE);
+        tvFs4_beginFuel.setText(R.string.BeforeStartFueling);
         Fs4_beginFuel.setVisibility(View.GONE);
+        tvFs5_beginFuel.setText(R.string.BeforeStartFueling);
         Fs5_beginFuel.setVisibility(View.GONE);
+        tvFs6_beginFuel.setText(R.string.BeforeStartFueling);
         Fs6_beginFuel.setVisibility(View.GONE);
+
         flagGoBtn = true;//Enable go button
         linearHose.setClickable(true);//Enable hose Selection
         ctx = WelcomeActivity.this;
@@ -1511,6 +1519,13 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         Fs4_beginFuel = (LinearLayout) findViewById(R.id.Fs4_beginFuel);
         Fs5_beginFuel = (LinearLayout) findViewById(R.id.Fs5_beginFuel);
         Fs6_beginFuel = (LinearLayout) findViewById(R.id.Fs6_beginFuel);
+
+        tvFs1_beginFuel = (TextView) findViewById(R.id.tvFs1_beginFuel);
+        tvFs2_beginFuel = (TextView) findViewById(R.id.tvFs2_beginFuel);
+        tvFs3_beginFuel = (TextView) findViewById(R.id.tvFs3_beginFuel);
+        tvFs4_beginFuel = (TextView) findViewById(R.id.tvFs4_beginFuel);
+        tvFs5_beginFuel = (TextView) findViewById(R.id.tvFs5_beginFuel);
+        tvFs6_beginFuel = (TextView) findViewById(R.id.tvFs6_beginFuel);
 
         tv_fs1_stop.setOnClickListener(this);
         tv_fs2_stop.setOnClickListener(this);
@@ -5907,6 +5922,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 }
             }
 
+            tvFs1_beginFuel.setText(R.string.BeforeStartFueling);
             Fs1_beginFuel.setVisibility(View.GONE); //Disable begin fueling message
             fs1Cnt5Sec = 0;
             CountBeforeReconnectRelay1 = 0;
@@ -5941,9 +5957,15 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         } else {
 
             if ((fs1Cnt5Sec >= 5 || Integer.parseInt(Constants.FS_1Pulse) >= 1) && AppConstants.isRelayON_fs1) {
+                tvFs1_beginFuel.setText(R.string.BeforeStartFueling);
                 Fs1_beginFuel.setVisibility(View.GONE);
                 linear_fs_1.setVisibility(View.VISIBLE);
             } else {
+                if (AppConstants.isInfoCommandSuccess_fs1) {
+                    tvFs1_beginFuel.setText(R.string.BeforeStartFueling);
+                } else {
+                    tvFs1_beginFuel.setText(R.string.PleaseWait);
+                }
                 Fs1_beginFuel.setVisibility(View.VISIBLE);
                 linear_fs_1.setVisibility(View.GONE);
                 fs1Cnt5Sec++;
@@ -6034,6 +6056,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 }
             }
 
+            tvFs2_beginFuel.setText(R.string.BeforeStartFueling);
             Fs2_beginFuel.setVisibility(View.GONE); //Disable begin fueling message
             fs2Cnt5Sec = 0;
             CountBeforeReconnectRelay2 = 0;
@@ -6066,9 +6089,15 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         } else {
 
             if ((fs2Cnt5Sec >= 5 || Integer.parseInt(Constants.FS_2Pulse) >= 1) && AppConstants.isRelayON_fs2) {
+                tvFs2_beginFuel.setText(R.string.BeforeStartFueling);
                 Fs2_beginFuel.setVisibility(View.GONE);
                 linear_fs_2.setVisibility(View.VISIBLE);
             } else {
+                if (AppConstants.isInfoCommandSuccess_fs2) {
+                    tvFs2_beginFuel.setText(R.string.BeforeStartFueling);
+                } else {
+                    tvFs2_beginFuel.setText(R.string.PleaseWait);
+                }
                 Fs2_beginFuel.setVisibility(View.VISIBLE);
                 linear_fs_2.setVisibility(View.GONE);
                 fs2Cnt5Sec++;
@@ -6158,6 +6187,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 }
             }
 
+            tvFs3_beginFuel.setText(R.string.BeforeStartFueling);
             Fs3_beginFuel.setVisibility(View.GONE); //Disable begin fueling message
             fs3Cnt5Sec = 0;
             CountBeforeReconnectRelay3 = 0;
@@ -6190,9 +6220,15 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         } else {
 
             if ((fs3Cnt5Sec >= 5 || Integer.parseInt(Constants.FS_3Pulse) >= 1) && AppConstants.isRelayON_fs3) {
+                tvFs3_beginFuel.setText(R.string.BeforeStartFueling);
                 Fs3_beginFuel.setVisibility(View.GONE);
                 linear_fs_3.setVisibility(View.VISIBLE);
             } else {
+                if (AppConstants.isInfoCommandSuccess_fs3) {
+                    tvFs3_beginFuel.setText(R.string.BeforeStartFueling);
+                } else {
+                    tvFs3_beginFuel.setText(R.string.PleaseWait);
+                }
                 Fs3_beginFuel.setVisibility(View.VISIBLE);
                 linear_fs_3.setVisibility(View.GONE);
                 fs3Cnt5Sec++;
@@ -6282,6 +6318,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 }
             }
 
+            tvFs4_beginFuel.setText(R.string.BeforeStartFueling);
             Fs4_beginFuel.setVisibility(View.GONE); //Disable begin fueling message
             fs4Cnt5Sec = 0;
             CountBeforeReconnectRelay4 = 0;
@@ -6314,9 +6351,15 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         } else {
 
             if ((fs4Cnt5Sec >= 5 || Integer.parseInt(Constants.FS_4Pulse) >= 1) && AppConstants.isRelayON_fs4) {
+                tvFs4_beginFuel.setText(R.string.BeforeStartFueling);
                 Fs4_beginFuel.setVisibility(View.GONE);
                 linear_fs_4.setVisibility(View.VISIBLE);
             } else {
+                if (AppConstants.isInfoCommandSuccess_fs4) {
+                    tvFs4_beginFuel.setText(R.string.BeforeStartFueling);
+                } else {
+                    tvFs4_beginFuel.setText(R.string.PleaseWait);
+                }
                 Fs4_beginFuel.setVisibility(View.VISIBLE);
                 linear_fs_4.setVisibility(View.GONE);
                 fs4Cnt5Sec++;
@@ -6407,6 +6450,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 }
             }
 
+            tvFs5_beginFuel.setText(R.string.BeforeStartFueling);
             Fs5_beginFuel.setVisibility(View.GONE); //Disable begin fueling message
             fs5Cnt5Sec = 0;
             CountBeforeReconnectRelay5 = 0;
@@ -6439,9 +6483,15 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         } else {
 
             if ((fs5Cnt5Sec >= 5 || Integer.parseInt(Constants.FS_5Pulse) >= 1) && AppConstants.isRelayON_fs5) {
+                tvFs5_beginFuel.setText(R.string.BeforeStartFueling);
                 Fs5_beginFuel.setVisibility(View.GONE);
                 linear_fs_5.setVisibility(View.VISIBLE);
             } else {
+                if (AppConstants.isInfoCommandSuccess_fs5) {
+                    tvFs5_beginFuel.setText(R.string.BeforeStartFueling);
+                } else {
+                    tvFs5_beginFuel.setText(R.string.PleaseWait);
+                }
                 Fs5_beginFuel.setVisibility(View.VISIBLE);
                 linear_fs_5.setVisibility(View.GONE);
                 fs5Cnt5Sec++;
@@ -6531,6 +6581,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 }
             }
 
+            tvFs6_beginFuel.setText(R.string.BeforeStartFueling);
             Fs6_beginFuel.setVisibility(View.GONE); //Disable begin fueling message
             fs6Cnt5Sec = 0;
             CountBeforeReconnectRelay6 = 0;
@@ -6563,9 +6614,15 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         } else {
 
             if ((fs6Cnt5Sec >= 5 || Integer.parseInt(Constants.FS_6Pulse) >= 1) && AppConstants.isRelayON_fs6) {
+                tvFs6_beginFuel.setText(R.string.BeforeStartFueling);
                 Fs6_beginFuel.setVisibility(View.GONE);
                 linear_fs_6.setVisibility(View.VISIBLE);
             } else {
+                if (AppConstants.isInfoCommandSuccess_fs6) {
+                    tvFs6_beginFuel.setText(R.string.BeforeStartFueling);
+                } else {
+                    tvFs6_beginFuel.setText(R.string.PleaseWait);
+                }
                 Fs6_beginFuel.setVisibility(View.VISIBLE);
                 linear_fs_6.setVisibility(View.GONE);
                 fs6Cnt5Sec++;

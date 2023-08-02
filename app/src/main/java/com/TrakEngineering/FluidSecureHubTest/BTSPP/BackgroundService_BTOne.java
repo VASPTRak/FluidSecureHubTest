@@ -411,6 +411,7 @@ public class BackgroundService_BTOne extends Service {
         try {
             BTConstants.isNewVersionLinkOne = false;
             AppConstants.TxnFailedCount1 = 0;
+            AppConstants.isInfoCommandSuccess_fs1 = false;
             //Execute info command
             Request = "";
             Response = "";
@@ -449,6 +450,7 @@ public class BackgroundService_BTOne extends Service {
                                 new Handler().postDelayed(new Runnable() {
                                     @Override
                                     public void run() {
+                                        AppConstants.isInfoCommandSuccess_fs1 = true;
                                         if (IsThisBTTrnx && BTConstants.isNewVersionLinkOne && (versionNumberOfLinkOne >= 123)) {
                                             P_Type_Command();
                                         } else {
@@ -491,6 +493,7 @@ public class BackgroundService_BTOne extends Service {
                             new Handler().postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
+                                    AppConstants.isInfoCommandSuccess_fs1 = true;
                                     if (IsThisBTTrnx && BTConstants.isNewVersionLinkOne && (versionNumberOfLinkOne >= 123)) {
                                         P_Type_Command();
                                     } else {
@@ -1127,6 +1130,7 @@ public class BackgroundService_BTOne extends Service {
             Constants.FS_1Pulse = "00";
             AppConstants.GoButtonAlreadyClicked = false;
             AppConstants.IsTransactionCompleted = true;
+            AppConstants.isInfoCommandSuccess_fs1 = false;
             BTConstants.SwitchedBTToUDP1 = false;
             DisableWifiConnection();
             CancelTimer();

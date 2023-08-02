@@ -3046,6 +3046,8 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                 serviceIntent.putExtra("sqlite_id", sqlite_id);
                 startService(serviceIntent);
 
+                AppConstants.isInfoCommandSuccess_fs1 = true;
+
                 Intent i = new Intent(DisplayMeterActivity.this, WelcomeActivity.class);
                 i.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 startActivity(i);
@@ -3061,6 +3063,8 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                 serviceIntent.putExtra("sqlite_id", sqlite_id);
                 startService(serviceIntent);
 
+                AppConstants.isInfoCommandSuccess_fs2 = true;
+
                 Intent i = new Intent(DisplayMeterActivity.this, WelcomeActivity.class);
                 i.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 startActivity(i);
@@ -3074,6 +3078,8 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                 serviceIntent.putExtra("HTTP_URL", HTTP_URL);
                 serviceIntent.putExtra("sqlite_id", sqlite_id);
                 startService(serviceIntent);
+
+                AppConstants.isInfoCommandSuccess_fs3 = true;
 
                 Intent i = new Intent(DisplayMeterActivity.this, WelcomeActivity.class);
                 i.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -3089,6 +3095,8 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                 serviceIntent.putExtra("sqlite_id", sqlite_id);
                 startService(serviceIntent);
 
+                AppConstants.isInfoCommandSuccess_fs4 = true;
+
                 Intent i = new Intent(DisplayMeterActivity.this, WelcomeActivity.class);
                 i.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 startActivity(i);
@@ -3102,6 +3110,8 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                 serviceIntent.putExtra("sqlite_id", sqlite_id);
                 startService(serviceIntent);
 
+                AppConstants.isInfoCommandSuccess_fs5 = true;
+
                 Intent i = new Intent(DisplayMeterActivity.this, WelcomeActivity.class);
                 i.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 startActivity(i);
@@ -3114,6 +3124,8 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                 serviceIntent.putExtra("HTTP_URL", HTTP_URL);
                 serviceIntent.putExtra("sqlite_id", sqlite_id);
                 startService(serviceIntent);
+
+                AppConstants.isInfoCommandSuccess_fs6 = true;
 
                 Intent i = new Intent(DisplayMeterActivity.this, WelcomeActivity.class);
                 i.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);

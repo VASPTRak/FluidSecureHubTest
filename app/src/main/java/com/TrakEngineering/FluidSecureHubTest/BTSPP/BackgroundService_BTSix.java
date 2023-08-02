@@ -412,6 +412,7 @@ public class BackgroundService_BTSix extends Service {
         try {
             BTConstants.isNewVersionLinkSix = false;
             AppConstants.TxnFailedCount6 = 0;
+            AppConstants.isInfoCommandSuccess_fs6 = false;
             //Execute info command
             Request = "";
             Response = "";
@@ -450,6 +451,7 @@ public class BackgroundService_BTSix extends Service {
                                 new Handler().postDelayed(new Runnable() {
                                     @Override
                                     public void run() {
+                                        AppConstants.isInfoCommandSuccess_fs6 = true;
                                         if (IsThisBTTrnx && BTConstants.isNewVersionLinkSix && (versionNumberOfLinkSix >= 123)) {
                                             P_Type_Command();
                                         } else {
@@ -492,6 +494,7 @@ public class BackgroundService_BTSix extends Service {
                             new Handler().postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
+                                    AppConstants.isInfoCommandSuccess_fs6 = true;
                                     if (IsThisBTTrnx && BTConstants.isNewVersionLinkSix && (versionNumberOfLinkSix >= 123)) {
                                         P_Type_Command();
                                     } else {
@@ -1126,6 +1129,7 @@ public class BackgroundService_BTSix extends Service {
             CommonUtils.AddRemovecurrentTransactionList(false, TransactionId);
             Constants.FS_6STATUS = "FREE";
             Constants.FS_6Pulse = "00";
+            AppConstants.isInfoCommandSuccess_fs6 = false;
             BTConstants.SwitchedBTToUDP6 = false;
             DisableWifiConnection();
             CancelTimer();

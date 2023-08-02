@@ -412,6 +412,7 @@ public class BackgroundService_BTFour extends Service {
         try {
             BTConstants.isNewVersionLinkFour = false;
             AppConstants.TxnFailedCount4 = 0;
+            AppConstants.isInfoCommandSuccess_fs4 = false;
             //Execute info command
             Request = "";
             Response = "";
@@ -450,6 +451,7 @@ public class BackgroundService_BTFour extends Service {
                                 new Handler().postDelayed(new Runnable() {
                                     @Override
                                     public void run() {
+                                        AppConstants.isInfoCommandSuccess_fs4 = true;
                                         if (IsThisBTTrnx && BTConstants.isNewVersionLinkFour && (versionNumberOfLinkFour >= 123)) {
                                             P_Type_Command();
                                         } else {
@@ -492,6 +494,7 @@ public class BackgroundService_BTFour extends Service {
                             new Handler().postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
+                                    AppConstants.isInfoCommandSuccess_fs4 = true;
                                     if (IsThisBTTrnx && BTConstants.isNewVersionLinkFour && (versionNumberOfLinkFour >= 123)) {
                                         P_Type_Command();
                                     } else {
@@ -1126,6 +1129,7 @@ public class BackgroundService_BTFour extends Service {
             CommonUtils.AddRemovecurrentTransactionList(false, TransactionId);
             Constants.FS_4STATUS = "FREE";
             Constants.FS_4Pulse = "00";
+            AppConstants.isInfoCommandSuccess_fs4 = false;
             BTConstants.SwitchedBTToUDP4 = false;
             DisableWifiConnection();
             CancelTimer();
