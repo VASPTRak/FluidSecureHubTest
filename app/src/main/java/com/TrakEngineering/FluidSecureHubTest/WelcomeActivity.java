@@ -58,6 +58,7 @@ import android.text.SpannableStringBuilder;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.RelativeSizeSpan;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -5898,26 +5899,29 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
             if (AppConstants.IsTransactionFailed1) {
                 AppConstants.IsTransactionFailed1 = false;
-                if (BTConstants.CurrentTransactionIsBT) {
+                if (!CommonUtils.isHotspotEnabled(WelcomeActivity.this) && !BTConstants.CurrentTransactionIsBT) {
                     if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink 1: " + getResources().getString(R.string.UnableToConnectToHoseMessage));
-                    CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.UnableToConnectToHoseMessage));
+                        AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "BS_FS1: " + getResources().getString(R.string.HotspotOffMessage));
+                    CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.HotspotOffMessage));
                 } else {
-                    if (!CommonUtils.isHotspotEnabled(WelcomeActivity.this)) {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "BS_FS1: " + getResources().getString(R.string.HotspotOffMessage));
-                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.HotspotOffMessage));
+                    String logType = "", logPrefix = "";
+                    if (BTConstants.CurrentTransactionIsBT) {
+                        logType = AppConstants.LOG_TXTN_BT;
+                        logPrefix = "BTLink 1: ";
                     } else {
-                        if (AppConstants.TxnFailedCount1 == 1) {
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "BS_FS1: " + getResources().getString(R.string.UnableToConnectToHoseMessage));
-                            CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.UnableToConnectToHoseMessage));
-                        } else {
-                            AppConstants.TxnFailedCount1 = 0;
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "BS_FS1: " + getResources().getString(R.string.HoseUnavailableMessage));
-                            CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.HoseUnavailableMessage));
-                        }
+                        logType = AppConstants.LOG_TXTN_HTTP;
+                        logPrefix = "BS_FS1: ";
+                    }
+
+                    if (AppConstants.TxnFailedCount1 == 1) {
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(logType + "-" + TAG + logPrefix + getResources().getString(R.string.HoseUnavailableMessage));
+                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.HoseUnavailableMessage));
+                    } else {
+                        AppConstants.TxnFailedCount1 = 0;
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(logType + "-" + TAG + logPrefix + getResources().getString(R.string.UnableToConnectToHoseMessage));
+                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.UnableToConnectToHoseMessage));
                     }
                 }
             }
@@ -6032,26 +6036,29 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
             if (AppConstants.IsTransactionFailed2) {
                 AppConstants.IsTransactionFailed2 = false;
-                if (BTConstants.CurrentTransactionIsBT) {
+                if (!CommonUtils.isHotspotEnabled(WelcomeActivity.this) && !BTConstants.CurrentTransactionIsBT) {
                     if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink 2: " + getResources().getString(R.string.UnableToConnectToHoseMessage));
-                    CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.UnableToConnectToHoseMessage));
+                        AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "BS_FS2: " + getResources().getString(R.string.HotspotOffMessage));
+                    CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.HotspotOffMessage));
                 } else {
-                    if (!CommonUtils.isHotspotEnabled(WelcomeActivity.this)) {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "BS_FS2: " + getResources().getString(R.string.HotspotOffMessage));
-                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.HotspotOffMessage));
+                    String logType = "", logPrefix = "";
+                    if (BTConstants.CurrentTransactionIsBT) {
+                        logType = AppConstants.LOG_TXTN_BT;
+                        logPrefix = "BTLink 2: ";
                     } else {
-                        if (AppConstants.TxnFailedCount2 == 1) {
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "BS_FS2: " + getResources().getString(R.string.UnableToConnectToHoseMessage));
-                            CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.UnableToConnectToHoseMessage));
-                        } else {
-                            AppConstants.TxnFailedCount2 = 0;
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "BS_FS2: " + getResources().getString(R.string.HoseUnavailableMessage));
-                            CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.HoseUnavailableMessage));
-                        }
+                        logType = AppConstants.LOG_TXTN_HTTP;
+                        logPrefix = "BS_FS2: ";
+                    }
+
+                    if (AppConstants.TxnFailedCount2 == 1) {
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(logType + "-" + TAG + logPrefix + getResources().getString(R.string.HoseUnavailableMessage));
+                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.HoseUnavailableMessage));
+                    } else {
+                        AppConstants.TxnFailedCount2 = 0;
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(logType + "-" + TAG + logPrefix + getResources().getString(R.string.UnableToConnectToHoseMessage));
+                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.UnableToConnectToHoseMessage));
                     }
                 }
             }
@@ -6163,26 +6170,29 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
             if (AppConstants.IsTransactionFailed3) {
                 AppConstants.IsTransactionFailed3 = false;
-                if (BTConstants.CurrentTransactionIsBT) {
+                if (!CommonUtils.isHotspotEnabled(WelcomeActivity.this) && !BTConstants.CurrentTransactionIsBT) {
                     if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink 3: " + getResources().getString(R.string.UnableToConnectToHoseMessage));
-                    CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.UnableToConnectToHoseMessage));
+                        AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "BS_FS3: " + getResources().getString(R.string.HotspotOffMessage));
+                    CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.HotspotOffMessage));
                 } else {
-                    if (!CommonUtils.isHotspotEnabled(WelcomeActivity.this)) {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "BS_FS3: " + getResources().getString(R.string.HotspotOffMessage));
-                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.HotspotOffMessage));
+                    String logType = "", logPrefix = "";
+                    if (BTConstants.CurrentTransactionIsBT) {
+                        logType = AppConstants.LOG_TXTN_BT;
+                        logPrefix = "BTLink 3: ";
                     } else {
-                        if (AppConstants.TxnFailedCount3 == 1) {
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "BS_FS3: " + getResources().getString(R.string.UnableToConnectToHoseMessage));
-                            CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.UnableToConnectToHoseMessage));
-                        } else {
-                            AppConstants.TxnFailedCount3 = 0;
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "BS_FS3: " + getResources().getString(R.string.HoseUnavailableMessage));
-                            CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.HoseUnavailableMessage));
-                        }
+                        logType = AppConstants.LOG_TXTN_HTTP;
+                        logPrefix = "BS_FS3: ";
+                    }
+
+                    if (AppConstants.TxnFailedCount3 == 1) {
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(logType + "-" + TAG + logPrefix + getResources().getString(R.string.HoseUnavailableMessage));
+                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.HoseUnavailableMessage));
+                    } else {
+                        AppConstants.TxnFailedCount3 = 0;
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(logType + "-" + TAG + logPrefix + getResources().getString(R.string.UnableToConnectToHoseMessage));
+                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.UnableToConnectToHoseMessage));
                     }
                 }
             }
@@ -6294,26 +6304,29 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
             if (AppConstants.IsTransactionFailed4) {
                 AppConstants.IsTransactionFailed4 = false;
-                if (BTConstants.CurrentTransactionIsBT) {
+                if (!CommonUtils.isHotspotEnabled(WelcomeActivity.this) && !BTConstants.CurrentTransactionIsBT) {
                     if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink 4: " + getResources().getString(R.string.UnableToConnectToHoseMessage));
-                    CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.UnableToConnectToHoseMessage));
+                        AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "BS_FS4: " + getResources().getString(R.string.HotspotOffMessage));
+                    CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.HotspotOffMessage));
                 } else {
-                    if (!CommonUtils.isHotspotEnabled(WelcomeActivity.this)) {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "BS_FS4: " + getResources().getString(R.string.HotspotOffMessage));
-                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.HotspotOffMessage));
+                    String logType = "", logPrefix = "";
+                    if (BTConstants.CurrentTransactionIsBT) {
+                        logType = AppConstants.LOG_TXTN_BT;
+                        logPrefix = "BTLink 4: ";
                     } else {
-                        if (AppConstants.TxnFailedCount4 == 1) {
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "BS_FS4: " + getResources().getString(R.string.UnableToConnectToHoseMessage));
-                            CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.UnableToConnectToHoseMessage));
-                        } else {
-                            AppConstants.TxnFailedCount4 = 0;
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "BS_FS4: " + getResources().getString(R.string.HoseUnavailableMessage));
-                            CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.HoseUnavailableMessage));
-                        }
+                        logType = AppConstants.LOG_TXTN_HTTP;
+                        logPrefix = "BS_FS4: ";
+                    }
+
+                    if (AppConstants.TxnFailedCount4 == 1) {
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(logType + "-" + TAG + logPrefix + getResources().getString(R.string.HoseUnavailableMessage));
+                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.HoseUnavailableMessage));
+                    } else {
+                        AppConstants.TxnFailedCount4 = 0;
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(logType + "-" + TAG + logPrefix + getResources().getString(R.string.UnableToConnectToHoseMessage));
+                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.UnableToConnectToHoseMessage));
                     }
                 }
             }
@@ -6426,26 +6439,29 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
             if (AppConstants.IsTransactionFailed5) {
                 AppConstants.IsTransactionFailed5 = false;
-                if (BTConstants.CurrentTransactionIsBT) {
+                if (!CommonUtils.isHotspotEnabled(WelcomeActivity.this) && !BTConstants.CurrentTransactionIsBT) {
                     if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink 5: " + getResources().getString(R.string.UnableToConnectToHoseMessage));
-                    CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.UnableToConnectToHoseMessage));
+                        AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "BS_FS5: " + getResources().getString(R.string.HotspotOffMessage));
+                    CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.HotspotOffMessage));
                 } else {
-                    if (!CommonUtils.isHotspotEnabled(WelcomeActivity.this)) {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "BS_FS5: " + getResources().getString(R.string.HotspotOffMessage));
-                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.HotspotOffMessage));
+                    String logType = "", logPrefix = "";
+                    if (BTConstants.CurrentTransactionIsBT) {
+                        logType = AppConstants.LOG_TXTN_BT;
+                        logPrefix = "BTLink 5: ";
                     } else {
-                        if (AppConstants.TxnFailedCount5 == 1) {
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "BS_FS5: " + getResources().getString(R.string.UnableToConnectToHoseMessage));
-                            CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.UnableToConnectToHoseMessage));
-                        } else {
-                            AppConstants.TxnFailedCount5 = 0;
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "BS_FS5: " + getResources().getString(R.string.HoseUnavailableMessage));
-                            CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.HoseUnavailableMessage));
-                        }
+                        logType = AppConstants.LOG_TXTN_HTTP;
+                        logPrefix = "BS_FS5: ";
+                    }
+
+                    if (AppConstants.TxnFailedCount5 == 1) {
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(logType + "-" + TAG + logPrefix + getResources().getString(R.string.HoseUnavailableMessage));
+                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.HoseUnavailableMessage));
+                    } else {
+                        AppConstants.TxnFailedCount5 = 0;
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(logType + "-" + TAG + logPrefix + getResources().getString(R.string.UnableToConnectToHoseMessage));
+                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.UnableToConnectToHoseMessage));
                     }
                 }
             }
@@ -6557,26 +6573,29 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
             if (AppConstants.IsTransactionFailed6) {
                 AppConstants.IsTransactionFailed6 = false;
-                if (BTConstants.CurrentTransactionIsBT) {
+                if (!CommonUtils.isHotspotEnabled(WelcomeActivity.this) && !BTConstants.CurrentTransactionIsBT) {
                     if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink 6: " + getResources().getString(R.string.UnableToConnectToHoseMessage));
-                    CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.UnableToConnectToHoseMessage));
+                        AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "BS_FS6: " + getResources().getString(R.string.HotspotOffMessage));
+                    CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.HotspotOffMessage));
                 } else {
-                    if (!CommonUtils.isHotspotEnabled(WelcomeActivity.this)) {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "BS_FS6: " + getResources().getString(R.string.HotspotOffMessage));
-                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.HotspotOffMessage));
+                    String logType = "", logPrefix = "";
+                    if (BTConstants.CurrentTransactionIsBT) {
+                        logType = AppConstants.LOG_TXTN_BT;
+                        logPrefix = "BTLink 6: ";
                     } else {
-                        if (AppConstants.TxnFailedCount6 == 1) {
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "BS_FS6: " + getResources().getString(R.string.UnableToConnectToHoseMessage));
-                            CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.UnableToConnectToHoseMessage));
-                        } else {
-                            AppConstants.TxnFailedCount6 = 0;
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "BS_FS6: " + getResources().getString(R.string.HoseUnavailableMessage));
-                            CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.HoseUnavailableMessage));
-                        }
+                        logType = AppConstants.LOG_TXTN_HTTP;
+                        logPrefix = "BS_FS6: ";
+                    }
+
+                    if (AppConstants.TxnFailedCount6 == 1) {
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(logType + "-" + TAG + logPrefix + getResources().getString(R.string.HoseUnavailableMessage));
+                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.HoseUnavailableMessage));
+                    } else {
+                        AppConstants.TxnFailedCount6 = 0;
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(logType + "-" + TAG + logPrefix + getResources().getString(R.string.UnableToConnectToHoseMessage));
+                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.UnableToConnectToHoseMessage));
                     }
                 }
             }
@@ -15347,6 +15366,14 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             String message = getResources().getString(R.string.FileDownloadInProgress) + "\n" + getResources().getString(R.string.PleaseWaitSeveralSeconds);
             pd.setMessage(GetSpinnerMessage(message));
             pd.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+
+            // #2323
+            Window window = pd.getWindow();
+            WindowManager.LayoutParams wlp = window.getAttributes();
+            wlp.gravity = Gravity.BOTTOM | Gravity.CENTER;
+            window.setAttributes(wlp);
+            //==========================
+
             pd.setCancelable(false);
             pd.show();
         }
@@ -15688,6 +15715,14 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         pdUpgradeProcess = new ProgressDialog(WelcomeActivity.this);
         pdUpgradeProcess.setMessage(GetSpinnerMessage(message));
         pdUpgradeProcess.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+
+        // #2323
+        Window window = pdUpgradeProcess.getWindow();
+        WindowManager.LayoutParams wlp = window.getAttributes();
+        wlp.gravity = Gravity.BOTTOM | Gravity.CENTER;
+        window.setAttributes(wlp);
+        //==========================
+
         pdUpgradeProcess.setCancelable(false);
         pdUpgradeProcess.show();
 

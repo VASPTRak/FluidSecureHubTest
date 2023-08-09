@@ -258,7 +258,6 @@ public class AppConstants {
     public static String BT_READER_NAME;
     //public static String PulserTimingAdjust;
     //public static String IsResetSwitchTimeBounce;
-    //public static String IsBypassPumpReset;
 
     public static String UP_FirmwareVersion;
     public static String UP_FilePath;
@@ -365,7 +364,6 @@ public class AppConstants {
 
     public static String Latitude = "0.00";
     public static String Longitude = "0.00";
-    public static boolean isLocationSelected = false;
 
     public static ArrayList<HashMap<String, String>> DetailsServerSSIDList;
     public static ArrayList<HashMap<String, String>> DetailsListOfConnectedDevices;
