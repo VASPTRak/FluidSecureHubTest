@@ -645,6 +645,7 @@ public class AcceptPinActivity_new extends AppCompatActivity {
         menu.findItem(R.id.mshow_reader_status).setVisible(true);
         menu.findItem(R.id.mcamera_back).setVisible(false);
         menu.findItem(R.id.mcamera_front).setVisible(false);
+        menu.findItem(R.id.mrestartapp).setVisible(false);
 
         if (cd.isConnectingToInternet() && AppConstants.NETWORK_STRENGTH) {
 
@@ -1310,15 +1311,23 @@ public class AcceptPinActivity_new extends AppCompatActivity {
         @Override
         protected void onPreExecute() {
 
-            String s = getResources().getString(R.string.PleaseWait);
-            SpannableString ss2 = new SpannableString(s);
-            ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
-            ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
-            pd = new ProgressDialog(AcceptPinActivity_new.this);
-            pd.setMessage(ss2);
+            String s = getResources().getString(R.string.PleaseWaitMessage);
+            //SpannableString ss2 = new SpannableString(s);
+            //ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
+            //ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
+            //pd = new ProgressDialog(AcceptPinActivity_new.this);
+            pd = ProgressDialogUtil.createProgressDialog(AcceptPinActivity_new.this, s, true);
+            //pd.setMessage(ss2);
             pd.setCancelable(true);
             pd.show();
 
+            Thread thread = new Thread() {
+                @Override
+                public void run() {
+                    ProgressDialogUtil.runAnimatedLoadingDots(AcceptPinActivity_new.this, s, pd, true);
+                }
+            };
+            thread.start();
         }
 
         protected String doInBackground(Void... arg0) {

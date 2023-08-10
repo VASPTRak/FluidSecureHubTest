@@ -24,6 +24,8 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -57,6 +59,7 @@ import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.RelativeSizeSpan;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
@@ -175,6 +178,7 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
@@ -665,7 +669,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
         SharedPreferences sharedPref = WelcomeActivity.this.getSharedPreferences("LanguageSettings", Context.MODE_PRIVATE);
         String language = sharedPref.getString("language", "");
-        CommonUtils.StoreLanguageSettings(WelcomeActivity.this, language, false);
+        StoreLanguageSettings(language, false);
 
         SharedPreferences sharedPre2 = WelcomeActivity.this.getSharedPreferences("storeBT_FOBDetails", Context.MODE_PRIVATE);
 
@@ -1998,14 +2002,23 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         @Override
         protected void onPreExecute() {
 
-            String s = getResources().getString(R.string.PleaseWait);
-            SpannableString ss2 = new SpannableString(s);
-            ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
-            ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
-            pd = new ProgressDialog(WelcomeActivity.this);
-            pd.setMessage(ss2);
+            String s = getResources().getString(R.string.PleaseWaitMessage);
+            //SpannableString ss2 = new SpannableString(s);
+            //ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
+            //ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
+            //pd = new ProgressDialog(WelcomeActivity.this);
+            pd = ProgressDialogUtil.createProgressDialog(WelcomeActivity.this, s, true);
+            //pd.setMessage(ss2);
             pd.setCancelable(true);
             pd.show();
+
+            Thread thread = new Thread() {
+                @Override
+                public void run() {
+                    ProgressDialogUtil.runAnimatedLoadingDots(WelcomeActivity.this, s, pd, true);
+                }
+            };
+            thread.start();
 
         }
 
@@ -2955,17 +2968,25 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         @Override
         protected void onPreExecute() {
 
-            String s = getResources().getString(R.string.PleaseWait);
-            SpannableString ss2 = new SpannableString(s);
-            ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
-            ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
+            String s = getResources().getString(R.string.PleaseWaitMessage);
+            //SpannableString ss2 = new SpannableString(s);
+            //ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
+            //ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
 
-            pd = new ProgressDialog(WelcomeActivity.this);
-            pd.setMessage(ss2);
+            //pd = new ProgressDialog(WelcomeActivity.this);
+            pd = ProgressDialogUtil.createProgressDialog(WelcomeActivity.this, s, true);
+            //pd.setMessage(ss2);
             pd.setCancelable(true);
             pd.setCancelable(false);
             pd.show();
 
+            Thread thread = new Thread() {
+                @Override
+                public void run() {
+                    ProgressDialogUtil.runAnimatedLoadingDots(WelcomeActivity.this, s, pd, true);
+                }
+            };
+            thread.start();
         }
 
         protected String doInBackground(Void... arg0) {
@@ -6813,15 +6834,23 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         @Override
         protected void onPreExecute() {
 
-            String s = getResources().getString(R.string.PleaseWait);
-            SpannableString ss2 = new SpannableString(s);
-            ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
-            ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
-            pd = new ProgressDialog(WelcomeActivity.this);
-            pd.setMessage(ss2);
+            String s = getResources().getString(R.string.PleaseWaitMessage);
+            //SpannableString ss2 = new SpannableString(s);
+            //ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
+            //ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
+            //pd = new ProgressDialog(WelcomeActivity.this);
+            pd = ProgressDialogUtil.createProgressDialog(WelcomeActivity.this, s, true);
+            //pd.setMessage(ss2);
             pd.setCancelable(true);
             pd.show();
 
+            Thread thread = new Thread() {
+                @Override
+                public void run() {
+                    ProgressDialogUtil.runAnimatedLoadingDots(WelcomeActivity.this, s, pd, true);
+                }
+            };
+            thread.start();
         }
 
         protected String doInBackground(String... params) {
@@ -7904,7 +7933,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 if (AppConstants.GenerateLogs)
                     AppConstants.WriteinFile(TAG + "<Spanish language selected.>");
                 if (AppConstants.IsHoseBusyCheckLocally()) {
-                    CommonUtils.StoreLanguageSettings(WelcomeActivity.this, "es", true);
+                    StoreLanguageSettings("es", true);
                 } else {
                     Toast.makeText(getApplicationContext(), getResources().getString(R.string.OneOfTheHoseIsBusy), Toast.LENGTH_SHORT).show();
                 }
@@ -7914,7 +7943,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 if (AppConstants.GenerateLogs)
                     AppConstants.WriteinFile(TAG + "<English language selected.>");
                 if (AppConstants.IsHoseBusyCheckLocally()) {
-                    CommonUtils.StoreLanguageSettings(WelcomeActivity.this, "en", true);
+                    StoreLanguageSettings("en", true);
                 } else {
                     Toast.makeText(getApplicationContext(), getResources().getString(R.string.OneOfTheHoseIsBusy), Toast.LENGTH_SHORT).show();
                 }
@@ -7928,6 +7957,45 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    public void StoreLanguageSettings(String language, boolean isRecreate) {
+        try {
+            if (language.trim().equalsIgnoreCase("es"))
+                AppConstants.LANG_PARAM = ":es-ES";
+            else
+                AppConstants.LANG_PARAM = ":en-US";
+
+            DisplayMetrics dm = getBaseContext().getResources().getDisplayMetrics();
+            Configuration conf = getBaseContext().getResources().getConfiguration();
+
+            if (language.trim().equalsIgnoreCase("es")) {
+                conf.setLocale(new Locale("es"));
+            } else if (language.trim().equalsIgnoreCase("en")) {
+                conf.setLocale(new Locale("en", "US"));
+            } else {
+                conf.setLocale(Locale.getDefault());
+            }
+
+            getBaseContext().getResources().updateConfiguration(conf, dm);
+
+            SharedPreferences sharedPref = this.getSharedPreferences("LanguageSettings", Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = sharedPref.edit();
+            editor.putString("language", language.trim());
+            editor.apply();
+
+            if (isRecreate) {
+                //recreate();
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + "<Restarting the activity.>");
+                Intent i = new Intent(WelcomeActivity.this, WelcomeActivity.class);
+                i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                this.startActivity(i);
+            }
+        } catch (Exception e) {
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + "Exception occurred in StoreLanguageSettings: " + e.getMessage());
+        }
     }
 
     private void HideAddLinkMenu() {
@@ -9644,16 +9712,23 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         @Override
         protected void onPreExecute() {
 
-            String s = getResources().getString(R.string.PleaseWait);
-            SpannableString ss2 = new SpannableString(s);
-            ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
-            ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
+            String s = getResources().getString(R.string.PleaseWaitMessage);
+            //SpannableString ss2 = new SpannableString(s);
+            //ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
+            //ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
             pdOnResume = pd = new ProgressDialog(WelcomeActivity.this);
-            pd.setMessage(ss2);
-            pd.setCancelable(true);
+            pdOnResume = pd = ProgressDialogUtil.createProgressDialog(WelcomeActivity.this, s, true);
+            //pd.setMessage(ss2);
             pd.setCancelable(false);
             pd.show();
 
+            Thread thread = new Thread() {
+                @Override
+                public void run() {
+                    ProgressDialogUtil.runAnimatedLoadingDots(WelcomeActivity.this, s, pd, true);
+                }
+            };
+            thread.start();
         }
 
         protected String doInBackground(Void... arg0) {
@@ -11202,15 +11277,23 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         protected void onPreExecute() {
 
 
-            String s = getResources().getString(R.string.PleaseWait);
-            SpannableString ss2 = new SpannableString(s);
-            ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
-            ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
-            pd = new ProgressDialog(WelcomeActivity.this);
-            pd.setMessage(ss2);
+            String s = getResources().getString(R.string.PleaseWaitMessage);
+            //SpannableString ss2 = new SpannableString(s);
+            //ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
+            //ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
+            //pd = new ProgressDialog(WelcomeActivity.this);
+            pd = ProgressDialogUtil.createProgressDialog(WelcomeActivity.this, s, true);
+            //pd.setMessage(ss2);
             pd.setCancelable(false);
             pd.show();
 
+            Thread thread = new Thread() {
+                @Override
+                public void run() {
+                    ProgressDialogUtil.runAnimatedLoadingDots(WelcomeActivity.this, s, pd, true);
+                }
+            };
+            thread.start();
 
         }
 
@@ -11564,16 +11647,24 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         @Override
         protected void onPreExecute() {
 
-            String s = getResources().getString(R.string.PleaseWait);
-            SpannableString ss2 = new SpannableString(s);
-            ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
-            ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
-            pd = new ProgressDialog(WelcomeActivity.this);
-            pd.setMessage(ss2);
+            String s = getResources().getString(R.string.PleaseWaitMessage);
+            //SpannableString ss2 = new SpannableString(s);
+            //ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
+            //ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
+            //pd = new ProgressDialog(WelcomeActivity.this);
+            pd = ProgressDialogUtil.createProgressDialog(WelcomeActivity.this, s, true);
+            //pd.setMessage(ss2);
             pd.setCancelable(true);
             pd.setCancelable(false);
             pd.show();
 
+            Thread thread = new Thread() {
+                @Override
+                public void run() {
+                    ProgressDialogUtil.runAnimatedLoadingDots(WelcomeActivity.this, s, pd, true);
+                }
+            };
+            thread.start();
         }
 
         protected String doInBackground(Void... arg0) {

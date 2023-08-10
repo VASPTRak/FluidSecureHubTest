@@ -522,6 +522,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
         menu.findItem(R.id.mcamera_back).setVisible(false);
         menu.findItem(R.id.mcamera_front).setVisible(false);
         menu.findItem(R.id.mreload).setVisible(false);
+        menu.findItem(R.id.mrestartapp).setVisible(false);
 
         if (cd.isConnectingToInternet() && AppConstants.NETWORK_STRENGTH) {
 
@@ -1123,15 +1124,23 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
         protected void onPreExecute() {
 
             try {
-                String s = getResources().getString(R.string.PleaseWait);
-                SpannableString ss2 = new SpannableString(s);
-                ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
-                ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
-                pd = new ProgressDialog(AcceptVehicleActivity_new.this);
-                pd.setMessage(ss2);
+                String s = getResources().getString(R.string.PleaseWaitMessage);
+                //SpannableString ss2 = new SpannableString(s);
+                //ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
+                //ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
+                //pd = new ProgressDialog(AcceptVehicleActivity_new.this);
+                pd = ProgressDialogUtil.createProgressDialog(AcceptVehicleActivity_new.this, s, true);
+                //pd.setMessage(ss2);
                 pd.setCancelable(true);
                 pd.show();
 
+                Thread thread = new Thread() {
+                    @Override
+                    public void run() {
+                        ProgressDialogUtil.runAnimatedLoadingDots(AcceptVehicleActivity_new.this, s, pd, true);
+                    }
+                };
+                thread.start();
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -2492,16 +2501,24 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
         @Override
         protected void onPreExecute() {
 
-            String s = getResources().getString(R.string.PleaseWait);
-            SpannableString ss2 = new SpannableString(s);
-            ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
-            ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
-            pd = new ProgressDialog(AcceptVehicleActivity_new.this);
-            pd.setMessage(ss2);
+            String s = getResources().getString(R.string.PleaseWaitMessage);
+            //SpannableString ss2 = new SpannableString(s);
+            //ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
+            //ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
+            //pd = new ProgressDialog(AcceptVehicleActivity_new.this);
+            pd = ProgressDialogUtil.createProgressDialog(AcceptVehicleActivity_new.this, s, true);
+            //pd.setMessage(ss2);
             pd.setCancelable(true);
             pd.setCancelable(false);
             pd.show();
 
+            Thread thread = new Thread() {
+                @Override
+                public void run() {
+                    ProgressDialogUtil.runAnimatedLoadingDots(AcceptVehicleActivity_new.this, s, pd, true);
+                }
+            };
+            thread.start();
         }
 
         protected String doInBackground(Void... Void) {
@@ -2741,16 +2758,24 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
         @Override
         protected void onPreExecute() {
 
-            String s = getResources().getString(R.string.PleaseWait);
-            SpannableString ss2 = new SpannableString(s);
-            ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
-            ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
-            pd = new ProgressDialog(AcceptVehicleActivity_new.this);
-            pd.setMessage(ss2);
+            String s = getResources().getString(R.string.PleaseWaitMessage);
+            //SpannableString ss2 = new SpannableString(s);
+            //ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
+            //ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
+            //pd = new ProgressDialog(AcceptVehicleActivity_new.this);
+            pd = ProgressDialogUtil.createProgressDialog(AcceptVehicleActivity_new.this, s, true);
+            //pd.setMessage(ss2);
             pd.setCancelable(true);
             pd.setCancelable(false);
             pd.show();
 
+            Thread thread = new Thread() {
+                @Override
+                public void run() {
+                    ProgressDialogUtil.runAnimatedLoadingDots(AcceptVehicleActivity_new.this, s, pd, true);
+                }
+            };
+            thread.start();
         }
 
         protected String doInBackground(Void... arg0) {

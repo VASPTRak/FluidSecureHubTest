@@ -1032,16 +1032,24 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
     public void ShowLoader() {
 
-        String s = getResources().getString(R.string.PleaseWait);
-        SpannableString ss2 = new SpannableString(s);
-        ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
-        ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
-        pdMain = new ProgressDialog(DisplayMeterActivity.this);
-        pdMain.setMessage(ss2);
+        String s = getResources().getString(R.string.PleaseWaitMessage);
+        //SpannableString ss2 = new SpannableString(s);
+        //ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
+        //ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
+        //pdMain = new ProgressDialog(DisplayMeterActivity.this);
+        pdMain = ProgressDialogUtil.createProgressDialog(DisplayMeterActivity.this, s, true);
+        //pdMain.setMessage(ss2);
         pdMain.setCancelable(false);
         pdMain.dismiss();
         pdMain.show();
 
+        Thread thread = new Thread() {
+            @Override
+            public void run() {
+                ProgressDialogUtil.runAnimatedLoadingDots(DisplayMeterActivity.this, s, pdMain, true);
+            }
+        };
+        thread.start();
     }
 
     @SuppressLint("ResourceAsColor")
@@ -3424,15 +3432,23 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
         @Override
         protected void onPreExecute() {
 
-            String s = getResources().getString(R.string.PleaseWait);
-            SpannableString ss2 = new SpannableString(s);
-            ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
-            ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
-            pd = new ProgressDialog(DisplayMeterActivity.this);
-            pd.setMessage(ss2);
+            String s = getResources().getString(R.string.PleaseWaitMessage);
+            //SpannableString ss2 = new SpannableString(s);
+            //ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
+            //ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
+            //pd = new ProgressDialog(DisplayMeterActivity.this);
+            pd = ProgressDialogUtil.createProgressDialog(DisplayMeterActivity.this, s, true);
+            //pd.setMessage(ss2);
             pd.setCancelable(false);
             pd.show();
 
+            Thread thread = new Thread() {
+                @Override
+                public void run() {
+                    ProgressDialogUtil.runAnimatedLoadingDots(DisplayMeterActivity.this, s, pd, true);
+                }
+            };
+            thread.start();
         }
 
 
@@ -3506,15 +3522,23 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
         @Override
         protected void onPreExecute() {
 
-            String s = getResources().getString(R.string.PleaseWait);
-            SpannableString ss2 = new SpannableString(s);
-            ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
-            ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
-            pd = new ProgressDialog(DisplayMeterActivity.this);
-            pd.setMessage(ss2);
+            String s = getResources().getString(R.string.PleaseWaitMessage);
+            //SpannableString ss2 = new SpannableString(s);
+            //ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
+            //ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
+            //pd = new ProgressDialog(DisplayMeterActivity.this);
+            pd = ProgressDialogUtil.createProgressDialog(DisplayMeterActivity.this, s, true);
+            //pd.setMessage(ss2);
             pd.setCancelable(false);
             pd.show();
 
+            Thread thread = new Thread() {
+                @Override
+                public void run() {
+                    ProgressDialogUtil.runAnimatedLoadingDots(DisplayMeterActivity.this, s, pd, true);
+                }
+            };
+            thread.start();
         }
 
 
@@ -4668,16 +4692,25 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    String s = getResources().getString(R.string.PleaseWait);
-                    SpannableString ss2 = new SpannableString(s);
-                    ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
-                    ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
-                    pdBT = new ProgressDialog(DisplayMeterActivity.this);
-                    pdBT.setMessage(ss2);
+                    String s = getResources().getString(R.string.PleaseWaitMessage);
+                    //SpannableString ss2 = new SpannableString(s);
+                    //ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
+                    //ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
+                    //pdBT = new ProgressDialog(DisplayMeterActivity.this);
+                    pdBT = ProgressDialogUtil.createProgressDialog(DisplayMeterActivity.this, s, true);
+                    //pdBT.setMessage(ss2);
                     pdBT.setCancelable(false);
                     if (!pdBT.isShowing()) {
                         pdBT.show();
                     }
+
+                    Thread thread = new Thread() {
+                        @Override
+                        public void run() {
+                            ProgressDialogUtil.runAnimatedLoadingDots(DisplayMeterActivity.this, s, pdBT, true);
+                        }
+                    };
+                    thread.start();
                 }
             });
         }

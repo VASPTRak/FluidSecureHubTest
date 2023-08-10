@@ -270,6 +270,7 @@ public class AcceptDeptActivity extends AppCompatActivity {
         menu.findItem(R.id.mcamera_back).setVisible(false);
         menu.findItem(R.id.mcamera_front).setVisible(false);
         menu.findItem(R.id.mshow_reader_status).setVisible(false);
+        menu.findItem(R.id.mrestartapp).setVisible(false);
 
         if (cd.isConnectingToInternet() && AppConstants.NETWORK_STRENGTH) {
 
@@ -421,15 +422,23 @@ public class AcceptDeptActivity extends AppCompatActivity {
         @Override
         protected void onPreExecute() {
 
-            String s = getResources().getString(R.string.PleaseWait);
-            SpannableString ss2=  new SpannableString(s);
-            ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
-            ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
-            pd = new ProgressDialog(AcceptDeptActivity.this);
-            pd.setMessage(ss2);
+            String s = getResources().getString(R.string.PleaseWaitMessage);
+            //SpannableString ss2=  new SpannableString(s);
+            //ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
+            //ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
+            //pd = new ProgressDialog(AcceptDeptActivity.this);
+            pd = ProgressDialogUtil.createProgressDialog(AcceptDeptActivity.this, s, true);
+            //pd.setMessage(ss2);
             pd.setCancelable(true);
             pd.show();
 
+            Thread thread = new Thread() {
+                @Override
+                public void run() {
+                    ProgressDialogUtil.runAnimatedLoadingDots(AcceptDeptActivity.this, s, pd, true);
+                }
+            };
+            thread.start();
         }
 
         @Override
