@@ -408,6 +408,8 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
     public Handler BTConnectionHandler = new Handler(Looper.getMainLooper());
     public int delayMillis = 100;
     public String st = "";
+    public String strWait1 = "", strWait2 = "", strWait3 = "", strWait4 = "", strWait5 = "", strWait6 = "";
+    public int waitCounter1 = 0, waitCounter2 = 0, waitCounter3 = 0, waitCounter4 = 0, waitCounter5 = 0, waitCounter6 = 0;
     public boolean ConfigurationStep1IsInProgress = false;
     public boolean upgradeLoaderIsShown = false;
     public Menu myMenu;
@@ -1939,6 +1941,14 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                         Intent intent = new Intent(WelcomeActivity.this, AcceptPinActivity_new.class);
                                         startActivity(intent);
 
+                                    } else if (obj.IsDepartmentRequire.equalsIgnoreCase("true")) {
+
+                                        btnGo.setClickable(false);
+                                        Constants.GateHubPinNo = "";
+                                        Constants.GateHubvehicleNo = "";
+                                        Intent intent = new Intent(WelcomeActivity.this, AcceptDeptActivity.class);
+                                        startActivity(intent);
+
                                     } else if (obj.IsOtherRequire.equalsIgnoreCase("True") && !obj.HUBType.equalsIgnoreCase("G")) {
 
                                         btnGo.setClickable(false);
@@ -1948,9 +1958,15 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                                         startActivity(intent);
 
                                     } else {
-                                        AppConstants.colorToastBigFont(WelcomeActivity.this, "Fuel screen", Color.BLUE);
+                                        /*AppConstants.colorToastBigFont(WelcomeActivity.this, "Fuel screen", Color.BLUE);
                                         if (AppConstants.GenerateLogs)
-                                            AppConstants.WriteinFile(TAG + "Fuel screen");
+                                            AppConstants.WriteinFile(TAG + "Fuel screen");*/
+
+                                        btnGo.setClickable(false);
+                                        Constants.GateHubPinNo = "";
+                                        Constants.GateHubvehicleNo = "";
+                                        Intent intent = new Intent(WelcomeActivity.this, DisplayMeterActivity.class);
+                                        startActivity(intent);
 
                                     }
                                 } else {
@@ -2145,6 +2161,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
         IsPersonnelPINRequireForHub = sharedPrefODO.getString(AppConstants.IsPersonnelPINRequireForHub, "");
         IsOtherRequire = sharedPrefODO.getString(AppConstants.IsOtherRequire, "");
         IsVehicleNumberRequire = sharedPrefODO.getString(AppConstants.IsVehicleNumberRequire, "");
+        AppConstants.HUB_ID = sharedPrefODO.getString(AppConstants.HubId, "");
 
         //Skip PinActivity and pass pin= "";
         if (Constants.CurrentSelectedHose != null)
@@ -2185,13 +2202,38 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             Intent intent = new Intent(WelcomeActivity.this, AcceptVehicleActivity_new.class);
             startActivity(intent);
 
-        } else {
+        } else if (IsPersonnelPINRequireForHub.equalsIgnoreCase("True")) {
 
             btnGo.setClickable(false);
             Constants.GateHubPinNo = "";
             Constants.GateHubvehicleNo = "";
             Intent intent = new Intent(WelcomeActivity.this, AcceptPinActivity_new.class);
             startActivity(intent);
+
+        } else if (IsDepartmentRequire.equalsIgnoreCase("True")) {
+
+            btnGo.setClickable(false);
+            Constants.GateHubPinNo = "";
+            Constants.GateHubvehicleNo = "";
+            Intent intent = new Intent(WelcomeActivity.this, AcceptDeptActivity.class);
+            startActivity(intent);
+
+        } else if (IsOtherRequire.equalsIgnoreCase("True")) {
+
+            btnGo.setClickable(false);
+            Constants.GateHubPinNo = "";
+            Constants.GateHubvehicleNo = "";
+            Intent intent = new Intent(WelcomeActivity.this, AcceptOtherActivity.class);
+            startActivity(intent);
+
+        } else {
+
+            btnGo.setClickable(false);
+            Constants.GateHubPinNo = "";
+            Constants.GateHubvehicleNo = "";
+            AcceptServiceCall asc = new AcceptServiceCall();
+            asc.activity = WelcomeActivity.this;
+            asc.checkAllFields();
         }
 
         /*if (ReaderFrequency.equalsIgnoreCase("hfr")) {
@@ -5987,9 +6029,20 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 linear_fs_1.setVisibility(View.VISIBLE);
             } else {
                 if (AppConstants.isInfoCommandSuccess_fs1) {
+                    waitCounter1 = 0;
+                    strWait1 = "";
                     tvFs1_beginFuel.setText(R.string.BeforeStartFueling);
                 } else {
-                    tvFs1_beginFuel.setText(R.string.PleaseWait);
+                    if (waitCounter1 > 3) {
+                        waitCounter1 = 0;
+                        strWait1 = "";
+                        tvFs1_beginFuel.setText(R.string.PleaseWaitMessage);
+                    } else {
+                        waitCounter1++;
+                        strWait1 = strWait1 + ".";
+                        String msg = getResources().getString(R.string.PleaseWaitMessage) + strWait1;
+                        tvFs1_beginFuel.setText(msg);
+                    }
                 }
                 Fs1_beginFuel.setVisibility(View.VISIBLE);
                 linear_fs_1.setVisibility(View.GONE);
@@ -6122,9 +6175,20 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 linear_fs_2.setVisibility(View.VISIBLE);
             } else {
                 if (AppConstants.isInfoCommandSuccess_fs2) {
+                    waitCounter2 = 0;
+                    strWait2 = "";
                     tvFs2_beginFuel.setText(R.string.BeforeStartFueling);
                 } else {
-                    tvFs2_beginFuel.setText(R.string.PleaseWait);
+                    if (waitCounter2 > 3) {
+                        waitCounter2 = 0;
+                        strWait2 = "";
+                        tvFs2_beginFuel.setText(R.string.PleaseWaitMessage);
+                    } else {
+                        waitCounter2++;
+                        strWait2 = strWait2 + ".";
+                        String msg = getResources().getString(R.string.PleaseWaitMessage) + strWait2;
+                        tvFs2_beginFuel.setText(msg);
+                    }
                 }
                 Fs2_beginFuel.setVisibility(View.VISIBLE);
                 linear_fs_2.setVisibility(View.GONE);
@@ -6256,9 +6320,20 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 linear_fs_3.setVisibility(View.VISIBLE);
             } else {
                 if (AppConstants.isInfoCommandSuccess_fs3) {
+                    waitCounter3 = 0;
+                    strWait3 = "";
                     tvFs3_beginFuel.setText(R.string.BeforeStartFueling);
                 } else {
-                    tvFs3_beginFuel.setText(R.string.PleaseWait);
+                    if (waitCounter3 > 3) {
+                        waitCounter3 = 0;
+                        strWait3 = "";
+                        tvFs3_beginFuel.setText(R.string.PleaseWaitMessage);
+                    } else {
+                        waitCounter3++;
+                        strWait3 = strWait3 + ".";
+                        String msg = getResources().getString(R.string.PleaseWaitMessage) + strWait3;
+                        tvFs3_beginFuel.setText(msg);
+                    }
                 }
                 Fs3_beginFuel.setVisibility(View.VISIBLE);
                 linear_fs_3.setVisibility(View.GONE);
@@ -6390,9 +6465,20 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 linear_fs_4.setVisibility(View.VISIBLE);
             } else {
                 if (AppConstants.isInfoCommandSuccess_fs4) {
+                    waitCounter4 = 0;
+                    strWait4 = "";
                     tvFs4_beginFuel.setText(R.string.BeforeStartFueling);
                 } else {
-                    tvFs4_beginFuel.setText(R.string.PleaseWait);
+                    if (waitCounter4 > 3) {
+                        waitCounter4 = 0;
+                        strWait4 = "";
+                        tvFs4_beginFuel.setText(R.string.PleaseWaitMessage);
+                    } else {
+                        waitCounter4++;
+                        strWait4 = strWait4 + ".";
+                        String msg = getResources().getString(R.string.PleaseWaitMessage) + strWait4;
+                        tvFs4_beginFuel.setText(msg);
+                    }
                 }
                 Fs4_beginFuel.setVisibility(View.VISIBLE);
                 linear_fs_4.setVisibility(View.GONE);
@@ -6525,9 +6611,20 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 linear_fs_5.setVisibility(View.VISIBLE);
             } else {
                 if (AppConstants.isInfoCommandSuccess_fs5) {
+                    waitCounter5 = 0;
+                    strWait5 = "";
                     tvFs5_beginFuel.setText(R.string.BeforeStartFueling);
                 } else {
-                    tvFs5_beginFuel.setText(R.string.PleaseWait);
+                    if (waitCounter5 > 3) {
+                        waitCounter5 = 0;
+                        strWait5 = "";
+                        tvFs5_beginFuel.setText(R.string.PleaseWaitMessage);
+                    } else {
+                        waitCounter5++;
+                        strWait5 = strWait5 + ".";
+                        String msg = getResources().getString(R.string.PleaseWaitMessage) + strWait5;
+                        tvFs5_beginFuel.setText(msg);
+                    }
                 }
                 Fs5_beginFuel.setVisibility(View.VISIBLE);
                 linear_fs_5.setVisibility(View.GONE);
@@ -6659,9 +6756,20 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 linear_fs_6.setVisibility(View.VISIBLE);
             } else {
                 if (AppConstants.isInfoCommandSuccess_fs6) {
+                    waitCounter6 = 0;
+                    strWait6 = "";
                     tvFs6_beginFuel.setText(R.string.BeforeStartFueling);
                 } else {
-                    tvFs6_beginFuel.setText(R.string.PleaseWait);
+                    if (waitCounter6 > 3) {
+                        waitCounter6 = 0;
+                        strWait6 = "";
+                        tvFs6_beginFuel.setText(R.string.PleaseWaitMessage);
+                    } else {
+                        waitCounter6++;
+                        strWait6 = strWait6 + ".";
+                        String msg = getResources().getString(R.string.PleaseWaitMessage) + strWait6;
+                        tvFs6_beginFuel.setText(msg);
+                    }
                 }
                 Fs6_beginFuel.setVisibility(View.VISIBLE);
                 linear_fs_6.setVisibility(View.GONE);
@@ -12143,7 +12251,6 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                 String code = edt_code.getText().toString().trim();
 
                 if (code != null && !code.isEmpty() && code.equals(AppConstants.AccessCode)) {
-                    //Toast.makeText(AcceptVehicleActivity_new.this, "Done", Toast.LENGTH_SHORT).show();
                     dialogBus.dismiss();
                     finish();
                 } else {
@@ -13989,7 +14096,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
     }
 
-    public void ShowAnimatedStatus(String s) {
+    public void ShowAnimatedStatus(String s, TextView textView) {
         try {
 
             //Handler handler = new Handler(Looper.getMainLooper());
@@ -14003,13 +14110,13 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
                         st = st + ".";
                         delayMillis = delayMillis + 100;
                     }
-                    tvSSIDName.setText(st);
+                    textView.setText(st);
                     BTConnectionHandler.postDelayed(this, delayMillis);
                 }
             }, delayMillis);
         } catch (Exception ex) {
             ex.printStackTrace();
-            tvSSIDName.setText(s);
+            textView.setText(s);
         }
     }
 
@@ -14019,7 +14126,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
             if (!s.equalsIgnoreCase(getResources().getString(R.string.LinkIsConnecting))) {
                 tvSSIDName.setText(s);
             } else {
-                ShowAnimatedStatus(s);
+                ShowAnimatedStatus(s, tvSSIDName);
             }
             //tvSSIDName.setText(s); // uncomment this if the above code is not in use.
             btnGo.setVisibility(View.GONE);

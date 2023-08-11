@@ -104,14 +104,23 @@ public class AcceptServiceCall {
         @Override
         protected void onPreExecute() {
 
-            String s = activity.getResources().getString(R.string.PleaseWait);
-            SpannableString ss2=  new SpannableString(s);
-            ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
-            ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
-            pd = new ProgressDialog(activity);
-            pd.setMessage(ss2);
+            String s = activity.getResources().getString(R.string.PleaseWaitMessage);
+            //SpannableString ss2=  new SpannableString(s);
+            //ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
+            //ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
+            //pd = new ProgressDialog(activity);
+            pd = ProgressDialogUtil.createProgressDialog(activity, s, true);
+            //pd.setMessage(ss2);
             pd.setCancelable(true);
             pd.show();
+
+            Thread thread = new Thread() {
+                @Override
+                public void run() {
+                    ProgressDialogUtil.runAnimatedLoadingDots(activity, s, pd, true);
+                }
+            };
+            thread.start();
 
         }
 
