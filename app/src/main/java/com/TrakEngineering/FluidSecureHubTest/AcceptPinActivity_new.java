@@ -1304,27 +1304,20 @@ public class AcceptPinActivity_new extends AppCompatActivity {
     }
 
     public class CallSaveButtonFunctionality extends AsyncTask<Void, Void, String> {
-
-
-        ProgressDialog pd;
+        //ProgressDialog pd;
+        AlertDialog alertDialog;
 
         @Override
         protected void onPreExecute() {
 
             String s = getResources().getString(R.string.PleaseWaitMessage);
-            //SpannableString ss2 = new SpannableString(s);
-            //ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
-            //ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
-            //pd = new ProgressDialog(AcceptPinActivity_new.this);
-            pd = ProgressDialogUtil.createProgressDialog(AcceptPinActivity_new.this, s, true);
-            //pd.setMessage(ss2);
-            pd.setCancelable(true);
-            pd.show();
+            alertDialog = AlertDialogUtil.createAlertDialog(AcceptPinActivity_new.this, s, true);
+            alertDialog.show();
 
             Thread thread = new Thread() {
                 @Override
                 public void run() {
-                    ProgressDialogUtil.runAnimatedLoadingDots(AcceptPinActivity_new.this, s, pd, true);
+                    AlertDialogUtil.runAnimatedLoadingDots(AcceptPinActivity_new.this, s, alertDialog, true);
                 }
             };
             thread.start();
@@ -1478,7 +1471,9 @@ public class AcceptPinActivity_new extends AppCompatActivity {
         protected void onPostExecute(String serverRes) {
 
             if (!PersonValidationInProgress) {
-                pd.dismiss();
+                if (alertDialog.isShowing()) {
+                    alertDialog.dismiss();
+                }
             }
 
             if (serverRes != null && !serverRes.isEmpty()) {

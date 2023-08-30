@@ -6,6 +6,7 @@ import static com.azure.android.maps.control.options.CameraOptions.center;
 import static com.azure.android.maps.control.options.CameraOptions.zoom;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -106,7 +107,7 @@ public class AddNewLinkToCloud extends AppCompatActivity implements LifecycleObs
     private EditText edt_LinkNewName; //, edt_StreetAddress, edt_UnitsMeasured, edt_Pulses
     private Button btn_cancel, btn_done, btnMap; //btnAddNewTank
     private String expression = "^[a-zA-Z0-9-_ ]*$";
-    private ProgressDialog pd;
+    public AlertDialog alertDialog;
     //private CheckBox chkShowHidePassword;
     private ImageButton iBtn_LinkName, iBtn_NewName, iBtn_AddNewTank, iBtn_PumpOnTime, iBtn_PumpOffTime, iBtn_PulseRatio, iBtn_StreetAddress;
     public String selectedLongitude = "0", selectedLatitude = "0";
@@ -992,26 +993,22 @@ public class AddNewLinkToCloud extends AppCompatActivity implements LifecycleObs
     public void ShowProgressDialog(){
 
         String s = getResources().getString(R.string.PleaseWaitMessage);
-        //SpannableString ss2 = new SpannableString(s);
-        //ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
-        //ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
-        //pd = new ProgressDialog(AddNewLinkToCloud.this);
-        pd = ProgressDialogUtil.createProgressDialog(AddNewLinkToCloud.this, s, true);
-        //pd.setMessage(ss2);
-        pd.setCancelable(true);
-        pd.show();
+        alertDialog = AlertDialogUtil.createAlertDialog(AddNewLinkToCloud.this, s, true);
+        alertDialog.show();
 
         Thread thread = new Thread() {
             @Override
             public void run() {
-                ProgressDialogUtil.runAnimatedLoadingDots(AddNewLinkToCloud.this, s, pd, true);
+                AlertDialogUtil.runAnimatedLoadingDots(AddNewLinkToCloud.this, s, alertDialog, true);
             }
         };
         thread.start();
     }
 
     public void HideProgressDialog(){
-        pd.dismiss();
+        if (alertDialog.isShowing()) {
+            alertDialog.dismiss();
+        }
     }
 
     public class TankAndProductDetailsIMEI {
@@ -1020,25 +1017,20 @@ public class AddNewLinkToCloud extends AppCompatActivity implements LifecycleObs
 
     public class GetTanksAndProducts extends AsyncTask<String, Void, String> {
 
-        ProgressDialog pd;
+        //ProgressDialog pd;
+        AlertDialog alertDialog;
 
         @Override
         protected void onPreExecute() {
 
             String s = getResources().getString(R.string.PleaseWaitMessage);
-            //SpannableString ss2 = new SpannableString(s);
-            //ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
-            //ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
-            //pd = new ProgressDialog(AddNewLinkToCloud.this);
-            pd = ProgressDialogUtil.createProgressDialog(AddNewLinkToCloud.this, s, true);
-            //pd.setMessage(ss2);
-            pd.setCancelable(true);
-            pd.show();
+            alertDialog = AlertDialogUtil.createAlertDialog(AddNewLinkToCloud.this, s, true);
+            alertDialog.show();
 
             Thread thread = new Thread() {
                 @Override
                 public void run() {
-                    ProgressDialogUtil.runAnimatedLoadingDots(AddNewLinkToCloud.this, s, pd, true);
+                    AlertDialogUtil.runAnimatedLoadingDots(AddNewLinkToCloud.this, s, alertDialog, true);
                 }
             };
             thread.start();
@@ -1085,7 +1077,9 @@ public class AddNewLinkToCloud extends AppCompatActivity implements LifecycleObs
         @Override
         protected void onPostExecute(String Response) {
 
-            pd.dismiss();
+            if (alertDialog.isShowing()) {
+                alertDialog.dismiss();
+            }
 
             try {
                 JSONObject jsonObject = new JSONObject(Response);
@@ -1117,26 +1111,21 @@ public class AddNewLinkToCloud extends AppCompatActivity implements LifecycleObs
 
     public class AddTankFromAPP extends AsyncTask<String, Void, String> {
 
-        ProgressDialog pd;
+        //ProgressDialog pd;
+        AlertDialog alertDialog;
         String tankNumber = "";
 
         @Override
         protected void onPreExecute() {
 
             String s = getResources().getString(R.string.PleaseWaitMessage);
-            //SpannableString ss2 = new SpannableString(s);
-            //ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
-            //ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
-            //pd = new ProgressDialog(AddNewLinkToCloud.this);
-            pd = ProgressDialogUtil.createProgressDialog(AddNewLinkToCloud.this, s, true);
-            //pd.setMessage(ss2);
-            pd.setCancelable(true);
-            pd.show();
+            alertDialog = AlertDialogUtil.createAlertDialog(AddNewLinkToCloud.this, s, true);
+            alertDialog.show();
 
             Thread thread = new Thread() {
                 @Override
                 public void run() {
-                    ProgressDialogUtil.runAnimatedLoadingDots(AddNewLinkToCloud.this, s, pd, true);
+                    AlertDialogUtil.runAnimatedLoadingDots(AddNewLinkToCloud.this, s, alertDialog, true);
                 }
             };
             thread.start();
@@ -1203,7 +1192,9 @@ public class AddNewLinkToCloud extends AppCompatActivity implements LifecycleObs
                         @Override
                         public void run() {
                             BindTankList(true);
-                            pd.dismiss();
+                            if (alertDialog.isShowing()) {
+                                alertDialog.dismiss();
+                            }
                             if (addTankDialog != null) {
                                 addTankDialog.dismiss();
                             }
@@ -1211,14 +1202,18 @@ public class AddNewLinkToCloud extends AppCompatActivity implements LifecycleObs
                     }, 1000);
 
                 } else {
-                    pd.dismiss();
+                    if (alertDialog.isShowing()) {
+                        alertDialog.dismiss();
+                    }
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(TAG + " AddTankFromAPP Response: " + ResponseText);
                     showCustomMessageDialog(AddNewLinkToCloud.this, ResponseText, "");
                 }
 
             } catch (Exception e) {
-                pd.dismiss();
+                if (alertDialog.isShowing()) {
+                    alertDialog.dismiss();
+                }
                 e.printStackTrace();
                 if (AppConstants.GenerateLogs)
                     AppConstants.WriteinFile(TAG + " AddTankFromAPP onPostExecute Exception: " + e.getMessage());

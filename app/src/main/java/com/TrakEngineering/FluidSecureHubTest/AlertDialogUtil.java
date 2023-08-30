@@ -1,37 +1,35 @@
 package com.TrakEngineering.FluidSecureHubTest;
 
 import android.app.Activity;
-import android.app.ProgressDialog;
+import android.app.AlertDialog;
 import android.content.Context;
 import android.graphics.Color;
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.RelativeSizeSpan;
-import android.widget.TextView;
 
-public class ProgressDialogUtil {
+public class AlertDialogUtil {
 
-    public static ProgressDialog createProgressDialog(Context context, String message, boolean showSpannableString) {
-        ProgressDialog dialog = new ProgressDialog(context);
-        //ProgressDialog dialog = new ProgressDialog(context, R.style.MyAlertDialogStyle); // Also uncomment MyAlertDialogStyle in styles.xml
-        dialog.setTitle("");
+    public static AlertDialog createAlertDialog(Context context, String message, boolean showSpannableString) {
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(context);
+        alertDialogBuilder.setTitle("");
         if (showSpannableString) {
             SpannableString ss2 = new SpannableString(message);
             ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
             ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
-            dialog.setMessage(ss2);
+            alertDialogBuilder.setMessage(ss2);
         } else {
-            dialog.setMessage(message);
+            alertDialogBuilder.setMessage(message);
         }
-        dialog.setCancelable(false);
-        return dialog;
+        alertDialogBuilder.setCancelable(false);
+        AlertDialog alertDialog = alertDialogBuilder.create();
+        return alertDialog;
     }
 
-    public static void runAnimatedLoadingDots(Activity activity, String messagePrefix, final ProgressDialog progressDialog, boolean showSpannableString) {
+    public static void runAnimatedLoadingDots(Activity activity, String messagePrefix, final AlertDialog alertDialog, boolean showSpannableString) {
 
         int dotsCount = 0;
-        while (progressDialog != null && progressDialog.isShowing()) {
-
+        while (alertDialog != null && alertDialog.isShowing()) {
             dotsCount++;
             dotsCount = dotsCount % 5; // looks good w/4 dots
 
@@ -52,9 +50,9 @@ public class ProgressDialogUtil {
                         SpannableString ss2 = new SpannableString(updateValue.toString());
                         ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
                         ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
-                        progressDialog.setMessage(ss2);
+                        alertDialog.setMessage(ss2);
                     } else {
-                        progressDialog.setMessage(updateValue.toString());
+                        alertDialog.setMessage(updateValue.toString());
                     }
                 }
             });
