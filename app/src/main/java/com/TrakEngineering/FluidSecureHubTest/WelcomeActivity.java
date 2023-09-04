@@ -24,6 +24,7 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.res.AssetManager;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
@@ -575,7 +576,53 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
         DebugWindow();
         AppConstants.showWelcomeDialogForAddNewLink = true;
+    }
 
+    private void copyFileFromAssets() {
+        String binFolderPath = String.valueOf(getApplicationContext().getExternalFilesDir(AppConstants.FOLDER_BIN));
+        InputStream inputStream = null;
+        OutputStream outputStream = null;
+
+        try {
+            AssetManager assetManager = getResources().getAssets();
+            String[] upFiles = getResources().getAssets().list("Firmwares");
+
+            for (String upFile : upFiles) {
+                inputStream = null;
+                outputStream = null;
+                inputStream = assetManager.open("Firmwares/" + upFile);
+                if (inputStream != null) {
+                    File file = new File(binFolderPath + "/" + upFile);
+
+                    if (!file.exists()) {
+                        outputStream = new FileOutputStream(file);
+
+                        byte[] buffer = new byte[1024];
+                        int read;
+                        while ((read = inputStream.read(buffer)) != -1) {
+                            outputStream.write(buffer, 0, read);
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            AppConstants.WriteinFile("Exception in copyFileFromAssets: " + e.getMessage());
+        } finally {
+            try {
+                if (inputStream != null) {
+                    inputStream.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            try {
+                if (outputStream != null) {
+                    outputStream.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     @Override
@@ -1110,6 +1157,7 @@ public class WelcomeActivity extends AppCompatActivity implements GoogleApiClien
 
         cancelThinDownloadManager();
 
+        copyFileFromAssets();
     }
 
     public void cancelThinDownloadManager() {
