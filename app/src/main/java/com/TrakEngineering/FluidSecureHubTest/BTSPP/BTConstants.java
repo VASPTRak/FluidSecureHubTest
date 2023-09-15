@@ -61,6 +61,12 @@ public class BTConstants {
     public static String scope_READ_cmd = "LK_COMM=scope=READ";
     public static String ScopeStatus = "";
     public static String[] p_types = {"1", "2", "3", "4"};
+    public static boolean isStopButtonPressed1 = false;
+    public static boolean isStopButtonPressed2 = false;
+    public static boolean isStopButtonPressed3 = false;
+    public static boolean isStopButtonPressed4 = false;
+    public static boolean isStopButtonPressed5 = false;
+    public static boolean isStopButtonPressed6 = false;
 
     public static boolean isPTypeCommandExecuted1 = false;
     public static boolean isPTypeCommandExecuted2 = false;

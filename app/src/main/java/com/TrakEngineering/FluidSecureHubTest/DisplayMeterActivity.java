@@ -41,6 +41,7 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.TrakEngineering.FluidSecureHubTest.BTBLE.BS_BLE_BTOne;
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTConstants;
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPPMain;
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.BackgroundService_BTOne;
@@ -61,8 +62,8 @@ import com.TrakEngineering.FluidSecureHubTest.offline.OffTranzSyncService;
 import com.TrakEngineering.FluidSecureHubTest.offline.OfflineConstants;
 import com.TrakEngineering.FluidSecureHubTest.server.ServerHandler;
 import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.location.LocationServices;
+//import com.google.android.gms.common.api.GoogleApiClient;
+//import com.google.android.gms.location.LocationServices;
 import com.google.gson.Gson;
 import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.OkHttpClient;
@@ -98,7 +99,7 @@ import static com.TrakEngineering.FluidSecureHubTest.WelcomeActivity.wifiApManag
 import static java.lang.String.format;
 
 
-public class DisplayMeterActivity extends AppCompatActivity implements View.OnClickListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+public class DisplayMeterActivity extends AppCompatActivity implements View.OnClickListener { //, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener
 
 
     //WifiManager wifiManager;
@@ -146,6 +147,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
     public String HTTP_URL = "";
     public String SERVERIP = "";
     public String LinkCommunicationType = "";
+    public String BTLinkCommType = "";
     public String LinkName = "";
     public String URL_GET_TXNID = "";
     public String URL_SET_TXNID = "";
@@ -192,7 +194,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
     String IsOdoMeterRequire = "", IsDepartmentRequire = "", IsPersonnelPINRequire = "", IsOtherRequire = "";
     String TimeOutinMinute;
     List<Timer> DisplayMScreeTimerlist = new ArrayList<Timer>();
-    GoogleApiClient mGoogleApiClient;
+    //GoogleApiClient mGoogleApiClient;
     protected static final int REQUEST_CHECK_SETTINGS = 0x1;
     public OkHttpClient client = new OkHttpClient();
 
@@ -284,6 +286,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
         String IpAddress = "";
         try {
             LinkCommunicationType = WelcomeActivity.serverSSIDList.get(WelcomeActivity.SelectedItemPos).get("LinkCommunicationType");
+            BTLinkCommType = WelcomeActivity.serverSSIDList.get(WelcomeActivity.SelectedItemPos).get("BTLinkCommType");
             LinkName = WelcomeActivity.serverSSIDList.get(WelcomeActivity.SelectedItemPos).get("WifiSSId");
 
             if (!LinkCommunicationType.equalsIgnoreCase("BT")) {
@@ -378,6 +381,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
         LinkName = "";
         try {
             LinkCommunicationType = WelcomeActivity.serverSSIDList.get(WelcomeActivity.SelectedItemPos).get("LinkCommunicationType");
+            BTLinkCommType = WelcomeActivity.serverSSIDList.get(WelcomeActivity.SelectedItemPos).get("BTLinkCommType");
             LinkName = WelcomeActivity.serverSSIDList.get(WelcomeActivity.SelectedItemPos).get("WifiSSId");
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -474,22 +478,17 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
         LocationManager locationManager = (LocationManager) DisplayMeterActivity.this.getSystemService(Context.LOCATION_SERVICE);
         boolean statusOfGPS = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
 
-
         if (!statusOfGPS) {
-
             turnGPSOn();
-
         }*/
 
-
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
+        /*mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addApi(LocationServices.API)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .build();
 
-        mGoogleApiClient.connect();
-
+        mGoogleApiClient.connect();*/
 
        /* if (ActivityHandler.screenStack != null)
             ActivityHandler.screenStack.clear();*/
@@ -752,7 +751,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
     }
 
 
-    @Override
+    /*@Override
     public void onConnected(Bundle bundle) {
         Location mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
         if (mLastLocation != null) {
@@ -764,17 +763,15 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
             System.out.println("CCCrrr" + CurrentLng);
 
         }
-    }
+    }*/
 
-    @Override
+    /*@Override
     public void onConnectionSuspended(int i) {
+    }*/
 
-    }
-
-    @Override
+    /*@Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
-
-    }
+    }*/
 
     public void doTimerTask() {
 
@@ -1067,6 +1064,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
         String IpAddress = SERVERIP;
         LinkCommunicationType = WelcomeActivity.serverSSIDList.get(WelcomeActivity.SelectedItemPos).get("LinkCommunicationType");
+        BTLinkCommType = WelcomeActivity.serverSSIDList.get(WelcomeActivity.SelectedItemPos).get("BTLinkCommType");
         LinkName = WelcomeActivity.serverSSIDList.get(WelcomeActivity.SelectedItemPos).get("WifiSSId");
 
         if (IpAddress.trim().isEmpty()) {
@@ -4481,11 +4479,15 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
             Log.i(TAG, "BT Link ");
             switch (BTConstants.CurrentSelectedLinkBT) {
                 case 1://Link 1
-
                     // BtnStartStateChange(true);
                     Log.i(TAG, "BTServiceSelected One>>");
                     // BtnStartStateChange(false);
-                    Intent serviceIntent1 = new Intent(DisplayMeterActivity.this, BackgroundService_BTOne.class);
+                    Intent serviceIntent1;
+                    if (BTLinkCommType.equalsIgnoreCase("BLE")) {
+                        serviceIntent1 = new Intent(DisplayMeterActivity.this, BS_BLE_BTOne.class);
+                    } else {
+                        serviceIntent1 = new Intent(DisplayMeterActivity.this, BackgroundService_BTOne.class);
+                    }
                     serviceIntent1.putExtra("SERVER_IP", SERVERIP);
                     serviceIntent1.putExtra("sqlite_id", sqlite_id);
                     startService(serviceIntent1);
@@ -4706,73 +4708,75 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
         protected String doInBackground(String... param) {
 
             try {
-                switch (WelcomeActivity.SelectedItemPos) {
-                    case 0: // Link 1
-                        if (!BTConstants.BTStatusStrOne.equalsIgnoreCase("Connected")) {
-                            isReconnectionTried = true;
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink 1: Link not connected. Retrying to connect.");
-                            //Retrying to connect to link
-                            BTSPPMain btspp = new BTSPPMain();
-                            btspp.activity = DisplayMeterActivity.this;
-                            btspp.connect1();
-                        }
-                        break;
-                    case 1: // Link 2
-                        if (!BTConstants.BTStatusStrTwo.equalsIgnoreCase("Connected")) {
-                            isReconnectionTried = true;
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink 2: Link not connected. Retrying to connect.");
-                            //Retrying to connect to link
-                            BTSPPMain btspp = new BTSPPMain();
-                            btspp.activity = DisplayMeterActivity.this;
-                            btspp.connect2();
-                        }
-                        break;
-                    case 2: // Link 3
-                        if (!BTConstants.BTStatusStrThree.equalsIgnoreCase("Connected")) {
-                            isReconnectionTried = true;
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink 3: Link not connected. Retrying to connect.");
-                            //Retrying to connect to link
-                            BTSPPMain btspp = new BTSPPMain();
-                            btspp.activity = DisplayMeterActivity.this;
-                            btspp.connect3();
-                        }
-                        break;
-                    case 3: // Link 4
-                        if (!BTConstants.BTStatusStrFour.equalsIgnoreCase("Connected")) {
-                            isReconnectionTried = true;
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink 4: Link not connected. Retrying to connect.");
-                            //Retrying to connect to link
-                            BTSPPMain btspp = new BTSPPMain();
-                            btspp.activity = DisplayMeterActivity.this;
-                            btspp.connect4();
-                        }
-                        break;
-                    case 4: // Link 5
-                        if (!BTConstants.BTStatusStrFive.equalsIgnoreCase("Connected")) {
-                            isReconnectionTried = true;
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink 5: Link not connected. Retrying to connect.");
-                            //Retrying to connect to link
-                            BTSPPMain btspp = new BTSPPMain();
-                            btspp.activity = DisplayMeterActivity.this;
-                            btspp.connect5();
-                        }
-                        break;
-                    case 5: // Link 6
-                        if (!BTConstants.BTStatusStrSix.equalsIgnoreCase("Connected")) {
-                            isReconnectionTried = true;
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink 6: Link not connected. Retrying to connect.");
-                            //Retrying to connect to link
-                            BTSPPMain btspp = new BTSPPMain();
-                            btspp.activity = DisplayMeterActivity.this;
-                            btspp.connect6();
-                        }
-                        break;
+                if (BTLinkCommType.equalsIgnoreCase("SPP")) {
+                    switch (WelcomeActivity.SelectedItemPos) {
+                        case 0: // Link 1
+                            if (!BTConstants.BTStatusStrOne.equalsIgnoreCase("Connected")) {
+                                isReconnectionTried = true;
+                                if (AppConstants.GenerateLogs)
+                                    AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink 1: Link not connected. Retrying to connect.");
+                                //Retrying to connect to link
+                                BTSPPMain btspp = new BTSPPMain();
+                                btspp.activity = DisplayMeterActivity.this;
+                                btspp.connect1();
+                            }
+                            break;
+                        case 1: // Link 2
+                            if (!BTConstants.BTStatusStrTwo.equalsIgnoreCase("Connected")) {
+                                isReconnectionTried = true;
+                                if (AppConstants.GenerateLogs)
+                                    AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink 2: Link not connected. Retrying to connect.");
+                                //Retrying to connect to link
+                                BTSPPMain btspp = new BTSPPMain();
+                                btspp.activity = DisplayMeterActivity.this;
+                                btspp.connect2();
+                            }
+                            break;
+                        case 2: // Link 3
+                            if (!BTConstants.BTStatusStrThree.equalsIgnoreCase("Connected")) {
+                                isReconnectionTried = true;
+                                if (AppConstants.GenerateLogs)
+                                    AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink 3: Link not connected. Retrying to connect.");
+                                //Retrying to connect to link
+                                BTSPPMain btspp = new BTSPPMain();
+                                btspp.activity = DisplayMeterActivity.this;
+                                btspp.connect3();
+                            }
+                            break;
+                        case 3: // Link 4
+                            if (!BTConstants.BTStatusStrFour.equalsIgnoreCase("Connected")) {
+                                isReconnectionTried = true;
+                                if (AppConstants.GenerateLogs)
+                                    AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink 4: Link not connected. Retrying to connect.");
+                                //Retrying to connect to link
+                                BTSPPMain btspp = new BTSPPMain();
+                                btspp.activity = DisplayMeterActivity.this;
+                                btspp.connect4();
+                            }
+                            break;
+                        case 4: // Link 5
+                            if (!BTConstants.BTStatusStrFive.equalsIgnoreCase("Connected")) {
+                                isReconnectionTried = true;
+                                if (AppConstants.GenerateLogs)
+                                    AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink 5: Link not connected. Retrying to connect.");
+                                //Retrying to connect to link
+                                BTSPPMain btspp = new BTSPPMain();
+                                btspp.activity = DisplayMeterActivity.this;
+                                btspp.connect5();
+                            }
+                            break;
+                        case 5: // Link 6
+                            if (!BTConstants.BTStatusStrSix.equalsIgnoreCase("Connected")) {
+                                isReconnectionTried = true;
+                                if (AppConstants.GenerateLogs)
+                                    AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink 6: Link not connected. Retrying to connect.");
+                                //Retrying to connect to link
+                                BTSPPMain btspp = new BTSPPMain();
+                                btspp.activity = DisplayMeterActivity.this;
+                                btspp.connect6();
+                            }
+                            break;
+                    }
                 }
             } catch (Exception e) {
                 if (AppConstants.GenerateLogs)
@@ -4784,18 +4788,26 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
         @Override
         protected void onPostExecute(String FSStatus) {
-
             try {
-                if (isReconnectionTried) {
-                    new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            checkBTLinkStatus(WelcomeActivity.SelectedItemPos);
-                        }
-                    }, 100);
+                boolean flagForProceed = false;
+                if (BTLinkCommType.equalsIgnoreCase("SPP")) {
+                    if (isReconnectionTried) {
+                        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                checkBTLinkStatus(WelcomeActivity.SelectedItemPos);
+                            }
+                        }, 100);
+                    } else {
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "<Link is connected.>");
+                        flagForProceed = true;
+                    }
                 } else {
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "<Link is connected.>");
+                    flagForProceed = true;
+                }
+
+                if (flagForProceed) {
                     new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                         @Override
                         public void run() {

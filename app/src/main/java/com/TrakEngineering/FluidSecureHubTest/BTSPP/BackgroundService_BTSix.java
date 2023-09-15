@@ -437,11 +437,11 @@ public class BackgroundService_BTSix extends Service {
                             Log.i(TAG, "BTLink 6: InfoCommand Response success 1:>>" + Response);
 
                             if (!TransactionId.isEmpty()) {
-                                if (Response.contains("records") && Response.contains("mac_address")) {
+                                if (Response.contains("mac_address")) {
                                     if (AppConstants.GenerateLogs)
                                         AppConstants.WriteinFile(TAG + " BTLink 6: Checking Info command response. Response: true");
                                     BTConstants.isNewVersionLinkSix = true;
-                                    parseInfoCommandResponseForLast20txtn(Response); // parse last 20 Txtn
+                                    parseInfoCommandResponse(Response); // parse info command response
                                     Response = "";
                                 } else {
                                     if (AppConstants.GenerateLogs)
@@ -480,11 +480,11 @@ public class BackgroundService_BTSix extends Service {
                         Log.i(TAG, "BTLink 6: InfoCommand Response success 2:>>" + Response);
 
                         if (!TransactionId.isEmpty()) {
-                            if (Response.contains("records") && Response.contains("mac_address")) {
+                            if (Response.contains("mac_address")) {
                                 if (AppConstants.GenerateLogs)
                                     AppConstants.WriteinFile(TAG + " BTLink 6: Checking Info command response. Response: true");
                                 BTConstants.isNewVersionLinkSix = true;
-                                parseInfoCommandResponseForLast20txtn(Response); // parse last 20 Txtn
+                                parseInfoCommandResponse(Response); // parse info command response
                                 Response = "";
                             } else {
                                 if (AppConstants.GenerateLogs)
@@ -1454,6 +1454,13 @@ public class BackgroundService_BTSix extends Service {
                         upgradeResponse = Response;
                     }
 
+                    if (Request.contains(BTConstants.info_cmd)) {
+                        if (Response.contains("records")) {
+                            JSONObject jsonObject = new JSONObject(Response);
+                            jsonObject.remove("records"); // As per #2357
+                            Response = jsonObject.toString();
+                        }
+                    }
                     //Used only for debug
                     Log.i(TAG, "BTLink 6: Link Request>>" + Request);
                     Log.i(TAG, "BTLink 6: Link Response>>" + Response);
@@ -1779,13 +1786,9 @@ public class BackgroundService_BTSix extends Service {
         }
     }
 
-    private void parseInfoCommandResponseForLast20txtn(String response) {
-
+    private void parseInfoCommandResponse(String response) {
         try {
-
-            ArrayList<HashMap<String, String>> arrayList = new ArrayList<>();
-
-            JSONObject jsonObject = new JSONObject(response);
+            /*ArrayList<HashMap<String, String>> arrayList = new ArrayList<>();
 
             JSONArray jsonArray = jsonObject.getJSONArray("records");
             for (int i = 0; i < jsonArray.length(); i++) {
@@ -1813,8 +1816,6 @@ public class BackgroundService_BTSix extends Service {
                 Hmap.put("VehicleId", vehicle); //VehicleId
                 Hmap.put("dflag", dflag);
 
-                ReturnQty(pulse);
-
                 arrayList.add(Hmap);
             }
 
@@ -1823,15 +1824,13 @@ public class BackgroundService_BTSix extends Service {
             ety.cmtxtnid_20_record = arrayList;
 
             String json20txn = gs.toJson(ety);
-            /*if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " BTLink 6: parseInfoCommandResponseForLast20txtn json20txn>>" + json20txn);*/
-            //Log.i(TAG, "BTLink 6: parseInfoCommandResponseForLast20txtn json20txn>>" + json20txn);
 
             SharedPreferences sharedPref = BackgroundService_BTSix.this.getSharedPreferences("storeCmtxtnid_20_record", Context.MODE_PRIVATE);
             SharedPreferences.Editor editor = sharedPref.edit();
             editor.putString("LINK6", json20txn);
-            editor.apply();
+            editor.apply();*/
 
+            JSONObject jsonObject = new JSONObject(response);
             JSONObject versionJsonObj = jsonObject.getJSONObject("version");
             String version = versionJsonObj.getString("version");
             if (AppConstants.GenerateLogs)
@@ -1842,7 +1841,7 @@ public class BackgroundService_BTSix extends Service {
         } catch (Exception e) {
             e.printStackTrace();
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " BTLink 6: Exception in parseInfoCommandResponseForLast20txtn. response>> " + response + "; Exception>>" + e.getMessage());
+                AppConstants.WriteinFile(TAG + " BTLink 6: Exception in parseInfoCommandResponse. response>> " + response + "; Exception>>" + e.getMessage());
         }
     }
 
