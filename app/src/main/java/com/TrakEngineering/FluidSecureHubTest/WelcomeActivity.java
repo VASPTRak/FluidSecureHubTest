@@ -306,7 +306,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
     double fillqty = 0;
     ProgressDialog loading = null;
     String IpAddress = "", IsDefective = "False";
-    Timer t, timerNoSleep = new Timer("Timer"), timerGate, time_cd, timerFSNP;
+    Timer t, timerNoSleep = new Timer("Timer"), timerGate, time_cd, timerFSNP, timerBTKeepAlive;
     Thread ui_thread;
     Date date1, date2;
     boolean EmailReaderNotConnected;
@@ -414,7 +414,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
     public boolean ConfigurationStep1IsInProgress = false;
     public boolean upgradeLoaderIsShown = false;
     public Menu myMenu;
-    public String BTStatusStr = "";
+    //public String BTStatusStr = "";
     public int connectionAttemptCount = 0;
     public boolean proceedAfterManualWifiConnect = false;
     public boolean skipOnResume = false;
@@ -664,6 +664,9 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         if (timerNoSleep != null)
             timerNoSleep.cancel();
 
+        if (timerBTKeepAlive != null)
+            timerBTKeepAlive.cancel();
+
         if (time_cd != null)
             time_cd.cancel();
 
@@ -803,6 +806,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         DownloadFile();
         //getipOverOSVersion();
         KeepDataTransferAlive();//Check For FirmwreUpgrade & KeepDataTransferAlive
+        KeepDataTransferAliveBT();//Check For Keep Alive BT Links
 
         clearOlderPictures(); //Clear pictures captured on GO button click which are older than 60 days
 
@@ -1154,7 +1158,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             //CommonUtils.enableMobileHotspotmanuallyStartTimer(this);
         }
 
-        //startBTSppMain(0); //BT link connection
+        startBTSppMain(0); //BT link connection
 
         cancelThinDownloadManager();
 
@@ -1273,6 +1277,28 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         AlarmManager alarm = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         alarm.setRepeating(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), 20000, pintent); //180000
 
+    }
+
+    public void KeepDataTransferAliveBT() {
+
+        Calendar cal = Calendar.getInstance();
+        Intent name = new Intent(WelcomeActivity.this, BackgroundServiceKeepAliveBT.class);
+        PendingIntent pintent = PendingIntent.getService(getApplicationContext(), 0, name, PendingIntent.FLAG_IMMUTABLE);
+        AlarmManager alarm = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        alarm.setRepeating(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), (1000 * 60 * 5), pintent); // Repeat every 5 minutes
+
+        timerBTKeepAlive = new Timer("TimerBTKeepAlive");
+        TimerTask repeatedTask = new TimerTask() {
+            public void run() {
+                if (BTConstants.RetryBTConnectionLinkPosition > -1) {
+                    retryBTConnection(BTConstants.RetryBTConnectionLinkPosition, false);
+                    BTConstants.RetryBTConnectionLinkPosition = -1;
+                }
+            }
+        };
+        long delay = 1000L;
+        long period = 1000L;
+        timerBTKeepAlive.scheduleAtFixedRate(repeatedTask, delay, period);
     }
 
     @Override
@@ -1796,6 +1822,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
                 if (view != null) { // GO button clicked.
                     String LinkCommunicationType = serverSSIDList.get(0).get("LinkCommunicationType");
+                    String BTLinkCommType = serverSSIDList.get(0).get("BTLinkCommType");
                     String selSSID = serverSSIDList.get(0).get("WifiSSId");
 
                     String txtnTypeForLog = "";
@@ -1809,9 +1836,14 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(txtnTypeForLog + "-" + TAG + "~~~~~TEST TRANSACTION~~~~~");
                     }
-
+                    String BTLinkCommTypeForLog = "";
+                    if (LinkCommunicationType.equalsIgnoreCase("BT")) {
+                        if (BTLinkCommType != null && !BTLinkCommType.isEmpty()) {
+                            BTLinkCommTypeForLog = " (" + LinkCommunicationType + "-" + BTLinkCommType + ")";
+                        }
+                    }
                     if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(txtnTypeForLog + "-" + TAG + "Customer select hose: " + selSSID);
+                        AppConstants.WriteinFile(txtnTypeForLog + "-" + TAG + "Customer select hose: " + selSSID + BTLinkCommTypeForLog);
 
                     GoButtonFunctionalityForSingleLink(LinkCommunicationType);
                     /*if (LinkCommunicationType.equalsIgnoreCase("BT")) {
@@ -3270,8 +3302,15 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                             AppConstants.WriteinFile(txtnTypeForLog + "-" + TAG + "~~~~~TEST TRANSACTION~~~~~");
                     }
 
+                    String BTLinkCommTypeForLog = "";
+                    if (LinkCommunicationType.equalsIgnoreCase("BT")) {
+                        if (BTLinkCommType != null && !BTLinkCommType.isEmpty()) {
+                            BTLinkCommTypeForLog = "(" + LinkCommunicationType + "-" + BTLinkCommType + ")";
+                        }
+                    }
+
                     if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(txtnTypeForLog + "-" + TAG + "Customer select hose: " + selSSID + " (position: " + (position + 1) + " of " + serverSSIDList.size() + ")");
+                        AppConstants.WriteinFile(txtnTypeForLog + "-" + TAG + "Customer select hose: " + selSSID + " (position: " + (position + 1) + " of " + serverSSIDList.size() + ") " + BTLinkCommTypeForLog);
 
                     if (IsTankEmpty != null && IsTankEmpty.equalsIgnoreCase("True")) {
                         if (AppConstants.GenerateLogs)
@@ -8088,7 +8127,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             case R.id.madd_link:
                 if (AppConstants.GenerateLogs)
                     AppConstants.WriteinFile(TAG + "<Add Link option selected.>");
-                if (AppConstants.IsHoseBusyCheckLocally()) {
+                if (AppConstants.IsAllHosesAreFree()) {
                     AddNewLinkScreen();
                 } else {
                     Toast.makeText(getApplicationContext(), getResources().getString(R.string.OneOfTheHoseIsBusy), Toast.LENGTH_SHORT).show();
@@ -8096,7 +8135,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 break;
 
             case R.id.btLinkScope:
-                if (AppConstants.IsHoseBusyCheckLocally()) {
+                if (AppConstants.IsAllHosesAreFree()) {
                     OscilloscopeLinkSelection();
                 } else {
                     Toast.makeText(getApplicationContext(), getResources().getString(R.string.OneOfTheHoseIsBusy), Toast.LENGTH_SHORT).show();
@@ -8106,7 +8145,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             case R.id.menuSpanish:
                 if (AppConstants.GenerateLogs)
                     AppConstants.WriteinFile(TAG + "<Spanish language selected.>");
-                if (AppConstants.IsHoseBusyCheckLocally()) {
+                if (AppConstants.IsAllHosesAreFree()) {
                     StoreLanguageSettings("es", true);
                 } else {
                     Toast.makeText(getApplicationContext(), getResources().getString(R.string.OneOfTheHoseIsBusy), Toast.LENGTH_SHORT).show();
@@ -8116,7 +8155,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             case R.id.menuEnglish:
                 if (AppConstants.GenerateLogs)
                     AppConstants.WriteinFile(TAG + "<English language selected.>");
-                if (AppConstants.IsHoseBusyCheckLocally()) {
+                if (AppConstants.IsAllHosesAreFree()) {
                     StoreLanguageSettings("en", true);
                 } else {
                     Toast.makeText(getApplicationContext(), getResources().getString(R.string.OneOfTheHoseIsBusy), Toast.LENGTH_SHORT).show();
@@ -9995,6 +10034,9 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         if (BackgroundServiceKeepDataTransferAlive.SSIDList != null)
                             BackgroundServiceKeepDataTransferAlive.SSIDList.clear();//clear SSIDList
 
+                        if (BackgroundServiceKeepAliveBT.SSIDList != null)
+                            BackgroundServiceKeepAliveBT.SSIDList.clear();//clear SSIDList
+
                         // Save ScreenNames into sharedPref
                         String ScreenNameForVehicle = jsonObject.getString("ScreenNameForVehicle");
                         String ScreenNameForPersonnel = jsonObject.getString("ScreenNameForPersonnel");
@@ -10179,6 +10221,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                         serverSSIDList.add(map);
                                         AppConstants.DetailsServerSSIDList = serverSSIDList;
                                         BackgroundServiceKeepDataTransferAlive.SSIDList = serverSSIDList;
+                                        BackgroundServiceKeepAliveBT.SSIDList = serverSSIDList;
 
                                         //For schedule reboot
                                         Calendar calendar = Calendar.getInstance();
@@ -11018,6 +11061,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         CommonUtils.SaveHotSpotDetailsInPref(WelcomeActivity.this, HotSpotSSID, HotSpotPassword);
 
                         BackgroundServiceKeepDataTransferAlive.SSIDList.clear();//clear SSIDList
+                        BackgroundServiceKeepAliveBT.SSIDList.clear();
 
                         //BLE upgrade
                         String IsHFUpdate = jsonObject.getString("IsHFUpdate");
@@ -11159,6 +11203,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                         serverSSIDList.add(map);
                                         AppConstants.DetailsServerSSIDList = serverSSIDList;
                                         BackgroundServiceKeepDataTransferAlive.SSIDList = serverSSIDList;
+                                        BackgroundServiceKeepAliveBT.SSIDList = serverSSIDList;
 
                                     }
                                 } else {
@@ -11507,12 +11552,13 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 } else {
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(TAG + "Offline SSIDData is Empty. Error: " + getResources().getString(R.string.HoseListIsNotAvailable));
-                    AppConstants.AlertDialogBoxCanecl(WelcomeActivity.this, R.string.HoseListIsNotAvailable);
+                    CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.HoseListIsNotAvailable));
                 }
 
                 AppConstants.DetailsServerSSIDList = serverSSIDList;
                 BackgroundServiceKeepDataTransferAlive.SSIDList = serverSSIDList;
                 AppConstants.temp_serverSSIDList = serverSSIDList;
+                BackgroundServiceKeepAliveBT.SSIDList = serverSSIDList;
             } catch (Exception e) {
                 if (AppConstants.GenerateLogs)
                     AppConstants.WriteinFile(TAG + "GetSSIDUsingLocation offline onPostExecute --Exception: " + e.getMessage());
@@ -11694,7 +11740,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     } else {
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + "SSIDData is Empty. Error: " + getResources().getString(R.string.conn_error));
-                        AppConstants.AlertDialogBoxCanecl(WelcomeActivity.this, R.string.conn_error);
+                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.conn_error));
                     }
 
                     AppConstants.temp_serverSSIDList = serverSSIDList;
@@ -11862,6 +11908,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 AppConstants.DetailsServerSSIDList = serverSSIDList;
                 BackgroundServiceKeepDataTransferAlive.SSIDList = serverSSIDList;
                 AppConstants.temp_serverSSIDList = serverSSIDList;
+                BackgroundServiceKeepAliveBT.SSIDList = serverSSIDList;
 
                 /*if (serverSSIDList != null && serverSSIDList.size() == 1) {
                     SetSSIDIfSingleHose();
@@ -15992,25 +16039,31 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
     //region BT Link Upgrade Functionality
 
     private String getBTStatusStr(int linkPosition) {
-        switch (linkPosition) {
-            case 0://Link 1
-                BTStatusStr = BTConstants.BTStatusStrOne;
-                break;
-            case 1://Link 2
-                BTStatusStr = BTConstants.BTStatusStrTwo;
-                break;
-            case 2://Link 3
-                BTStatusStr = BTConstants.BTStatusStrThree;
-                break;
-            case 3://Link 4
-                BTStatusStr = BTConstants.BTStatusStrFour;
-                break;
-            case 4://Link 5
-                BTStatusStr = BTConstants.BTStatusStrFive;
-                break;
-            case 5://Link 6
-                BTStatusStr = BTConstants.BTStatusStrSix;
-                break;
+        String BTStatusStr = "";
+        try {
+            switch (linkPosition) {
+                case 0://Link 1
+                    BTStatusStr = BTConstants.BTStatusStrOne;
+                    break;
+                case 1://Link 2
+                    BTStatusStr = BTConstants.BTStatusStrTwo;
+                    break;
+                case 2://Link 3
+                    BTStatusStr = BTConstants.BTStatusStrThree;
+                    break;
+                case 3://Link 4
+                    BTStatusStr = BTConstants.BTStatusStrFour;
+                    break;
+                case 4://Link 5
+                    BTStatusStr = BTConstants.BTStatusStrFive;
+                    break;
+                case 5://Link 6
+                    BTStatusStr = BTConstants.BTStatusStrSix;
+                    break;
+            }
+        } catch (Exception e) {
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " getBTStatusStr Exception:>>" + e.getMessage());
         }
         return BTStatusStr;
     }
@@ -16071,13 +16124,19 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         }
     }
 
-    private void retryBTConnection(int linkPosition) {
+    public void retryBTConnection(int linkPosition, boolean calledFromUpgrade) {
         try {
+            String logPrefix = "";
+            if (calledFromUpgrade) {
+                logPrefix = AppConstants.LOG_UPGRADE_BT + "-";
+            } else {
+                logPrefix = AppConstants.LOG_MAINTAIN + "-";
+            }
             switch (linkPosition) {
                 case 0: // Link 1
                     if (!BTConstants.BTStatusStrOne.equalsIgnoreCase("Connected")) {
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + "BTLink 1: Link not connected. Retrying to connect.");
+                            AppConstants.WriteinFile(logPrefix + TAG + "BTLink 1: Link not connected. Retrying to connect.");
                         //Retrying to connect to link
                         BTSPPMain btspp = new BTSPPMain();
                         btspp.activity = WelcomeActivity.this;
@@ -16087,7 +16146,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 case 1: // Link 2
                     if (!BTConstants.BTStatusStrTwo.equalsIgnoreCase("Connected")) {
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + "BTLink 2: Link not connected. Retrying to connect.");
+                            AppConstants.WriteinFile(logPrefix + TAG + "BTLink 2: Link not connected. Retrying to connect.");
                         //Retrying to connect to link
                         BTSPPMain btspp = new BTSPPMain();
                         btspp.activity = WelcomeActivity.this;
@@ -16097,7 +16156,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 case 2: // Link 3
                     if (!BTConstants.BTStatusStrThree.equalsIgnoreCase("Connected")) {
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + "BTLink 3: Link not connected. Retrying to connect.");
+                            AppConstants.WriteinFile(logPrefix + TAG + "BTLink 3: Link not connected. Retrying to connect.");
                         //Retrying to connect to link
                         BTSPPMain btspp = new BTSPPMain();
                         btspp.activity = WelcomeActivity.this;
@@ -16107,7 +16166,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 case 3: // Link 4
                     if (!BTConstants.BTStatusStrFour.equalsIgnoreCase("Connected")) {
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + "BTLink 4: Link not connected. Retrying to connect.");
+                            AppConstants.WriteinFile(logPrefix + TAG + "BTLink 4: Link not connected. Retrying to connect.");
                         //Retrying to connect to link
                         BTSPPMain btspp = new BTSPPMain();
                         btspp.activity = WelcomeActivity.this;
@@ -16117,7 +16176,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 case 4: // Link 5
                     if (!BTConstants.BTStatusStrFive.equalsIgnoreCase("Connected")) {
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + "BTLink 5: Link not connected. Retrying to connect.");
+                            AppConstants.WriteinFile(logPrefix + TAG + "BTLink 5: Link not connected. Retrying to connect.");
                         //Retrying to connect to link
                         BTSPPMain btspp = new BTSPPMain();
                         btspp.activity = WelcomeActivity.this;
@@ -16127,7 +16186,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 case 5: // Link 6
                     if (!BTConstants.BTStatusStrSix.equalsIgnoreCase("Connected")) {
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + "BTLink 6: Link not connected. Retrying to connect.");
+                            AppConstants.WriteinFile(logPrefix + TAG + "BTLink 6: Link not connected. Retrying to connect.");
                         //Retrying to connect to link
                         BTSPPMain btspp = new BTSPPMain();
                         btspp.activity = WelcomeActivity.this;
@@ -16195,7 +16254,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                 @Override
                                 public void run() {
                                     connectionAttemptCount++;
-                                    retryBTConnection(linkPosition);
+                                    retryBTConnection(linkPosition, true);
                                     CheckBTLinkStatusForUpgrade(linkPosition, true);
                                 }
                             }, 100);
@@ -16766,7 +16825,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         } else {
                             counter++;
                             if (counter < 3) {
-                                retryBTConnection(linkPosition);
+                                retryBTConnection(linkPosition, true);
                                 if (AppConstants.GenerateLogs)
                                     AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Waiting to reconnect... (Attempt: " + counter + ")");
                                 handler.postDelayed(this, delay);

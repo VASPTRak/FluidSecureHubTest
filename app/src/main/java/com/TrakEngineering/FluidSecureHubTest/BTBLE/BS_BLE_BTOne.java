@@ -1,7 +1,5 @@
 package com.TrakEngineering.FluidSecureHubTest.BTBLE;
 
-import static android.bluetooth.BluetoothDevice.TRANSPORT_LE;
-
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -12,7 +10,6 @@ import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
-import android.os.Binder;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
@@ -27,8 +24,6 @@ import androidx.annotation.RequiresApi;
 import com.TrakEngineering.FluidSecureHubTest.AppConstants;
 import com.TrakEngineering.FluidSecureHubTest.BTBLE.BTBLE_LinkOne.BLEServiceCodeOne;
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTConstants;
-import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPPMain;
-import com.TrakEngineering.FluidSecureHubTest.BTSPP.BackgroundService_BTOne;
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.ClientSendAndListenUDPOne;
 import com.TrakEngineering.FluidSecureHubTest.BackgroundService;
 import com.TrakEngineering.FluidSecureHubTest.CommonUtils;

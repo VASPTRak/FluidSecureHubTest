@@ -1060,13 +1060,13 @@ public class AppConstants {
         return storedIMEI;
     }
 
-    public static boolean IsHoseBusyCheckLocally() {
+    public static boolean IsAllHosesAreFree() {
 
         if (Constants.FS_1STATUS.equalsIgnoreCase("FREE") && Constants.FS_2STATUS.equalsIgnoreCase("FREE") && Constants.FS_3STATUS.equalsIgnoreCase("FREE") && Constants.FS_4STATUS.equalsIgnoreCase("FREE") && Constants.FS_5STATUS.equalsIgnoreCase("FREE") && Constants.FS_6STATUS.equalsIgnoreCase("FREE")) {
             return true;
+        } else {
+            return false;
         }
-
-        return false;
     }
 
     public static String spanishNumberSystem(String flQty) {

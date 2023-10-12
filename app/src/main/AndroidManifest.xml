@@ -260,6 +260,9 @@
             android:name=".BackgroundServiceKeepDataTransferAlive"
             android:enabled="true" />
         <service
+            android:name=".BackgroundServiceKeepAliveBT"
+            android:enabled="true" />
+        <service
             android:name=".wifihotspot.HotSpotIntentService"
             android:enabled="true"
             android:exported="true" />
