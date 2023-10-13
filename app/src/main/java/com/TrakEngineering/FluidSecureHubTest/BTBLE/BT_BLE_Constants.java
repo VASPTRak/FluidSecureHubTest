@@ -8,4 +8,11 @@ public class BT_BLE_Constants {
     public static String UUID_service_file = "725e0bc8-6f00-4d2d-a4af-96138ce599b7";//7
     public static String UUID_char_file = "e49227e8-659f-4d7e-8e23-8c6eea5b9174";//4
 
+
+    public static String BTBLEStatusStrOne = "";
+    public static boolean BTBLELinkOneStatus = false;
+
+    public static boolean isNewVersionLinkOne = false;
+
+    public static String CurrentCommand_LinkOne = "";
 }

@@ -262,7 +262,7 @@ public class BackgroundService_BTOne extends Service {
                     if (ssid.equalsIgnoreCase(LinkName)) {
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + " BTLink 1: Connected to " + ssid + " via WiFi.");
-                        proceedToInfoCommand(false);
+                        proceedToInfoCommand();
                         //loading.cancel();
                         cancel();
                     }
@@ -279,7 +279,7 @@ public class BackgroundService_BTOne extends Service {
                     if (ssid.equalsIgnoreCase(LinkName)) {
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + " BTLink 1: Connected to " + ssid + " via WiFi.");
-                        proceedToInfoCommand(false);
+                        proceedToInfoCommand();
                         //loading.cancel();
                         cancel();
                     } else {
@@ -289,7 +289,6 @@ public class BackgroundService_BTOne extends Service {
                     }
                 }
             }.start();
-            //proceedToInfoCommand(false);
         } catch (Exception e) {
             if (AppConstants.GenerateLogs)
                 AppConstants.WriteinFile(TAG + " BTLink 1: Exception in BeginProcessUsingUDP: " + e.getMessage());
@@ -315,18 +314,14 @@ public class BackgroundService_BTOne extends Service {
         }
     }
 
-    public void proceedToInfoCommand(boolean proceedAfterUpgrade) {
+    public void proceedToInfoCommand() {
         try {
-            if (proceedAfterUpgrade) {
-                checkBTLinkStatus("info");
-            } else {
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        infoCommand();
-                    }
-                }, 1000);
-            }
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    infoCommand();
+                }
+            }, 1000);
         } catch (Exception e) {
             e.printStackTrace();
         }

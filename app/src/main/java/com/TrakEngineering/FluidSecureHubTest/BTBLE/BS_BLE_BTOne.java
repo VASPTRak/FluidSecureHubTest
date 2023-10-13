@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
+import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -17,6 +18,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
@@ -30,6 +32,7 @@ import com.TrakEngineering.FluidSecureHubTest.CommonUtils;
 import com.TrakEngineering.FluidSecureHubTest.ConnectionDetector;
 import com.TrakEngineering.FluidSecureHubTest.Constants;
 import com.TrakEngineering.FluidSecureHubTest.DBController;
+import com.TrakEngineering.FluidSecureHubTest.R;
 import com.TrakEngineering.FluidSecureHubTest.WelcomeActivity;
 import com.TrakEngineering.FluidSecureHubTest.entity.RenameHose;
 import com.TrakEngineering.FluidSecureHubTest.entity.SwitchTimeBounce;
@@ -172,7 +175,8 @@ public class BS_BLE_BTOne extends Service {
                 LinkName = CommonUtils.getlinkName(0);
                 if (LinkCommunicationType.equalsIgnoreCase("BT")) {
                     IsThisBTTrnx = true;
-
+                    BT_BLE_Constants.BTBLELinkOneStatus = false;
+                    BT_BLE_Constants.BTBLEStatusStrOne = "";
                     checkBTLinkStatus("info"); // Changed from "upgrade" to "info" as per #1657
 
                 } else if (LinkCommunicationType.equalsIgnoreCase("UDP")) {
@@ -277,11 +281,11 @@ public class BS_BLE_BTOne extends Service {
             res = res.trim();
 
             if (res.toUpperCase().contains(BTLinkResponseFormatOld.toUpperCase())) {
-                BTConstants.isNewVersionLinkOne = false;
+                BT_BLE_Constants.isNewVersionLinkOne = false;
                 if (AppConstants.GenerateLogs)
                     AppConstants.WriteinFile(TAG + " Found BT LINK (OLD) ");
             } else if (res.toUpperCase().contains(BTLinkResponseFormatNew.toUpperCase())) {
-                BTConstants.isNewVersionLinkOne = true;
+                BT_BLE_Constants.isNewVersionLinkOne = true;
                 if (AppConstants.GenerateLogs)
                     AppConstants.WriteinFile(TAG + " Found BT LINK (NEW) ");
             }
@@ -360,21 +364,22 @@ public class BS_BLE_BTOne extends Service {
                 Log.i(TAG, "Timer count..");
 
                 String checkPulses;
-                if (BTConstants.isNewVersionLinkOne) {
+                if (BT_BLE_Constants.isNewVersionLinkOne) {
                     checkPulses = "pulse";
                 } else {
                     checkPulses = "pulse:";
                 }
 
-                if (!BTConstants.BTLinkOneStatus && AppConstants.isRelayON_fs1 && !BTConstants.SwitchedBTToUDP1) {
+                if (!BT_BLE_Constants.BTBLELinkOneStatus && AppConstants.isRelayON_fs1 && !BTConstants.SwitchedBTToUDP1) {
                     if (CountBeforeReconnectRelay1 >= 1) {
-                        if (BTConstants.BTStatusStrOne.equalsIgnoreCase("Disconnect")) {
+                        if (BT_BLE_Constants.BTBLEStatusStrOne.equalsIgnoreCase("Disconnect")) {
                             SaveLastQtyInSharedPref(Constants.FS_1Pulse);
                             if (AppConstants.GenerateLogs)
                                 AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + " Retrying to Connect");
                             BTConstants.isRelayOnAfterReconnect1 = false;
                             //Retrying to connect to link
                             LinkReconnectionAttempt();
+                            BTConstants.isReconnectCalled1 = true;
                         }
                     } else {
                         CountBeforeReconnectRelay1++;
@@ -449,7 +454,7 @@ public class BS_BLE_BTOne extends Service {
             pumpTimingsOnOffFunction();//PumpOn/PumpOff functionality
             String outputQuantity;
 
-            if (BTConstants.isNewVersionLinkOne) {
+            if (BT_BLE_Constants.isNewVersionLinkOne) {
                 if (Response.contains("pulse")) {
                     JSONObject jsonObj = new JSONObject(Response);
                     outputQuantity = jsonObj.getString("pulse");
@@ -695,7 +700,7 @@ public class BS_BLE_BTOne extends Service {
         try {
             new CountDownTimer(10000, 2000) {
                 public void onTick(long millisUntilFinished) {
-                    if (BTConstants.BTStatusStrOne.equalsIgnoreCase("Connected")) {
+                    if (BT_BLE_Constants.BTBLEStatusStrOne.equalsIgnoreCase("Connected")) {
                         isConnected = true;
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + " Link is connected.");
@@ -724,7 +729,7 @@ public class BS_BLE_BTOne extends Service {
 
                 public void onFinish() {
 
-                    if (BTConstants.BTStatusStrOne.equalsIgnoreCase("Connected")) {
+                    if (BT_BLE_Constants.BTBLEStatusStrOne.equalsIgnoreCase("Connected")) {
                         isConnected = true;
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + " Link is connected.");
@@ -747,7 +752,7 @@ public class BS_BLE_BTOne extends Service {
                     } else {
                         isConnected = false;
                         if (nextAction.equalsIgnoreCase("info")) { // Terminate BT Transaction
-                            TerminateBTTransaction(); //UDPFunctionalityAfterBTFailure();
+                            UDPFunctionalityAfterBTFailure(); //TerminateBTTransaction();
                         } else if (nextAction.equalsIgnoreCase("relay")) { // Terminate BT Txn After Interruption
                             TerminateBTTxnAfterInterruption();
                         }
@@ -762,6 +767,114 @@ public class BS_BLE_BTOne extends Service {
             } else if (nextAction.equalsIgnoreCase("relay")) { // Terminate BT Txn After Interruption
                 TerminateBTTxnAfterInterruption();
             }
+        }
+    }
+
+    private void UDPFunctionalityAfterBTFailure() {
+        try {
+            if (CommonUtils.CheckAllHTTPLinksAreFree()) {
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " Link not connected. Switching to UDP connection...");
+
+                if (CommonUtils.isHotspotEnabled(BS_BLE_BTOne.this)) {
+                    // Disable Hotspot
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + "<Disabling hotspot.>");
+                    WifiApManager wifiApManager = new WifiApManager(BS_BLE_BTOne.this);
+                    wifiApManager.setWifiApEnabled(null, false);
+                    isHotspotDisabled = true;
+                    try {
+                        Thread.sleep(2000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                // Enable Wi-Fi
+                WifiManager wifiManagerMM = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
+                wifiManagerMM.setWifiEnabled(true);
+
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        IsThisBTTrnx = false;
+                        BTConstants.SwitchedBTToUDP1 = true;
+                        BeginProcessUsingUDP();
+                    }
+                }, 5000);
+            } else {
+                TerminateBTTransaction();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void BeginProcessUsingUDP() {
+        try {
+            Toast.makeText(BS_BLE_BTOne.this, getResources().getString(R.string.PleaseWaitForWifiConnect), Toast.LENGTH_SHORT).show();
+
+            new CountDownTimer(12000, 1000) {
+                @Override
+                public void onTick(long millisUntilFinished) {
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + " Connecting to WiFi...");
+                    WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+                    String ssid = "";
+                    if (wifiManager.isWifiEnabled()) {
+                        WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+                        ssid = wifiInfo.getSSID();
+                    }
+
+                    ssid = ssid.replace("\"", "");
+
+                    if (ssid.equalsIgnoreCase(LinkName)) {
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + " Connected to " + ssid + " via WiFi.");
+                        proceedToInfoCommand();
+                        //loading.cancel();
+                        cancel();
+                    }
+                }
+
+                @Override
+                public void onFinish() {
+                    //loading.dismiss();
+                    WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+                    WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+                    String ssid = wifiInfo.getSSID();
+
+                    ssid = ssid.replace("\"", "");
+                    if (ssid.equalsIgnoreCase(LinkName)) {
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + " Connected to " + ssid + " via WiFi.");
+                        proceedToInfoCommand();
+                        //loading.cancel();
+                        cancel();
+                    } else {
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + " Unable to connect to " + LinkName + " via WiFi.");
+                        TerminateBTTransaction();
+                    }
+                }
+            }.start();
+        } catch (Exception e) {
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + " Exception in BeginProcessUsingUDP: " + e.getMessage());
+            TerminateBTTransaction();
+            e.printStackTrace();
+        }
+    }
+
+    public void proceedToInfoCommand() {
+        try {
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    infoCommand();
+                }
+            }, 1000);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -820,7 +933,7 @@ public class BS_BLE_BTOne extends Service {
                 public void onTick(long millisUntilFinished) {
                     long attempt = (5 - (millisUntilFinished / 1000));
                     if (attempt > 0) {
-                        if (BTConstants.CurrentCommand_LinkOne.equalsIgnoreCase(BTConstants.info_cmd) && !Response.equalsIgnoreCase("")) {
+                        if (BT_BLE_Constants.CurrentCommand_LinkOne.equalsIgnoreCase(BTConstants.info_cmd) && !Response.equalsIgnoreCase("")) {
                             //Info command success.
                             Log.i(TAG, " InfoCommand Response success 1:>>" + Response);
 
@@ -835,7 +948,7 @@ public class BS_BLE_BTOne extends Service {
                                     @Override
                                     public void run() {
                                         AppConstants.isInfoCommandSuccess_fs1 = true;
-                                        if (IsThisBTTrnx && BTConstants.isNewVersionLinkOne && (versionNumberOfLinkOne >= 145)) {
+                                        if (IsThisBTTrnx && BT_BLE_Constants.isNewVersionLinkOne && (versionNumberOfLinkOne >= 145)) {
                                             P_Type_Command();
                                         } else {
                                             transactionIdCommand(TransactionId);
@@ -858,7 +971,7 @@ public class BS_BLE_BTOne extends Service {
 
                 public void onFinish() {
 
-                    if (BTConstants.CurrentCommand_LinkOne.equalsIgnoreCase(BTConstants.info_cmd) && !Response.equalsIgnoreCase("")) {
+                    if (BT_BLE_Constants.CurrentCommand_LinkOne.equalsIgnoreCase(BTConstants.info_cmd) && !Response.equalsIgnoreCase("")) {
                         //Info command success.
                         Log.i(TAG, " InfoCommand Response success 2:>>" + Response);
 
@@ -873,7 +986,7 @@ public class BS_BLE_BTOne extends Service {
                                 @Override
                                 public void run() {
                                     AppConstants.isInfoCommandSuccess_fs1 = true;
-                                    if (IsThisBTTrnx && BTConstants.isNewVersionLinkOne && (versionNumberOfLinkOne >= 145)) {
+                                    if (IsThisBTTrnx && BT_BLE_Constants.isNewVersionLinkOne && (versionNumberOfLinkOne >= 145)) {
                                         P_Type_Command();
                                     } else {
                                         transactionIdCommand(TransactionId);
@@ -931,14 +1044,14 @@ public class BS_BLE_BTOne extends Service {
 
                             long attempt = (4 - (millisUntilFinished / 1000));
                             if (attempt > 0) {
-                                if (BTConstants.CurrentCommand_LinkOne.contains(BTConstants.p_type_command) && Response.contains("pulser_type")) {
+                                if (BT_BLE_Constants.CurrentCommand_LinkOne.contains(BTConstants.p_type_command) && Response.contains("pulser_type")) {
                                     if (AppConstants.GenerateLogs)
                                         AppConstants.WriteinFile(TAG + " Checking p_type command response:>> " + Response);
                                     new Handler().postDelayed(new Runnable() {
                                         @Override
                                         public void run() {
                                             BTConstants.isPTypeCommandExecuted1 = true;
-                                            if (BTConstants.BTStatusStrOne.equalsIgnoreCase("Disconnect")) {
+                                            if (BT_BLE_Constants.BTBLEStatusStrOne.equalsIgnoreCase("Disconnect")) {
                                                 LinkReconnectionAttempt();
                                             }
                                             UpdateSwitchTimeBounceForLink();
@@ -960,14 +1073,14 @@ public class BS_BLE_BTOne extends Service {
 
                         public void onFinish() {
 
-                            if (BTConstants.CurrentCommand_LinkOne.contains(BTConstants.p_type_command) && Response.contains("pulser_type")) {
+                            if (BT_BLE_Constants.CurrentCommand_LinkOne.contains(BTConstants.p_type_command) && Response.contains("pulser_type")) {
                                 if (AppConstants.GenerateLogs)
                                     AppConstants.WriteinFile(TAG + " Checking p_type command response:>> " + Response);
                                 new Handler().postDelayed(new Runnable() {
                                     @Override
                                     public void run() {
                                         BTConstants.isPTypeCommandExecuted1 = true;
-                                        if (BTConstants.BTStatusStrOne.equalsIgnoreCase("Disconnect")) {
+                                        if (BT_BLE_Constants.BTBLEStatusStrOne.equalsIgnoreCase("Disconnect")) {
                                             LinkReconnectionAttempt();
                                         }
                                         UpdateSwitchTimeBounceForLink();
@@ -1012,7 +1125,7 @@ public class BS_BLE_BTOne extends Service {
                 public void onTick(long millisUntilFinished) {
                     long attempt = (4 - (millisUntilFinished / 1000));
                     if (attempt > 0) {
-                        if (BTConstants.CurrentCommand_LinkOne.contains(BTConstants.get_p_type_command) && Response.contains("pulser_type")) {
+                        if (BT_BLE_Constants.CurrentCommand_LinkOne.contains(BTConstants.get_p_type_command) && Response.contains("pulser_type")) {
                             ParsePulserTypeCommandResponse(Response.trim());
                             ContinueToNextCommand();
                             cancel();
@@ -1021,7 +1134,7 @@ public class BS_BLE_BTOne extends Service {
                 }
 
                 public void onFinish() {
-                    if (BTConstants.CurrentCommand_LinkOne.contains(BTConstants.get_p_type_command) && Response.contains("pulser_type")) {
+                    if (BT_BLE_Constants.CurrentCommand_LinkOne.contains(BTConstants.get_p_type_command) && Response.contains("pulser_type")) {
                         ParsePulserTypeCommandResponse(Response.trim());
                     }
                     ContinueToNextCommand();
@@ -1052,7 +1165,7 @@ public class BS_BLE_BTOne extends Service {
 
             String transaction_id_cmd = BTConstants.transaction_id_cmd; //LK_COMM=txtnid:
 
-            if (BTConstants.isNewVersionLinkOne) {
+            if (BT_BLE_Constants.isNewVersionLinkOne) {
                 TransactionDateWithFormat = BTConstants.parseDateForNewVersion(TransactionDateWithFormat);
                 transaction_id_cmd = transaction_id_cmd.replace("txtnid:", ""); // For New version LK_COMM=T:XXXXX;D:XXXXX;V:XXXXXXXX;
                 transaction_id_cmd = transaction_id_cmd + "T:" + transactionId + ";D:" + TransactionDateWithFormat + ";V:" + VehicleNumber + ";";
@@ -1076,7 +1189,7 @@ public class BS_BLE_BTOne extends Service {
                     long attempt = (4 - (millisUntilFinished / 1000));
                     if (attempt > 0) {
                         try {
-                            if (BTConstants.CurrentCommand_LinkOne.contains(transactionId) && Response.contains(transactionId)) {
+                            if (BT_BLE_Constants.CurrentCommand_LinkOne.contains(transactionId) && Response.contains(transactionId)) {
                                 //transactionId command success.
                                 Log.i(TAG, " transactionId Command Response success 1:>>" + Response);
                                 if (AppConstants.GenerateLogs)
@@ -1103,7 +1216,7 @@ public class BS_BLE_BTOne extends Service {
 
                 public void onFinish() {
 
-                    if (BTConstants.CurrentCommand_LinkOne.contains(transactionId) && Response.contains(transactionId)) {
+                    if (BT_BLE_Constants.CurrentCommand_LinkOne.contains(transactionId) && Response.contains(transactionId)) {
                         //transactionId command success.
                         Log.i(TAG, " transactionId Command Response success 2:>>" + Response);
                         if (AppConstants.GenerateLogs)
@@ -1355,7 +1468,7 @@ public class BS_BLE_BTOne extends Service {
 
                     long attempt = (10 - (millisUntilFinished / 1000));
                     if (attempt > 0) {
-                        if (BTConstants.BTStatusStrOne.equalsIgnoreCase("Connected")) {
+                        if (BT_BLE_Constants.BTBLEStatusStrOne.equalsIgnoreCase("Connected")) {
                             if (AppConstants.GenerateLogs)
                                 AppConstants.WriteinFile(TAG + " Connected to Link: " + LinkName);
                             new Handler().postDelayed(new Runnable() {
@@ -1374,7 +1487,7 @@ public class BS_BLE_BTOne extends Service {
 
                 public void onFinish() {
 
-                    if (BTConstants.BTStatusStrOne.equalsIgnoreCase("Connected")) {
+                    if (BT_BLE_Constants.BTBLEStatusStrOne.equalsIgnoreCase("Connected")) {
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + " Connected to Link: " + LinkName);
                         new Handler().postDelayed(new Runnable() {

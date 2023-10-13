@@ -72,8 +72,8 @@ public class BLEServiceCodeOne extends Service {
                 gatt.requestMtu(512);
                 intentAction = ACTION_GATT_CONNECTED;
                 mConnectionState = STATE_CONNECTED;
-                BTConstants.BTLinkOneStatus = true;
-                BTConstants.BTStatusStrOne = "Connected";
+                BT_BLE_Constants.BTBLELinkOneStatus = true;
+                BT_BLE_Constants.BTBLEStatusStrOne = "Connected";
                 //broadcastUpdate(intentAction);
                 Log.i(TAG, "Connected to GATT server.");
                 // Attempts to discover services after successful connection.
@@ -82,8 +82,8 @@ public class BLEServiceCodeOne extends Service {
                 intentAction = ACTION_GATT_DISCONNECTED;
                 mConnectionState = STATE_DISCONNECTED;
                 Log.i(TAG, "Disconnected from GATT server.");
-                BTConstants.BTLinkOneStatus = false;
-                BTConstants.BTStatusStrOne = "Disconnect";
+                BT_BLE_Constants.BTBLELinkOneStatus = false;
+                BT_BLE_Constants.BTBLEStatusStrOne = "Disconnect";
                 //broadcastUpdate(intentAction);
 
             }
@@ -112,7 +112,7 @@ public class BLEServiceCodeOne extends Service {
 
                     if (suuid.equalsIgnoreCase(BT_BLE_Constants.UUID_service)) {
                         UUID_service = BT_BLE_Constants.UUID_service;
-                        BTConstants.isNewVersionLinkOne = false;
+                        BT_BLE_Constants.isNewVersionLinkOne = false;
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + " Found BT LINK (Old)");
                     }
@@ -120,7 +120,7 @@ public class BLEServiceCodeOne extends Service {
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + " Found BT LINK (New)");
                         UUID_service = BT_BLE_Constants.UUID_service_BT;
-                        BTConstants.isNewVersionLinkOne = true;
+                        BT_BLE_Constants.isNewVersionLinkOne = true;
                     }
                     List<BluetoothGattCharacteristic> gattCharacteristics =
                             service.getCharacteristics();
@@ -205,7 +205,16 @@ public class BLEServiceCodeOne extends Service {
             String Response = new String(data);
             SpannableStringBuilder spn = new SpannableStringBuilder(Response + '\n');
 
-            if (Response.contains("$$")) {
+            // ======== Sometimes response of TDV command contains single '$' ===========
+            //BLEService_One broadcastUpdate ==> Response:>> {"T":"77637","D":"23
+            //BLEService_One broadcastUpdate ==> Response:>> 1013165559","V":""}$
+            //BLEService_One broadcastUpdate ==> Response:>> $ �?   )^����?���?
+            // ===========================================================================
+
+            if (Response.contains("$$") || sb1.toString().trim().contains("$$")) {
+                if (sb1.toString().trim().contains("$$")) {
+                    Response = sb1.toString().trim();
+                }
                 String res = Response.replace("$$", "");
                 try {
                     if (res.contains("}")) {
@@ -221,7 +230,7 @@ public class BLEServiceCodeOne extends Service {
                 sendBroadcast(intent);
                 sb1.setLength(0);
             } else {
-                if (BTConstants.isNewVersionLinkOne || BTConstants.forOscilloscope || BTConstants.CurrentCommand_LinkOne.contains(BTConstants.p_type_command)) {
+                if (BT_BLE_Constants.isNewVersionLinkOne || BTConstants.forOscilloscope || BT_BLE_Constants.CurrentCommand_LinkOne.contains(BTConstants.p_type_command)) {
                     sb1.append(Response);
                 } else {
                     // For old version Link response
@@ -346,8 +355,8 @@ public class BLEServiceCodeOne extends Service {
 
         } catch (Exception e) {
             e.printStackTrace();
-            BTConstants.BTLinkOneStatus = false;
-            BTConstants.BTStatusStrOne = "Disconnect";
+            BT_BLE_Constants.BTBLELinkOneStatus = false;
+            BT_BLE_Constants.BTBLEStatusStrOne = "Disconnect";
             return false;
         }
         return true;
@@ -423,7 +432,7 @@ public class BLEServiceCodeOne extends Service {
 
     public void writeCustomCharacteristic(String bleCommand) {
         if (mBluetoothAdapter == null || mBluetoothGatt == null) {
-            BTConstants.CurrentCommand_LinkOne = "";
+            BT_BLE_Constants.CurrentCommand_LinkOne = "";
             Log.w(TAG, "BluetoothAdapter not initialized");
             return;
         }
@@ -431,14 +440,14 @@ public class BLEServiceCodeOne extends Service {
         BluetoothGattService mCustomService = mBluetoothGatt.getService(UUID.fromString(UUID_service));
 
         if (mCustomService == null) {
-            BTConstants.CurrentCommand_LinkOne = "";
+            BT_BLE_Constants.CurrentCommand_LinkOne = "";
             if (AppConstants.GenerateLogs)
                 AppConstants.WriteinFile(TAG + " LeServiceCode ~~~~~~~~~" + bleCommand + " writeCustomCharacteristic Char Not found:" + BT_BLE_Constants.UUID_char);
             return;
         }
         /*if (AppConstants.GenerateLogs)
             AppConstants.WriteinFile(TAG + " writeCustomCharacteristic ~~~~~~~~~ " + bleCommand);*/
-        BTConstants.CurrentCommand_LinkOne = bleCommand;
+        BT_BLE_Constants.CurrentCommand_LinkOne = bleCommand;
         byte[] strBytes = bleCommand.getBytes();
 
         BluetoothGattCharacteristic mWriteCharacteristic = null;
