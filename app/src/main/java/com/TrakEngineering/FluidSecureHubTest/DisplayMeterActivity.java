@@ -42,6 +42,11 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.TrakEngineering.FluidSecureHubTest.BTBLE.BS_BLE_BTOne;
+import com.TrakEngineering.FluidSecureHubTest.BTBLE.BS_BLE_BTTwo;
+import com.TrakEngineering.FluidSecureHubTest.BTBLE.BS_BLE_BTThree;
+import com.TrakEngineering.FluidSecureHubTest.BTBLE.BS_BLE_BTFour;
+import com.TrakEngineering.FluidSecureHubTest.BTBLE.BS_BLE_BTFive;
+import com.TrakEngineering.FluidSecureHubTest.BTBLE.BS_BLE_BTSix;
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTConstants;
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPPMain;
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.BackgroundService_BTOne;
@@ -4499,7 +4504,12 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                     // BtnStartStateChange(true);
                     Log.i(TAG, "BTServiceSelected Two>>");
                     // BtnStartStateChange(false);
-                    Intent serviceIntent2 = new Intent(DisplayMeterActivity.this, BackgroundService_BTTwo.class);
+                    Intent serviceIntent2;
+                    if (BTLinkCommType.equalsIgnoreCase("BLE")) {
+                        serviceIntent2 = new Intent(DisplayMeterActivity.this, BS_BLE_BTTwo.class);
+                    } else {
+                        serviceIntent2 = new Intent(DisplayMeterActivity.this, BackgroundService_BTTwo.class);
+                    }
                     serviceIntent2.putExtra("SERVER_IP", SERVERIP);
                     serviceIntent2.putExtra("sqlite_id", sqlite_id);
                     startService(serviceIntent2);
@@ -4510,7 +4520,12 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                     // BtnStartStateChange(true);
                     Log.i(TAG, "BTServiceSelected Three>>");
                     //  BtnStartStateChange(false);
-                    Intent serviceIntent3 = new Intent(DisplayMeterActivity.this, BackgroundService_BTThree.class);
+                    Intent serviceIntent3;
+                    if (BTLinkCommType.equalsIgnoreCase("BLE")) {
+                        serviceIntent3 = new Intent(DisplayMeterActivity.this, BS_BLE_BTThree.class);
+                    } else {
+                        serviceIntent3 = new Intent(DisplayMeterActivity.this, BackgroundService_BTThree.class);
+                    }
                     serviceIntent3.putExtra("SERVER_IP", SERVERIP);
                     serviceIntent3.putExtra("sqlite_id", sqlite_id);
                     startService(serviceIntent3);
@@ -4521,7 +4536,12 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                     // BtnStartStateChange(true);
                     Log.i(TAG, "BTServiceSelected Four>>");
                     /// BtnStartStateChange(false);
-                    Intent serviceIntent4 = new Intent(DisplayMeterActivity.this, BackgroundService_BTFour.class);
+                    Intent serviceIntent4;
+                    if (BTLinkCommType.equalsIgnoreCase("BLE")) {
+                        serviceIntent4 = new Intent(DisplayMeterActivity.this, BS_BLE_BTFour.class);
+                    } else {
+                        serviceIntent4 = new Intent(DisplayMeterActivity.this, BackgroundService_BTFour.class);
+                    }
                     serviceIntent4.putExtra("SERVER_IP", SERVERIP);
                     serviceIntent4.putExtra("sqlite_id", sqlite_id);
                     startService(serviceIntent4);
@@ -4532,7 +4552,12 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                     // BtnStartStateChange(true);
                     Log.i(TAG, "BTServiceSelected Five>>");
                     /// BtnStartStateChange(false);
-                    Intent serviceIntent5 = new Intent(DisplayMeterActivity.this, BackgroundService_BTFive.class);
+                    Intent serviceIntent5;
+                    if (BTLinkCommType.equalsIgnoreCase("BLE")) {
+                        serviceIntent5 = new Intent(DisplayMeterActivity.this, BS_BLE_BTFive.class);
+                    } else {
+                        serviceIntent5 = new Intent(DisplayMeterActivity.this, BackgroundService_BTFive.class);
+                    }
                     serviceIntent5.putExtra("SERVER_IP", SERVERIP);
                     serviceIntent5.putExtra("sqlite_id", sqlite_id);
                     startService(serviceIntent5);
@@ -4543,7 +4568,12 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                     // BtnStartStateChange(true);
                     Log.i(TAG, "BTServiceSelected Six>>");
                     /// BtnStartStateChange(false);
-                    Intent serviceIntent6 = new Intent(DisplayMeterActivity.this, BackgroundService_BTSix.class);
+                    Intent serviceIntent6;
+                    if (BTLinkCommType.equalsIgnoreCase("BLE")) {
+                        serviceIntent6 = new Intent(DisplayMeterActivity.this, BS_BLE_BTSix.class);
+                    } else {
+                        serviceIntent6 = new Intent(DisplayMeterActivity.this, BackgroundService_BTSix.class);
+                    }
                     serviceIntent6.putExtra("SERVER_IP", SERVERIP);
                     serviceIntent6.putExtra("sqlite_id", sqlite_id);
                     startService(serviceIntent6);
@@ -4570,7 +4600,12 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                 case 0://Link 1
 
                     BtnStartStateChange(false);
-                    Intent serviceIntent1 = new Intent(DisplayMeterActivity.this, BackgroundService_BTOne.class);
+                    Intent serviceIntent1;
+                    if (BTLinkCommType.equalsIgnoreCase("BLE")) {
+                        serviceIntent1 = new Intent(DisplayMeterActivity.this, BS_BLE_BTOne.class);
+                    } else {
+                        serviceIntent1 = new Intent(DisplayMeterActivity.this, BackgroundService_BTOne.class);
+                    }
                     serviceIntent1.putExtra("SERVER_IP", SERVERIP);
                     serviceIntent1.putExtra("sqlite_id", sqlite_id);
                     startService(serviceIntent1);
@@ -4580,7 +4615,12 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                 case 1://Link 2
 
                     BtnStartStateChange(false);
-                    Intent serviceIntent2 = new Intent(DisplayMeterActivity.this, BackgroundService_BTTwo.class);
+                    Intent serviceIntent2;
+                    if (BTLinkCommType.equalsIgnoreCase("BLE")) {
+                        serviceIntent2 = new Intent(DisplayMeterActivity.this, BS_BLE_BTTwo.class);
+                    } else {
+                        serviceIntent2 = new Intent(DisplayMeterActivity.this, BackgroundService_BTTwo.class);
+                    }
                     serviceIntent2.putExtra("SERVER_IP", SERVERIP);
                     serviceIntent2.putExtra("sqlite_id", sqlite_id);
                     startService(serviceIntent2);
@@ -4590,7 +4630,12 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                 case 2://Link 3
 
                     BtnStartStateChange(false);
-                    Intent serviceIntent3 = new Intent(DisplayMeterActivity.this, BackgroundService_BTThree.class);
+                    Intent serviceIntent3;
+                    if (BTLinkCommType.equalsIgnoreCase("BLE")) {
+                        serviceIntent3 = new Intent(DisplayMeterActivity.this, BS_BLE_BTThree.class);
+                    } else {
+                        serviceIntent3 = new Intent(DisplayMeterActivity.this, BackgroundService_BTThree.class);
+                    }
                     serviceIntent3.putExtra("SERVER_IP", SERVERIP);
                     serviceIntent3.putExtra("sqlite_id", sqlite_id);
                     startService(serviceIntent3);
@@ -4600,7 +4645,12 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                 case 3://Link 4
 
                     BtnStartStateChange(false);
-                    Intent serviceIntent4 = new Intent(DisplayMeterActivity.this, BackgroundService_BTFour.class);
+                    Intent serviceIntent4;
+                    if (BTLinkCommType.equalsIgnoreCase("BLE")) {
+                        serviceIntent4 = new Intent(DisplayMeterActivity.this, BS_BLE_BTFour.class);
+                    } else {
+                        serviceIntent4 = new Intent(DisplayMeterActivity.this, BackgroundService_BTFour.class);
+                    }
                     serviceIntent4.putExtra("SERVER_IP", SERVERIP);
                     serviceIntent4.putExtra("sqlite_id", sqlite_id);
                     startService(serviceIntent4);
@@ -4610,7 +4660,12 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                 case 4://Link 5
 
                     BtnStartStateChange(false);
-                    Intent serviceIntent5 = new Intent(DisplayMeterActivity.this, BackgroundService_BTFive.class);
+                    Intent serviceIntent5;
+                    if (BTLinkCommType.equalsIgnoreCase("BLE")) {
+                        serviceIntent5 = new Intent(DisplayMeterActivity.this, BS_BLE_BTFive.class);
+                    } else {
+                        serviceIntent5 = new Intent(DisplayMeterActivity.this, BackgroundService_BTFive.class);
+                    }
                     serviceIntent5.putExtra("SERVER_IP", SERVERIP);
                     serviceIntent5.putExtra("sqlite_id", sqlite_id);
                     startService(serviceIntent5);
@@ -4620,7 +4675,12 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                 case 5://Link 6
 
                     BtnStartStateChange(false);
-                    Intent serviceIntent6 = new Intent(DisplayMeterActivity.this, BackgroundService_BTSix.class);
+                    Intent serviceIntent6;
+                    if (BTLinkCommType.equalsIgnoreCase("BLE")) {
+                        serviceIntent6 = new Intent(DisplayMeterActivity.this, BS_BLE_BTSix.class);
+                    } else {
+                        serviceIntent6 = new Intent(DisplayMeterActivity.this, BackgroundService_BTSix.class);
+                    }
                     serviceIntent6.putExtra("SERVER_IP", SERVERIP);
                     serviceIntent6.putExtra("sqlite_id", sqlite_id);
                     startService(serviceIntent6);

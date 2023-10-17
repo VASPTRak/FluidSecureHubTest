@@ -84,6 +84,7 @@ import android.widget.Toast;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.TrakEngineering.FluidSecureHubTest.BTBLE.BT_BLE_Constants;
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTConstants;
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPPMain;
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkOne.SerialServiceOne;
@@ -2636,6 +2637,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 String ipForUDP2 = "192.168.4.1";
                 String selSSID2 = serverSSIDList.get(1).get("WifiSSId");
                 String LType2 = serverSSIDList.get(1).get("LinkCommunicationType");
+                String BTLinkCommType2 = serverSSIDList.get(1).get("BTLinkCommType");
                 if (Integer.parseInt(Constants.FS_2Pulse) <= 0) {
                     UpdateDiffStatusMessages("1");
                 }
@@ -2650,11 +2652,15 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                             AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "Sending relayOff command (UDP) to Link: " + selSSID2);
                         new Thread(new ClientSendAndListenUDPTwo(BTConstants.relay_off_cmd, ipForUDP2, this)).start();
                     } else {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "Sending relayOff command to Link: " + selSSID2);
-                        BTSPPMain btspp = new BTSPPMain();
-                        btspp.activity = WelcomeActivity.this;
-                        btspp.send2(BTConstants.relay_off_cmd);
+                        if (BTLinkCommType2 != null && BTLinkCommType2.equalsIgnoreCase("BLE")) {
+                            BTConstants.isStopButtonPressed2 = true;
+                        } else {
+                            if (AppConstants.GenerateLogs)
+                                AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "Sending relayOff command to Link: " + selSSID2);
+                            BTSPPMain btspp = new BTSPPMain();
+                            btspp.activity = WelcomeActivity.this;
+                            btspp.send2(BTConstants.relay_off_cmd);
+                        }
                     }
 
                 } else if (LType2.equalsIgnoreCase("UDP")) {
@@ -2690,6 +2696,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 String ipForUDP3 = "192.168.4.1";
                 String selSSID3 = serverSSIDList.get(2).get("WifiSSId");
                 String LType3 = serverSSIDList.get(2).get("LinkCommunicationType");
+                String BTLinkCommType3 = serverSSIDList.get(2).get("BTLinkCommType");
                 if (Integer.parseInt(Constants.FS_3Pulse) <= 0) {
                     UpdateDiffStatusMessages("2");
                 }
@@ -2704,11 +2711,15 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                             AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "Sending relayOff command (UDP) to Link: " + selSSID3);
                         new Thread(new ClientSendAndListenUDPThree(BTConstants.relay_off_cmd, ipForUDP3, this)).start();
                     } else {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "Sending relayOff command to Link: " + selSSID3);
-                        BTSPPMain btspp = new BTSPPMain();
-                        btspp.activity = WelcomeActivity.this;
-                        btspp.send3(BTConstants.relay_off_cmd);
+                        if (BTLinkCommType3 != null && BTLinkCommType3.equalsIgnoreCase("BLE")) {
+                            BTConstants.isStopButtonPressed3 = true;
+                        } else {
+                            if (AppConstants.GenerateLogs)
+                                AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "Sending relayOff command to Link: " + selSSID3);
+                            BTSPPMain btspp = new BTSPPMain();
+                            btspp.activity = WelcomeActivity.this;
+                            btspp.send3(BTConstants.relay_off_cmd);
+                        }
                     }
 
                 } else if (LType3.equalsIgnoreCase("UDP")) {
@@ -2726,6 +2737,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 String ipForUDP4 = "192.168.4.1";
                 String selSSID4 = serverSSIDList.get(3).get("WifiSSId");
                 String LType4 = serverSSIDList.get(3).get("LinkCommunicationType");
+                String BTLinkCommType4 = serverSSIDList.get(3).get("BTLinkCommType");
                 if (Integer.parseInt(Constants.FS_4Pulse) <= 0) {
                     UpdateDiffStatusMessages("3");
                 }
@@ -2740,11 +2752,15 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                             AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "Sending relayOff command (UDP) to Link: " + selSSID4);
                         new Thread(new ClientSendAndListenUDPFour(BTConstants.relay_off_cmd, ipForUDP4, this)).start();
                     } else {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "Sending relayOff command to Link: " + selSSID4);
-                        BTSPPMain btspp = new BTSPPMain();
-                        btspp.activity = WelcomeActivity.this;
-                        btspp.send4(BTConstants.relay_off_cmd);
+                        if (BTLinkCommType4 != null && BTLinkCommType4.equalsIgnoreCase("BLE")) {
+                            BTConstants.isStopButtonPressed4 = true;
+                        } else {
+                            if (AppConstants.GenerateLogs)
+                                AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "Sending relayOff command to Link: " + selSSID4);
+                            BTSPPMain btspp = new BTSPPMain();
+                            btspp.activity = WelcomeActivity.this;
+                            btspp.send4(BTConstants.relay_off_cmd);
+                        }
                     }
 
                 } else if (LType4.equalsIgnoreCase("UDP")) {
@@ -2764,6 +2780,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 String ipForUDP5 = "192.168.4.1";
                 String selSSID5 = serverSSIDList.get(4).get("WifiSSId");
                 String LType5 = serverSSIDList.get(4).get("LinkCommunicationType");
+                String BTLinkCommType5 = serverSSIDList.get(4).get("BTLinkCommType");
                 if (Integer.parseInt(Constants.FS_5Pulse) <= 0) {
                     UpdateDiffStatusMessages("4");
                 }
@@ -2778,11 +2795,15 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                             AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "Sending relayOff command (UDP) to Link: " + selSSID5);
                         new Thread(new ClientSendAndListenUDPFive(BTConstants.relay_off_cmd, ipForUDP5, this)).start();
                     } else {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "Sending relayOff command to Link: " + selSSID5);
-                        BTSPPMain btspp = new BTSPPMain();
-                        btspp.activity = WelcomeActivity.this;
-                        btspp.send5(BTConstants.relay_off_cmd);
+                        if (BTLinkCommType5 != null && BTLinkCommType5.equalsIgnoreCase("BLE")) {
+                            BTConstants.isStopButtonPressed5 = true;
+                        } else {
+                            if (AppConstants.GenerateLogs)
+                                AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "Sending relayOff command to Link: " + selSSID5);
+                            BTSPPMain btspp = new BTSPPMain();
+                            btspp.activity = WelcomeActivity.this;
+                            btspp.send5(BTConstants.relay_off_cmd);
+                        }
                     }
 
                 } else if (LType5.equalsIgnoreCase("UDP")) {
@@ -2802,6 +2823,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 String ipForUDP6 = "192.168.4.1";
                 String selSSID6 = serverSSIDList.get(5).get("WifiSSId");
                 String LType6 = serverSSIDList.get(5).get("LinkCommunicationType");
+                String BTLinkCommType6 = serverSSIDList.get(5).get("BTLinkCommType");
                 if (Integer.parseInt(Constants.FS_6Pulse) <= 0) {
                     UpdateDiffStatusMessages("5");
                 }
@@ -2816,11 +2838,15 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                             AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "Sending relayOff command (UDP) to Link: " + selSSID6);
                         new Thread(new ClientSendAndListenUDPSix(BTConstants.relay_off_cmd, ipForUDP6, this)).start();
                     } else {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "Sending relayOff command to Link: " + selSSID6);
-                        BTSPPMain btspp = new BTSPPMain();
-                        btspp.activity = WelcomeActivity.this;
-                        btspp.send6(BTConstants.relay_off_cmd);
+                        if (BTLinkCommType6 != null && BTLinkCommType6.equalsIgnoreCase("BLE")) {
+                            BTConstants.isStopButtonPressed6 = true;
+                        } else {
+                            if (AppConstants.GenerateLogs)
+                                AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "Sending relayOff command to Link: " + selSSID6);
+                            BTSPPMain btspp = new BTSPPMain();
+                            btspp.activity = WelcomeActivity.this;
+                            btspp.send6(BTConstants.relay_off_cmd);
+                        }
                     }
 
                 } else if (LType6.equalsIgnoreCase("UDP")) {
@@ -6144,7 +6170,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
             String BTLinkCommType = serverSSIDList.get(0).get("BTLinkCommType");
             // BT Link reconnection attempt for interrupted transaction
-            if (BTConstants.CurrentTransactionIsBT && !BTConstants.BTLinkOneStatus && AppConstants.isRelayON_fs1 && !BTConstants.SwitchedBTToUDP1) {
+            if (BTConstants.CurrentTransactionIsBT && (!BTConstants.BTLinkOneStatus && !BT_BLE_Constants.BTBLELinkOneStatus) && AppConstants.isRelayON_fs1 && !BTConstants.SwitchedBTToUDP1) {
                 if (BTLinkCommType != null && BTLinkCommType.equalsIgnoreCase("SPP")) {
                     if (CountBeforeReconnectRelay1 >= 1) {
                         if (BTConstants.BTStatusStrOne.equalsIgnoreCase("Disconnect")) {
@@ -6296,7 +6322,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             }
 
             // BT Link reconnection attempt for interrupted transaction
-            if (BTConstants.CurrentTransactionIsBT && !BTConstants.BTLinkTwoStatus && AppConstants.isRelayON_fs2 && !BTConstants.SwitchedBTToUDP2) {
+            if (BTConstants.CurrentTransactionIsBT && (!BTConstants.BTLinkTwoStatus && !BT_BLE_Constants.BTBLELinkTwoStatus) && AppConstants.isRelayON_fs2 && !BTConstants.SwitchedBTToUDP2) {
                 if (CountBeforeReconnectRelay2 >= 1) {
                     if (BTConstants.BTStatusStrTwo.equalsIgnoreCase("Disconnect")) {
                         SaveLastQtyInSharedPref(2, Constants.FS_2Pulse);
@@ -6443,7 +6469,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             }
 
             // BT Link reconnection attempt for interrupted transaction
-            if (BTConstants.CurrentTransactionIsBT && !BTConstants.BTLinkThreeStatus && AppConstants.isRelayON_fs3 && !BTConstants.SwitchedBTToUDP3) {
+            if (BTConstants.CurrentTransactionIsBT && (!BTConstants.BTLinkThreeStatus && !BT_BLE_Constants.BTBLELinkThreeStatus) && AppConstants.isRelayON_fs3 && !BTConstants.SwitchedBTToUDP3) {
                 if (CountBeforeReconnectRelay3 >= 1) {
                     if (BTConstants.BTStatusStrThree.equalsIgnoreCase("Disconnect")) {
                         SaveLastQtyInSharedPref(3, Constants.FS_3Pulse);
@@ -6590,7 +6616,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             }
 
             // BT Link reconnection attempt for interrupted transaction
-            if (BTConstants.CurrentTransactionIsBT && !BTConstants.BTLinkFourStatus && AppConstants.isRelayON_fs4 && !BTConstants.SwitchedBTToUDP4) {
+            if (BTConstants.CurrentTransactionIsBT && (!BTConstants.BTLinkFourStatus && !BT_BLE_Constants.BTBLELinkFourStatus) && AppConstants.isRelayON_fs4 && !BTConstants.SwitchedBTToUDP4) {
                 if (CountBeforeReconnectRelay4 >= 1) {
                     if (BTConstants.BTStatusStrFour.equalsIgnoreCase("Disconnect")) {
                         SaveLastQtyInSharedPref(4, Constants.FS_4Pulse);
@@ -6738,7 +6764,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             }
 
             // BT Link reconnection attempt for interrupted transaction
-            if (BTConstants.CurrentTransactionIsBT && !BTConstants.BTLinkFiveStatus && AppConstants.isRelayON_fs5 && !BTConstants.SwitchedBTToUDP5) {
+            if (BTConstants.CurrentTransactionIsBT && (!BTConstants.BTLinkFiveStatus && !BT_BLE_Constants.BTBLELinkFiveStatus) && AppConstants.isRelayON_fs5 && !BTConstants.SwitchedBTToUDP5) {
                 if (CountBeforeReconnectRelay5 >= 1) {
                     if (BTConstants.BTStatusStrFive.equalsIgnoreCase("Disconnect")) {
                         SaveLastQtyInSharedPref(5, Constants.FS_5Pulse);
@@ -6885,7 +6911,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             }
 
             // BT Link reconnection attempt for interrupted transaction
-            if (BTConstants.CurrentTransactionIsBT && !BTConstants.BTLinkSixStatus && AppConstants.isRelayON_fs6 && !BTConstants.SwitchedBTToUDP6) {
+            if (BTConstants.CurrentTransactionIsBT && (!BTConstants.BTLinkSixStatus && !BT_BLE_Constants.BTBLELinkSixStatus) && AppConstants.isRelayON_fs6 && !BTConstants.SwitchedBTToUDP6) {
                 if (CountBeforeReconnectRelay6 >= 1) {
                     if (BTConstants.BTStatusStrSix.equalsIgnoreCase("Disconnect")) {
                         SaveLastQtyInSharedPref(6, Constants.FS_6Pulse);

@@ -964,7 +964,7 @@ public class AppConstants {
             Constants.AccVehicleOther_FS3 = "";
             Constants.AccHours_FS3 = 0;
 
-        } else {
+        } else if (Constants.CurrentSelectedHose.equals("FS4")) {
 
             Constants.AccVehicleNumber_FS4 = "";
             Constants.AccOdoMeter_FS4 = 0;
@@ -973,6 +973,26 @@ public class AppConstants {
             Constants.AccOther_FS4 = "";
             Constants.AccVehicleOther_FS4 = "";
             Constants.AccHours_FS4 = 0;
+
+        } else if (Constants.CurrentSelectedHose.equals("FS5")) {
+
+            Constants.AccVehicleNumber_FS5 = "";
+            Constants.AccOdoMeter_FS5 = 0;
+            Constants.AccDepartmentNumber_FS5 = "";
+            Constants.AccPersonnelPIN_FS5 = "";
+            Constants.AccOther_FS5 = "";
+            Constants.AccVehicleOther_FS5 = "";
+            Constants.AccHours_FS5 = 0;
+
+        } else if (Constants.CurrentSelectedHose.equals("FS6")) {
+
+            Constants.AccVehicleNumber_FS6 = "";
+            Constants.AccOdoMeter_FS6 = 0;
+            Constants.AccDepartmentNumber_FS6 = "";
+            Constants.AccPersonnelPIN_FS6 = "";
+            Constants.AccOther_FS6 = "";
+            Constants.AccVehicleOther_FS6 = "";
+            Constants.AccHours_FS6 = 0;
 
         }
     }

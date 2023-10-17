@@ -463,6 +463,7 @@ public class BackgroundService_BTFive extends Service {
                                 Log.i(TAG, "BTLink 5: TransactionId is empty.");
                                 if (AppConstants.GenerateLogs)
                                     AppConstants.WriteinFile(TAG + " BTLink 5: TransactionId is empty.");
+                                CloseTransaction(false);
                             }
                             cancel();
                         } else {

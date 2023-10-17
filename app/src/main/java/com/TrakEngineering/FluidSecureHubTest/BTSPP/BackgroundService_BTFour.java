@@ -463,6 +463,7 @@ public class BackgroundService_BTFour extends Service {
                                 Log.i(TAG, "BTLink 4: TransactionId is empty.");
                                 if (AppConstants.GenerateLogs)
                                     AppConstants.WriteinFile(TAG + " BTLink 4: TransactionId is empty.");
+                                CloseTransaction(false);
                             }
                             cancel();
                         } else {
