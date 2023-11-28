@@ -150,6 +150,10 @@ public class BackgroundService_BTOne extends Service {
                 IsResetSwitchTimeBounce = calibrationPref.getString("IsResetSwitchTimeBounce_FS1", "0");
                 IsBypassPumpReset = calibrationPref.getString("IsBypassPumpReset_FS1", "False");
 
+                if (VehicleNumber.length() > 20) {
+                    VehicleNumber = VehicleNumber.substring(VehicleNumber.length() - 20);
+                }
+
                 //UDP Connection..!!
                 if (WelcomeActivity.serverSSIDList != null && WelcomeActivity.serverSSIDList.size() > 0) {
                     LinkCommunicationType = WelcomeActivity.serverSSIDList.get(WelcomeActivity.SelectedItemPos).get("LinkCommunicationType");
@@ -598,10 +602,10 @@ public class BackgroundService_BTOne extends Service {
                         }
                     }.start();
                 } else {
-                    GetPulserTypeCommand();
+                    ContinueToNextCommand(); //GetPulserTypeCommand(); // Commented get p_type as per #2437 - Nov 17th
                 }
             } else {
-                GetPulserTypeCommand();
+                ContinueToNextCommand(); //GetPulserTypeCommand();
             }
 
         } catch (Exception e) {
@@ -626,7 +630,7 @@ public class BackgroundService_BTOne extends Service {
                             new Handler().postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
-                                    ContinueToNextCommand();
+                                    GetPulserTypeCommand();
                                 }
                             }, 500);
                             cancel();
@@ -645,7 +649,7 @@ public class BackgroundService_BTOne extends Service {
                         new Handler().postDelayed(new Runnable() {
                             @Override
                             public void run() {
-                                ContinueToNextCommand();
+                                GetPulserTypeCommand();
                             }
                         }, 500);
                     } else {
@@ -1009,7 +1013,11 @@ public class BackgroundService_BTOne extends Service {
                     } else {
 
                         //UpgradeTransaction Status RelayON command fail.
-                        CommonUtils.UpgradeTransactionStatusToSqlite(TransactionId, "6", BackgroundService_BTOne.this);
+                        if (isAfterReconnect && (fillqty > 0)) {
+                            CommonUtils.UpgradeTransactionStatusToSqlite(TransactionId, "10", BackgroundService_BTOne.this);
+                        } else {
+                            CommonUtils.UpgradeTransactionStatusToSqlite(TransactionId, "6", BackgroundService_BTOne.this);
+                        }
                         Log.i(TAG, "BTLink 1: Failed to get relayOn Command Response:>>" + Response);
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + " BTLink 1: Checking relayOn command response. Response: false");
@@ -1305,7 +1313,7 @@ public class BackgroundService_BTOne extends Service {
     private void TerminateBTTxnAfterInterruption() {
         try {
             IsThisBTTrnx = false;
-            CommonUtils.UpgradeTransactionStatusToSqlite(TransactionId, "6", BackgroundService_BTOne.this);
+            CommonUtils.UpgradeTransactionStatusToSqlite(TransactionId, "10", BackgroundService_BTOne.this);
             Log.i(TAG, " BTLink 1: Link not connected. Please try again!");
             if (AppConstants.GenerateLogs)
                 AppConstants.WriteinFile(TAG + " BTLink 1: Link not connected.");
@@ -1464,9 +1472,9 @@ public class BackgroundService_BTOne extends Service {
                     //if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "BTLink 1: Link Response>>" + Response);
 
                     //Set Relay status.
-                    if (Response.contains("OFF")) {
+                    if (Request.contains(BTConstants.relay_off_cmd) && Response.contains("OFF")) {
                         RelayStatus = false;
-                    } else if (Response.contains("ON")) {
+                    } else if (Request.contains(BTConstants.relay_on_cmd) && Response.contains("ON")) {
                         RelayStatus = true;
                         AppConstants.isRelayON_fs1 = true;
                         if (!redpulseloop_on) {
@@ -1715,7 +1723,7 @@ public class BackgroundService_BTOne extends Service {
 
         try {
             try {
-                if (RelayStatus) {
+                if (RelayStatus && !BTConstants.CurrentCommand_LinkOne.contains(BTConstants.relay_off_cmd)) {
                     if (RespCount < 4) {
                         RespCount++;
                     } else {
@@ -1745,12 +1753,7 @@ public class BackgroundService_BTOne extends Service {
 
             if (!Response.contains(checkPulses)) {
                 stopCount++;
-                /*if (!Response.contains("ON") && !Response.contains("OFF")) {
-                    Log.i(TAG, " BTLink 1: No response from link>>" + stopCount);
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + " BTLink 1: No response from link. Response >> " + Response.trim());
-                }*/
-                //int pumpOnpoint = Integer.parseInt(PumpOnTime);
+
                 long autoStopSeconds = 0;
                 if (pre_pulse == 0) {
                     autoStopSeconds = Long.parseLong(PumpOnTime);

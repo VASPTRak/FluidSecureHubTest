@@ -785,8 +785,8 @@ public class BackgroundService_FS_UNIT_3 extends Service {
 
                     Log.e(TAG, "error in getting response using async okhttp call");
                     //Temp code..
-                    GetPulsarAttemptFailCount = GetPulsarAttemptFailCount + 1;
-                    CommonUtils.AddRemovecurrentTransactionList(false, TransactionId);//Remove transaction Id from list
+                    GetPulsarAttemptFailCount++;
+                    //CommonUtils.AddRemovecurrentTransactionList(false, TransactionId);//Remove transaction Id from list
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(TAG + "GETPulsarQuantity onFailure Exception: " + e.toString());
                     //stopTimer = false;
@@ -796,6 +796,10 @@ public class BackgroundService_FS_UNIT_3 extends Service {
                 }
                 if (GetPulsarAttemptFailCount == 3) {
                     stopTimer = false;
+                    if (fillqty > 0) {
+                        CommonUtils.UpgradeTransactionStatusToSqlite(TransactionId, "10", BackgroundService_FS_UNIT_3.this);
+                    }
+                    CommonUtils.AddRemovecurrentTransactionList(false, TransactionId);//Remove transaction Id from list
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(TAG + "Sending RELAY OFF command to Link: " + LinkName);
                     new CommandsPOST().execute(URL_RELAY, jsonRelayOff);

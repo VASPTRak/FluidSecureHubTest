@@ -466,7 +466,7 @@ public class AcceptServiceCall {
                                                 e.printStackTrace();
                                             }
 
-                                        } else if (LinkCommunicationType.equalsIgnoreCase("BT") && BTLinkCommType.equalsIgnoreCase("SPP")) {
+                                        } else if (LinkCommunicationType.equalsIgnoreCase("BT") && (BTLinkCommType != null && BTLinkCommType.equalsIgnoreCase("SPP"))) {
                                             new Handler().postDelayed(new Runnable() {
                                                 @Override
                                                 public void run() {
