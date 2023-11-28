@@ -262,9 +262,9 @@ public class SelectFSActivity extends AppCompatActivity { // implements GoogleAp
         try {
 
 
-            boolean flagGo = false;
+            boolean flagGo = true;
 
-            LocationManager locationManager = (LocationManager) SelectFSActivity.this.getSystemService(Context.LOCATION_SERVICE);
+            /*LocationManager locationManager = (LocationManager) SelectFSActivity.this.getSystemService(Context.LOCATION_SERVICE);
             boolean statusOfGPS = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
 
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
@@ -278,7 +278,7 @@ public class SelectFSActivity extends AppCompatActivity { // implements GoogleAp
             } else {
                 flagGo = true;
 
-            }
+            }*/
 
 
             if (flagGo) {

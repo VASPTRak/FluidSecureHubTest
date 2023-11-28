@@ -147,8 +147,12 @@ public class BackgroundService_BTFour extends Service {
 
                 SharedPreferences calibrationPref = this.getSharedPreferences(Constants.PREF_CalibrationDetails, Context.MODE_PRIVATE);
                 PulserTimingAdjust = calibrationPref.getString("PulserTimingAdjust_FS4", "");
-                IsResetSwitchTimeBounce = calibrationPref.getString("IsResetSwitchTimeBounce_FS4", "");
+                IsResetSwitchTimeBounce = calibrationPref.getString("IsResetSwitchTimeBounce_FS4", "0");
                 IsBypassPumpReset = calibrationPref.getString("IsBypassPumpReset_FS4", "False");
+
+                if (VehicleNumber.length() > 20) {
+                    VehicleNumber = VehicleNumber.substring(VehicleNumber.length() - 20);
+                }
 
                 //UDP Connection..!!
                 if (WelcomeActivity.serverSSIDList != null && WelcomeActivity.serverSSIDList.size() > 0) {
@@ -262,7 +266,7 @@ public class BackgroundService_BTFour extends Service {
                     if (ssid.equalsIgnoreCase(LinkName)) {
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + " BTLink 4: Connected to " + ssid + " via WiFi.");
-                        proceedToInfoCommand(false);
+                        proceedToInfoCommand();
                         //loading.cancel();
                         cancel();
                     }
@@ -279,7 +283,7 @@ public class BackgroundService_BTFour extends Service {
                     if (ssid.equalsIgnoreCase(LinkName)) {
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + " BTLink 4: Connected to " + ssid + " via WiFi.");
-                        proceedToInfoCommand(false);
+                        proceedToInfoCommand();
                         //loading.cancel();
                         cancel();
                     } else {
@@ -289,7 +293,6 @@ public class BackgroundService_BTFour extends Service {
                     }
                 }
             }.start();
-            //proceedToInfoCommand(false);
         } catch (Exception e) {
             if (AppConstants.GenerateLogs)
                 AppConstants.WriteinFile(TAG + " BTLink 4: Exception in BeginProcessUsingUDP: " + e.getMessage());
@@ -315,18 +318,14 @@ public class BackgroundService_BTFour extends Service {
         }
     }
 
-    public void proceedToInfoCommand(boolean proceedAfterUpgrade) {
+    public void proceedToInfoCommand() {
         try {
-            if (proceedAfterUpgrade) {
-                checkBTLinkStatus("info");
-            } else {
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        infoCommand();
-                    }
-                }, 1000);
-            }
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    infoCommand();
+                }
+            }, 1000);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -604,10 +603,10 @@ public class BackgroundService_BTFour extends Service {
                         }
                     }.start();
                 } else {
-                    GetPulserTypeCommand();
+                    ContinueToNextCommand(); //GetPulserTypeCommand(); // Commented get p_type as per #2437 - Nov 17th
                 }
             } else {
-                GetPulserTypeCommand();
+                ContinueToNextCommand(); //GetPulserTypeCommand();
             }
 
         } catch (Exception e) {
@@ -632,7 +631,7 @@ public class BackgroundService_BTFour extends Service {
                             new Handler().postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
-                                    ContinueToNextCommand();
+                                    GetPulserTypeCommand();
                                 }
                             }, 500);
                             cancel();
@@ -651,7 +650,7 @@ public class BackgroundService_BTFour extends Service {
                         new Handler().postDelayed(new Runnable() {
                             @Override
                             public void run() {
-                                ContinueToNextCommand();
+                                GetPulserTypeCommand();
                             }
                         }, 500);
                     } else {
@@ -1015,7 +1014,11 @@ public class BackgroundService_BTFour extends Service {
                     } else {
 
                         //UpgradeTransaction Status RelayON command fail.
-                        CommonUtils.UpgradeTransactionStatusToSqlite(TransactionId, "6", BackgroundService_BTFour.this);
+                        if (isAfterReconnect && (fillqty > 0)) {
+                            CommonUtils.UpgradeTransactionStatusToSqlite(TransactionId, "10", BackgroundService_BTFour.this);
+                        } else {
+                            CommonUtils.UpgradeTransactionStatusToSqlite(TransactionId, "6", BackgroundService_BTFour.this);
+                        }
                         Log.i(TAG, "BTLink 4: Failed to get relayOn Command Response:>>" + Response);
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + " BTLink 4: Checking relayOn command response. Response: false");
@@ -1309,7 +1312,7 @@ public class BackgroundService_BTFour extends Service {
     private void TerminateBTTxnAfterInterruption() {
         try {
             IsThisBTTrnx = false;
-            CommonUtils.UpgradeTransactionStatusToSqlite(TransactionId, "6", BackgroundService_BTFour.this);
+            CommonUtils.UpgradeTransactionStatusToSqlite(TransactionId, "10", BackgroundService_BTFour.this);
             Log.i(TAG, " BTLink 4: Link not connected. Please try again!");
             if (AppConstants.GenerateLogs)
                 AppConstants.WriteinFile(TAG + " BTLink 4: Link not connected.");
@@ -1468,9 +1471,9 @@ public class BackgroundService_BTFour extends Service {
                     //if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "BTLink 4: Link Response>>" + Response);
 
                     //Set Relay status.
-                    if (Response.contains("OFF")) {
+                    if (Request.contains(BTConstants.relay_off_cmd) && Response.contains("OFF")) {
                         RelayStatus = false;
-                    } else if (Response.contains("ON")) {
+                    } else if (Request.contains(BTConstants.relay_on_cmd) && Response.contains("ON")) {
                         RelayStatus = true;
                         AppConstants.isRelayON_fs4 = true;
                         if (!redpulseloop_on) {
@@ -1710,7 +1713,7 @@ public class BackgroundService_BTFour extends Service {
 
         try {
             try {
-                if (RelayStatus) {
+                if (RelayStatus && !BTConstants.CurrentCommand_LinkFour.contains(BTConstants.relay_off_cmd)) {
                     if (RespCount < 4) {
                         RespCount++;
                     } else {
@@ -1740,12 +1743,7 @@ public class BackgroundService_BTFour extends Service {
 
             if (!Response.contains(checkPulses)) {
                 stopCount++;
-                /*if (!Response.contains("ON") && !Response.contains("OFF")) {
-                    Log.i(TAG, " BTLink 4: No response from link>>" + stopCount);
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + " BTLink 4: No response from link. Response >> " + Response.trim());
-                }*/
-                //int pumpOnpoint = Integer.parseInt(PumpOnTime);
+
                 long autoStopSeconds = 0;
                 if (pre_pulse == 0) {
                     autoStopSeconds = Long.parseLong(PumpOnTime);
