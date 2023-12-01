@@ -339,7 +339,7 @@ public class BackgroundService_BTThree extends Service {
                         isConnected = true;
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + " BTLink 3: Link is connected.");
-                        if (nextAction.equalsIgnoreCase("info")) { // proceed to info command after upgrade is done
+                        if (nextAction.equalsIgnoreCase("info")) {
                             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
@@ -368,7 +368,7 @@ public class BackgroundService_BTThree extends Service {
                         isConnected = true;
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + " BTLink 3: Link is connected.");
-                        if (nextAction.equalsIgnoreCase("info")) { // proceed to info command after upgrade is done
+                        if (nextAction.equalsIgnoreCase("info")) {
                             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
@@ -1015,7 +1015,11 @@ public class BackgroundService_BTThree extends Service {
 
                         //UpgradeTransaction Status RelayON command fail.
                         if (isAfterReconnect && (fillqty > 0)) {
-                            CommonUtils.UpgradeTransactionStatusToSqlite(TransactionId, "10", BackgroundService_BTThree.this);
+                            if (isOnlineTxn) {
+                                CommonUtils.UpgradeTransactionStatusToSqlite(TransactionId, "10", BackgroundService_BTThree.this);
+                            } else {
+                                offlineController.updateOfflineTransactionStatus(sqlite_id + "", "10");
+                            }
                         } else {
                             CommonUtils.UpgradeTransactionStatusToSqlite(TransactionId, "6", BackgroundService_BTThree.this);
                         }
@@ -1312,7 +1316,11 @@ public class BackgroundService_BTThree extends Service {
     private void TerminateBTTxnAfterInterruption() {
         try {
             IsThisBTTrnx = false;
-            CommonUtils.UpgradeTransactionStatusToSqlite(TransactionId, "10", BackgroundService_BTThree.this);
+            if (isOnlineTxn) {
+                CommonUtils.UpgradeTransactionStatusToSqlite(TransactionId, "10", BackgroundService_BTThree.this);
+            } else {
+                offlineController.updateOfflineTransactionStatus(sqlite_id + "", "10");
+            }
             Log.i(TAG, " BTLink 3: Link not connected. Please try again!");
             if (AppConstants.GenerateLogs)
                 AppConstants.WriteinFile(TAG + " BTLink 3: Link not connected.");
@@ -1484,7 +1492,7 @@ public class BackgroundService_BTThree extends Service {
             } catch (Exception e) {
                 e.printStackTrace();
                 if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + " BTLink 3:onReceive Exception:" + e.toString());
+                    AppConstants.WriteinFile(TAG + " BTLink 3: <onReceive Exception: " + e.getMessage() + ">");
             }
         }
     }

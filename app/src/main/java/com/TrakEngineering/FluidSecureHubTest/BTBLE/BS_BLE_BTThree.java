@@ -281,42 +281,41 @@ public class BS_BLE_BTThree extends Service {
             String BTLinkResponseFormatNew = "{notify : enabled}";
             String res = "";
 
-            res = intent.getStringExtra(BLEServiceCodeThree.EXTRA_DATA);
-            res = res.replaceAll("\"", "");
-            res = res.trim();
+            try {
+                res = intent.getStringExtra(BLEServiceCodeThree.EXTRA_DATA);
+                if (res != null) {
+                    res = res.replaceAll("\"", "");
+                    res = res.trim();
 
-            if (res.toUpperCase().contains(BTLinkResponseFormatOld.toUpperCase())) {
-                BT_BLE_Constants.isLinkThreeNotifyEnabled = true;
-                BT_BLE_Constants.isNewVersionLinkThree = false;
+                    if (res.toUpperCase().contains(BTLinkResponseFormatOld.toUpperCase())) {
+                        BT_BLE_Constants.isLinkThreeNotifyEnabled = true;
+                        BT_BLE_Constants.isNewVersionLinkThree = false;
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + " <Found BT LINK (OLD)> ");
+                    } else if (res.toUpperCase().contains(BTLinkResponseFormatNew.toUpperCase())) {
+                        BT_BLE_Constants.isLinkThreeNotifyEnabled = true;
+                        BT_BLE_Constants.isNewVersionLinkThree = true;
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + " <Found BT LINK (New)> ");
+                    }
+                }
+
+                if (BLEServiceCodeThree.ACTION_GATT_CONNECTED.equals(action)) {
+                    System.out.println("ACTION_GATT_QR_CONNECTED");
+                } else if (BLEServiceCodeThree.ACTION_GATT_DISCONNECTED.equals(action)) {
+                    System.out.println("ACTION_GATT_QR_DISCONNECTED");
+                } else if (BLEServiceCodeThree.ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
+                    System.out.println("ACTION_GATT_QR_SERVICES_DISCOVERED");
+                } else if (BLEServiceCodeThree.ACTION_DATA_AVAILABLE.equals(action)) {
+                    System.out.println("ACTION_DATA_AVAILABLE");
+                    displayData(intent.getStringExtra(BLEServiceCodeThree.EXTRA_DATA));
+                } else {
+                    System.out.println("ACTION_GATT_QR_DISCONNECTED");
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
                 if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + " <Found BT LINK (OLD)> ");
-            } else if (res.toUpperCase().contains(BTLinkResponseFormatNew.toUpperCase())) {
-                BT_BLE_Constants.isLinkThreeNotifyEnabled = true;
-                BT_BLE_Constants.isNewVersionLinkThree = true;
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + " <Found BT LINK (New)> ");
-            }
-
-            if (BLEServiceCodeThree.ACTION_GATT_CONNECTED.equals(action)) {
-
-                System.out.println("ACTION_GATT_QR_CONNECTED");
-
-            } else if (BLEServiceCodeThree.ACTION_GATT_DISCONNECTED.equals(action)) {
-
-                System.out.println("ACTION_GATT_QR_DISCONNECTED");
-
-            } else if (BLEServiceCodeThree.ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
-
-                System.out.println("ACTION_GATT_QR_SERVICES_DISCOVERED");
-
-            } else if (BLEServiceCodeThree.ACTION_DATA_AVAILABLE.equals(action)) {
-                System.out.println("ACTION_GATT_QR_AVAILABLE");
-                System.out.println("ACTION_DATA_AVAILABLE");
-
-                displayData(intent.getStringExtra(BLEServiceCodeThree.EXTRA_DATA));
-
-            } else {
-                System.out.println("ACTION_GATT_QR_DISCONNECTED");
+                    AppConstants.WriteinFile(TAG + " <onReceive Exception: " + e.getMessage() + ">");
             }
         }
     };
@@ -624,7 +623,7 @@ public class BS_BLE_BTThree extends Service {
     private void CheckResponse(String checkPulses) {
         try {
             try {
-                if (RelayStatus) {
+                if (RelayStatus && !BT_BLE_Constants.CurrentCommand_LinkThree.contains(BTConstants.relay_off_cmd)) {
                     if (RespCount < 4) {
                         RespCount++;
                     } else {
@@ -712,7 +711,7 @@ public class BS_BLE_BTThree extends Service {
                         isConnected = true;
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + " Link is connected.");
-                        if (nextAction.equalsIgnoreCase("info")) { // proceed to info command after upgrade is done
+                        if (nextAction.equalsIgnoreCase("info")) {
                             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
@@ -741,7 +740,7 @@ public class BS_BLE_BTThree extends Service {
                         isConnected = true;
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + " Link is connected.");
-                        if (nextAction.equalsIgnoreCase("info")) { // proceed to info command after upgrade is done
+                        if (nextAction.equalsIgnoreCase("info")) {
                             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
@@ -906,7 +905,11 @@ public class BS_BLE_BTThree extends Service {
     private void TerminateBTTxnAfterInterruption() {
         try {
             IsThisBTTrnx = false;
-            CommonUtils.UpgradeTransactionStatusToSqlite(TransactionId, "10", BS_BLE_BTThree.this);
+            if (isOnlineTxn) {
+                CommonUtils.UpgradeTransactionStatusToSqlite(TransactionId, "10", BS_BLE_BTThree.this);
+            } else {
+                offlineController.updateOfflineTransactionStatus(sqlite_id + "", "10");
+            }
             Log.i(TAG, " Link not connected. Please try again!");
             if (AppConstants.GenerateLogs)
                 AppConstants.WriteinFile(TAG + " Link not connected.");
@@ -1394,7 +1397,11 @@ public class BS_BLE_BTThree extends Service {
 
                         //UpgradeTransaction Status RelayON command fail.
                         if (isAfterReconnect && (fillqty > 0)) {
-                            CommonUtils.UpgradeTransactionStatusToSqlite(TransactionId, "10", BS_BLE_BTThree.this);
+                            if (isOnlineTxn) {
+                                CommonUtils.UpgradeTransactionStatusToSqlite(TransactionId, "10", BS_BLE_BTThree.this);
+                            } else {
+                                offlineController.updateOfflineTransactionStatus(sqlite_id + "", "10");
+                            }
                         } else {
                             CommonUtils.UpgradeTransactionStatusToSqlite(TransactionId, "6", BS_BLE_BTThree.this);
                         }
