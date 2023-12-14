@@ -676,7 +676,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
     @Override
     protected void onDestroy() {
         super.onDestroy();
-
+        if (AppConstants.GenerateLogs)
+            AppConstants.WriteinFile(TAG + "<in onDestroy>");
         closeBTSppMain();
         qrcodebleServiceOff();
 
@@ -1202,6 +1203,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
     public void cancelOfflineDownload() {
         try {
+            AppConstants.isOfflineDownloadStarted = false;
             cancelThinDownloadManager();
             stopService(new Intent(WelcomeActivity.this, OffBackgroundService.class));
         } catch (Exception e) {
@@ -8130,7 +8132,6 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         menu.findItem(R.id.mreload).setVisible(false);
         menu.findItem(R.id.btLinkScope).setVisible(true);
         menu.findItem(R.id.mshow_reader_status).setVisible(false);
-        menu.findItem(R.id.testTransaction).setVisible(true);
 
         if (cd.isConnectingToInternet()) {
 
@@ -8138,12 +8139,16 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             menu.findItem(R.id.mofline).setVisible(false);
             menu.findItem(R.id.madd_link).setVisible(true); // Show Add LINK menu only in online mode.
             HideAddLinkMenu();
+            menu.findItem(R.id.testTransaction).setVisible(true); // Show Test Transaction menu only in online mode.
+            menu.findItem(R.id.forceOfflineList).setVisible(true); // Show Force Offline List menu only in online mode.
 
         } else {
 
             menu.findItem(R.id.monline).setVisible(false);
             menu.findItem(R.id.mofline).setVisible(true);
             menu.findItem(R.id.madd_link).setVisible(false);
+            menu.findItem(R.id.testTransaction).setVisible(false);
+            menu.findItem(R.id.forceOfflineList).setVisible(false);
         }
 
         SharedPreferences sharedPref = WelcomeActivity.this.getSharedPreferences("LanguageSettings", Context.MODE_PRIVATE);
@@ -8259,8 +8264,30 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 LinkSelectionForTestTransaction();
                 break;
 
+            case R.id.forceOfflineList:
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + "<Force Offline List option selected.>");
+                if (AppConstants.IsAllHosesAreFree()) {
+                    ForceDownloadOfflineData();
+                } else {
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + getResources().getString(R.string.OneOfTheHoseIsBusy));
+                    Toast.makeText(getApplicationContext(), getResources().getString(R.string.OneOfTheHoseIsBusy), Toast.LENGTH_SHORT).show();
+                }
+                break;
+
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void ForceDownloadOfflineData() {
+        if (!AppConstants.isOfflineDownloadStarted) {
+            AppConstants.forceDownloadOfflineData = true;
+            startService(new Intent(WelcomeActivity.this, OffBackgroundService.class));
+        } else {
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + "<Offline data download has already started>");
+        }
     }
 
     public void StoreLanguageSettings(String language, boolean isRecreate) {

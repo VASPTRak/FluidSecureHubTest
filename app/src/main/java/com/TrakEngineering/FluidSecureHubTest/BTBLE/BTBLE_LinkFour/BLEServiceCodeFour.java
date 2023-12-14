@@ -66,6 +66,8 @@ public class BLEServiceCodeFour extends Service {
             String intentAction;
             gt_notify_status = status;
             gatt_notify = gatt;
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + " <onConnectionStateChange: status => " + status + "; newState => " + newState + ">");
             if (newState == BluetoothProfile.STATE_CONNECTED) {
                 gatt.requestMtu(512);
                 intentAction = ACTION_GATT_CONNECTED;

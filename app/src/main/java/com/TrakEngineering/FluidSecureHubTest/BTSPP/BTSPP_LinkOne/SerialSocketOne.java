@@ -10,6 +10,7 @@ import android.content.IntentFilter;
 import android.util.Log;
 
 import com.TrakEngineering.FluidSecureHubTest.AppConstants;
+import com.TrakEngineering.FluidSecureHubTest.BuildConfig;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,10 +19,9 @@ import java.util.Arrays;
 import java.util.UUID;
 import java.util.concurrent.Executors;
 
-import static com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkOne.SerialServiceOne.INTENT_ACTION_DISCONNECT;
-
 public class SerialSocketOne implements Runnable {
 
+    static final String INTENT_ACTION_DISCONNECT = BuildConfig.APPLICATION_ID + ".Disconnect";
     private static final UUID BLUETOOTH_SPP = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
     private final BroadcastReceiver disconnectBroadcastReceiver;
     private static final String TAG = SerialSocketOne.class.getSimpleName();
@@ -81,6 +81,7 @@ public class SerialSocketOne implements Runnable {
             throw new IOException("not connected");
         socket.getOutputStream().write(data);
         socket.getOutputStream().flush();
+
     }
 
     void readPulse() throws IOException {
@@ -128,11 +129,15 @@ public class SerialSocketOne implements Runnable {
         try {
             socket = device.createRfcommSocketToServiceRecord(BLUETOOTH_SPP);
             socket.connect();
-            if(listener != null)
+            if (listener != null)
                 listener.onSerialConnectOne();
         } catch (Exception e) {
-            if(listener != null)
+            if (listener != null) {
                 listener.onSerialConnectErrorOne(e);
+            } else {
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile("<" + TAG + " Connect Exception: " + e.getMessage() + ">");
+            }
             try {
                 socket.close();
             } catch (Exception ignored) {
@@ -148,13 +153,17 @@ public class SerialSocketOne implements Runnable {
             while (true) {
                 len = socket.getInputStream().read(buffer);
                 byte[] data = Arrays.copyOf(buffer, len);
-                if(listener != null)
+                if (listener != null)
                     listener.onSerialReadOne(data);
             }
         } catch (Exception e) {
             connected = false;
-            if (listener != null)
+            if (listener != null) {
                 listener.onSerialIoErrorOne(e);
+            } else {
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile("<" + TAG + " Serial IO Exception: " + e.getMessage() + ">");
+            }
             try {
                 socket.close();
             } catch (Exception ignored) {

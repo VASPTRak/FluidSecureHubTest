@@ -381,6 +381,8 @@ public class AppConstants {
     public static ArrayList<String> ListOfRunningTransactiins = new ArrayList<>();
 
     public static boolean languageChanged = false;
+    public static boolean isOfflineDownloadStarted = false;
+    public static boolean forceDownloadOfflineData = false;
 
     public static double roundNumber(double value, int places) {
         if (places < 0) throw new IllegalArgumentException();
