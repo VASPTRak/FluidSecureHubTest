@@ -1684,15 +1684,13 @@ public class CommonUtils {
     }
 
     public static void AddRemovecurrentTransactionList(boolean AddDel, String TxnId) {
-
-
         if (AddDel) {
-            if (!AppConstants.ListOfRunningTransactiins.contains(TxnId)) {
-                AppConstants.ListOfRunningTransactiins.add(TxnId);
+            if (!AppConstants.ListOfRunningTransactions.contains(TxnId)) {
+                AppConstants.ListOfRunningTransactions.add(TxnId);
             }
         } else {
-            if (AppConstants.ListOfRunningTransactiins != null && AppConstants.ListOfRunningTransactiins.contains(TxnId)) {
-                AppConstants.ListOfRunningTransactiins.remove(TxnId);
+            if (AppConstants.ListOfRunningTransactions != null && AppConstants.ListOfRunningTransactions.contains(TxnId)) {
+                AppConstants.ListOfRunningTransactions.remove(TxnId);
 
             }
         }

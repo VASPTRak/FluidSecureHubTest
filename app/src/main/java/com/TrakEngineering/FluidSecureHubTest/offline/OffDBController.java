@@ -64,7 +64,7 @@ public class OffDBController extends SQLiteOpenHelper {
     public void onUpgrade(SQLiteDatabase database, int version_old, int current_version) {
 
         Log.i(TAG,"InOnUpgrade.");
-        AppConstants.WriteinFile(TAG + "onUpgrade called.");
+        AppConstants.WriteinFile(TAG + "<onUpgrade called.>");
         // If you need to add a column
         if (current_version > version_old) {
             try {

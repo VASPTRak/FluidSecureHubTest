@@ -81,7 +81,7 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         status1("Disconnect");
         e.printStackTrace();
         if (AppConstants.GenerateLogs)
-            AppConstants.WriteinFile(TAG + "BTSPPLink 1: <SerialConnectError: " + e.getMessage() + ">");
+            AppConstants.WriteinFile(TAG + "BTSPPLink_1: <SerialConnectError: " + e.getMessage() + ">");
     }
 
     @Override
@@ -90,12 +90,12 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
     }
 
     @Override
-    public void onSerialIoErrorOne(Exception e) {
+    public void onSerialIoErrorOne(Exception e, Integer fromCode) {
         BTConstants.BTLinkOneStatus = false;
         status1("Disconnect");
         e.printStackTrace();
         if (AppConstants.GenerateLogs)
-            AppConstants.WriteinFile(TAG + "BTSPPLink 1: <SerialIoError: " + e.getMessage() + ">");
+            AppConstants.WriteinFile(TAG + "BTSPPLink_1: <SerialIoError: " + e.getMessage() + "; ErrorCode: " + fromCode + ">");
     }
 
     public void connect1() {
@@ -118,43 +118,43 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
     public void send1(String str) {
         if (!BTConstants.BTLinkOneStatus) {
             BTConstants.CurrentCommand_LinkOne = "";
-            Log.i(TAG, "BTSPPLink 1: Link not connected");
-            //Toast.makeText(activity, "BTSPPLink 1: Link not connected", Toast.LENGTH_SHORT).show();
+            Log.i(TAG, "BTSPPLink_1: Link not connected");
+            //Toast.makeText(activity, "BTSPPLink_1: Link not connected", Toast.LENGTH_SHORT).show();
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "BTSPPLink 1: Link not connected");
+                AppConstants.WriteinFile(TAG + "BTSPPLink_1: Link not connected");
             return;
         }
         try {
             //Log command sent:str
             BTConstants.CurrentCommand_LinkOne = str;
-            Log.i(TAG, "BTSPPLink 1: Requesting..." + str);
+            Log.i(TAG, "BTSPPLink_1: Requesting..." + str);
             byte[] data = (str + newline).getBytes();
             service1.write(data);
         } catch (Exception e) {
-            onSerialIoErrorOne(e);
+            onSerialIoErrorOne(e, 1);
         }
     }
 
     public void sendBytes1(byte[] data) {
         if (!BTConstants.BTLinkOneStatus) {
             BTConstants.CurrentCommand_LinkOne = "";
-            Log.i(TAG, "BTSPPLink 1: Link not connected");
+            Log.i(TAG, "BTSPPLink_1: Link not connected");
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "BTSPPLink 1: Link not connected");
+                AppConstants.WriteinFile(TAG + "BTSPPLink_1: Link not connected");
             return;
         }
         try {
             service1.write(data);
         } catch (Exception e) {
-            onSerialIoErrorOne(e);
+            onSerialIoErrorOne(e, 2);
         }
     }
 
     public void receive1(byte[] data) {
         String Response = new String(data);
         SpannableStringBuilder spn = new SpannableStringBuilder(Response + '\n');
-        Log.i(TAG, "BTSPPLink 1: Request>>" + BTConstants.CurrentCommand_LinkOne);
-        Log.i(TAG, "BTSPPLink 1: Response>>" + spn.toString());
+        Log.i(TAG, "BTSPPLink_1: Request>>" + BTConstants.CurrentCommand_LinkOne);
+        Log.i(TAG, "BTSPPLink_1: Response>>" + spn.toString());
 
         //==========================================
         if (BTConstants.CurrentCommand_LinkOne.equalsIgnoreCase(BTConstants.info_cmd) && Response.contains("mac_address")) {
@@ -225,7 +225,7 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         status2("Disconnect");
         e.printStackTrace();
         if (AppConstants.GenerateLogs)
-            AppConstants.WriteinFile(TAG + "BTSPPLink 2: <SerialConnectError: " + e.getMessage() + ">");
+            AppConstants.WriteinFile(TAG + "BTSPPLink_2: <SerialConnectError: " + e.getMessage() + ">");
     }
 
     @Override
@@ -234,12 +234,12 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
     }
 
     @Override
-    public void onSerialIoErrorTwo(Exception e) {
+    public void onSerialIoErrorTwo(Exception e, Integer fromCode) {
         BTConstants.BTLinkTwoStatus = false;
         status2("Disconnect");
         e.printStackTrace();
         if (AppConstants.GenerateLogs)
-            AppConstants.WriteinFile(TAG + "BTSPPLink 2: <SerialIoError: " + e.getMessage() + ">");
+            AppConstants.WriteinFile(TAG + "BTSPPLink_2: <SerialIoError: " + e.getMessage() + "; ErrorCode: " + fromCode + ">");
     }
 
     public void connect2() {
@@ -262,43 +262,43 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
     public void send2(String str) {
         if (!BTConstants.BTLinkTwoStatus) {
             BTConstants.CurrentCommand_LinkTwo = "";
-            Log.i(TAG, "BTSPPLink 2: Link not connected");
-            //Toast.makeText(activity, "BTSPPLink 2: Link not connected", Toast.LENGTH_SHORT).show();
+            Log.i(TAG, "BTSPPLink_2: Link not connected");
+            //Toast.makeText(activity, "BTSPPLink_2: Link not connected", Toast.LENGTH_SHORT).show();
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "BTSPPLink 2: Link not connected");
+                AppConstants.WriteinFile(TAG + "BTSPPLink_2: Link not connected");
             return;
         }
         try {
             //Log command sent:str
             BTConstants.CurrentCommand_LinkTwo = str;
-            Log.i(TAG, "BTSPPLink 2: Requesting..." + str);
+            Log.i(TAG, "BTSPPLink_2: Requesting..." + str);
             byte[] data = (str + newline).getBytes();
             service2.write(data);
         } catch (Exception e) {
-            onSerialIoErrorTwo(e);
+            onSerialIoErrorTwo(e, 1);
         }
     }
 
     public void sendBytes2(byte[] data) {
         if (!BTConstants.BTLinkTwoStatus) {
             BTConstants.CurrentCommand_LinkTwo = "";
-            Log.i(TAG, "BTSPPLink 2: Link not connected");
+            Log.i(TAG, "BTSPPLink_2: Link not connected");
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "BTSPPLink 2: Link not connected");
+                AppConstants.WriteinFile(TAG + "BTSPPLink_2: Link not connected");
             return;
         }
         try {
             service2.write(data);
         } catch (Exception e) {
-            onSerialIoErrorTwo(e);
+            onSerialIoErrorTwo(e, 2);
         }
     }
 
     public void receive2(byte[] data) {
         String Response = new String(data);
         SpannableStringBuilder spn = new SpannableStringBuilder(Response + '\n');
-        Log.i(TAG, "BTSPPLink 2: Request>>" + BTConstants.CurrentCommand_LinkTwo);
-        Log.i(TAG, "BTSPPLink 2: Response>>" + spn.toString());
+        Log.i(TAG, "BTSPPLink_2: Request>>" + BTConstants.CurrentCommand_LinkTwo);
+        Log.i(TAG, "BTSPPLink_2: Response>>" + spn.toString());
 
         //==========================================
         if (BTConstants.CurrentCommand_LinkTwo.equalsIgnoreCase(BTConstants.info_cmd) && Response.contains("mac_address")) {
@@ -368,7 +368,7 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         status3("Disconnect");
         e.printStackTrace();
         if (AppConstants.GenerateLogs)
-            AppConstants.WriteinFile(TAG + "BTSPPLink 3: <SerialConnectError: " + e.getMessage() + ">");
+            AppConstants.WriteinFile(TAG + "BTSPPLink_3: <SerialConnectError: " + e.getMessage() + ">");
     }
 
     @Override
@@ -377,12 +377,12 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
     }
 
     @Override
-    public void onSerialIoErrorThree(Exception e) {
+    public void onSerialIoErrorThree(Exception e, Integer fromCode) {
         BTConstants.BTLinkThreeStatus = false;
         status3("Disconnect");
         e.printStackTrace();
         if (AppConstants.GenerateLogs)
-            AppConstants.WriteinFile(TAG + "BTSPPLink 3: <SerialIoError: " + e.getMessage() + ">");
+            AppConstants.WriteinFile(TAG + "BTSPPLink_3: <SerialIoError: " + e.getMessage() + "; ErrorCode: " + fromCode + ">");
     }
 
     public void connect3() {
@@ -405,43 +405,43 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
     public void send3(String str) {
         if (!BTConstants.BTLinkThreeStatus) {
             BTConstants.CurrentCommand_LinkThree = "";
-            Log.i(TAG, "BTSPPLink 3: Link not connected");
-            //Toast.makeText(activity, "BTSPPLink 3: Link not connected", Toast.LENGTH_SHORT).show();
+            Log.i(TAG, "BTSPPLink_3: Link not connected");
+            //Toast.makeText(activity, "BTSPPLink_3: Link not connected", Toast.LENGTH_SHORT).show();
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "BTSPPLink 3: Link not connected");
+                AppConstants.WriteinFile(TAG + "BTSPPLink_3: Link not connected");
             return;
         }
         try {
             //Log command sent:str
             BTConstants.CurrentCommand_LinkThree = str;
-            Log.i(TAG, "BTSPPLink 3: Requesting..." + str);
+            Log.i(TAG, "BTSPPLink_3: Requesting..." + str);
             byte[] data = (str + newline).getBytes();
             service3.write(data);
         } catch (Exception e) {
-            onSerialIoErrorThree(e);
+            onSerialIoErrorThree(e, 1);
         }
     }
 
     public void sendBytes3(byte[] data) {
         if (!BTConstants.BTLinkThreeStatus) {
             BTConstants.CurrentCommand_LinkThree = "";
-            Log.i(TAG, "BTSPPLink 3: Link not connected");
+            Log.i(TAG, "BTSPPLink_3: Link not connected");
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "BTSPPLink 3: Link not connected");
+                AppConstants.WriteinFile(TAG + "BTSPPLink_3: Link not connected");
             return;
         }
         try {
             service3.write(data);
         } catch (Exception e) {
-            onSerialIoErrorThree(e);
+            onSerialIoErrorThree(e, 2);
         }
     }
 
     public void receive3(byte[] data) {
         String Response = new String(data);
         SpannableStringBuilder spn = new SpannableStringBuilder(Response + '\n');
-        Log.i(TAG, "BTSPPLink 3: Request>>" + BTConstants.CurrentCommand_LinkThree);
-        Log.i(TAG, "BTSPPLink 3: Response>>" + spn.toString());
+        Log.i(TAG, "BTSPPLink_3: Request>>" + BTConstants.CurrentCommand_LinkThree);
+        Log.i(TAG, "BTSPPLink_3: Response>>" + spn.toString());
 
         //==========================================
         if (BTConstants.CurrentCommand_LinkThree.equalsIgnoreCase(BTConstants.info_cmd) && Response.contains("mac_address")) {
@@ -512,7 +512,7 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         status4("Disconnect");
         e.printStackTrace();
         if (AppConstants.GenerateLogs)
-            AppConstants.WriteinFile(TAG + "BTSPPLink 4: <SerialConnectError: " + e.getMessage() + ">");
+            AppConstants.WriteinFile(TAG + "BTSPPLink_4: <SerialConnectError: " + e.getMessage() + ">");
     }
 
     @Override
@@ -521,12 +521,12 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
     }
 
     @Override
-    public void onSerialIoErrorFour(Exception e) {
+    public void onSerialIoErrorFour(Exception e, Integer fromCode) {
         BTConstants.BTLinkFourStatus = false;
         status4("Disconnect");
         e.printStackTrace();
         if (AppConstants.GenerateLogs)
-            AppConstants.WriteinFile(TAG + "BTSPPLink 4: <SerialIoError: " + e.getMessage() + ">");
+            AppConstants.WriteinFile(TAG + "BTSPPLink_4: <SerialIoError: " + e.getMessage() + "; ErrorCode: " + fromCode + ">");
     }
 
     public void connect4() {
@@ -549,43 +549,43 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
     public void send4(String str) {
         if (!BTConstants.BTLinkFourStatus) {
             BTConstants.CurrentCommand_LinkFour = "";
-            Log.i(TAG, "BTSPPLink 4: Link not connected");
-            //Toast.makeText(activity, "BTSPPLink 4: Link not connected", Toast.LENGTH_SHORT).show();
+            Log.i(TAG, "BTSPPLink_4: Link not connected");
+            //Toast.makeText(activity, "BTSPPLink_4: Link not connected", Toast.LENGTH_SHORT).show();
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "BTSPPLink 4: Link not connected");
+                AppConstants.WriteinFile(TAG + "BTSPPLink_4: Link not connected");
             return;
         }
         try {
             //Log command sent:str
             BTConstants.CurrentCommand_LinkFour = str;
-            Log.i(TAG, "BTSPPLink 4: Requesting..." + str);
+            Log.i(TAG, "BTSPPLink_4: Requesting..." + str);
             byte[] data = (str + newline).getBytes();
             service4.write(data);
         } catch (Exception e) {
-            onSerialIoErrorFour(e);
+            onSerialIoErrorFour(e, 1);
         }
     }
 
     public void sendBytes4(byte[] data) {
         if (!BTConstants.BTLinkFourStatus) {
             BTConstants.CurrentCommand_LinkFour = "";
-            Log.i(TAG, "BTSPPLink 4: Link not connected");
+            Log.i(TAG, "BTSPPLink_4: Link not connected");
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "BTSPPLink 4: Link not connected");
+                AppConstants.WriteinFile(TAG + "BTSPPLink_4: Link not connected");
             return;
         }
         try {
             service4.write(data);
         } catch (Exception e) {
-            onSerialIoErrorFour(e);
+            onSerialIoErrorFour(e, 2);
         }
     }
 
     public void receive4(byte[] data) {
         String Response = new String(data);
         SpannableStringBuilder spn = new SpannableStringBuilder(Response + '\n');
-        Log.i(TAG, "BTSPPLink 4: Request>>" + BTConstants.CurrentCommand_LinkFour);
-        Log.i(TAG, "BTSPPLink 4: Response>>" + spn.toString());
+        Log.i(TAG, "BTSPPLink_4: Request>>" + BTConstants.CurrentCommand_LinkFour);
+        Log.i(TAG, "BTSPPLink_4: Response>>" + spn.toString());
 
         //==========================================
         if (BTConstants.CurrentCommand_LinkFour.equalsIgnoreCase(BTConstants.info_cmd) && Response.contains("mac_address")) {
@@ -655,7 +655,7 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         status5("Disconnect");
         e.printStackTrace();
         if (AppConstants.GenerateLogs)
-            AppConstants.WriteinFile(TAG + "BTSPPLink 5: <SerialConnectError: " + e.getMessage() + ">");
+            AppConstants.WriteinFile(TAG + "BTSPPLink_5: <SerialConnectError: " + e.getMessage() + ">");
     }
 
     @Override
@@ -664,12 +664,12 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
     }
 
     @Override
-    public void onSerialIoErrorFive(Exception e) {
+    public void onSerialIoErrorFive(Exception e, Integer fromCode) {
         BTConstants.BTLinkFiveStatus = false;
         status5("Disconnect");
         e.printStackTrace();
         if (AppConstants.GenerateLogs)
-            AppConstants.WriteinFile(TAG + "BTSPPLink 5: <SerialIoError: " + e.getMessage() + ">");
+            AppConstants.WriteinFile(TAG + "BTSPPLink_5: <SerialIoError: " + e.getMessage() + "; ErrorCode: " + fromCode + ">");
     }
 
     public void connect5() {
@@ -692,43 +692,43 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
     public void send5(String str) {
         if (!BTConstants.BTLinkFiveStatus) {
             BTConstants.CurrentCommand_LinkFive = "";
-            Log.i(TAG, "BTSPPLink 5: Link not connected");
+            Log.i(TAG, "BTSPPLink_5: Link not connected");
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "BTSPPLink 5: Link not connected");
+                AppConstants.WriteinFile(TAG + "BTSPPLink_5: Link not connected");
             return;
         }
         try {
             //Log command sent:str
             BTConstants.CurrentCommand_LinkFive = str;
-            Log.i(TAG, "BTSPPLink 5: Requesting..." + str);
+            Log.i(TAG, "BTSPPLink_5: Requesting..." + str);
             byte[] data = (str + newline).getBytes();
             service5.write(data);
         } catch (Exception e) {
-            onSerialIoErrorFive(e);
+            onSerialIoErrorFive(e, 1);
         }
     }
 
     public void sendBytes5(byte[] data) {
         if (!BTConstants.BTLinkFiveStatus) {
             BTConstants.CurrentCommand_LinkFive = "";
-            Log.i(TAG, "BTSPPLink 5: Link not connected");
-            //Toast.makeText(activity, "BTSPPLink 5: Link not connected", Toast.LENGTH_SHORT).show();
+            Log.i(TAG, "BTSPPLink_5: Link not connected");
+            //Toast.makeText(activity, "BTSPPLink_5: Link not connected", Toast.LENGTH_SHORT).show();
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "BTSPPLink 5: Link not connected");
+                AppConstants.WriteinFile(TAG + "BTSPPLink_5: Link not connected");
             return;
         }
         try {
             service5.write(data);
         } catch (Exception e) {
-            onSerialIoErrorFive(e);
+            onSerialIoErrorFive(e, 2);
         }
     }
 
     public void receive5(byte[] data) {
         String Response = new String(data);
         SpannableStringBuilder spn = new SpannableStringBuilder(Response + '\n');
-        Log.i(TAG, "BTSPPLink 5: Request>>" + BTConstants.CurrentCommand_LinkFive);
-        Log.i(TAG, "BTSPPLink 5: Response>>" + spn.toString());
+        Log.i(TAG, "BTSPPLink_5: Request>>" + BTConstants.CurrentCommand_LinkFive);
+        Log.i(TAG, "BTSPPLink_5: Response>>" + spn.toString());
 
         //==========================================
         if (BTConstants.CurrentCommand_LinkFive.equalsIgnoreCase(BTConstants.info_cmd) && Response.contains("mac_address")) {
@@ -799,7 +799,7 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
         status6("Disconnect");
         e.printStackTrace();
         if (AppConstants.GenerateLogs)
-            AppConstants.WriteinFile(TAG + "BTSPPLink 6: <SerialConnectError: " + e.getMessage() + ">");
+            AppConstants.WriteinFile(TAG + "BTSPPLink_6: <SerialConnectError: " + e.getMessage() + ">");
     }
 
     @Override
@@ -808,12 +808,12 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
     }
 
     @Override
-    public void onSerialIoErrorSix(Exception e) {
+    public void onSerialIoErrorSix(Exception e, Integer fromCode) {
         BTConstants.BTLinkSixStatus = false;
         status6("Disconnect");
         e.printStackTrace();
         if (AppConstants.GenerateLogs)
-            AppConstants.WriteinFile(TAG + "BTSPPLink 6: <SerialIoError: " + e.getMessage() + ">");
+            AppConstants.WriteinFile(TAG + "BTSPPLink_6: <SerialIoError: " + e.getMessage() + "; ErrorCode: " + fromCode + ">");
     }
 
     public void connect6() {
@@ -836,43 +836,43 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
     public void send6(String str) {
         if (!BTConstants.BTLinkSixStatus) {
             BTConstants.CurrentCommand_LinkSix = "";
-            Log.i(TAG, "BTSPPLink 6: Link not connected");
-            //Toast.makeText(activity, "BTSPPLink 6: Link not connected", Toast.LENGTH_SHORT).show();
+            Log.i(TAG, "BTSPPLink_6: Link not connected");
+            //Toast.makeText(activity, "BTSPPLink_6: Link not connected", Toast.LENGTH_SHORT).show();
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "BTSPPLink 6: Link not connected");
+                AppConstants.WriteinFile(TAG + "BTSPPLink_6: Link not connected");
             return;
         }
         try {
             //Log command sent:str
             BTConstants.CurrentCommand_LinkSix = str;
-            Log.i(TAG, "BTSPPLink 6: Requesting..." + str);
+            Log.i(TAG, "BTSPPLink_6: Requesting..." + str);
             byte[] data = (str + newline).getBytes();
             service6.write(data);
         } catch (Exception e) {
-            onSerialIoErrorSix(e);
+            onSerialIoErrorSix(e, 1);
         }
     }
 
     public void sendBytes6(byte[] data) {
         if (!BTConstants.BTLinkSixStatus) {
             BTConstants.CurrentCommand_LinkSix = "";
-            Log.i(TAG, "BTSPPLink 6: Link not connected");
+            Log.i(TAG, "BTSPPLink_6: Link not connected");
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "BTSPPLink 6: Link not connected");
+                AppConstants.WriteinFile(TAG + "BTSPPLink_6: Link not connected");
             return;
         }
         try {
             service6.write(data);
         } catch (Exception e) {
-            onSerialIoErrorSix(e);
+            onSerialIoErrorSix(e, 2);
         }
     }
 
     public void receive6(byte[] data) {
         String Response = new String(data);
         SpannableStringBuilder spn = new SpannableStringBuilder(Response + '\n');
-        Log.i(TAG, "BTSPPLink 6: Request>>" + BTConstants.CurrentCommand_LinkSix);
-        Log.i(TAG, "BTSPPLink 6: Response>>" + spn.toString());
+        Log.i(TAG, "BTSPPLink_6: Request>>" + BTConstants.CurrentCommand_LinkSix);
+        Log.i(TAG, "BTSPPLink_6: Response>>" + spn.toString());
 
         //==========================================
         if (BTConstants.CurrentCommand_LinkSix.equalsIgnoreCase(BTConstants.info_cmd) && Response.contains("mac_address")) {

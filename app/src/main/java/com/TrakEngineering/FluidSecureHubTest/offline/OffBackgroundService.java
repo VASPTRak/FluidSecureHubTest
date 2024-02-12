@@ -852,7 +852,7 @@ public class OffBackgroundService extends Service {
                 if (AppConstants.GenerateLogs)
                     AppConstants.WriteinFile(TAG + " Offline Personnel data download process completed Successfully");
 
-            } catch (JSONException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
                 if (AppConstants.GenerateLogs)
                     AppConstants.WriteinFile(TAG + " personnelJsonParsing Exception: " + e.getMessage());

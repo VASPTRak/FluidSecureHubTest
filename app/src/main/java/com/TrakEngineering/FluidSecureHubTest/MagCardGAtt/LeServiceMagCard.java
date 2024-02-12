@@ -17,6 +17,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.TrakEngineering.FluidSecureHubTest.AppConstants;
+import com.TrakEngineering.FluidSecureHubTest.BuildConfig;
 
 import java.math.BigInteger;
 import java.util.List;
@@ -60,16 +61,11 @@ public class LeServiceMagCard extends Service {
     private static final int STATE_CONNECTED = 2;
 
 
-    public final static String ACTION_GATT_CONNECTED =
-            "com.TrakEngineering.FluidSecureHubTest.HFBle_vehicle.ACTION_GATT_CONNECTED";
-    public final static String ACTION_GATT_DISCONNECTED =
-            "com.TrakEngineering.FluidSecureHubTest.HFBle_vehicle.ACTION_GATT_DISCONNECTED";
-    public final static String ACTION_GATT_SERVICES_DISCOVERED =
-            "com.TrakEngineering.FluidSecureHubTest.HFBle_vehicle.ACTION_GATT_SERVICES_DISCOVERED";
-    public final static String ACTION_DATA_AVAILABLE =
-            "com.TrakEngineering.FluidSecureHubTest.HFBle_vehicle.ACTION_DATA_AVAILABLE";
-    public final static String EXTRA_DATA =
-            "com.TrakEngineering.FluidSecureHubTest.HFBle_vehicle.EXTRA_DATA";
+    public final static String ACTION_GATT_CONNECTED = BuildConfig.APPLICATION_ID + ".HFBle_vehicle.ACTION_GATT_CONNECTED";
+    public final static String ACTION_GATT_DISCONNECTED = BuildConfig.APPLICATION_ID + ".HFBle_vehicle.ACTION_GATT_DISCONNECTED";
+    public final static String ACTION_GATT_SERVICES_DISCOVERED = BuildConfig.APPLICATION_ID + ".HFBle_vehicle.ACTION_GATT_SERVICES_DISCOVERED";
+    public final static String ACTION_DATA_AVAILABLE = BuildConfig.APPLICATION_ID + ".HFBle_vehicle.ACTION_DATA_AVAILABLE";
+    public final static String EXTRA_DATA = BuildConfig.APPLICATION_ID + ".HFBle_vehicle.EXTRA_DATA";
 
     // Implements callback methods for GATT events that the app cares about.  For example,
     // connection change and services discovered.

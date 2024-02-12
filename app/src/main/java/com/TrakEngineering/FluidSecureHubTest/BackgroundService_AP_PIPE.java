@@ -1511,7 +1511,7 @@ public class BackgroundService_AP_PIPE extends Service {
             TrazComp authEntityClass = new TrazComp();
             authEntityClass.TransactionId = TransactionId;
             authEntityClass.FuelQuantity = fillqty;
-            authEntityClass.AppInfo = " Version:" + CommonUtils.getVersionCode(BackgroundService_AP_PIPE.this) + " " + AppConstants.getDeviceName() + " Android " + android.os.Build.VERSION.RELEASE + " " + "--Main Transaction--";
+            authEntityClass.AppInfo = " Version:" + CommonUtils.getVersionCode(BackgroundService_AP_PIPE.this) + " " + AppConstants.getDeviceName() + " Android " + Build.VERSION.RELEASE + " " + "--Main Transaction--";
             authEntityClass.TransactionFrom = "A";
             authEntityClass.Pulses = Integer.parseInt(counts);
             authEntityClass.IsFuelingStop = IsFuelingStop;
@@ -1877,7 +1877,7 @@ public class BackgroundService_AP_PIPE extends Service {
 
         } catch (Exception e) {
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "BackgroundTasksPostTransaction Exception: " + e.getMessage());
+                AppConstants.WriteinFile(TAG + "PostTransactionBackgroundTasks Exception: " + e.getMessage());
         }
     }
 

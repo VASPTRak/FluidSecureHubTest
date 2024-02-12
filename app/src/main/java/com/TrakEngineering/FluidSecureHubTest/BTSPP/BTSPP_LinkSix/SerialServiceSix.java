@@ -108,7 +108,7 @@ public class SerialServiceSix extends Service implements SerialListenerSix {
         synchronized (this) {
             this.listener = listener;
         }
-        for (SerialServiceSix.QueueItem item : queue1) {
+        for (QueueItem item : queue1) {
             switch (item.type) {
                 case Connect:
                     listener.onSerialConnectSix();
@@ -120,11 +120,11 @@ public class SerialServiceSix extends Service implements SerialListenerSix {
                     listener.onSerialReadSix(item.data);
                     break;
                 case IoError:
-                    listener.onSerialIoErrorSix(item.e);
+                    listener.onSerialIoErrorSix(item.e, 3);
                     break;
             }
         }
-        for (SerialServiceSix.QueueItem item : queue2) {
+        for (QueueItem item : queue2) {
             switch (item.type) {
                 case Connect:
                     listener.onSerialConnectSix();
@@ -136,7 +136,7 @@ public class SerialServiceSix extends Service implements SerialListenerSix {
                     listener.onSerialReadSix(item.data);
                     break;
                 case IoError:
-                    listener.onSerialIoErrorSix(item.e);
+                    listener.onSerialIoErrorSix(item.e, 4);
                     break;
             }
         }
@@ -217,13 +217,13 @@ public class SerialServiceSix extends Service implements SerialListenerSix {
         }
     }
 
-    public void onSerialIoErrorSix(Exception e) {
+    public void onSerialIoErrorSix(Exception e, Integer fromCode) {
         if (connected) {
             synchronized (this) {
                 if (listener != null) {
                     mainLooper.post(() -> {
                         if (listener != null) {
-                            listener.onSerialIoErrorSix(e);
+                            listener.onSerialIoErrorSix(e, fromCode);
                         } else {
                             queue1.add(new SerialServiceSix.QueueItem(SerialServiceSix.QueueType.IoError, null, e));
                             cancelNotification();

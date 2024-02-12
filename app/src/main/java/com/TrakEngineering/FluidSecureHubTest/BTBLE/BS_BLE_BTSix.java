@@ -63,7 +63,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class BS_BLE_BTSix extends Service {
-    private static final String TAG = AppConstants.LOG_TXTN_BT + "- BLE_Link 6:";
+    private static final String TAG = AppConstants.LOG_TXTN_BT + "- BLE_Link_6:";
     private BLEServiceCodeSix mBluetoothLeService;
 
     public long sqlite_id = 0;
@@ -73,7 +73,7 @@ public class BS_BLE_BTSix extends Service {
     String Response = ""; //Request = ""
     String upgradeResponse = "";
     int PreviousRes = 0;
-    boolean stopTxtprocess, redpulseloop_on, RelayStatus;
+    boolean redpulseloop_on, RelayStatus;
     int pulseCount = 0;
     int stopCount = 0;
     int RespCount = 0; //, LinkResponseCount = 0;
@@ -100,7 +100,8 @@ public class BS_BLE_BTSix extends Service {
     public int versionNumberOfLinkSix = 0;
     public String PulserTimingAdjust;
     public String IsResetSwitchTimeBounce;
-    public String IsBypassPumpReset;
+    public String GetPulserTypeFromLINK;
+    public boolean IsAnyPostTxnCommandExecuted = false;
 
     SimpleDateFormat sdformat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
     ArrayList<HashMap<String, String>> quantityRecords = new ArrayList<>();
@@ -112,7 +113,7 @@ public class BS_BLE_BTSix extends Service {
             Bundle extras = intent.getExtras();
             if (extras == null) {
                 this.stopSelf();
-                CloseTransaction(false);
+                StopTransaction(false, true); // extras == null
             } else {
                 sqlite_id = (long) extras.get("sqlite_id");
                 SERVER_IP = String.valueOf(extras.get("SERVER_IP"));
@@ -147,7 +148,7 @@ public class BS_BLE_BTSix extends Service {
                 SharedPreferences calibrationPref = this.getSharedPreferences(Constants.PREF_CalibrationDetails, Context.MODE_PRIVATE);
                 PulserTimingAdjust = calibrationPref.getString("PulserTimingAdjust_FS6", "");
                 IsResetSwitchTimeBounce = calibrationPref.getString("IsResetSwitchTimeBounce_FS6", "0");
-                IsBypassPumpReset = calibrationPref.getString("IsBypassPumpReset_FS6", "False");
+                GetPulserTypeFromLINK = calibrationPref.getString("GetPulserTypeFromLINK_FS6", "False");
 
                 if (VehicleNumber.length() > 20) {
                     VehicleNumber = VehicleNumber.substring(VehicleNumber.length() - 20);
@@ -193,8 +194,8 @@ public class BS_BLE_BTSix extends Service {
                     IsThisBTTrnx = false;
                     Log.i(TAG, " Something went Wrong in hose selection.");
                     if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + " Something went wrong in hose selection.");
-                    CloseTransaction(false);
+                        AppConstants.WriteinFile(TAG + " Something went wrong in hose selection. (Link CommType: " + LinkCommunicationType + ")");
+                    StopTransaction(false, true); // Link CommType unknown
                     this.stopSelf();
                 }
             }
@@ -206,7 +207,6 @@ public class BS_BLE_BTSix extends Service {
     }
 
     public void offlineLogicBT6() {
-
         try {
             TransactionId = "0";
             PhoneNumber = "0";
@@ -323,7 +323,6 @@ public class BS_BLE_BTSix extends Service {
     private void displayData(String data) {
         if (data != null) {
             try {
-
                 Response = data;
 
                 //Set Relay status.
@@ -349,7 +348,6 @@ public class BS_BLE_BTSix extends Service {
     }
 
     private void ReadPulse() {
-
         //Record pulse start time..for puls
         Date currDT = new Date();
         String strCurDT = sdformat.format(currDT);
@@ -403,16 +401,23 @@ public class BS_BLE_BTSix extends Service {
                     return;
                 }
 
-                CheckResponse(checkPulses);
+                CheckResponse();
+
+                if (RelayStatus) {
+                    if (BT_BLE_Constants.isStopButtonPressed6) {
+                        BT_BLE_Constants.isStopButtonPressed6 = false;
+                        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                relayOffCommand();
+                            }
+                        }, 100);
+                    }
+                }
 
                 if (Response.contains(checkPulses) && RelayStatus) {
                     pulseCount = 0;
                     pulseCount();
-
-                    if (BT_BLE_Constants.isStopButtonPressed6) {
-                        BT_BLE_Constants.isStopButtonPressed6 = false;
-                        relayOffCommand();
-                    }
 
                 } else if (!RelayStatus) {
                     if (pulseCount > 1) { // pulseCount > 4
@@ -440,6 +445,30 @@ public class BS_BLE_BTSix extends Service {
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + " Check pulse >> Response: " + Response.trim());
                     }
+                } else if (!Response.contains(checkPulses)) {
+                    stopCount++;
+                    //int pumpOnpoint = Integer.parseInt(PumpOnTime);
+                    long autoStopSeconds = 0;
+                    if (pre_pulse == 0) {
+                        autoStopSeconds = Long.parseLong(PumpOnTime);
+                    } else {
+                        autoStopSeconds = stopAutoFuelSeconds;
+                    }
+
+                    if (stopCount >= autoStopSeconds) {
+                        if (Pulses <= 0) {
+                            CommonUtils.UpgradeTransactionStatusToSqlite(TransactionId, "4", BS_BLE_BTSix.this);
+                        }
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + " Auto Stop Hit. Response >> " + Response.trim());
+                        stopCount = 0;
+                        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                relayOffCommand();
+                            }
+                        }, 100);
+                    }
                 }
             }
         };
@@ -455,7 +484,6 @@ public class BS_BLE_BTSix extends Service {
     }
 
     private void pulseCount() {
-
         try {
             pumpTimingsOnOffFunction();//PumpOn/PumpOff functionality
             String outputQuantity;
@@ -505,7 +533,6 @@ public class BS_BLE_BTSix extends Service {
     }
 
     private void UpdateTransactionToSqlite(String outputQuantity) {
-
         ////////////////////////////////////-Update transaction ---
         TrazComp authEntityClass = new TrazComp();
         authEntityClass.TransactionId = TransactionId;
@@ -569,7 +596,6 @@ public class BS_BLE_BTSix extends Service {
     }
 
     private void reachMaxLimit() {
-
         //if quantity reach max limit
         if (minFuelLimit > 0 && fillqty >= minFuelLimit) {
             Log.i(TAG, "Auto Stop Hit>> You reached MAX fuel limit.");
@@ -578,11 +604,9 @@ public class BS_BLE_BTSix extends Service {
             relayOffCommand(); //RelayOff
             TransactionCompleteFunction();
         }
-
     }
 
     private void pumpTimingsOnOffFunction() {
-
         try {
             int pumpOnpoint = Integer.parseInt(PumpOnTime);
 
@@ -620,57 +644,30 @@ public class BS_BLE_BTSix extends Service {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.P)
-    private void CheckResponse(String checkPulses) {
+    private void CheckResponse() {
         try {
-            try {
-                if (RelayStatus && !BT_BLE_Constants.CurrentCommand_LinkSix.contains(BTConstants.relay_off_cmd)) {
-                    if (RespCount < 4) {
-                        RespCount++;
-                    } else {
-                        RespCount = 0;
-                    }
-
-                    if (RespCount == 4) {
-                        RespCount = 0;
-                        //Execute fdcheck counter
-                        Log.i(TAG, "Execute FD Check..>>");
-
-                        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                            getMainExecutor().execute(new Runnable() {
-                                @Override
-                                public void run() {
-                                    fdCheckCommand();
-                                }
-                            });
-                        } else {
-                            fdCheckCommand();
-                        }
-                    }
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-            if (!Response.contains(checkPulses)) {
-                stopCount++;
-                //int pumpOnpoint = Integer.parseInt(PumpOnTime);
-                long autoStopSeconds = 0;
-                if (pre_pulse == 0) {
-                    autoStopSeconds = Long.parseLong(PumpOnTime);
+            if (RelayStatus && !BT_BLE_Constants.CurrentCommand_LinkSix.contains(BTConstants.relay_off_cmd)) {
+                if (RespCount < 4) {
+                    RespCount++;
                 } else {
-                    autoStopSeconds = stopAutoFuelSeconds;
+                    RespCount = 0;
                 }
 
-                if (stopCount >= autoStopSeconds) {
-                    if (Pulses <= 0) {
-                        CommonUtils.UpgradeTransactionStatusToSqlite(TransactionId, "4", BS_BLE_BTSix.this);
+                if (RespCount == 4) {
+                    RespCount = 0;
+                    //Execute fdcheck counter
+                    Log.i(TAG, "Execute FD Check..>>");
+
+                    if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                        getMainExecutor().execute(new Runnable() {
+                            @Override
+                            public void run() {
+                                fdCheckCommand();
+                            }
+                        });
+                    } else {
+                        fdCheckCommand();
                     }
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + " Auto Stop Hit. Response >> " + Response.trim());
-                    stopCount = 0;
-                    relayOffCommand(); //RelayOff
-                    TransactionCompleteFunction();
-                    this.stopSelf();
                 }
             }
         } catch (Exception e) {
@@ -894,7 +891,7 @@ public class BS_BLE_BTSix extends Service {
                 AppConstants.WriteinFile(TAG + " Link not connected.");
             AppConstants.TxnFailedCount6++;
             AppConstants.IsTransactionFailed6 = true;
-            CloseTransaction(true);
+            StopTransaction(true, true); // TerminateBTTransaction
             this.stopSelf();
         } catch (Exception e) {
             if (AppConstants.GenerateLogs)
@@ -916,14 +913,14 @@ public class BS_BLE_BTSix extends Service {
             BTConstants.isReconnectCalled6 = false;
             AppConstants.TxnFailedCount6++;
             AppConstants.IsTransactionFailed6 = true;
-            CloseTransaction(true);
+            StopTransaction(true, true); // TerminateBTTxnAfterInterruption
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
+    //region Info Command
     private void infoCommand() {
-
         try {
             AppConstants.TxnFailedCount6 = 0;
             AppConstants.isInfoCommandSuccess_fs6 = false;
@@ -940,7 +937,6 @@ public class BS_BLE_BTSix extends Service {
             }
             //Thread.sleep(1000);
             new CountDownTimer(5000, 1000) {
-
                 public void onTick(long millisUntilFinished) {
                     long attempt = (5 - (millisUntilFinished / 1000));
                     if (attempt > 0) {
@@ -963,8 +959,8 @@ public class BS_BLE_BTSix extends Service {
                                     @Override
                                     public void run() {
                                         AppConstants.isInfoCommandSuccess_fs6 = true;
-                                        if (IsThisBTTrnx && BT_BLE_Constants.isNewVersionLinkSix && (versionNumberOfLinkSix >= 145)) {
-                                            P_Type_Command();
+                                        if (IsThisBTTrnx && BT_BLE_Constants.isNewVersionLinkSix) { // && (versionNumberOfLinkSix >= 145)) {
+                                            last1Command();
                                         } else {
                                             transactionIdCommand(TransactionId);
                                         }
@@ -974,7 +970,7 @@ public class BS_BLE_BTSix extends Service {
                                 Log.i(TAG, " TransactionId is empty.");
                                 if (AppConstants.GenerateLogs)
                                     AppConstants.WriteinFile(TAG + " TransactionId is empty.");
-                                CloseTransaction(false);
+                                StopTransaction(false, true); // TransactionId is empty in infoCommand
                             }
                             cancel();
                         } else {
@@ -986,7 +982,6 @@ public class BS_BLE_BTSix extends Service {
                 }
 
                 public void onFinish() {
-
                     if (BT_BLE_Constants.CurrentCommand_LinkSix.equalsIgnoreCase(BTConstants.info_cmd) && !Response.equalsIgnoreCase("")) {
                         //Info command success.
                         Log.i(TAG, " InfoCommand Response success 2:>>" + Response);
@@ -1006,8 +1001,8 @@ public class BS_BLE_BTSix extends Service {
                                 @Override
                                 public void run() {
                                     AppConstants.isInfoCommandSuccess_fs6 = true;
-                                    if (IsThisBTTrnx && BT_BLE_Constants.isNewVersionLinkSix && (versionNumberOfLinkSix >= 145)) {
-                                        P_Type_Command();
+                                    if (IsThisBTTrnx && BT_BLE_Constants.isNewVersionLinkSix) { // && (versionNumberOfLinkSix >= 145)) {
+                                        last1Command();
                                     } else {
                                         transactionIdCommand(TransactionId);
                                     }
@@ -1017,10 +1012,9 @@ public class BS_BLE_BTSix extends Service {
                             Log.i(TAG, " TransactionId is empty.");
                             if (AppConstants.GenerateLogs)
                                 AppConstants.WriteinFile(TAG + " TransactionId is empty.");
-                            CloseTransaction(false);
+                            StopTransaction(false, true); // TransactionId is empty in infoCommand onFinish
                         }
                     } else {
-
                         if (infoCommandAttempt > 0) {
                             //UpgradeTransaction Status info command fail.
                             CommonUtils.UpgradeTransactionStatusToSqlite(TransactionId, "6", BS_BLE_BTSix.this);
@@ -1029,160 +1023,76 @@ public class BS_BLE_BTSix extends Service {
                                 AppConstants.WriteinFile(TAG + " Checking Info command response. Response: false");
                             AppConstants.TxnFailedCount6++;
                             AppConstants.IsTransactionFailed6 = true;
-                            CloseTransaction(true);
+                            StopTransaction(true, true); // Info command Response: false
                         } else {
                             infoCommandAttempt++;
-                            infoCommand(); // Retried one more time after failed to receive response from info command
+                            if (BT_BLE_Constants.BTBLEStatusStrSix.equalsIgnoreCase("Connected")) {
+                                infoCommand(); // Retried one more time after failed to receive response from info command
+                            } else {
+                                LinkReconnectionAttempt();
+                                WaitForReconnectToLink();
+                            }
                         }
                     }
                 }
             }.start();
-
         } catch (Exception e) {
             e.printStackTrace();
             if (AppConstants.GenerateLogs)
                 AppConstants.WriteinFile(TAG + " infoCommand Exception:>>" + e.getMessage());
+            StopTransaction(true, true); // Info command Exception
         }
     }
 
-    private void P_Type_Command() {
+    public void WaitForReconnectToLink() {
         try {
-            if (IsResetSwitchTimeBounce != null) {
-                if (IsResetSwitchTimeBounce.trim().equalsIgnoreCase("1") && !PulserTimingAdjust.isEmpty() && Arrays.asList(BTConstants.p_types).contains(PulserTimingAdjust) && !CommonUtils.CheckDataStoredInSharedPref(BS_BLE_BTSix.this, "storeSwitchTimeBounceFlag6")) {
-                    //Execute p_type Command
-                    Response = "";
-
-                    if (IsThisBTTrnx) {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + " Sending p_type command to Link: " + LinkName);
-                        mBluetoothLeService.writeCustomCharacteristic(BTConstants.p_type_command + PulserTimingAdjust);
-                    }
-
-                    new CountDownTimer(4000, 1000) {
-
-                        public void onTick(long millisUntilFinished) {
-
-                            long attempt = (4 - (millisUntilFinished / 1000));
-                            if (attempt > 0) {
-                                if (BT_BLE_Constants.CurrentCommand_LinkSix.contains(BTConstants.p_type_command) && Response.contains("pulser_type")) {
-                                    if (AppConstants.GenerateLogs)
-                                        AppConstants.WriteinFile(TAG + " Checking p_type command response:>> " + Response);
-                                    new Handler().postDelayed(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            if (BT_BLE_Constants.BTBLEStatusStrSix.equalsIgnoreCase("Disconnect")) {
-                                                LinkReconnectionAttempt();
-                                            }
-                                            UpdateSwitchTimeBounceForLink();
-                                            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-                                                @Override
-                                                public void run() {
-                                                    WaitForReconnectToLink();
-                                                }
-                                            }, 1000);
-                                        }
-                                    }, 8000); // Tried to reconnect and continue after 8 seconds because the link disconnects after 8 seconds.
-                                    cancel();
-                                } else {
-                                    if (AppConstants.GenerateLogs)
-                                        AppConstants.WriteinFile(TAG + " Checking p_type command response. Response: false");
-                                }
-                            }
-                        }
-
-                        public void onFinish() {
-
-                            if (BT_BLE_Constants.CurrentCommand_LinkSix.contains(BTConstants.p_type_command) && Response.contains("pulser_type")) {
-                                if (AppConstants.GenerateLogs)
-                                    AppConstants.WriteinFile(TAG + " Checking p_type command response:>> " + Response);
-                                new Handler().postDelayed(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        if (BT_BLE_Constants.BTBLEStatusStrSix.equalsIgnoreCase("Disconnect")) {
-                                            LinkReconnectionAttempt();
-                                        }
-                                        UpdateSwitchTimeBounceForLink();
-                                        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                WaitForReconnectToLink();
-                                            }
-                                        }, 1000);
-                                    }
-                                }, 8000); // Tried to reconnect and continue after 8 seconds because the link disconnects after 8 seconds.
-                            } else {
-                                ContinueToNextCommand();
-                            }
-                        }
-                    }.start();
-                } else {
-                    ContinueToNextCommand(); //GetPulserTypeCommand(); // Commented get p_type as per #2437 - Nov 17th
-                }
-            } else {
-                ContinueToNextCommand(); //GetPulserTypeCommand();
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " P_Type_Command Exception:>>" + e.getMessage());
-            ContinueToNextCommand();
-        }
-    }
-
-    private void GetPulserTypeCommand() {
-        try {
-            //Execute p_type Command (to get the pulser type from LINK)
-            Response = "";
-
-            if (IsThisBTTrnx) {
-                mBluetoothLeService.writeCustomCharacteristic(BTConstants.get_p_type_command);
-            }
-
-            new CountDownTimer(4000, 1000) {
+            new CountDownTimer(10000, 1000) {
                 public void onTick(long millisUntilFinished) {
-                    long attempt = (4 - (millisUntilFinished / 1000));
+                    long attempt = (10 - (millisUntilFinished / 1000));
                     if (attempt > 0) {
-                        if (BT_BLE_Constants.CurrentCommand_LinkSix.contains(BTConstants.get_p_type_command) && Response.contains("pulser_type")) {
-                            ParsePulserTypeCommandResponse(Response.trim());
-                            ContinueToNextCommand();
+                        if (BT_BLE_Constants.BTBLEStatusStrSix.equalsIgnoreCase("Connected")) {
+                            if (AppConstants.GenerateLogs)
+                                AppConstants.WriteinFile(TAG + " Connected to Link: " + LinkName);
+                            new Handler().postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    infoCommand(); // Retried one more time after failed to receive response from info command
+                                }
+                            }, 500);
                             cancel();
+                        } else {
+                            if (AppConstants.GenerateLogs)
+                                AppConstants.WriteinFile(TAG + " Waiting for Reconnect to Link: " + LinkName);
                         }
                     }
                 }
 
                 public void onFinish() {
-                    if (BT_BLE_Constants.CurrentCommand_LinkSix.contains(BTConstants.get_p_type_command) && Response.contains("pulser_type")) {
-                        ParsePulserTypeCommandResponse(Response.trim());
+                    if (BT_BLE_Constants.BTBLEStatusStrSix.equalsIgnoreCase("Connected")) {
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + " Connected to Link: " + LinkName);
+                        new Handler().postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                infoCommand(); // Retried one more time after failed to receive response from info command
+                            }
+                        }, 500);
+                    } else {
+                        TerminateBTTransaction();
                     }
-                    ContinueToNextCommand();
                 }
             }.start();
         } catch (Exception e) {
             e.printStackTrace();
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " P_Type_Command (to get the pulser type from LINK) Exception:>>" + e.getMessage());
-            ContinueToNextCommand();
+                AppConstants.WriteinFile(TAG + " WaitForReconnectToLink Exception:>>" + e.getMessage());
+            TerminateBTTransaction();
         }
     }
+    //endregion
 
-    public void ContinueToNextCommand() {
-        //if (versionNumberOfLinkSix >= 148) { // Bypass pump reset supported from this version onwards
-        //    BypassPumpResetCommand();
-        //} else {
-        //    // Continue to transactionId Command
-        //    transactionIdCommand(TransactionId);
-        //}
-        if (IsThisBTTrnx && BT_BLE_Constants.isNewVersionLinkSix) {
-            last1Command();
-        } else {
-            // Continue to transactionId Command
-            transactionIdCommand(TransactionId);
-        }
-    }
-
+    //region Last1 Command
     private void last1Command() {
-
         try {
             //Execute last1 Command
             Response = "";
@@ -1192,35 +1102,28 @@ public class BS_BLE_BTSix extends Service {
                     AppConstants.WriteinFile(TAG + " Sending last1 command to Link: " + LinkName);
                 mBluetoothLeService.writeCustomCharacteristic(BTConstants.last1_cmd);
             }
-            Thread.sleep(500);
-            new CountDownTimer(4000, 1000) {
 
+            new CountDownTimer(4000, 1000) {
                 public void onTick(long millisUntilFinished) {
                     long attempt = (4 - (millisUntilFinished / 1000));
                     if (attempt > 0) {
-                        try {
-                            if (BT_BLE_Constants.CurrentCommand_LinkSix.contains(BTConstants.last1_cmd) && Response.contains("records")) {
-                                //last1 command success.
-                                Log.i(TAG, " last1 Command Response success 1:>>" + Response);
-                                if (AppConstants.GenerateLogs)
-                                    AppConstants.WriteinFile(TAG + " Checking last1 command response. Response: true");
-                                parseLast1CommandResponse(Response);
-                                new Handler().postDelayed(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        transactionIdCommand(TransactionId);
-                                    }
-                                }, 1000);
-                                cancel();
-                            } else {
-                                Log.i(TAG, " Waiting for last1 Command Response: " + millisUntilFinished / 1000 + " Response>>" + Response);
-                                if (AppConstants.GenerateLogs)
-                                    AppConstants.WriteinFile(TAG + " Checking last1 command response. Response: false");
-                            }
-                        } catch (Exception e) {
-                            e.printStackTrace();
+                        if (BT_BLE_Constants.CurrentCommand_LinkSix.contains(BTConstants.last1_cmd) && Response.contains("records")) {
+                            //last1 command success.
+                            Log.i(TAG, " last1 Command Response success 1:>>" + Response);
                             if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(TAG + " last1 command Exception. Exception: " + e.getMessage());
+                                AppConstants.WriteinFile(TAG + " Checking last1 command response. Response: true");
+                            parseLast1CommandResponse(Response);
+                            new Handler().postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    transactionIdCommand(TransactionId);
+                                }
+                            }, 1000);
+                            cancel();
+                        } else {
+                            Log.i(TAG, " Waiting for last1 Command Response: " + millisUntilFinished / 1000 + " Response>>" + Response);
+                            if (AppConstants.GenerateLogs)
+                                AppConstants.WriteinFile(TAG + " Checking last1 command response. Response: false");
                         }
                     }
                 }
@@ -1243,17 +1146,17 @@ public class BS_BLE_BTSix extends Service {
                     }
                 }
             }.start();
-
         } catch (Exception e) {
             e.printStackTrace();
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " last1Command Exception:>>" + e.getMessage());
+                AppConstants.WriteinFile(TAG + " last1 Command Exception:>>" + e.getMessage());
             transactionIdCommand(TransactionId);
         }
     }
+    //endregion
 
+    //region TransactionId (TDV) Command
     private void transactionIdCommand(String transactionId) {
-
         try {
             //Execute transactionId Command
             Response = "";
@@ -1279,38 +1182,30 @@ public class BS_BLE_BTSix extends Service {
             }
             Thread.sleep(500);
             new CountDownTimer(4000, 1000) {
-
                 public void onTick(long millisUntilFinished) {
                     long attempt = (4 - (millisUntilFinished / 1000));
                     if (attempt > 0) {
-                        try {
-                            if (BT_BLE_Constants.CurrentCommand_LinkSix.contains(transactionId) && Response.contains(transactionId)) {
-                                //transactionId command success.
-                                Log.i(TAG, " transactionId Command Response success 1:>>" + Response);
-                                if (AppConstants.GenerateLogs)
-                                    AppConstants.WriteinFile(TAG + " Checking transactionId command response. Response:>>" + Response.trim());
-                                new Handler().postDelayed(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        relayOnCommand(false); //RelayOn
-                                    }
-                                }, 1000);
-                                cancel();
-                            } else {
-                                Log.i(TAG, " Waiting for transactionId Command Response: " + millisUntilFinished / 1000 + " Response>>" + Response);
-                                if (AppConstants.GenerateLogs)
-                                    AppConstants.WriteinFile(TAG + " Checking transactionId command response. Response: false");
-                            }
-                        } catch (Exception e) {
-                            e.printStackTrace();
+                        if (BT_BLE_Constants.CurrentCommand_LinkSix.contains(transactionId) && Response.contains(transactionId)) {
+                            //transactionId command success.
+                            Log.i(TAG, " transactionId Command Response success 1:>>" + Response);
                             if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(TAG + " transactionId command Exception. Exception: " + e.getMessage());
+                                AppConstants.WriteinFile(TAG + " Checking transactionId command response. Response:>>" + Response.trim());
+                            new Handler().postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    relayOnCommand(false); //RelayOn
+                                }
+                            }, 1000);
+                            cancel();
+                        } else {
+                            Log.i(TAG, " Waiting for transactionId Command Response: " + millisUntilFinished / 1000 + " Response>>" + Response);
+                            if (AppConstants.GenerateLogs)
+                                AppConstants.WriteinFile(TAG + " Checking transactionId command response. Response: false");
                         }
                     }
                 }
 
                 public void onFinish() {
-
                     if (BT_BLE_Constants.CurrentCommand_LinkSix.contains(transactionId) && Response.contains(transactionId)) {
                         //transactionId command success.
                         Log.i(TAG, " transactionId Command Response success 2:>>" + Response);
@@ -1323,24 +1218,25 @@ public class BS_BLE_BTSix extends Service {
                             }
                         }, 1000);
                     } else {
-
                         //UpgradeTransaction Status Transactionid command fail.
                         CommonUtils.UpgradeTransactionStatusToSqlite(transactionId, "6", BS_BLE_BTSix.this);
                         Log.i(TAG, " Failed to get transactionId Command Response:>>" + Response);
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + " Checking transactionId command response. Response: false");
-                        CloseTransaction(true);
+                        StopTransaction(true, true); // transactionId command Response: false
                     }
                 }
             }.start();
-
         } catch (Exception e) {
             e.printStackTrace();
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " transactionIdCommand Exception:>>" + e.getMessage());
+                AppConstants.WriteinFile(TAG + " transactionId Command Exception:>>" + e.getMessage());
+            StopTransaction(true, true); // transactionId Command Exception
         }
     }
+    //endregion
 
+    //region Relay ON Command
     private void relayOnCommand(boolean isAfterReconnect) {
         try {
             if (isAfterReconnect) {
@@ -1363,11 +1259,9 @@ public class BS_BLE_BTSix extends Service {
                 InsertInitialTransactionToSqlite();//Insert empty transaction into sqlite
             }
 
-            Thread.sleep(1000);
+            Thread.sleep(500);
             new CountDownTimer(4000, 1000) {
-
                 public void onTick(long millisUntilFinished) {
-
                     long attempt = (4 - (millisUntilFinished / 1000));
                     if (attempt > 0) {
                         if (RelayStatus) {
@@ -1386,7 +1280,6 @@ public class BS_BLE_BTSix extends Service {
                 }
 
                 public void onFinish() {
-
                     if (RelayStatus) {
                         BTConstants.isRelayOnAfterReconnect6 = isAfterReconnect;
                         //relayOn command success.
@@ -1394,7 +1287,6 @@ public class BS_BLE_BTSix extends Service {
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + " Checking relayOn command response. Response: ON");
                     } else {
-
                         //UpgradeTransaction Status RelayON command fail.
                         if (isAfterReconnect && (fillqty > 0)) {
                             if (isOnlineTxn) {
@@ -1416,10 +1308,14 @@ public class BS_BLE_BTSix extends Service {
         } catch (Exception e) {
             e.printStackTrace();
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " relayOnCommand Exception:>>" + e.getMessage());
+                AppConstants.WriteinFile(TAG + " relayOn Command Exception:>>" + e.getMessage());
+            relayOffCommand(); //RelayOff
+            TransactionCompleteFunction();
         }
     }
+    //endregion
 
+    //region Relay OFF Command
     private void relayOffCommand() {
         try {
             //Execute relayOff Command
@@ -1435,7 +1331,6 @@ public class BS_BLE_BTSix extends Service {
             }
 
             new CountDownTimer(4000, 1000) {
-
                 public void onTick(long millisUntilFinished) {
                     long attempt = (4 - (millisUntilFinished / 1000));
                     if (attempt > 0) {
@@ -1454,7 +1349,6 @@ public class BS_BLE_BTSix extends Service {
                 }
 
                 public void onFinish() {
-
                     if (!RelayStatus) {
                         Log.i(TAG, " relayOff Command Response success 2:>>" + Response);
                         if (AppConstants.GenerateLogs)
@@ -1463,29 +1357,18 @@ public class BS_BLE_BTSix extends Service {
                         Log.i(TAG, " Failed to get relayOff Command Response:>>" + Response);
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + " Checking relayOff command response. Response: false");
-                        PostTransactionBackgroundTasks();
+                        PostTransactionBackgroundTasks(false);
                         //CloseTransaction();
                     }
                 }
             }.start();
         } catch (Exception e) {
             e.printStackTrace();
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + " relayOff Command Exception:>>" + e.getMessage());
         }
     }
-
-    private void InsertInitialTransactionToSqlite() {
-
-        String userEmail = CommonUtils.getCustomerDetails_backgroundServiceBT(BS_BLE_BTSix.this).PersonEmail;
-        String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(BS_BLE_BTSix.this) + ":" + userEmail + ":" + "TransactionComplete" + AppConstants.LANG_PARAM);
-
-        HashMap<String, String> imap = new HashMap<>();
-        imap.put("jsonData", "");
-        imap.put("authString", authString);
-
-        sqliteID = controller.insertTransactions(imap);
-        CommonUtils.AddRemovecurrentTransactionList(true, TransactionId);//Add transaction Id to list
-
-    }
+    //endregion
 
     private void TransactionCompleteFunction() {
 
@@ -1498,18 +1381,29 @@ public class BS_BLE_BTSix extends Service {
                 new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        renameOnCommand();
+                        renameCommand();
                     }
                 }, 1000);
             } else {
-                CloseTransaction(true);
+                ProceedToPostTransactionCommands();
             }
         } else {
-            CloseTransaction(true);
+            ProceedToPostTransactionCommands();
         }
     }
 
-    private void renameOnCommand() {
+    public void ProceedToPostTransactionCommands() {
+        // Free the link and continue to post transaction commands
+        StopTransaction(true, false); // Free the link
+        if (versionNumberOfLinkSix >= 145) { // Set P_Type command supported from this version onwards
+            P_Type_Command();
+        } else {
+            CloseTransaction(false); // ProceedToPostTransactionCommands
+        }
+    }
+
+    //region Rename Command
+    private void renameCommand() {
         try {
             //Execute rename Command
             Response = "";
@@ -1538,13 +1432,192 @@ public class BS_BLE_BTSix extends Service {
             storeIsRenameFlag(this, BTConstants.BT6NeedRename, jsonData, authString);
 
             Thread.sleep(1000);
-            CloseTransaction(true);
+            ProceedToPostTransactionCommands();
 
         } catch (Exception e) {
             e.printStackTrace();
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " renameCommand Exception:>>" + e.getMessage());
+                AppConstants.WriteinFile(TAG + " rename Command Exception:>>" + e.getMessage());
+            ProceedToPostTransactionCommands();
         }
+    }
+    //endregion
+
+    //region P_Type Command
+    private void P_Type_Command() {
+        boolean isSetPTypeCommandSent = false;
+        IsAnyPostTxnCommandExecuted = false;
+        try {
+            if (IsResetSwitchTimeBounce != null) {
+                if (IsResetSwitchTimeBounce.trim().equalsIgnoreCase("1") && !PulserTimingAdjust.isEmpty() && Arrays.asList(BTConstants.p_types).contains(PulserTimingAdjust) && !CommonUtils.CheckDataStoredInSharedPref(BS_BLE_BTSix.this, "storeSwitchTimeBounceFlag6")) {
+                    //Execute p_type Command
+                    Response = "";
+                    IsAnyPostTxnCommandExecuted = true;
+
+                    if (IsThisBTTrnx) {
+                        isSetPTypeCommandSent = true;
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + " Sending set p_type command to Link: " + LinkName);
+                        mBluetoothLeService.writeCustomCharacteristic(BTConstants.p_type_command + PulserTimingAdjust);
+                    }
+
+                    new CountDownTimer(4000, 1000) {
+                        public void onTick(long millisUntilFinished) {
+                            long attempt = (4 - (millisUntilFinished / 1000));
+                            if (attempt > 0) {
+                                if (BT_BLE_Constants.CurrentCommand_LinkSix.contains(BTConstants.p_type_command) && Response.contains("pulser_type")) {
+                                    if (AppConstants.GenerateLogs)
+                                        AppConstants.WriteinFile(TAG + " Checking set p_type command response:>> " + Response);
+                                    UpdateSwitchTimeBounceForLink();
+                                    CloseTransaction(true); // set p_type command success
+                                    cancel();
+                                } else {
+                                    if (AppConstants.GenerateLogs)
+                                        AppConstants.WriteinFile(TAG + " Checking set p_type command response. Response: false");
+                                }
+                            }
+                        }
+
+                        public void onFinish() {
+                            if (BT_BLE_Constants.CurrentCommand_LinkSix.contains(BTConstants.p_type_command) && Response.contains("pulser_type")) {
+                                if (AppConstants.GenerateLogs)
+                                    AppConstants.WriteinFile(TAG + " Checking set p_type command response:>> " + Response);
+                                UpdateSwitchTimeBounceForLink();
+                            }
+                            CloseTransaction(true); // set p_type command finish
+                        }
+                    }.start();
+                } else {
+                    GetPulserTypeCommand();
+                }
+            } else {
+                GetPulserTypeCommand();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + " Set P_Type Command Exception:>>" + e.getMessage());
+            if (isSetPTypeCommandSent) {
+                CloseTransaction(true); // Set P_Type Command Exception
+            } else {
+                GetPulserTypeCommand();
+            }
+        }
+    }
+    //endregion
+
+    //region Get P_Type Command
+    private void GetPulserTypeCommand() {
+        try {
+            if (GetPulserTypeFromLINK != null) {
+                if (GetPulserTypeFromLINK.trim().equalsIgnoreCase("True") && !CommonUtils.CheckDataStoredInSharedPref(BS_BLE_BTSix.this, "UpdatePulserType6")) {
+                    //Execute get p_type Command (to get the pulser type from LINK)
+                    Response = "";
+
+                    if (IsThisBTTrnx) {
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + " Sending get p_type command to Link: " + LinkName);
+                        mBluetoothLeService.writeCustomCharacteristic(BTConstants.get_p_type_command);
+                    }
+
+                    new CountDownTimer(4000, 1000) {
+                        public void onTick(long millisUntilFinished) {
+                            long attempt = (4 - (millisUntilFinished / 1000));
+                            if (attempt > 0) {
+                                if (BT_BLE_Constants.CurrentCommand_LinkSix.contains(BTConstants.get_p_type_command) && Response.contains("pulser_type")) {
+                                    ParseGetPulserTypeCommandResponse(Response.trim());
+                                    CloseTransaction(true); // get p_type command success
+                                    cancel();
+                                }
+                            }
+                        }
+
+                        public void onFinish() {
+                            if (BT_BLE_Constants.CurrentCommand_LinkSix.contains(BTConstants.get_p_type_command) && Response.contains("pulser_type")) {
+                                ParseGetPulserTypeCommandResponse(Response.trim());
+                            }
+                            CloseTransaction(true); // get p_type command finish
+                        }
+                    }.start();
+                } else {
+                    CloseTransaction(true); // after checking GetPulserTypeFromLINK
+                }
+            } else {
+                CloseTransaction(true); // GetPulserTypeFromLINK flag is null
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + " Get P_Type Command (to get the pulser type from LINK) Exception:>>" + e.getMessage());
+            CloseTransaction(true); // Get P_Type Command Exception
+        }
+    }
+    //endregion
+
+    private void StopTransaction(boolean startBackgroundServices, boolean isTransactionCompleted) {
+        try {
+            AppConstants.IsTransactionCompleted6 = false;
+            BTConstants.isRelayOnAfterReconnect6 = false;
+            AppConstants.clearSharedPrefByName(BS_BLE_BTSix.this, "LastQuantity_BT6");
+            CommonUtils.AddRemovecurrentTransactionList(false, TransactionId);
+            Constants.FS_6STATUS = "FREE";
+            Constants.FS_6Pulse = "00";
+            CountBeforeReconnectRelay6 = 0;
+            AppConstants.GoButtonAlreadyClicked = false;
+            AppConstants.isInfoCommandSuccess_fs6 = false;
+            BTConstants.SwitchedBTToUDP6 = false;
+            DisableWifiConnection();
+            CancelTimer();
+            IsAnyPostTxnCommandExecuted = true;
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + " Transaction stopped.");
+            if (isTransactionCompleted) {
+                CloseTransaction(startBackgroundServices); // from StopTransaction
+            } else if (startBackgroundServices) {
+                PostTransactionBackgroundTasks(false);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + " StopTransaction Exception:>>" + e.getMessage());
+        }
+    }
+
+    private void CloseTransaction(boolean startBackgroundServices) {
+        try {
+            clearEditTextFields();
+            AppConstants.IsTransactionCompleted6 = true;
+            try {
+                unbindService(mServiceConnection);
+                unregisterReceiver(mGattUpdateReceiver);
+            } catch (Exception e) {
+                e.printStackTrace();
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " <Exception occurred while unregistering receiver: " + e.getMessage() + ">");
+            }
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + " Transaction Completed.");
+            if (startBackgroundServices) {
+                PostTransactionBackgroundTasks(true);
+            }
+            this.stopSelf();
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + " CloseTransaction Exception:>>" + e.getMessage());
+        }
+    }
+
+    private void InsertInitialTransactionToSqlite() {
+        String userEmail = CommonUtils.getCustomerDetails_backgroundServiceBT(BS_BLE_BTSix.this).PersonEmail;
+        String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(BS_BLE_BTSix.this) + ":" + userEmail + ":" + "TransactionComplete" + AppConstants.LANG_PARAM);
+
+        HashMap<String, String> imap = new HashMap<>();
+        imap.put("jsonData", "");
+        imap.put("authString", authString);
+
+        sqliteID = controller.insertTransactions(imap);
+        CommonUtils.AddRemovecurrentTransactionList(true, TransactionId);//Add transaction Id to list
     }
 
     public void storeIsRenameFlag(Context context, boolean flag, String jsonData, String authString) {
@@ -1561,54 +1634,6 @@ public class BS_BLE_BTSix extends Service {
 
         // commit changes
         editor.commit();
-    }
-
-    public void WaitForReconnectToLink() {
-        try {
-            new CountDownTimer(10000, 1000) {
-
-                public void onTick(long millisUntilFinished) {
-
-                    long attempt = (10 - (millisUntilFinished / 1000));
-                    if (attempt > 0) {
-                        if (BT_BLE_Constants.BTBLEStatusStrSix.equalsIgnoreCase("Connected")) {
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(TAG + " Connected to Link: " + LinkName);
-                            new Handler().postDelayed(new Runnable() {
-                                @Override
-                                public void run() {
-                                    GetPulserTypeCommand();
-                                }
-                            }, 500);
-                            cancel();
-                        } else {
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(TAG + " Waiting for Reconnect to Link: " + LinkName);
-                        }
-                    }
-                }
-
-                public void onFinish() {
-
-                    if (BT_BLE_Constants.BTBLEStatusStrSix.equalsIgnoreCase("Connected")) {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + " Connected to Link: " + LinkName);
-                        new Handler().postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                GetPulserTypeCommand();
-                            }
-                        }, 500);
-                    } else {
-                        TerminateBTTransaction();
-                    }
-                }
-            }.start();
-        } catch (Exception e) {
-            e.printStackTrace();
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " WaitForReconnectToLink Exception:>>" + e.getMessage());
-        }
     }
 
     private void parseInfoCommandResponse(String response) {
@@ -1630,7 +1655,6 @@ public class BS_BLE_BTSix extends Service {
     }
 
     public void storeUpgradeFSVersion(Context context, String hoseid, String fsversion) {
-
         SharedPreferences sharedPref = context.getSharedPreferences(Constants.PREF_FS_UPGRADE, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPref.edit();
         editor.putString("hoseid_bt6", hoseid);
@@ -1688,7 +1712,6 @@ public class BS_BLE_BTSix extends Service {
     }
 
     private String removeLastChar(String s) {
-
         if (s.isEmpty())
             return "";
 
@@ -1696,7 +1719,6 @@ public class BS_BLE_BTSix extends Service {
     }
 
     private void SaveLastBTTransactionInLocalDB(String txnId, String counts) {
-
         try {
             double lastCnt = Double.parseDouble(counts);
             double Lastqty = lastCnt / numPulseRatio; //convert to gallons
@@ -1823,7 +1845,7 @@ public class BS_BLE_BTSix extends Service {
         String jsonfromLink;
     }
 
-    private void ParsePulserTypeCommandResponse(String response) {
+    private void ParseGetPulserTypeCommandResponse(String response) {
         try {
             String pulserType;
 
@@ -1831,9 +1853,9 @@ public class BS_BLE_BTSix extends Service {
                 JSONObject jsonObj = new JSONObject(response);
                 pulserType = jsonObj.getString("pulser_type");
 
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " Pulser Type from Link >> " + pulserType);
                 if (!pulserType.isEmpty() && Arrays.asList(BTConstants.p_types).contains(pulserType)) {
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + " Pulser Type from Link >> " + pulserType);
                     // Create object and save data to upload
                     String userEmail = CommonUtils.getCustomerDetails_backgroundServiceBT(BS_BLE_BTSix.this).PersonEmail;
 
@@ -1855,7 +1877,7 @@ public class BS_BLE_BTSix extends Service {
         } catch (Exception e) {
             e.printStackTrace();
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " Exception in ParsePulserTypeCommandResponse. response>> " + response + "; Exception>>" + e.getMessage());
+                AppConstants.WriteinFile(TAG + " Exception in ParseGetPulserTypeCommandResponse. response>> " + response + "; Exception>>" + e.getMessage());
         }
     }
 
@@ -1879,13 +1901,17 @@ public class BS_BLE_BTSix extends Service {
     }
 
     private void LinkReconnectionAttempt() {
-        unbindService(mServiceConnection);
-        unregisterReceiver(mGattUpdateReceiver);
+        try {
+            unbindService(mServiceConnection);
+            unregisterReceiver(mGattUpdateReceiver);
 
-        Intent gattServiceIntent = new Intent(this, BLEServiceCodeSix.class);
-        bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE);
+            Intent gattServiceIntent = new Intent(this, BLEServiceCodeSix.class);
+            bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE);
 
-        registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter());
+            registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void UpdateSwitchTimeBounceForLink() {
@@ -1928,44 +1954,6 @@ public class BS_BLE_BTSix extends Service {
         }
     }
 
-    private void CloseTransaction(boolean startBackgroundServices) {
-
-        try {
-            clearEditTextFields();
-            try {
-                unbindService(mServiceConnection);
-                unregisterReceiver(mGattUpdateReceiver);
-            } catch (Exception e) {
-                e.printStackTrace();
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + " <Exception occurred while unregistering receiver: " + e.getMessage() + ">");
-            }
-            stopTxtprocess = true;
-            BTConstants.isRelayOnAfterReconnect6 = false;
-            AppConstants.clearSharedPrefByName(BS_BLE_BTSix.this, "LastQuantity_BT6");
-            CommonUtils.AddRemovecurrentTransactionList(false, TransactionId);
-            Constants.FS_6STATUS = "FREE";
-            CountBeforeReconnectRelay6 = 0;
-            Constants.FS_6Pulse = "00";
-            AppConstants.GoButtonAlreadyClicked = false;
-            AppConstants.IsTransactionCompleted = true;
-            AppConstants.isInfoCommandSuccess_fs6 = false;
-            BTConstants.SwitchedBTToUDP6 = false;
-            DisableWifiConnection();
-            CancelTimer();
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " Transaction stopped.");
-            if (startBackgroundServices) {
-                PostTransactionBackgroundTasks();
-            }
-            this.stopSelf();
-        } catch (Exception e) {
-            e.printStackTrace();
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " CloseTransaction Exception:>>" + e.getMessage());
-        }
-    }
-
     private void CancelTimer() {
         try {
             for (int i = 0; i < TimerList_ReadpulseBT6.size(); i++) {
@@ -1976,47 +1964,54 @@ public class BS_BLE_BTSix extends Service {
             e.printStackTrace();
         }
     }
-    private void PostTransactionBackgroundTasks() {
+
+    private void PostTransactionBackgroundTasks(boolean isTransactionCompleted) {
         try {
             if (cd.isConnectingToInternet()) {
-                // Save upgrade details to cloud
-                SharedPreferences sharedPref = this.getSharedPreferences(Constants.PREF_FS_UPGRADE, Context.MODE_PRIVATE);
-                String hoseid = sharedPref.getString("hoseid_bt6", "");
-                String fsversion = sharedPref.getString("fsversion_bt6", "");
+                if (!isTransactionCompleted) {
+                    // Save upgrade details to cloud
+                    SharedPreferences sharedPref = this.getSharedPreferences(Constants.PREF_FS_UPGRADE, Context.MODE_PRIVATE);
+                    String hoseid = sharedPref.getString("hoseid_bt6", "");
+                    String fsversion = sharedPref.getString("fsversion_bt6", "");
 
-                UpgradeVersionEntity objEntityClass = new UpgradeVersionEntity();
-                objEntityClass.IMEIUDID = AppConstants.getIMEI(BS_BLE_BTSix.this);
-                objEntityClass.Email = CommonUtils.getCustomerDetails_backgroundServiceBT(BS_BLE_BTSix.this).PersonEmail;
-                objEntityClass.HoseId = hoseid;
-                objEntityClass.Version = fsversion;
+                    UpgradeVersionEntity objEntityClass = new UpgradeVersionEntity();
+                    objEntityClass.IMEIUDID = AppConstants.getIMEI(BS_BLE_BTSix.this);
+                    objEntityClass.Email = CommonUtils.getCustomerDetails_backgroundServiceBT(BS_BLE_BTSix.this).PersonEmail;
+                    objEntityClass.HoseId = hoseid;
+                    objEntityClass.Version = fsversion;
 
-                if (hoseid != null && !hoseid.trim().isEmpty()) {
-                    new BS_BLE_BTSix.UpgradeCurrentVersionWithUpgradableVersion(objEntityClass).execute();
+                    if (hoseid != null && !hoseid.trim().isEmpty()) {
+                        new BS_BLE_BTSix.UpgradeCurrentVersionWithUpgradableVersion(objEntityClass).execute();
 
-                    // Update upgrade details into serverSSIDList
-                    if (AppConstants.IsSingleLink) {
-                        HashMap<String, String> selSSid = WelcomeActivity.serverSSIDList.get(0);
-                        selSSid.put("IsUpgrade", "N");
-                        selSSid.put("FirmwareVersion", fsversion);
-                        WelcomeActivity.serverSSIDList.set(0, selSSid);
+                        // Update upgrade details into serverSSIDList
+                        if (AppConstants.IsSingleLink) {
+                            HashMap<String, String> selSSid = WelcomeActivity.serverSSIDList.get(0);
+                            selSSid.put("IsUpgrade", "N");
+                            selSSid.put("FirmwareVersion", fsversion);
+                            WelcomeActivity.serverSSIDList.set(0, selSSid);
+                        }
+                        //=============================================================
                     }
                     //=============================================================
                 }
-                //=============================================================
 
-                boolean BSRunning = CommonUtils.checkServiceRunning(BS_BLE_BTSix.this, AppConstants.PACKAGE_BACKGROUND_SERVICE);
-                if (!BSRunning) {
+                //boolean BSRunning = CommonUtils.checkServiceRunning(BS_BLE_BTSix.this, AppConstants.PACKAGE_BACKGROUND_SERVICE);
+                //if (!BSRunning) {
+                if (IsAnyPostTxnCommandExecuted) {
                     startService(new Intent(this, BackgroundService.class));
                 }
+                //}
             }
 
-            // Offline transaction data sync
-            if (OfflineConstants.isOfflineAccess(BS_BLE_BTSix.this))
-                SyncOfflineData();
-
+            if (!isTransactionCompleted) {
+                // Offline transaction data sync
+                if (OfflineConstants.isOfflineAccess(BS_BLE_BTSix.this)) {
+                    SyncOfflineData();
+                }
+            }
         } catch (Exception e) {
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " BackgroundTasksPostTransaction Exception: " + e.getMessage());
+                AppConstants.WriteinFile(TAG + " PostTransactionBackgroundTasks Exception: " + e.getMessage());
         }
     }
 
@@ -2067,11 +2062,9 @@ public class BS_BLE_BTSix extends Service {
     }
 
     private void SyncOfflineData() {
-
         if (Constants.FS_1STATUS.equalsIgnoreCase("FREE") && Constants.FS_2STATUS.equalsIgnoreCase("FREE") && Constants.FS_3STATUS.equalsIgnoreCase("FREE") && Constants.FS_4STATUS.equalsIgnoreCase("FREE") && Constants.FS_5STATUS.equalsIgnoreCase("FREE") && Constants.FS_6STATUS.equalsIgnoreCase("FREE")) {
 
             if (cd.isConnecting()) {
-
                 try {
                     //sync offline transactions
                     String off_json = offlineController.getAllOfflineTransactionJSON(BS_BLE_BTSix.this);
@@ -2093,7 +2086,6 @@ public class BS_BLE_BTSix extends Service {
     }
 
     private void clearEditTextFields() {
-
         Constants.AccVehicleNumber_FS6 = "";
         Constants.AccOdoMeter_FS6 = 0;
         Constants.AccDepartmentNumber_FS6 = "";

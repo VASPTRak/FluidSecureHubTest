@@ -16,7 +16,6 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.TrakEngineering.FluidSecureHubTest.entity.UserInfoEntity;
@@ -33,7 +32,6 @@ public class FOBReaderActivity extends AppCompatActivity {
     private ImageView FSlogo_img;
     public static String HubType = "", CompanyName = "", ScreenNameForPersonnel = "PERSON", ScreenNameForVehicle = "VEHICLE";
 
-    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
     @Override
     protected void onResume() {
         super.onResume();

@@ -60,10 +60,19 @@ public class BTConstants {
     public static String scope_ON_cmd = "LK_COMM=scope=ON";
     public static String scope_READ_cmd = "LK_COMM=scope=READ";
     public static String last1_cmd = "LK_COMM=last1";
+    public static String last20_cmd = "LK_COMM=last20";
+    public static String reboot_cmd = "LK_COMM=restartnow";
     public static String ScopeStatus = "";
     public static String[] p_types = {"1", "2", "3", "4"};
 
-    public static boolean isPTypeCommandExecuted1 = false;
+    public static boolean retryConnForInfoCommand1 = false;
+    public static boolean retryConnForInfoCommand2 = false;
+    public static boolean retryConnForInfoCommand3 = false;
+    public static boolean retryConnForInfoCommand4 = false;
+    public static boolean retryConnForInfoCommand5 = false;
+    public static boolean retryConnForInfoCommand6 = false;
+
+    //public static boolean isPTypeCommandExecuted1 = false;
     public static boolean isPTypeCommandExecuted2 = false;
     public static boolean isPTypeCommandExecuted3 = false;
     public static boolean isPTypeCommandExecuted4 = false;
@@ -92,6 +101,13 @@ public class BTConstants {
     public static boolean isReconnectCalled6 = false;
 
     public static int RetryBTConnectionLinkPosition = -1;
+
+    public static int BTConnFailedCountLink1 = 0;
+    public static int BTConnFailedCountLink2 = 0;
+    public static int BTConnFailedCountLink3 = 0;
+    public static int BTConnFailedCountLink4 = 0;
+    public static int BTConnFailedCountLink5 = 0;
+    public static int BTConnFailedCountLink6 = 0;
 
     //Rename BT link one
     public static boolean BT1NeedRename;

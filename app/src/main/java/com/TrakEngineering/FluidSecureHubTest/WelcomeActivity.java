@@ -268,6 +268,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
     ArrayList<HashMap<String, String>> ListOfConnectedDevices = new ArrayList<>();
     public static int SelectedItemPos;
     public static int SelectedItemPosFor10Txn;
+    public static boolean isPreviousTxnCompleted = true;
     //GoogleApiClient mGoogleApiClient;
     protected static final int REQUEST_CHECK_SETTINGS = 0x1;
     TextView tvLatLng;
@@ -677,7 +678,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
     protected void onDestroy() {
         super.onDestroy();
         if (AppConstants.GenerateLogs)
-            AppConstants.WriteinFile(TAG + "<in onDestroy>");
+            AppConstants.WriteinFile(TAG + "<Closed.>");
         closeBTSppMain();
         qrcodebleServiceOff();
 
@@ -1204,6 +1205,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
     public void cancelOfflineDownload() {
         try {
             AppConstants.isOfflineDownloadStarted = false;
+            AppConstants.forceDownloadOfflineData = false;
             cancelThinDownloadManager();
             stopService(new Intent(WelcomeActivity.this, OffBackgroundService.class));
         } catch (Exception e) {
@@ -1337,7 +1339,6 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             }
             loading = null;
         }
-
     }
 
     //Delete log files older than 1 month
@@ -1785,6 +1786,9 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             String FirmwareFileName = serverSSIDList.get(0).get("FirmwareFileName");
             String BTLinkCommType = serverSSIDList.get(0).get("BTLinkCommType");
             AppConstants.CURRENT_SELECTED_SSID = selSSID;
+            AppConstants.CURRENT_SELECTED_SITEID = selSiteId;
+            AppConstants.FS1_CONNECTED_SSID = selSSID;
+            Constants.CurrentSelectedHose = "FS1";
 
             if (LinkCommunicationType.equalsIgnoreCase("BT")) {
                 SetBTLinksMacAddress(0, BTselMacAddress);
@@ -1808,8 +1812,9 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 FirmwareFileName = "";
             }
 
+            SetSiteIdByLinkPosition(0, selSiteId);
             SetHoseIdByLinkPosition(0, hoseID);
-            if (!IsUpgrade.isEmpty() && !AppConstants.isTestTransaction && BTLinkCommType != null && BTLinkCommType.equalsIgnoreCase("SPP")) {
+            if (!IsUpgrade.isEmpty() && !AppConstants.isTestTransaction) {
                 SetUpgradeFirmwareDetails(0, IsUpgrade, FirmwareVersion, FirmwareFileName, selSiteId, hoseID);
             }
 
@@ -1830,13 +1835,86 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     public void goButtonAction(View view) {
+        try {
+            AlertDialog alertDialog;
+            String s = getResources().getString(R.string.PleaseWaitMessage);
+            alertDialog = AlertDialogUtil.createAlertDialog(WelcomeActivity.this, s, true);
+            alertDialog.show();
 
+            Thread thread = new Thread() {
+                @Override
+                public void run() {
+                    AlertDialogUtil.runAnimatedLoadingDots(WelcomeActivity.this, s, alertDialog, true);
+                }
+            };
+            thread.start();
+
+            int selectedLinkPosition = -1;
+            if (cd.isConnectingToInternet() && serverSSIDList != null && serverSSIDList.size() == 1) {
+                selectedLinkPosition = 0;
+            } else {
+                selectedLinkPosition = SelectedItemPos;
+            }
+
+            if (selectedLinkPosition >= 0) {
+                switch (selectedLinkPosition) {
+                    case 0:
+                        isPreviousTxnCompleted = AppConstants.IsTransactionCompleted1;
+                        break;
+                    case 1://Link Two
+                        isPreviousTxnCompleted = AppConstants.IsTransactionCompleted2;
+                        break;
+                    case 2://Link Three
+                        isPreviousTxnCompleted = AppConstants.IsTransactionCompleted3;
+                        break;
+                    case 3://Link Four
+                        isPreviousTxnCompleted = AppConstants.IsTransactionCompleted4;
+                        break;
+                    case 4://Link Five
+                        isPreviousTxnCompleted = AppConstants.IsTransactionCompleted5;
+                        break;
+                    case 5://Link Six
+                        isPreviousTxnCompleted = AppConstants.IsTransactionCompleted6;
+                        break;
+                    default://Something went wrong in link selection please try again.
+                        break;
+                }
+            }
+
+            new CountDownTimer(20000, 1000) {
+                public void onTick(long millisUntilFinished) {
+                    if (isPreviousTxnCompleted) {
+                        if (alertDialog.isShowing()) {
+                            alertDialog.dismiss();
+                        }
+                        continueToGoButtonAction(view);
+                        cancel();
+                    }
+                }
+
+                public void onFinish() {
+                    if (alertDialog.isShowing()) {
+                        alertDialog.dismiss();
+                    }
+                    continueToGoButtonAction(view);
+                }
+            }.start();
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + "Exception in goButtonAction: " + e.getMessage());
+            continueToGoButtonAction(view);
+        }
+    }
+
+    public void continueToGoButtonAction(View view) {
         qrcodebleServiceOn();
         //launchCamera();     //Calling camera activity for image capture on GO button click
         AppConstants.serverAuthCallCompleted = false;
         AppConstants.serverCallInProgressForPin = false;
         AppConstants.serverCallInProgressForVehicle = false;
         BTConstants.forOscilloscope = false;
+        AppConstants.forceDownloadOfflineData = false;
         try {
             if (cd.isConnectingToInternet() && serverSSIDList != null && serverSSIDList.size() == 1) {
                 AppConstants.FS_selected = "0";
@@ -2078,9 +2156,9 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
                                     }
                                 } else {
-                                    AppConstants.colorToastBigFont(WelcomeActivity.this, "Unauthorised day or timings", Color.BLUE);
+                                    AppConstants.colorToastBigFont(WelcomeActivity.this, "Unauthorized day or timings", Color.BLUE);
                                     if (AppConstants.GenerateLogs)
-                                        AppConstants.WriteinFile(TAG + "Unauthorised day or timings");
+                                        AppConstants.WriteinFile(TAG + "Unauthorized day or timings");
                                 }
 
                             } else {
@@ -2903,7 +2981,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
     public void onServiceConnected(ComponentName componentName, IBinder service) {
 
         String className = componentName.getClassName();
-        if (className.equalsIgnoreCase("com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkOne.SerialServiceOne")) {
+        if (className.equalsIgnoreCase(BuildConfig.APPLICATION_ID + ".BTSPP.BTSPP_LinkOne.SerialServiceOne")) {
 
             BTSPPMain btspp = new BTSPPMain();
             btspp.activity = WelcomeActivity.this;
@@ -2912,7 +2990,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             initialStart = false;
             btspp.connect1();
 
-        } else if (className.equalsIgnoreCase("com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkTwo.SerialServiceTwo")) {
+        } else if (className.equalsIgnoreCase(BuildConfig.APPLICATION_ID + ".BTSPP.BTSPP_LinkTwo.SerialServiceTwo")) {
 
             BTSPPMain btspp = new BTSPPMain();
             btspp.activity = WelcomeActivity.this;
@@ -2921,7 +2999,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             initialStart = false;
             btspp.connect2();
 
-        } else if (className.equalsIgnoreCase("com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkThree.SerialServiceThree")) {
+        } else if (className.equalsIgnoreCase(BuildConfig.APPLICATION_ID + ".BTSPP.BTSPP_LinkThree.SerialServiceThree")) {
 
             BTSPPMain btspp = new BTSPPMain();
             btspp.activity = WelcomeActivity.this;
@@ -2930,7 +3008,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             initialStart = false;
             btspp.connect3();
 
-        } else if (className.equalsIgnoreCase("com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkFour.SerialServiceFour")) {
+        } else if (className.equalsIgnoreCase(BuildConfig.APPLICATION_ID + ".BTSPP.BTSPP_LinkFour.SerialServiceFour")) {
 
             BTSPPMain btspp = new BTSPPMain();
             btspp.activity = WelcomeActivity.this;
@@ -2939,7 +3017,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             initialStart = false;
             btspp.connect4();
 
-        } else if (className.equalsIgnoreCase("com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkFive.SerialServiceFive")) {
+        } else if (className.equalsIgnoreCase(BuildConfig.APPLICATION_ID + ".BTSPP.BTSPP_LinkFive.SerialServiceFive")) {
 
             BTSPPMain btspp = new BTSPPMain();
             btspp.activity = WelcomeActivity.this;
@@ -2948,7 +3026,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             initialStart = false;
             btspp.connect5();
 
-        } else if (className.equalsIgnoreCase("com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkSix.SerialServiceSix")) {
+        } else if (className.equalsIgnoreCase(BuildConfig.APPLICATION_ID + ".BTSPP.BTSPP_LinkSix.SerialServiceSix")) {
 
             BTSPPMain btspp = new BTSPPMain();
             btspp.activity = WelcomeActivity.this;
@@ -2968,17 +3046,17 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
     public void onServiceDisconnected(ComponentName componentName) {
 
         String className = componentName.getClassName();
-        if (className.equalsIgnoreCase("com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkOne.SerialServiceOne")) {
+        if (className.equalsIgnoreCase(BuildConfig.APPLICATION_ID + ".BTSPP.BTSPP_LinkOne.SerialServiceOne")) {
             service1 = null;
-        } else if (className.equalsIgnoreCase("com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkTwo.SerialServiceTwo")) {
+        } else if (className.equalsIgnoreCase(BuildConfig.APPLICATION_ID + ".BTSPP.BTSPP_LinkTwo.SerialServiceTwo")) {
             service2 = null;
-        } else if (className.equalsIgnoreCase("com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkThree.SerialServiceThree")) {
+        } else if (className.equalsIgnoreCase(BuildConfig.APPLICATION_ID + ".BTSPP.BTSPP_LinkThree.SerialServiceThree")) {
             service3 = null;
-        } else if (className.equalsIgnoreCase("com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkFour.SerialServiceFour")) {
+        } else if (className.equalsIgnoreCase(BuildConfig.APPLICATION_ID + ".BTSPP.BTSPP_LinkFour.SerialServiceFour")) {
             service4 = null;
-        } else if (className.equalsIgnoreCase("com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkFive.SerialServiceFive")) {
+        } else if (className.equalsIgnoreCase(BuildConfig.APPLICATION_ID + ".BTSPP.BTSPP_LinkFive.SerialServiceFive")) {
             service5 = null;
-        } else if (className.equalsIgnoreCase("com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkSix.SerialServiceSix")) {
+        } else if (className.equalsIgnoreCase(BuildConfig.APPLICATION_ID + ".BTSPP.BTSPP_LinkSix.SerialServiceSix")) {
             service6 = null;
         } else {
             Log.d(TAG, "Disconnected from Reader service");
@@ -3298,6 +3376,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     SelectedItemPos = position;
                     SelectedItemPosFor10Txn = position;
                     BTConstants.forOscilloscope = false;
+                    AppConstants.forceDownloadOfflineData = false;
 
                     String selSSID = serverSSIDList.get(SelectedItemPos).get("WifiSSId");
                     String selMacAddress = serverSSIDList.get(SelectedItemPos).get("MacAddress");
@@ -3317,7 +3396,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     String PulserTimingAdjust = serverSSIDList.get(SelectedItemPos).get("PulserTimingAdjust");
                     String IsResetSwitchTimeBounce = serverSSIDList.get(SelectedItemPos).get("IsResetSwitchTimeBounce");
                     String IsBypassPumpReset = serverSSIDList.get(SelectedItemPos).get("IsBypassPumpReset");
-                    SaveCalibrationDetailsInSharedPref(SelectedItemPos, PulserTimingAdjust, IsResetSwitchTimeBounce, IsBypassPumpReset);
+                    String GetPulserTypeFromLINK = serverSSIDList.get(SelectedItemPos).get("GetPulserTypeFromLINK");
+                    SaveCalibrationDetailsInSharedPref(SelectedItemPos, PulserTimingAdjust, IsResetSwitchTimeBounce, IsBypassPumpReset, GetPulserTypeFromLINK);
 
                     if (BTLinkCommType == null) {
                         BTLinkCommType = "SPP";
@@ -3396,6 +3476,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         } else if (CommonFunctions.CheckIfPresentInPairedDeviceList(BTselMacAddress)) {
                             AppConstants.SELECTED_MACADDRESS = BTselMacAddress;
                             OfflineConstants.storeCurrentTransaction(WelcomeActivity.this, "", selSiteId, "", "", "", "", "", AppConstants.currentDateFormat("yyyy-MM-dd HH:mm"), "", "", "", "");
+                            SetSiteIdByLinkPosition(position, selSiteId);
                             SetHoseIdByLinkPosition(position, hoseID);
 
                             if (!IsUpgrade.isEmpty() && !AppConstants.isTestTransaction) {
@@ -3479,6 +3560,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                             CommonUtils.SaveTldDetailsInPref(WelcomeActivity.this, IsTLDCall, IsTLDFirmwareUpgrade, TLDFirmwareFilePath, TLDFIrmwareVersion, PROBEMacAddress, selMacAddress);
 
                             /////////////////////////////////////////////////////
+                            SetSiteIdByLinkPosition(position, selSiteId);
                             SetHoseIdByLinkPosition(position, hoseID);
                             if (!IsUpgrade.isEmpty() && !AppConstants.isTestTransaction) {
                                 SetUpgradeFirmwareDetails(position, IsUpgrade, FirmwareVersion, FirmwareFileName, selSiteId, hoseID);
@@ -5004,7 +5086,6 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                AppConstants.IsTransactionCompleted = true;
                 /*try {
                     String cntA = "0", cntB = "0", cntC = "0";
 
@@ -5170,7 +5251,6 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     public void finalLastStep_fs1() {
-        AppConstants.IsTransactionCompleted = true;
     }
 
     //=======FS UNIT 2 =========
@@ -6115,7 +6195,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     String logType = "", logPrefix = "";
                     if (BTConstants.CurrentTransactionIsBT) {
                         logType = AppConstants.LOG_TXTN_BT;
-                        logPrefix = "BTLink 1: ";
+                        logPrefix = "BTLink_1: ";
                     } else {
                         logType = AppConstants.LOG_TXTN_HTTP;
                         logPrefix = "BS_FS1: ";
@@ -6204,7 +6284,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         if (BTConstants.BTStatusStrOne.equalsIgnoreCase("Disconnect")) {
                             SaveLastQtyInSharedPref(1, Constants.FS_1Pulse);
                             if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink 1: Retrying to Connect");
+                                AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_1: Retrying to Connect");
                             BTConstants.isRelayOnAfterReconnect1 = false;
                             //Retrying to connect to link
                             BTSPPMain btspp = new BTSPPMain();
@@ -6218,12 +6298,24 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 }
             }
 
-            // BT Link reconnection attempt after p_type command
+            /*// BT Link reconnection attempt after p_type command
             if (BTLinkCommType1 != null && BTLinkCommType1.equalsIgnoreCase("SPP")) {
                 if (BTConstants.isPTypeCommandExecuted1) {
                     BTConstants.isPTypeCommandExecuted1 = false;
                     if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink 1: Retrying to Connect");
+                        AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_1: Retrying to Connect");
+                    //Retrying to connect to link
+                    BTSPPMain btspp = new BTSPPMain();
+                    btspp.activity = WelcomeActivity.this;
+                    btspp.connect1();
+                }
+            }*/
+            // BT Link reconnection attempt after info command failed
+            if (BTLinkCommType1 != null && BTLinkCommType1.equalsIgnoreCase("SPP")) {
+                if (BTConstants.retryConnForInfoCommand1) {
+                    BTConstants.retryConnForInfoCommand1 = false;
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_1: Retrying to Connect");
                     //Retrying to connect to link
                     BTSPPMain btspp = new BTSPPMain();
                     btspp.activity = WelcomeActivity.this;
@@ -6270,7 +6362,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     String logType = "", logPrefix = "";
                     if (BTConstants.CurrentTransactionIsBT) {
                         logType = AppConstants.LOG_TXTN_BT;
-                        logPrefix = "BTLink 2: ";
+                        logPrefix = "BTLink_2: ";
                     } else {
                         logType = AppConstants.LOG_TXTN_HTTP;
                         logPrefix = "BS_FS2: ";
@@ -6357,7 +6449,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         if (BTConstants.BTStatusStrTwo.equalsIgnoreCase("Disconnect")) {
                             SaveLastQtyInSharedPref(2, Constants.FS_2Pulse);
                             if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink 2: Retrying to Connect");
+                                AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_2: Retrying to Connect");
                             BTConstants.isRelayOnAfterReconnect2 = false;
                             //Retrying to connect to link
                             BTSPPMain btspp = new BTSPPMain();
@@ -6371,12 +6463,24 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 }
             }
 
-            // BT Link reconnection attempt after p_type command
+            /*// BT Link reconnection attempt after p_type command
             if (BTLinkCommType2 != null && BTLinkCommType2.equalsIgnoreCase("SPP")) {
                 if (BTConstants.isPTypeCommandExecuted2) {
                     BTConstants.isPTypeCommandExecuted2 = false;
                     if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink 2: Retrying to Connect");
+                        AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_2: Retrying to Connect");
+                    //Retrying to connect to link
+                    BTSPPMain btspp = new BTSPPMain();
+                    btspp.activity = WelcomeActivity.this;
+                    btspp.connect2();
+                }
+            }*/
+            // BT Link reconnection attempt after info command failed
+            if (BTLinkCommType2 != null && BTLinkCommType2.equalsIgnoreCase("SPP")) {
+                if (BTConstants.retryConnForInfoCommand2) {
+                    BTConstants.retryConnForInfoCommand2 = false;
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_2: Retrying to Connect");
                     //Retrying to connect to link
                     BTSPPMain btspp = new BTSPPMain();
                     btspp.activity = WelcomeActivity.this;
@@ -6422,7 +6526,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     String logType = "", logPrefix = "";
                     if (BTConstants.CurrentTransactionIsBT) {
                         logType = AppConstants.LOG_TXTN_BT;
-                        logPrefix = "BTLink 3: ";
+                        logPrefix = "BTLink_3: ";
                     } else {
                         logType = AppConstants.LOG_TXTN_HTTP;
                         logPrefix = "BS_FS3: ";
@@ -6509,7 +6613,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         if (BTConstants.BTStatusStrThree.equalsIgnoreCase("Disconnect")) {
                             SaveLastQtyInSharedPref(3, Constants.FS_3Pulse);
                             if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink 3: Retrying to Connect");
+                                AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_3: Retrying to Connect");
                             BTConstants.isRelayOnAfterReconnect3 = false;
                             //Retrying to connect to link
                             BTSPPMain btspp = new BTSPPMain();
@@ -6523,12 +6627,24 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 }
             }
 
-            // BT Link reconnection attempt after p_type command
+            /*// BT Link reconnection attempt after p_type command
             if (BTLinkCommType3 != null && BTLinkCommType3.equalsIgnoreCase("SPP")) {
                 if (BTConstants.isPTypeCommandExecuted3) {
                     BTConstants.isPTypeCommandExecuted3 = false;
                     if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink 3: Retrying to Connect");
+                        AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_3: Retrying to Connect");
+                    //Retrying to connect to link
+                    BTSPPMain btspp = new BTSPPMain();
+                    btspp.activity = WelcomeActivity.this;
+                    btspp.connect3();
+                }
+            }*/
+            // BT Link reconnection attempt after info command failed
+            if (BTLinkCommType3 != null && BTLinkCommType3.equalsIgnoreCase("SPP")) {
+                if (BTConstants.retryConnForInfoCommand3) {
+                    BTConstants.retryConnForInfoCommand3 = false;
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_3: Retrying to Connect");
                     //Retrying to connect to link
                     BTSPPMain btspp = new BTSPPMain();
                     btspp.activity = WelcomeActivity.this;
@@ -6574,7 +6690,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     String logType = "", logPrefix = "";
                     if (BTConstants.CurrentTransactionIsBT) {
                         logType = AppConstants.LOG_TXTN_BT;
-                        logPrefix = "BTLink 4: ";
+                        logPrefix = "BTLink_4: ";
                     } else {
                         logType = AppConstants.LOG_TXTN_HTTP;
                         logPrefix = "BS_FS4: ";
@@ -6661,7 +6777,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         if (BTConstants.BTStatusStrFour.equalsIgnoreCase("Disconnect")) {
                             SaveLastQtyInSharedPref(4, Constants.FS_4Pulse);
                             if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink 4: Retrying to Connect");
+                                AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_4: Retrying to Connect");
                             BTConstants.isRelayOnAfterReconnect4 = false;
                             //Retrying to connect to link
                             BTSPPMain btspp = new BTSPPMain();
@@ -6675,12 +6791,24 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 }
             }
 
-            // BT Link reconnection attempt after p_type command
+            /*// BT Link reconnection attempt after p_type command
             if (BTLinkCommType4 != null && BTLinkCommType4.equalsIgnoreCase("SPP")) {
                 if (BTConstants.isPTypeCommandExecuted4) {
                     BTConstants.isPTypeCommandExecuted4 = false;
                     if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink 4: Retrying to Connect");
+                        AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_4: Retrying to Connect");
+                    //Retrying to connect to link
+                    BTSPPMain btspp = new BTSPPMain();
+                    btspp.activity = WelcomeActivity.this;
+                    btspp.connect4();
+                }
+            }*/
+            // BT Link reconnection attempt after info command failed
+            if (BTLinkCommType4 != null && BTLinkCommType4.equalsIgnoreCase("SPP")) {
+                if (BTConstants.retryConnForInfoCommand4) {
+                    BTConstants.retryConnForInfoCommand4 = false;
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_4: Retrying to Connect");
                     //Retrying to connect to link
                     BTSPPMain btspp = new BTSPPMain();
                     btspp.activity = WelcomeActivity.this;
@@ -6727,7 +6855,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     String logType = "", logPrefix = "";
                     if (BTConstants.CurrentTransactionIsBT) {
                         logType = AppConstants.LOG_TXTN_BT;
-                        logPrefix = "BTLink 5: ";
+                        logPrefix = "BTLink_5: ";
                     } else {
                         logType = AppConstants.LOG_TXTN_HTTP;
                         logPrefix = "BS_FS5: ";
@@ -6814,7 +6942,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         if (BTConstants.BTStatusStrFive.equalsIgnoreCase("Disconnect")) {
                             SaveLastQtyInSharedPref(5, Constants.FS_5Pulse);
                             if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink 5: Retrying to Connect");
+                                AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_5: Retrying to Connect");
                             BTConstants.isRelayOnAfterReconnect5 = false;
                             //Retrying to connect to link
                             BTSPPMain btspp = new BTSPPMain();
@@ -6828,12 +6956,24 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 }
             }
 
-            // BT Link reconnection attempt after p_type command
+            /*// BT Link reconnection attempt after p_type command
             if (BTLinkCommType5 != null && BTLinkCommType5.equalsIgnoreCase("SPP")) {
                 if (BTConstants.isPTypeCommandExecuted5) {
                     BTConstants.isPTypeCommandExecuted5 = false;
                     if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink 5: Retrying to Connect");
+                        AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_5: Retrying to Connect");
+                    //Retrying to connect to link
+                    BTSPPMain btspp = new BTSPPMain();
+                    btspp.activity = WelcomeActivity.this;
+                    btspp.connect5();
+                }
+            }*/
+            // BT Link reconnection attempt after info command failed
+            if (BTLinkCommType5 != null && BTLinkCommType5.equalsIgnoreCase("SPP")) {
+                if (BTConstants.retryConnForInfoCommand5) {
+                    BTConstants.retryConnForInfoCommand5 = false;
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_5: Retrying to Connect");
                     //Retrying to connect to link
                     BTSPPMain btspp = new BTSPPMain();
                     btspp.activity = WelcomeActivity.this;
@@ -6879,7 +7019,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     String logType = "", logPrefix = "";
                     if (BTConstants.CurrentTransactionIsBT) {
                         logType = AppConstants.LOG_TXTN_BT;
-                        logPrefix = "BTLink 6: ";
+                        logPrefix = "BTLink_6: ";
                     } else {
                         logType = AppConstants.LOG_TXTN_HTTP;
                         logPrefix = "BS_FS6: ";
@@ -6966,7 +7106,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         if (BTConstants.BTStatusStrSix.equalsIgnoreCase("Disconnect")) {
                             SaveLastQtyInSharedPref(6, Constants.FS_6Pulse);
                             if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink 6: Retrying to Connect");
+                                AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_6: Retrying to Connect");
                             BTConstants.isRelayOnAfterReconnect6 = false;
                             //Retrying to connect to link
                             BTSPPMain btspp = new BTSPPMain();
@@ -6980,12 +7120,24 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 }
             }
 
-            // BT Link reconnection attempt after p_type command
+            /*// BT Link reconnection attempt after p_type command
             if (BTLinkCommType6 != null && BTLinkCommType6.equalsIgnoreCase("SPP")) {
                 if (BTConstants.isPTypeCommandExecuted6) {
                     BTConstants.isPTypeCommandExecuted6 = false;
                     if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink 6: Retrying to Connect");
+                        AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_6: Retrying to Connect");
+                    //Retrying to connect to link
+                    BTSPPMain btspp = new BTSPPMain();
+                    btspp.activity = WelcomeActivity.this;
+                    btspp.connect6();
+                }
+            }*/
+            // BT Link reconnection attempt after info command failed
+            if (BTLinkCommType6 != null && BTLinkCommType6.equalsIgnoreCase("SPP")) {
+                if (BTConstants.retryConnForInfoCommand6) {
+                    BTConstants.retryConnForInfoCommand6 = false;
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_6: Retrying to Connect");
                     //Retrying to connect to link
                     BTSPPMain btspp = new BTSPPMain();
                     btspp.activity = WelcomeActivity.this;
@@ -7330,7 +7482,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         String PulserTimingAdjust = serverSSIDList.get(SelectedItemPos).get("PulserTimingAdjust");
         String IsResetSwitchTimeBounce = serverSSIDList.get(SelectedItemPos).get("IsResetSwitchTimeBounce");
         String IsBypassPumpReset = serverSSIDList.get(SelectedItemPos).get("IsBypassPumpReset");
-        SaveCalibrationDetailsInSharedPref(SelectedItemPos, PulserTimingAdjust, IsResetSwitchTimeBounce, IsBypassPumpReset);
+        String GetPulserTypeFromLINK = serverSSIDList.get(SelectedItemPos).get("GetPulserTypeFromLINK");
+        SaveCalibrationDetailsInSharedPref(SelectedItemPos, PulserTimingAdjust, IsResetSwitchTimeBounce, IsBypassPumpReset, GetPulserTypeFromLINK);
 
         if (IsHoseNameReplaced == null) {
             IsHoseNameReplaced = "";
@@ -7603,18 +7756,16 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     RestrictHoseSelection(getResources().getString(R.string.HoseInUse));
                 }
             } else {
-
                 tvSSIDName.setText(getResources().getString(R.string.TryAgainLater));
                 btnGo.setVisibility(View.GONE);
             }
             //}
-
         }
         //dialog.dismiss();
-
     }
 
-    private void SaveCalibrationDetailsInSharedPref(int selectedLinkPos, String PulserTimingAdjust, String IsResetSwitchTimeBounce, String IsBypassPumpReset) {
+    private void SaveCalibrationDetailsInSharedPref(int selectedLinkPos, String PulserTimingAdjust, String IsResetSwitchTimeBounce,
+                                                    String IsBypassPumpReset, String GetPulserTypeFromLINK) {
         try {
             SharedPreferences calibrationPref = this.getSharedPreferences(Constants.PREF_CalibrationDetails, Context.MODE_PRIVATE);
             switch (selectedLinkPos) {
@@ -7623,6 +7774,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     editor1.putString("PulserTimingAdjust_FS1", PulserTimingAdjust);
                     editor1.putString("IsResetSwitchTimeBounce_FS1", IsResetSwitchTimeBounce);
                     editor1.putString("IsBypassPumpReset_FS1", IsBypassPumpReset);
+                    editor1.putString("GetPulserTypeFromLINK_FS1", GetPulserTypeFromLINK);
                     editor1.commit();
                     break;
                 case 1:
@@ -7630,6 +7782,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     editor2.putString("PulserTimingAdjust_FS2", PulserTimingAdjust);
                     editor2.putString("IsResetSwitchTimeBounce_FS2", IsResetSwitchTimeBounce);
                     editor2.putString("IsBypassPumpReset_FS2", IsBypassPumpReset);
+                    editor2.putString("GetPulserTypeFromLINK_FS2", GetPulserTypeFromLINK);
                     editor2.commit();
                     break;
                 case 2:
@@ -7637,6 +7790,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     editor3.putString("PulserTimingAdjust_FS3", PulserTimingAdjust);
                     editor3.putString("IsResetSwitchTimeBounce_FS3", IsResetSwitchTimeBounce);
                     editor3.putString("IsBypassPumpReset_FS3", IsBypassPumpReset);
+                    editor3.putString("GetPulserTypeFromLINK_FS3", GetPulserTypeFromLINK);
                     editor3.commit();
                     break;
                 case 3:
@@ -7644,6 +7798,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     editor4.putString("PulserTimingAdjust_FS4", PulserTimingAdjust);
                     editor4.putString("IsResetSwitchTimeBounce_FS4", IsResetSwitchTimeBounce);
                     editor4.putString("IsBypassPumpReset_FS4", IsBypassPumpReset);
+                    editor4.putString("GetPulserTypeFromLINK_FS4", GetPulserTypeFromLINK);
                     editor4.commit();
                     break;
                 case 4:
@@ -7651,6 +7806,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     editor5.putString("PulserTimingAdjust_FS5", PulserTimingAdjust);
                     editor5.putString("IsResetSwitchTimeBounce_FS5", IsResetSwitchTimeBounce);
                     editor5.putString("IsBypassPumpReset_FS5", IsBypassPumpReset);
+                    editor5.putString("GetPulserTypeFromLINK_FS5", GetPulserTypeFromLINK);
                     editor5.commit();
                     break;
                 case 5:
@@ -7658,6 +7814,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     editor6.putString("PulserTimingAdjust_FS6", PulserTimingAdjust);
                     editor6.putString("IsResetSwitchTimeBounce_FS6", IsResetSwitchTimeBounce);
                     editor6.putString("IsBypassPumpReset_FS6", IsBypassPumpReset);
+                    editor6.putString("GetPulserTypeFromLINK_FS6", GetPulserTypeFromLINK);
                     editor6.commit();
                     break;
             }
@@ -10230,6 +10387,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                 String IsResetSwitchTimeBounce = c.getString("IsResetSwitchTimeBounce");
                                 String IsBypassPumpReset = c.getString("IsBypassPumpReset");
                                 String FirmwareFileName = c.getString("FirmwareFileName");
+                                String GetPulserTypeFromLINK = c.getString("GetPulserTypeFromLINK");
 
                                 SetBTLinksMacAddress(i, BTMacAddress);
 
@@ -10340,6 +10498,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                 map.put("IsResetSwitchTimeBounce", IsResetSwitchTimeBounce);
                                 map.put("IsBypassPumpReset", IsBypassPumpReset);
                                 map.put("FirmwareFileName", FirmwareFileName);
+                                map.put("GetPulserTypeFromLINK", GetPulserTypeFromLINK);
 
                                 if (ResponceMessage.equalsIgnoreCase("success")) {
 
@@ -11279,6 +11438,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                 String IsResetSwitchTimeBounce = c.getString("IsResetSwitchTimeBounce");
                                 String IsBypassPumpReset = c.getString("IsBypassPumpReset");
                                 String FirmwareFileName = c.getString("FirmwareFileName");
+                                String GetPulserTypeFromLINK = c.getString("GetPulserTypeFromLINK");
 
                                 AppConstants.UP_FilePath = FilePath;
 
@@ -11324,6 +11484,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                 map.put("IsResetSwitchTimeBounce", IsResetSwitchTimeBounce);
                                 map.put("IsBypassPumpReset", IsBypassPumpReset);
                                 map.put("FirmwareFileName", FirmwareFileName);
+                                map.put("GetPulserTypeFromLINK", GetPulserTypeFromLINK);
 
                                 if (ResponceMessage.equalsIgnoreCase("success")) {
 
@@ -11789,6 +11950,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                             String IsResetSwitchTimeBounce = c.getString("IsResetSwitchTimeBounce");
                             String IsBypassPumpReset = c.getString("IsBypassPumpReset");
                             String FirmwareFileName = c.getString("FirmwareFileName");
+                            String GetPulserTypeFromLINK = c.getString("GetPulserTypeFromLINK");
 
                             ///tld upgrade
                             String IsTLDFirmwareUpgrade = c.getString("IsTLDFirmwareUpgrade");
@@ -11841,6 +12003,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                             map.put("IsResetSwitchTimeBounce", IsResetSwitchTimeBounce);
                             map.put("IsBypassPumpReset", IsBypassPumpReset);
                             map.put("FirmwareFileName", FirmwareFileName);
+                            map.put("GetPulserTypeFromLINK", GetPulserTypeFromLINK);
 
                             if (IsTLDFirmwareUpgrade.trim().toLowerCase().equalsIgnoreCase("y")) {
                                 downloadTLD_BinFile(i, TLDFirmwareFilePath, TLDFIrmwareVersion);
@@ -13226,14 +13389,14 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             String SERVER_IP = "192.168.4.1";
             String mac_address = "";
             String info_result = new UDPClientTask().execute(BTConstants.info_cmd, SERVER_IP).get();
-            Log.i(TAG, "BTLink 1: UDPInfoResult>>" + info_result);
+            Log.i(TAG, "BTLink_1: UDPInfoResult>>" + info_result);
 
             if (info_result.contains("STAMAC:")) {
                 String[] split = info_result.split("STAMAC:");
                 mac_address = split[1].replaceAll("\"", "").trim();
                 AppConstants.UPDATE_MACADDRESS = mac_address;
 
-                Log.i(TAG, "BTLink 1: UDPInfoResult>>" + info_result);
+                Log.i(TAG, "BTLink_1: UDPInfoResult>>" + info_result);
 
                 Log.i(TAG, "Step2 Link UDP ReConfiguration INFO_Command result:" + info_result);
                 if (AppConstants.GenerateLogs)
@@ -13333,42 +13496,42 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             if (serviceIndex == 0 || serviceIndex == 1) {
                 WelcomeActivity.this.startService(new Intent(this, SerialServiceOne.class));
                 WelcomeActivity.this.bindService(new Intent(this, SerialServiceOne.class), this, Context.BIND_AUTO_CREATE);
-                Log.i(TAG, "BTLink 1: startBTSppMain");
+                Log.i(TAG, "BTLink_1: startBTSppMain");
             }
 
             //Link 2
             if (serviceIndex == 0 || serviceIndex == 2) {
                 WelcomeActivity.this.startService(new Intent(this, SerialServiceTwo.class));
                 WelcomeActivity.this.bindService(new Intent(this, SerialServiceTwo.class), this, Context.BIND_AUTO_CREATE);
-                Log.i(TAG, "BTLink 2: startBTSppMain");
+                Log.i(TAG, "BTLink_2: startBTSppMain");
             }
 
             //Link 3
             if (serviceIndex == 0 || serviceIndex == 3) {
                 WelcomeActivity.this.startService(new Intent(this, SerialServiceThree.class));
                 WelcomeActivity.this.bindService(new Intent(this, SerialServiceThree.class), this, Context.BIND_AUTO_CREATE);
-                Log.i(TAG, "BTLink 3: startBTSppMain");
+                Log.i(TAG, "BTLink_3: startBTSppMain");
             }
 
             //Link 4
             if (serviceIndex == 0 || serviceIndex == 4) {
                 WelcomeActivity.this.startService(new Intent(this, SerialServiceFour.class));
                 WelcomeActivity.this.bindService(new Intent(this, SerialServiceFour.class), this, Context.BIND_AUTO_CREATE);
-                Log.i(TAG, "BTLink 4: startBTSppMain");
+                Log.i(TAG, "BTLink_4: startBTSppMain");
             }
 
             //Link 5
             if (serviceIndex == 0 || serviceIndex == 5) {
                 WelcomeActivity.this.startService(new Intent(this, SerialServiceFive.class));
                 WelcomeActivity.this.bindService(new Intent(this, SerialServiceFive.class), this, Context.BIND_AUTO_CREATE);
-                Log.i(TAG, "BTLink 5: startBTSppMain");
+                Log.i(TAG, "BTLink_5: startBTSppMain");
             }
 
             //Link 6
             if (serviceIndex == 0 || serviceIndex == 6) {
                 WelcomeActivity.this.startService(new Intent(this, SerialServiceSix.class));
                 WelcomeActivity.this.bindService(new Intent(this, SerialServiceSix.class), this, Context.BIND_AUTO_CREATE);
-                Log.i(TAG, "BTLink 6: startBTSppMain");
+                Log.i(TAG, "BTLink_6: startBTSppMain");
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -13379,27 +13542,27 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         isBTSPPServiceStarted = false;
         //Link 1
         WelcomeActivity.this.stopService(new Intent(this, SerialServiceOne.class));
-        Log.i(TAG, "BTLink 1: closeBTSppMain");
+        Log.i(TAG, "BTLink_1: closeBTSppMain");
 
         //Link 2
         WelcomeActivity.this.stopService(new Intent(this, SerialServiceTwo.class));
-        Log.i(TAG, "BTLink 2: closeBTSppMain");
+        Log.i(TAG, "BTLink_2: closeBTSppMain");
 
         //Link 3
         WelcomeActivity.this.stopService(new Intent(this, SerialServiceThree.class));
-        Log.i(TAG, "BTLink 3: closeBTSppMain");
+        Log.i(TAG, "BTLink_3: closeBTSppMain");
 
         //Link 4
         WelcomeActivity.this.stopService(new Intent(this, SerialServiceFour.class));
-        Log.i(TAG, "BTLink 4: closeBTSppMain");
+        Log.i(TAG, "BTLink_4: closeBTSppMain");
 
         //Link 5
         WelcomeActivity.this.stopService(new Intent(this, SerialServiceFive.class));
-        Log.i(TAG, "BTLink 5: closeBTSppMain");
+        Log.i(TAG, "BTLink_5: closeBTSppMain");
 
         //Link 6
         WelcomeActivity.this.stopService(new Intent(this, SerialServiceSix.class));
-        Log.i(TAG, "BTLink 6: closeBTSppMain");
+        Log.i(TAG, "BTLink_6: closeBTSppMain");
     }
 
     private boolean checkBTLinkStatus(int position) {
@@ -13412,7 +13575,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     }
                     if (isConnected) {
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink 1: Link is connected.");
+                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_1: Link is connected.");
                     }
                     break;
                 case 2:
@@ -13421,7 +13584,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     }
                     if (isConnected) {
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink 2: Link is connected.");
+                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_2: Link is connected.");
                     }
                     break;
                 case 3:
@@ -13430,7 +13593,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     }
                     if (isConnected) {
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink 3: Link is connected.");
+                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_3: Link is connected.");
                     }
                     break;
                 case 4:
@@ -13439,7 +13602,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     }
                     if (isConnected) {
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink 4: Link is connected.");
+                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_4: Link is connected.");
                     }
                     break;
                 case 5:
@@ -13448,7 +13611,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     }
                     if (isConnected) {
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink 5: Link is connected.");
+                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_5: Link is connected.");
                     }
                     break;
                 case 6:
@@ -13457,7 +13620,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     }
                     if (isConnected) {
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink 6: Link is connected.");
+                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_6: Link is connected.");
                     }
                     break;
             }
@@ -13477,7 +13640,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         BTConstants.CurrentTransactionIsBT = false;
                     } else {
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink 1: Retrying to Connect");
+                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_1: Retrying to Connect");
                         //Retrying to connect to link
                         BTSPPMain btspp = new BTSPPMain();
                         btspp.activity = WelcomeActivity.this;
@@ -13490,7 +13653,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         BTConstants.CurrentTransactionIsBT = false;
                     } else {
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink 2: Retrying to Connect");
+                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_2: Retrying to Connect");
                         //Retrying to connect to link
                         BTSPPMain btspp = new BTSPPMain();
                         btspp.activity = WelcomeActivity.this;
@@ -13503,7 +13666,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         BTConstants.CurrentTransactionIsBT = false;
                     } else {
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink 3: Retrying to Connect");
+                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_3: Retrying to Connect");
                         //Retrying to connect to link
                         BTSPPMain btspp = new BTSPPMain();
                         btspp.activity = WelcomeActivity.this;
@@ -13516,7 +13679,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         BTConstants.CurrentTransactionIsBT = false;
                     } else {
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink 4: Retrying to Connect");
+                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_4: Retrying to Connect");
                         //Retrying to connect to link
                         BTSPPMain btspp = new BTSPPMain();
                         btspp.activity = WelcomeActivity.this;
@@ -13529,7 +13692,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         BTConstants.CurrentTransactionIsBT = false;
                     } else {
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink 5: Retrying to Connect");
+                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_5: Retrying to Connect");
                         //Retrying to connect to link
                         BTSPPMain btspp = new BTSPPMain();
                         btspp.activity = WelcomeActivity.this;
@@ -13542,7 +13705,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         BTConstants.CurrentTransactionIsBT = false;
                     } else {
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink 6: Retrying to Connect");
+                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_6: Retrying to Connect");
                         //Retrying to connect to link
                         BTSPPMain btspp = new BTSPPMain();
                         btspp.activity = WelcomeActivity.this;
@@ -13848,59 +14011,6 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
     }
 
-    /*private void CheckUDPConnection(int selectedItemPos, String selSSID, String selMacAddress) {
-
-        AppConstants.ManuallReconfigure = false;
-        IpAddress = "";
-        try {
-            for (int i = 0; i < AppConstants.DetailsListOfConnectedDevices.size(); i++) {
-                String MA_ConnectedDevices = AppConstants.DetailsListOfConnectedDevices.get(i).get("macAddress");
-                if (selMacAddress.equalsIgnoreCase(MA_ConnectedDevices)) {
-                    IpAddress = AppConstants.DetailsListOfConnectedDevices.get(i).get("ipAddress");
-                }
-            }
-        } catch (Exception e) {
-            System.out.println(e);
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "  CheckUDPConnection getting IpAddress Exception: " + e);
-        }
-
-        switch (selectedItemPos) {
-
-            case 0:
-                //Link one
-                AppConstants.FS_selected = String.valueOf(0);
-                if (IpAddress.equals("")) {
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + " Hose not connected");
-                    RestrictHoseSelection("Hose not connected");
-                } else if (Constants.FS_1STATUS.equalsIgnoreCase("FREE")) { // && IsBusy.equalsIgnoreCase("N")
-                    // linear_fs_1.setBackgroundColor(getResources().getColor(android.R.color.holo_red_light));
-                    Constants.AccPersonnelPIN = "";
-                    tvSSIDName.setText(selSSID);
-                    AppConstants.FS1_CONNECTED_SSID = selSSID;
-                    Constants.CurrentSelectedHose = "FS1";
-                    BTConstants.CurrentTransactionIsBT = false;
-                    btnGo.setVisibility(View.VISIBLE);
-
-                } else {
-                    BTConstants.CurrentSelectedLinkBT = 0;
-                    RestrictHoseSelection("Hose in use.\nPlease try again later");
-                }
-                break;
-            case 1://Link Two
-                break;
-            case 2://Link Three
-                break;
-            case 3://Link Foure
-                break;
-            default://Something went wrong in link selection please try again.
-                break;
-        }
-
-    }*/
-
-
     public class UDPClientTask extends AsyncTask<String, Void, String> {
 
         String response = "";
@@ -13973,7 +14083,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                     if (BTMacAddress != null && !BTMacAddress.isEmpty() && !BTConstants.BTLinkOneStatus && !BTConstants.BTStatusStrOne.equalsIgnoreCase("Connecting...")) { // && CommonFunctions.CheckIfPresentInPairedDeviceList(BTMacAddress)
                                         //Connect to Link one
                                         if (AppConstants.GenerateLogs)
-                                            AppConstants.WriteinFile(TAG + "<BTLink 1: Trying to connect.>");
+                                            AppConstants.WriteinFile(TAG + "<BTLink_1: Trying to connect.>");
                                         BTSPPMain btspp1 = new BTSPPMain();
                                         btspp1.activity = WelcomeActivity.this;
                                         btspp1.connect1();
@@ -13983,7 +14093,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                     if (BTMacAddress != null && !BTMacAddress.isEmpty() && !BTConstants.BTLinkTwoStatus && !BTConstants.BTStatusStrTwo.equalsIgnoreCase("Connecting...")) { // && CommonFunctions.CheckIfPresentInPairedDeviceList(BTMacAddress)
                                         //Connect to Link two
                                         if (AppConstants.GenerateLogs)
-                                            AppConstants.WriteinFile(TAG + "<BTLink 2: Trying to connect.>");
+                                            AppConstants.WriteinFile(TAG + "<BTLink_2: Trying to connect.>");
                                         BTSPPMain btspp2 = new BTSPPMain();
                                         btspp2.activity = WelcomeActivity.this;
                                         btspp2.connect2();
@@ -13993,7 +14103,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                     if (BTMacAddress != null && !BTMacAddress.isEmpty() && !BTConstants.BTLinkThreeStatus && !BTConstants.BTStatusStrThree.equalsIgnoreCase("Connecting...")) { // && CommonFunctions.CheckIfPresentInPairedDeviceList(BTMacAddress)
                                         //Connect to Link three
                                         if (AppConstants.GenerateLogs)
-                                            AppConstants.WriteinFile(TAG + "<BTLink 3: Trying to connect.>");
+                                            AppConstants.WriteinFile(TAG + "<BTLink_3: Trying to connect.>");
                                         BTSPPMain btspp3 = new BTSPPMain();
                                         btspp3.activity = WelcomeActivity.this;
                                         btspp3.connect3();
@@ -14003,7 +14113,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                     if (BTMacAddress != null && !BTMacAddress.isEmpty() && !BTConstants.BTLinkFourStatus && !BTConstants.BTStatusStrFour.equalsIgnoreCase("Connecting...")) { // && CommonFunctions.CheckIfPresentInPairedDeviceList(BTMacAddress)
                                         //Connect to Link Four
                                         if (AppConstants.GenerateLogs)
-                                            AppConstants.WriteinFile(TAG + "<BTLink 4: Trying to connect.>");
+                                            AppConstants.WriteinFile(TAG + "<BTLink_4: Trying to connect.>");
                                         BTSPPMain btspp4 = new BTSPPMain();
                                         btspp4.activity = WelcomeActivity.this;
                                         btspp4.connect4();
@@ -14013,7 +14123,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                     if (BTMacAddress != null && !BTMacAddress.isEmpty() && !BTConstants.BTLinkFiveStatus && !BTConstants.BTStatusStrFive.equalsIgnoreCase("Connecting...")) { // && CommonFunctions.CheckIfPresentInPairedDeviceList(BTMacAddress)
                                         //Connect to Link Five
                                         if (AppConstants.GenerateLogs)
-                                            AppConstants.WriteinFile(TAG + "<BTLink 5: Trying to connect.>");
+                                            AppConstants.WriteinFile(TAG + "<BTLink_5: Trying to connect.>");
                                         BTSPPMain btspp5 = new BTSPPMain();
                                         btspp5.activity = WelcomeActivity.this;
                                         btspp5.connect5();
@@ -14023,7 +14133,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                     if (BTMacAddress != null && !BTMacAddress.isEmpty() && !BTConstants.BTLinkSixStatus && !BTConstants.BTStatusStrSix.equalsIgnoreCase("Connecting...")) { // && CommonFunctions.CheckIfPresentInPairedDeviceList(BTMacAddress)
                                         //Connect to Link Six
                                         if (AppConstants.GenerateLogs)
-                                            AppConstants.WriteinFile(TAG + "<BTLink 6: Trying to connect.>");
+                                            AppConstants.WriteinFile(TAG + "<BTLink_6: Trying to connect.>");
                                         BTSPPMain btspp6 = new BTSPPMain();
                                         btspp6.activity = WelcomeActivity.this;
                                         btspp6.connect6();
@@ -15258,6 +15368,28 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         }
     }
 
+    public void SetSiteIdByLinkPosition(int position, String siteId) {
+        try {
+            if (String.valueOf(position).equalsIgnoreCase("0")) {
+                AppConstants.UP_SiteId_fs1 = siteId;
+            } else if (String.valueOf(position).equalsIgnoreCase("1")) {
+                AppConstants.UP_SiteId_fs2 = siteId;
+            } else if (String.valueOf(position).equalsIgnoreCase("2")) {
+                AppConstants.UP_SiteId_fs3 = siteId;
+            } else if (String.valueOf(position).equalsIgnoreCase("3")) {
+                AppConstants.UP_SiteId_fs4 = siteId;
+            } else if (String.valueOf(position).equalsIgnoreCase("4")) {
+                AppConstants.UP_SiteId_fs5 = siteId;
+            } else if (String.valueOf(position).equalsIgnoreCase("5")) {
+                AppConstants.UP_SiteId_fs6 = siteId;
+            }
+        } catch (Exception ex) {
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + "Exception in SetSiteIdByLinkPosition. " + ex.getMessage() + ";position: " + position);
+            System.out.println(ex);
+        }
+    }
+
     public boolean HoseAvailabilityCheckTwoAttempts(ArrayList<String> NearByBTDevices, String deviceAddress) {
         boolean isConnected = false;
         try {
@@ -15781,6 +15913,9 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         try {
             if (AppConstants.UP_Upgrade && !AppConstants.isTestTransaction) {
                 btnGo.setClickable(false);
+                if (linkType.equalsIgnoreCase("BT")) {
+                    AppConstants.isBTLinkUpgradeInProgress = true;
+                }
                 new FirmwareFileCheckAndDownload().execute(linkType, String.valueOf(linkPosition), btLinkCommType);
             } else {
                 ContinueToTheTransaction();
@@ -15792,6 +15927,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     private void ContinueToTheTransaction() {
+        AppConstants.isBTLinkUpgradeInProgress = false;
         if (isBroadcastReceiverRegistered) {
             isBroadcastReceiverRegistered = false;
             UnregisterReceiver();
@@ -16280,22 +16416,22 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         String BTLinkIndex = "";
         switch (linkPosition) {
             case 0://Link 1
-                BTLinkIndex = "BTLink 1:";
+                BTLinkIndex = "BTLink_1:";
                 break;
             case 1://Link 2
-                BTLinkIndex = "BTLink 2:";
+                BTLinkIndex = "BTLink_2:";
                 break;
             case 2://Link 3
-                BTLinkIndex = "BTLink 3:";
+                BTLinkIndex = "BTLink_3:";
                 break;
             case 3://Link 4
-                BTLinkIndex = "BTLink 4:";
+                BTLinkIndex = "BTLink_4:";
                 break;
             case 4://Link 5
-                BTLinkIndex = "BTLink 5:";
+                BTLinkIndex = "BTLink_5:";
                 break;
             case 5://Link 6
-                BTLinkIndex = "BTLink 6:";
+                BTLinkIndex = "BTLink_6:";
                 break;
         }
         return BTLinkIndex;
@@ -16343,8 +16479,11 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             switch (linkPosition) {
                 case 0: // Link 1
                     if (!BTConstants.BTStatusStrOne.equalsIgnoreCase("Connected")) {
+                        if (!calledFromUpgrade && BTConstants.BTConnFailedCountLink1 < 4) {
+                            BTConstants.BTConnFailedCountLink1++;
+                        }
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(logPrefix + TAG + "BTLink 1: Link not connected. Retrying to connect.");
+                            AppConstants.WriteinFile(logPrefix + TAG + "BTLink_1: Link not connected. Retrying to connect.");
                         //Retrying to connect to link
                         BTSPPMain btspp = new BTSPPMain();
                         btspp.activity = WelcomeActivity.this;
@@ -16353,8 +16492,11 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     break;
                 case 1: // Link 2
                     if (!BTConstants.BTStatusStrTwo.equalsIgnoreCase("Connected")) {
+                        if (!calledFromUpgrade && BTConstants.BTConnFailedCountLink2 < 4) {
+                            BTConstants.BTConnFailedCountLink2++;
+                        }
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(logPrefix + TAG + "BTLink 2: Link not connected. Retrying to connect.");
+                            AppConstants.WriteinFile(logPrefix + TAG + "BTLink_2: Link not connected. Retrying to connect.");
                         //Retrying to connect to link
                         BTSPPMain btspp = new BTSPPMain();
                         btspp.activity = WelcomeActivity.this;
@@ -16363,8 +16505,11 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     break;
                 case 2: // Link 3
                     if (!BTConstants.BTStatusStrThree.equalsIgnoreCase("Connected")) {
+                        if (!calledFromUpgrade && BTConstants.BTConnFailedCountLink3 < 4) {
+                            BTConstants.BTConnFailedCountLink3++;
+                        }
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(logPrefix + TAG + "BTLink 3: Link not connected. Retrying to connect.");
+                            AppConstants.WriteinFile(logPrefix + TAG + "BTLink_3: Link not connected. Retrying to connect.");
                         //Retrying to connect to link
                         BTSPPMain btspp = new BTSPPMain();
                         btspp.activity = WelcomeActivity.this;
@@ -16373,8 +16518,11 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     break;
                 case 3: // Link 4
                     if (!BTConstants.BTStatusStrFour.equalsIgnoreCase("Connected")) {
+                        if (!calledFromUpgrade && BTConstants.BTConnFailedCountLink4 < 4) {
+                            BTConstants.BTConnFailedCountLink4++;
+                        }
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(logPrefix + TAG + "BTLink 4: Link not connected. Retrying to connect.");
+                            AppConstants.WriteinFile(logPrefix + TAG + "BTLink_4: Link not connected. Retrying to connect.");
                         //Retrying to connect to link
                         BTSPPMain btspp = new BTSPPMain();
                         btspp.activity = WelcomeActivity.this;
@@ -16383,8 +16531,11 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     break;
                 case 4: // Link 5
                     if (!BTConstants.BTStatusStrFive.equalsIgnoreCase("Connected")) {
+                        if (!calledFromUpgrade && BTConstants.BTConnFailedCountLink5 < 4) {
+                            BTConstants.BTConnFailedCountLink5++;
+                        }
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(logPrefix + TAG + "BTLink 5: Link not connected. Retrying to connect.");
+                            AppConstants.WriteinFile(logPrefix + TAG + "BTLink_5: Link not connected. Retrying to connect.");
                         //Retrying to connect to link
                         BTSPPMain btspp = new BTSPPMain();
                         btspp.activity = WelcomeActivity.this;
@@ -16393,8 +16544,11 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     break;
                 case 5: // Link 6
                     if (!BTConstants.BTStatusStrSix.equalsIgnoreCase("Connected")) {
+                        if (!calledFromUpgrade && BTConstants.BTConnFailedCountLink6 < 4) {
+                            BTConstants.BTConnFailedCountLink6++;
+                        }
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(logPrefix + TAG + "BTLink 6: Link not connected. Retrying to connect.");
+                            AppConstants.WriteinFile(logPrefix + TAG + "BTLink_6: Link not connected. Retrying to connect.");
                         //Retrying to connect to link
                         BTSPPMain btspp = new BTSPPMain();
                         btspp.activity = WelcomeActivity.this;
@@ -17338,22 +17492,22 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         String BTLinkIndex = "";
         switch (linkPosition) {
             case 0://Link 1
-                BTLinkIndex = "BLE_Link 1:";
+                BTLinkIndex = "BLE_Link_1:";
                 break;
             case 1://Link 2
-                BTLinkIndex = "BLE_Link 2:";
+                BTLinkIndex = "BLE_Link_2:";
                 break;
             case 2://Link 3
-                BTLinkIndex = "BLE_Link 3:";
+                BTLinkIndex = "BLE_Link_3:";
                 break;
             case 3://Link 4
-                BTLinkIndex = "BLE_Link 4:";
+                BTLinkIndex = "BLE_Link_4:";
                 break;
             case 4://Link 5
-                BTLinkIndex = "BLE_Link 5:";
+                BTLinkIndex = "BLE_Link_5:";
                 break;
             case 5://Link 6
-                BTLinkIndex = "BLE_Link 6:";
+                BTLinkIndex = "BLE_Link_6:";
                 break;
         }
         return BTLinkIndex;
@@ -17396,7 +17550,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 Intent gattServiceIntent = new Intent(this, BLEServiceCodeOne.class);
                 bindService(gattServiceIntent, mServiceConnection1, BIND_AUTO_CREATE);
                 registerReceiver(mGattUpdateReceiver1, makeGattUpdateIntentFilterOne());
-                Log.i(TAG, "BLE_Link 1: startBTBLEServices");
+                Log.i(TAG, "BLE_Link_1: startBTBLEServices");
             }
 
             //Link 2
@@ -17404,7 +17558,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 Intent gattServiceIntent = new Intent(this, BLEServiceCodeTwo.class);
                 bindService(gattServiceIntent, mServiceConnection2, BIND_AUTO_CREATE);
                 registerReceiver(mGattUpdateReceiver2, makeGattUpdateIntentFilterTwo());
-                Log.i(TAG, "BLE_Link 2: startBTBLEServices");
+                Log.i(TAG, "BLE_Link_2: startBTBLEServices");
             }
 
             //Link 3
@@ -17412,7 +17566,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 Intent gattServiceIntent = new Intent(this, BLEServiceCodeThree.class);
                 bindService(gattServiceIntent, mServiceConnection3, BIND_AUTO_CREATE);
                 registerReceiver(mGattUpdateReceiver3, makeGattUpdateIntentFilterThree());
-                Log.i(TAG, "BLE_Link 3: startBTBLEServices");
+                Log.i(TAG, "BLE_Link_3: startBTBLEServices");
             }
 
             //Link 4
@@ -17420,7 +17574,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 Intent gattServiceIntent = new Intent(this, BLEServiceCodeFour.class);
                 bindService(gattServiceIntent, mServiceConnection4, BIND_AUTO_CREATE);
                 registerReceiver(mGattUpdateReceiver4, makeGattUpdateIntentFilterFour());
-                Log.i(TAG, "BLE_Link 4: startBTBLEServices");
+                Log.i(TAG, "BLE_Link_4: startBTBLEServices");
             }
 
             //Link 5
@@ -17428,7 +17582,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 Intent gattServiceIntent = new Intent(this, BLEServiceCodeFive.class);
                 bindService(gattServiceIntent, mServiceConnection5, BIND_AUTO_CREATE);
                 registerReceiver(mGattUpdateReceiver5, makeGattUpdateIntentFilterFive());
-                Log.i(TAG, "BLE_Link 5: startBTBLEServices");
+                Log.i(TAG, "BLE_Link_5: startBTBLEServices");
             }
 
             //Link 6
@@ -17436,7 +17590,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 Intent gattServiceIntent = new Intent(this, BLEServiceCodeSix.class);
                 bindService(gattServiceIntent, mServiceConnection6, BIND_AUTO_CREATE);
                 registerReceiver(mGattUpdateReceiver6, makeGattUpdateIntentFilterSix());
-                Log.i(TAG, "BLE_Link 6: startBTBLEServices");
+                Log.i(TAG, "BLE_Link_6: startBTBLEServices");
             }
         } catch (Exception e) {
             e.printStackTrace();

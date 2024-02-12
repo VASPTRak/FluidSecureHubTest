@@ -153,8 +153,8 @@ public class AppConstants {
     public static String BrandName = "FluidSecure";
     public static String LANG_PARAM = "";
 
-    public static final String PACKAGE_BACKGROUND_SERVICE = "com.TrakEngineering.FluidSecureHubTest.BackgroundService";
-    public static final String PACKAGE_BS_OffTransSync = "com.TrakEngineering.FluidSecureHubTest.offline.OffTranzSyncService";
+    public static final String PACKAGE_BACKGROUND_SERVICE = BuildConfig.APPLICATION_ID + ".BackgroundService";
+    public static final String PACKAGE_BS_OffTransSync = BuildConfig.APPLICATION_ID + ".offline.OffTranzSyncService";
 
     public static ArrayList<HashMap<String, String>> temp_serverSSIDList;
 
@@ -228,7 +228,13 @@ public class AppConstants {
     public static String MaxlimitMessage = "";
     public static boolean IsSingleLink = false;
     public static boolean GoButtonAlreadyClicked = false;
-    public static boolean IsTransactionCompleted = false;
+
+    public static boolean IsTransactionCompleted1 = true;
+    public static boolean IsTransactionCompleted2 = true;
+    public static boolean IsTransactionCompleted3 = true;
+    public static boolean IsTransactionCompleted4 = true;
+    public static boolean IsTransactionCompleted5 = true;
+    public static boolean IsTransactionCompleted6 = true;
 
     public static boolean IsTransactionFailed1 = false;
     public static boolean IsTransactionFailed2 = false;
@@ -378,11 +384,12 @@ public class AppConstants {
     public static boolean isHTTPTxnRunningFS5 = false;
     public static boolean isHTTPTxnRunningFS6 = false;
 
-    public static ArrayList<String> ListOfRunningTransactiins = new ArrayList<>();
+    public static ArrayList<String> ListOfRunningTransactions = new ArrayList<>();
 
     public static boolean languageChanged = false;
     public static boolean isOfflineDownloadStarted = false;
     public static boolean forceDownloadOfflineData = false;
+    public static boolean isBTLinkUpgradeInProgress = false;
 
     public static double roundNumber(double value, int places) {
         if (places < 0) throw new IllegalArgumentException();
