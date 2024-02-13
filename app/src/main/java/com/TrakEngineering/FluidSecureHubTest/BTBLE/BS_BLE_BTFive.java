@@ -417,12 +417,22 @@ public class BS_BLE_BTFive extends Service {
 
                 if (Response.contains(checkPulses) && RelayStatus) {
                     pulseCount = 0;
-                    pulseCount();
+                    new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            pulseCount();
+                        }
+                    }, 100);
 
                 } else if (!RelayStatus) {
                     if (pulseCount > 1) { // pulseCount > 4
                         //Stop transaction
-                        pulseCount();
+                        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                pulseCount();
+                            }
+                        }, 100);
 
                         int delay = 100;
                         cancel();
@@ -440,7 +450,12 @@ public class BS_BLE_BTFive extends Service {
 
                     } else {
                         pulseCount++;
-                        pulseCount();
+                        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                pulseCount();
+                            }
+                        }, 100);
                         Log.i(TAG, "Check pulse");
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + " Check pulse >> Response: " + Response.trim());
@@ -602,7 +617,6 @@ public class BS_BLE_BTFive extends Service {
             if (AppConstants.GenerateLogs)
                 AppConstants.WriteinFile(TAG + " Auto Stop Hit>> You reached MAX fuel limit.");
             relayOffCommand(); //RelayOff
-            TransactionCompleteFunction();
         }
     }
 
@@ -616,10 +630,10 @@ public class BS_BLE_BTFive extends Service {
                     //Timed out (Start was pressed, and pump on timer hit): Pump Time On limit reached* = 4
                     CommonUtils.UpgradeTransactionStatusToSqlite(TransactionId, "4", BS_BLE_BTFive.this);
                     Log.i(TAG, " PumpOnTime Hit>>" + stopCount);
+                    stopCount = 0;
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(TAG + " PumpOnTime Hit.");
                     relayOffCommand(); //RelayOff
-                    TransactionCompleteFunction();
                 }
             } else {//PumpOff Time logic
 
@@ -632,10 +646,10 @@ public class BS_BLE_BTFive extends Service {
 
                 if (stopCount >= stopAutoFuelSeconds) {
                     Log.i(TAG, " PumpOffTime Hit>>" + stopCount);
+                    stopCount = 0;
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(TAG + " PumpOffTime Hit.");
                     relayOffCommand(); //RelayOff
-                    TransactionCompleteFunction();
                 }
             }
         } catch (Exception e) {
@@ -1301,7 +1315,6 @@ public class BS_BLE_BTFive extends Service {
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + " Checking relayOn command response. Response: false");
                         relayOffCommand(); //RelayOff
-                        TransactionCompleteFunction();
                     }
                 }
             }.start();
@@ -1310,7 +1323,6 @@ public class BS_BLE_BTFive extends Service {
             if (AppConstants.GenerateLogs)
                 AppConstants.WriteinFile(TAG + " relayOn Command Exception:>>" + e.getMessage());
             relayOffCommand(); //RelayOff
-            TransactionCompleteFunction();
         }
     }
     //endregion
@@ -1339,6 +1351,9 @@ public class BS_BLE_BTFive extends Service {
                             Log.i(TAG, " relayOff Command Response success 1:>>" + Response);
                             if (AppConstants.GenerateLogs)
                                 AppConstants.WriteinFile(TAG + " Checking relayOff command response. Response:>>" + Response.trim());
+                            if (!AppConstants.isRelayON_fs5) {
+                                TransactionCompleteFunction();
+                            }
                             cancel();
                         } else {
                             Log.i(TAG, " Waiting for relayOff Command Response: " + millisUntilFinished / 1000 + " Response>>" + Response);
@@ -1357,8 +1372,9 @@ public class BS_BLE_BTFive extends Service {
                         Log.i(TAG, " Failed to get relayOff Command Response:>>" + Response);
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + " Checking relayOff command response. Response: false");
-                        PostTransactionBackgroundTasks(false);
-                        //CloseTransaction();
+                    }
+                    if (!AppConstants.isRelayON_fs5) {
+                        TransactionCompleteFunction();
                     }
                 }
             }.start();
@@ -1366,6 +1382,9 @@ public class BS_BLE_BTFive extends Service {
             e.printStackTrace();
             if (AppConstants.GenerateLogs)
                 AppConstants.WriteinFile(TAG + " relayOff Command Exception:>>" + e.getMessage());
+            if (!AppConstants.isRelayON_fs5) {
+                TransactionCompleteFunction();
+            }
         }
     }
     //endregion
@@ -1446,7 +1465,6 @@ public class BS_BLE_BTFive extends Service {
     //region P_Type Command
     private void P_Type_Command() {
         boolean isSetPTypeCommandSent = false;
-        IsAnyPostTxnCommandExecuted = false;
         try {
             if (IsResetSwitchTimeBounce != null) {
                 if (IsResetSwitchTimeBounce.trim().equalsIgnoreCase("1") && !PulserTimingAdjust.isEmpty() && Arrays.asList(BTConstants.p_types).contains(PulserTimingAdjust) && !CommonUtils.CheckDataStoredInSharedPref(BS_BLE_BTFive.this, "storeSwitchTimeBounceFlag5")) {
@@ -1513,6 +1531,7 @@ public class BS_BLE_BTFive extends Service {
                 if (GetPulserTypeFromLINK.trim().equalsIgnoreCase("True") && !CommonUtils.CheckDataStoredInSharedPref(BS_BLE_BTFive.this, "UpdatePulserType5")) {
                     //Execute get p_type Command (to get the pulser type from LINK)
                     Response = "";
+                    IsAnyPostTxnCommandExecuted = true;
 
                     if (IsThisBTTrnx) {
                         if (AppConstants.GenerateLogs)
@@ -1596,7 +1615,7 @@ public class BS_BLE_BTFive extends Service {
                     AppConstants.WriteinFile(TAG + " <Exception occurred while unregistering receiver: " + e.getMessage() + ">");
             }
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " Transaction Completed.");
+                AppConstants.WriteinFile(TAG + " Transaction Completed. \n==============================================================================");
             if (startBackgroundServices) {
                 PostTransactionBackgroundTasks(true);
             }
@@ -1998,6 +2017,7 @@ public class BS_BLE_BTFive extends Service {
                 //boolean BSRunning = CommonUtils.checkServiceRunning(BS_BLE_BTFive.this, AppConstants.PACKAGE_BACKGROUND_SERVICE);
                 //if (!BSRunning) {
                 if (IsAnyPostTxnCommandExecuted) {
+                    IsAnyPostTxnCommandExecuted = false;
                     startService(new Intent(this, BackgroundService.class));
                 }
                 //}

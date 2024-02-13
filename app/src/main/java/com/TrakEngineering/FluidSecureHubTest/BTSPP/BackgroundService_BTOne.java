@@ -801,7 +801,6 @@ public class BackgroundService_BTOne extends Service {
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + " BTLink_1: Checking relayOn command response. Response: false");
                         relayOffCommand(); //RelayOff
-                        TransactionCompleteFunction();
                     }
                 }
             }.start();
@@ -810,7 +809,6 @@ public class BackgroundService_BTOne extends Service {
             if (AppConstants.GenerateLogs)
                 AppConstants.WriteinFile(TAG + " BTLink_1: relayOn Command Exception:>>" + e.getMessage());
             relayOffCommand(); //RelayOff
-            TransactionCompleteFunction();
         }
     }
     //endregion
@@ -841,6 +839,9 @@ public class BackgroundService_BTOne extends Service {
                             Log.i(TAG, "BTLink_1: relayOff Command Response success 1:>>" + Response);
                             if (AppConstants.GenerateLogs)
                                 AppConstants.WriteinFile(TAG + " BTLink_1: Checking relayOff command response. Response:>>" + Response.trim());
+                            if (!AppConstants.isRelayON_fs1) {
+                                TransactionCompleteFunction();
+                            }
                             cancel();
                         } else {
                             Log.i(TAG, "BTLink_1: Waiting for relayOff Command Response: " + millisUntilFinished / 1000 + " Response>>" + Response);
@@ -859,15 +860,19 @@ public class BackgroundService_BTOne extends Service {
                         Log.i(TAG, "BTLink_1: Failed to get relayOff Command Response:>>" + Response);
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + " BTLink_1: Checking relayOff command response. Response: false");
-                        PostTransactionBackgroundTasks(false);
-                        //CloseTransaction();
+                    }
+                    if (!AppConstants.isRelayON_fs1) {
+                        TransactionCompleteFunction();
                     }
                 }
             }.start();
         } catch (Exception e) {
             e.printStackTrace();
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "BTLink_1: relayOff Command Exception:>>" + e.getMessage());
+                AppConstants.WriteinFile(TAG + " BTLink_1: relayOff Command Exception:>>" + e.getMessage());
+            if (!AppConstants.isRelayON_fs1) {
+                TransactionCompleteFunction();
+            }
         }
     }
     //endregion
@@ -1009,7 +1014,6 @@ public class BackgroundService_BTOne extends Service {
     //region Bypass Pump Reset Command
     private void BypassPumpResetCommand() {
         try {
-            IsAnyPostTxnCommandExecuted = false;
             if (IsBypassPumpReset != null) {
                 if (IsBypassPumpReset.trim().equalsIgnoreCase("True") && !CommonUtils.CheckDataStoredInSharedPref(BackgroundService_BTOne.this, "storeBypassPumpResetFlag1")) {
                     //Execute bypass pump reset Command
@@ -1068,7 +1072,6 @@ public class BackgroundService_BTOne extends Service {
     //region P_Type Command
     private void P_Type_Command() {
         boolean isSetPTypeCommandSent = false;
-        IsAnyPostTxnCommandExecuted = false;
         try {
             if (IsResetSwitchTimeBounce != null) {
                 if (IsResetSwitchTimeBounce.trim().equalsIgnoreCase("1") && !PulserTimingAdjust.isEmpty() && Arrays.asList(BTConstants.p_types).contains(PulserTimingAdjust) && !CommonUtils.CheckDataStoredInSharedPref(BackgroundService_BTOne.this, "storeSwitchTimeBounceFlag1")) {
@@ -1140,6 +1143,7 @@ public class BackgroundService_BTOne extends Service {
                     //Execute get p_type Command (to get the pulser type from LINK)
                     Request = "";
                     Response = "";
+                    IsAnyPostTxnCommandExecuted = true;
 
                     if (IsThisBTTrnx) {
                         if (AppConstants.GenerateLogs)
@@ -1234,7 +1238,7 @@ public class BackgroundService_BTOne extends Service {
                     AppConstants.WriteinFile(TAG + " BTLink_1: <Exception occurred while unregistering receiver: " + e.getMessage() + " (" + broadcastBlueLinkOneData + ")>");
             }
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " BTLink_1: Transaction Completed.");
+                AppConstants.WriteinFile(TAG + " BTLink_1: Transaction Completed. \n==============================================================================");
             if (startBackgroundServices) {
                 PostTransactionBackgroundTasks(true);
             }
@@ -1415,16 +1419,26 @@ public class BackgroundService_BTOne extends Service {
                     return;
                 }
 
-                CheckResponse(checkPulses);
+                CheckResponse();
 
                 if (Response.contains(checkPulses) && RelayStatus) {
                     pulseCount = 0;
-                    pulseCount();
+                    new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            pulseCount();
+                        }
+                    }, 100);
 
                 } else if (!RelayStatus) {
                     if (pulseCount > 1) { // pulseCount > 4
                         //Stop transaction
-                        pulseCount();
+                        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                pulseCount();
+                            }
+                        }, 100);
 
                         int delay = 100;
                         cancel();
@@ -1442,10 +1456,39 @@ public class BackgroundService_BTOne extends Service {
 
                     } else {
                         pulseCount++;
-                        pulseCount();
+                        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                pulseCount();
+                            }
+                        }, 100);
                         Log.i(TAG, "BTLink_1: Check pulse");
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + " BTLink_1: Check pulse >> Response: " + Response.trim());
+                    }
+                } else if (!Response.contains(checkPulses)) {
+                    stopCount++;
+
+                    long autoStopSeconds = 0;
+                    if (pre_pulse == 0) {
+                        autoStopSeconds = Long.parseLong(PumpOnTime);
+                    } else {
+                        autoStopSeconds = stopAutoFuelSeconds;
+                    }
+
+                    if (stopCount >= autoStopSeconds) {
+                        if (Pulses <= 0) {
+                            CommonUtils.UpgradeTransactionStatusToSqlite(TransactionId, "4", BackgroundService_BTOne.this);
+                        }
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + " BTLink_1: Auto Stop Hit. Response >> " + Response.trim());
+                        stopCount = 0;
+                        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                relayOffCommand();
+                            }
+                        }, 100);
                     }
                 }
             }
@@ -1555,7 +1598,7 @@ public class BackgroundService_BTOne extends Service {
 
         } catch (Exception e) {
             e.printStackTrace();
-            //if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "BTLink_1: pulse count Exception>>" + e.getMessage());
+            //if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " BTLink_1: pulse count Exception>>" + e.getMessage());
         }
     }
 
@@ -1612,7 +1655,7 @@ public class BackgroundService_BTOne extends Service {
                     //Used only for debug
                     Log.i(TAG, "BTLink_1: Link Request>>" + Request);
                     Log.i(TAG, "BTLink_1: Link Response>>" + Response);
-                    //if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "BTLink_1: Link Response>>" + Response);
+                    //if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " BTLink_1: Link Response>>" + Response);
 
                     //Set Relay status.
                     if (Request.contains(BTConstants.relay_off_cmd) && Response.contains("OFF")) {
@@ -1770,6 +1813,7 @@ public class BackgroundService_BTOne extends Service {
                 //boolean BSRunning = CommonUtils.checkServiceRunning(BackgroundService_BTOne.this, AppConstants.PACKAGE_BACKGROUND_SERVICE);
                 //if (!BSRunning) {
                 if (IsAnyPostTxnCommandExecuted) {
+                    IsAnyPostTxnCommandExecuted = false;
                     startService(new Intent(this, BackgroundService.class));
                 }
                 //}
@@ -1794,7 +1838,6 @@ public class BackgroundService_BTOne extends Service {
             if (AppConstants.GenerateLogs)
                 AppConstants.WriteinFile(TAG + " BTLink_1: Auto Stop Hit>> You reached MAX fuel limit.");
             relayOffCommand(); //RelayOff
-            TransactionCompleteFunction();
         }
     }
 
@@ -1805,14 +1848,13 @@ public class BackgroundService_BTOne extends Service {
             if (Pulses <= 0) {//PumpOn Time logic
                 stopCount++;
                 if (stopCount >= pumpOnpoint) {
-
                     //Timed out (Start was pressed, and pump on timer hit): Pump Time On limit reached* = 4
                     CommonUtils.UpgradeTransactionStatusToSqlite(TransactionId, "4", BackgroundService_BTOne.this);
                     Log.i(TAG, " BTLink_1: PumpOnTime Hit>>" + stopCount);
+                    stopCount = 0;
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(TAG + " BTLink_1: PumpOnTime Hit.");
                     relayOffCommand(); //RelayOff
-                    TransactionCompleteFunction();
                 }
             } else {//PumpOff Time logic
 
@@ -1825,10 +1867,10 @@ public class BackgroundService_BTOne extends Service {
 
                 if (stopCount >= stopAutoFuelSeconds) {
                     Log.i(TAG, " BTLink_1: PumpOffTime Hit>>" + stopCount);
+                    stopCount = 0;
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(TAG + " BTLink_1: PumpOffTime Hit.");
                     relayOffCommand(); //RelayOff
-                    TransactionCompleteFunction();
                 }
             }
         } catch (Exception e) {
@@ -1837,57 +1879,30 @@ public class BackgroundService_BTOne extends Service {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.P)
-    private void CheckResponse(String checkPulses) {
+    private void CheckResponse() {
         try {
-            try {
-                if (RelayStatus && !BTConstants.CurrentCommand_LinkOne.contains(BTConstants.relay_off_cmd)) {
-                    if (RespCount < 4) {
-                        RespCount++;
-                    } else {
-                        RespCount = 0;
-                    }
-
-                    if (RespCount == 4) {
-                        RespCount = 0;
-                        //Execute fdcheck counter
-                        Log.i(TAG, "BTLink_1: Execute FD Check..>>");
-
-                        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                            getMainExecutor().execute(new Runnable() {
-                                @Override
-                                public void run() {
-                                    fdCheckCommand();
-                                }
-                            });
-                        } else {
-                            fdCheckCommand();
-                        }
-                    }
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-            if (!Response.contains(checkPulses)) {
-                stopCount++;
-
-                long autoStopSeconds = 0;
-                if (pre_pulse == 0) {
-                    autoStopSeconds = Long.parseLong(PumpOnTime);
+            if (RelayStatus && !BTConstants.CurrentCommand_LinkOne.contains(BTConstants.relay_off_cmd)) {
+                if (RespCount < 4) {
+                    RespCount++;
                 } else {
-                    autoStopSeconds = stopAutoFuelSeconds;
+                    RespCount = 0;
                 }
 
-                if (stopCount >= autoStopSeconds) {
-                    if (Pulses <= 0) {
-                        CommonUtils.UpgradeTransactionStatusToSqlite(TransactionId, "4", BackgroundService_BTOne.this);
+                if (RespCount == 4) {
+                    RespCount = 0;
+                    //Execute fdcheck counter
+                    Log.i(TAG, "BTLink_1: Execute FD Check..>>");
+
+                    if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                        getMainExecutor().execute(new Runnable() {
+                            @Override
+                            public void run() {
+                                fdCheckCommand();
+                            }
+                        });
+                    } else {
+                        fdCheckCommand();
                     }
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + " BTLink_1: Auto Stop Hit. Response >> " + Response.trim());
-                    stopCount = 0;
-                    relayOffCommand(); //RelayOff
-                    TransactionCompleteFunction();
-                    this.stopSelf();
                 }
             }
         } catch (Exception e) {
