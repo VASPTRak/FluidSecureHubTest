@@ -41,7 +41,7 @@ import com.TrakEngineering.FluidSecureHubTest.entity.UpdatePulserTypeOfLINK_enti
 import com.TrakEngineering.FluidSecureHubTest.entity.UpgradeVersionEntity;
 import com.TrakEngineering.FluidSecureHubTest.offline.EntityOffTranz;
 import com.TrakEngineering.FluidSecureHubTest.offline.OffDBController;
-import com.TrakEngineering.FluidSecureHubTest.WifiHotspot.WifiApManager;
+import com.TrakEngineering.FluidSecureHubTest.wifihotspot.WifiApManager;
 import com.TrakEngineering.FluidSecureHubTest.offline.OffTranzSyncService;
 import com.TrakEngineering.FluidSecureHubTest.offline.OfflineConstants;
 import com.TrakEngineering.FluidSecureHubTest.server.ServerHandler;
@@ -67,7 +67,7 @@ public class BS_BLE_BTTwo extends Service {
     private BLEServiceCodeTwo mBluetoothLeService;
 
     public long sqlite_id = 0;
-    String TransactionId, VehicleId, PhoneNumber, PersonId, PulseRatio, MinLimit, FuelTypeId, ServerDate, IntervalToStopFuel, IsTLDCall, EnablePrinter, PumpOnTime, VehicleNumber, TransactionDateWithFormat;
+    String TransactionId, VehicleId, PhoneNumber, PersonId, PulseRatio, MinLimit, FuelTypeId, ServerDate, IntervalToStopFuel, IsTLDCall, EnablePrinter, PumpOnTime, LimitReachedMessage, VehicleNumber, TransactionDateWithFormat;
 
     public int CountBeforeReconnectRelay2 = 0;
     String Response = ""; //Request = ""
@@ -102,6 +102,7 @@ public class BS_BLE_BTTwo extends Service {
     public String IsResetSwitchTimeBounce;
     public String GetPulserTypeFromLINK;
     public boolean IsAnyPostTxnCommandExecuted = false;
+    public boolean isTxnLimitReached = false;
 
     SimpleDateFormat sdformat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
     ArrayList<HashMap<String, String>> quantityRecords = new ArrayList<>();
@@ -140,6 +141,7 @@ public class BS_BLE_BTTwo extends Service {
                 IsTLDCall = sharedPref.getString("IsTLDCall", "False");
                 EnablePrinter = sharedPref.getString("EnablePrinter", "False");
                 PumpOnTime = sharedPref.getString("PumpOnTime", "0");
+                LimitReachedMessage = sharedPref.getString("LimitReachedMessage", "");
 
                 numPulseRatio = Double.parseDouble(PulseRatio);
                 minFuelLimit = Double.parseDouble(MinLimit);
@@ -612,10 +614,13 @@ public class BS_BLE_BTTwo extends Service {
 
     private void reachMaxLimit() {
         //if quantity reach max limit
-        if (minFuelLimit > 0 && fillqty >= minFuelLimit) {
+        if (minFuelLimit > 0 && fillqty >= minFuelLimit && !isTxnLimitReached) {
+            isTxnLimitReached = true;
             Log.i(TAG, "Auto Stop Hit>> You reached MAX fuel limit.");
             if (AppConstants.GenerateLogs)
                 AppConstants.WriteinFile(TAG + " Auto Stop Hit>> You reached MAX fuel limit.");
+            AppConstants.DisplayToastmaxlimit = true;
+            AppConstants.MaxlimitMessage = LimitReachedMessage;
             relayOffCommand(); //RelayOff
         }
     }
@@ -916,10 +921,14 @@ public class BS_BLE_BTTwo extends Service {
     private void TerminateBTTxnAfterInterruption() {
         try {
             IsThisBTTrnx = false;
-            if (isOnlineTxn) {
-                CommonUtils.UpgradeTransactionStatusToSqlite(TransactionId, "10", BS_BLE_BTTwo.this);
+            if (fillqty > 0) {
+                if (isOnlineTxn) {
+                    CommonUtils.UpgradeTransactionStatusToSqlite(TransactionId, "10", BS_BLE_BTTwo.this);
+                } else {
+                    offlineController.updateOfflineTransactionStatus(sqlite_id + "", "10");
+                }
             } else {
-                offlineController.updateOfflineTransactionStatus(sqlite_id + "", "10");
+                CommonUtils.UpgradeTransactionStatusToSqlite(TransactionId, "6", BS_BLE_BTTwo.this);
             }
             Log.i(TAG, " Link not connected. Please try again!");
             if (AppConstants.GenerateLogs)
@@ -1545,7 +1554,11 @@ public class BS_BLE_BTTwo extends Service {
                             if (attempt > 0) {
                                 if (BT_BLE_Constants.CurrentCommand_LinkTwo.contains(BTConstants.get_p_type_command) && Response.contains("pulser_type")) {
                                     ParseGetPulserTypeCommandResponse(Response.trim());
-                                    CloseTransaction(true); // get p_type command success
+                                    if (BTConstants.isBTSPPTxnContinuedWithBLE2) {
+                                        RebootCommand();
+                                    } else {
+                                        CloseTransaction(true); // get p_type command success
+                                    }
                                     cancel();
                                 }
                             }
@@ -1555,20 +1568,65 @@ public class BS_BLE_BTTwo extends Service {
                             if (BT_BLE_Constants.CurrentCommand_LinkTwo.contains(BTConstants.get_p_type_command) && Response.contains("pulser_type")) {
                                 ParseGetPulserTypeCommandResponse(Response.trim());
                             }
-                            CloseTransaction(true); // get p_type command finish
+                            if (BTConstants.isBTSPPTxnContinuedWithBLE2) {
+                                RebootCommand();
+                            } else {
+                                CloseTransaction(true); // get p_type command finish
+                            }
                         }
                     }.start();
                 } else {
-                    CloseTransaction(true); // after checking GetPulserTypeFromLINK
+                    if (BTConstants.isBTSPPTxnContinuedWithBLE2) {
+                        RebootCommand();
+                    } else {
+                        CloseTransaction(true); // after checking GetPulserTypeFromLINK
+                    }
                 }
             } else {
-                CloseTransaction(true); // GetPulserTypeFromLINK flag is null
+                if (BTConstants.isBTSPPTxnContinuedWithBLE2) {
+                    RebootCommand();
+                } else {
+                    CloseTransaction(true); // GetPulserTypeFromLINK flag is null
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
             if (AppConstants.GenerateLogs)
                 AppConstants.WriteinFile(TAG + " Get P_Type Command (to get the pulser type from LINK) Exception:>>" + e.getMessage());
-            CloseTransaction(true); // Get P_Type Command Exception
+            if (BTConstants.isBTSPPTxnContinuedWithBLE2) {
+                RebootCommand();
+            } else {
+                CloseTransaction(true); // Get P_Type Command Exception
+            }
+        }
+    }
+    //endregion
+
+    //region Reboot Command
+    private void RebootCommand() {
+        try {
+            //Execute Reboot Command
+            Response = "";
+
+            if (IsThisBTTrnx) {
+                if (AppConstants.GenerateLogs)
+                    AppConstants.WriteinFile(TAG + " Sending reboot command to Link: " + LinkName);
+                mBluetoothLeService.writeCustomCharacteristic(BTConstants.reboot_cmd);
+            }
+
+            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    BTConstants.isBTSPPTxnContinuedWithBLE2 = false;
+                    CloseTransaction(true); // after reboot command
+                }
+            }, 1000);
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + " Reboot Command Exception:>>" + e.getMessage());
+            BTConstants.isBTSPPTxnContinuedWithBLE2 = false;
+            CloseTransaction(true); // Reboot Command Exception
         }
     }
     //endregion
@@ -1599,13 +1657,14 @@ public class BS_BLE_BTTwo extends Service {
             e.printStackTrace();
             if (AppConstants.GenerateLogs)
                 AppConstants.WriteinFile(TAG + " StopTransaction Exception:>>" + e.getMessage());
+            CloseTransaction(startBackgroundServices); // from StopTransaction exception
         }
     }
 
     private void CloseTransaction(boolean startBackgroundServices) {
+        clearEditTextFields();
+        AppConstants.IsTransactionCompleted2 = true;
         try {
-            clearEditTextFields();
-            AppConstants.IsTransactionCompleted2 = true;
             try {
                 unbindService(mServiceConnection);
                 unregisterReceiver(mGattUpdateReceiver);

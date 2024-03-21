@@ -100,17 +100,20 @@ public class BackgroundService extends Service {
 
                     if (!jsonData.equals("")) {
                         JSONObject jsonObject = new JSONObject(jsonData);
-                        String txn = String.valueOf(jsonObject.get("TransactionId"));
+                        String txnId = String.valueOf(jsonObject.get("TransactionId"));
                         String pulses = String.valueOf(jsonObject.get("Pulses"));
-                        if (AppConstants.ListOfRunningTransactions.contains(txn)) {
+                        if (AppConstants.ListOfRunningTransactions.contains(txnId)) {
                             //transaction running
-                            Log.i(TAG, "Transaction is in progress" + txn);
+                            Log.i(TAG, "Transaction is in progress" + txnId);
                             if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(TAG + "Transaction is in progress. TransactionId: " + txn);
+                                AppConstants.WriteinFile(TAG + "Transaction is in progress. TransactionId: " + txnId);
                         } else {
                             //transaction completed
                             //new UploadTask().execute(Id, jsonData, authString);
-                            UploadTaskRetroFit(Id, jsonData, authString, txn, pulses);
+                            if (!AppConstants.ListOfUploadingTransactions.contains(txnId)) {
+                                AppConstants.ListOfUploadingTransactions.add(txnId);
+                                UploadTaskRetroFit(Id, jsonData, authString, txnId, pulses);
+                            }
                             //if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "TempLog  Transaction UploadTask Id:" + Id + " jsonData:" + jsonData);
                         }
                     } else {
@@ -151,10 +154,10 @@ public class BackgroundService extends Service {
             public void run() {
                 AppConstants.clearSharedPrefByName(BackgroundService.this,"storeCmtxtnid_20_record");
                 AppConstants.clearSharedPrefByName(BackgroundService.this,AppConstants.LinkConnectionIssuePref);
+                AppConstants.ListOfUploadingTransactions.clear();
                 stopSelf();
             }
         },10000);
-
 
         return super.onStartCommand(intent, flags, startId);
     }
@@ -679,8 +682,8 @@ public class BackgroundService extends Service {
                 Log.i(TAG, "UploadTaskRetroFit ResponceMessage:" + ResponceMessage + " ResponceText:" + ResponceText);
                 if (AppConstants.GenerateLogs)
                     AppConstants.WriteinFile(TAG + "Transaction UploadTask. TransactionId: " + transactionId + "; Pulses: " + pulses + "; ResponseMessage: " + ResponceMessage);
+                RemoveTxnFromListOfUploadingTransactions(transactionId);
                 try {
-
                     if (ResponceMessage.equalsIgnoreCase("success") || ResponceMessage.equalsIgnoreCase("fail")) {
 
                         if (ResponceMessage.equalsIgnoreCase("success")) {
@@ -698,10 +701,8 @@ public class BackgroundService extends Service {
                             System.out.println("deleteTransactions..." + Id);
 
                         } else if (ResponceMessage.equalsIgnoreCase("fail") && ResponceText.equalsIgnoreCase("TransactionId not found.")) {
-
                             //if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " TransactionId not found. deleted from Sqlite -json:"+jsonData);
                             controller.deleteTransactions(Id);
-
                         }
                     }
 
@@ -710,13 +711,11 @@ public class BackgroundService extends Service {
                     if (uData != null && uData.size() == 0) {
                         stopSelf();
                     }
-
                 } catch (Exception e) {
                     System.out.println(e.getMessage());
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(TAG + "UploadTaskRetroFit onResponse. TransactionId: " + transactionId + "; Exception: " + e.getMessage());
                 }
-
             }
 
             @Override
@@ -724,11 +723,17 @@ public class BackgroundService extends Service {
                 Log.i(TAG, "Something went wrong in UploadTaskRetroFit call No internet connectivity or server connection fail.");
                 if (AppConstants.GenerateLogs)
                     AppConstants.WriteinFile(TAG + "UploadTaskRetroFit onFailure. TransactionId: " + transactionId + "; Exception: " + t.getMessage());
+                RemoveTxnFromListOfUploadingTransactions(transactionId);
                 // handle execution failures like no internet connectivity
                 BusProvider.getInstance().post(new ErrorEvent(-2, t.getMessage()));
             }
         });
+    }
 
+    public void RemoveTxnFromListOfUploadingTransactions(String transactionId) {
+        if (AppConstants.ListOfUploadingTransactions != null && AppConstants.ListOfUploadingTransactions.contains(transactionId)) {
+            AppConstants.ListOfUploadingTransactions.remove(transactionId);
+        }
     }
 
     public class LINKDisconnectionErrorLog extends AsyncTask<String, Void, String> {

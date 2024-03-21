@@ -2186,7 +2186,6 @@ public class BackgroundService_AP_PIPE extends Service {
     }
 
     public void storeUpgradeFSVersion(BackgroundService_AP_PIPE activity, String hoseid, String fsversion) {
-
         SharedPreferences sharedPref = activity.getSharedPreferences(Constants.PREF_FS_UPGRADE, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPref.edit();
         editor.putString("hoseid", hoseid);

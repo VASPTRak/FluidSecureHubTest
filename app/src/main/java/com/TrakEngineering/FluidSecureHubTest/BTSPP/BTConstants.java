@@ -43,6 +43,14 @@ public class BTConstants {
     public static boolean SwitchedBTToUDP4 = false;
     public static boolean SwitchedBTToUDP5 = false;
     public static boolean SwitchedBTToUDP6 = false;
+
+    public static boolean isBTSPPTxnContinuedWithBLE1 = false;
+    public static boolean isBTSPPTxnContinuedWithBLE2 = false;
+    public static boolean isBTSPPTxnContinuedWithBLE3 = false;
+    public static boolean isBTSPPTxnContinuedWithBLE4 = false;
+    public static boolean isBTSPPTxnContinuedWithBLE5 = false;
+    public static boolean isBTSPPTxnContinuedWithBLE6 = false;
+
     //public static boolean isHotspotDisabled = false;
 
     public static String info_cmd = "LK_COMM=info";
@@ -73,11 +81,11 @@ public class BTConstants {
     public static boolean retryConnForInfoCommand6 = false;
 
     //public static boolean isPTypeCommandExecuted1 = false;
-    public static boolean isPTypeCommandExecuted2 = false;
-    public static boolean isPTypeCommandExecuted3 = false;
-    public static boolean isPTypeCommandExecuted4 = false;
-    public static boolean isPTypeCommandExecuted5 = false;
-    public static boolean isPTypeCommandExecuted6 = false;
+    //public static boolean isPTypeCommandExecuted2 = false;
+    //public static boolean isPTypeCommandExecuted3 = false;
+    //public static boolean isPTypeCommandExecuted4 = false;
+    //public static boolean isPTypeCommandExecuted5 = false;
+    //public static boolean isPTypeCommandExecuted6 = false;
 
     public static boolean isNewVersionLinkOne = false;
     public static boolean isNewVersionLinkTwo = false;

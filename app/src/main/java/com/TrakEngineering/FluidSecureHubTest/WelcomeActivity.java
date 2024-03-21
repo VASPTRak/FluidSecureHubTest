@@ -118,7 +118,7 @@ import com.TrakEngineering.FluidSecureHubTest.EddystoneScanner.SampleBeacon;
 import com.TrakEngineering.FluidSecureHubTest.MagV2GAtt.ServiceMagV2;
 import com.TrakEngineering.FluidSecureHubTest.QRCodeGAtt.ServiceQRCode;
 import com.TrakEngineering.FluidSecureHubTest.TLD_GattServer.DeviceControlActivity_tld;
-import com.TrakEngineering.FluidSecureHubTest.WifiHotspot.WifiApManager;
+import com.TrakEngineering.FluidSecureHubTest.wifihotspot.WifiApManager;
 import com.TrakEngineering.FluidSecureHubTest.entity.AuthEntityClass;
 import com.TrakEngineering.FluidSecureHubTest.entity.RenameHose;
 import com.TrakEngineering.FluidSecureHubTest.entity.StatusForUpgradeVersionEntity;
@@ -293,6 +293,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
     public static int CountBeforeReconnectRelay4 = 0;
     public static int CountBeforeReconnectRelay5 = 0;
     public static int CountBeforeReconnectRelay6 = 0;
+
+    public boolean showSingleHoseBusyStatus = true;
 
     public static boolean FA_DebugWindow = false;
 
@@ -782,7 +784,6 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         getSupportActionBar().setIcon(R.drawable.fuel_secure_lock);
 
         density = getResources().getDisplayMetrics().density;
-        st = getResources().getString(R.string.connecting);
 
         TextView tvVersionNum = (TextView) findViewById(R.id.tvVersionNum);
         String versionNumber = getResources().getString(R.string.VersionHeading) + ": " + CommonUtils.getVersionCode(WelcomeActivity.this);
@@ -1302,7 +1303,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         PendingIntent pintent = PendingIntent.getService(getApplicationContext(), 0, name, PendingIntent.FLAG_IMMUTABLE);
         AlarmManager alarm = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         alarm.setRepeating(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), 20000, pintent); //180000
-
+        // Interval Value will be forced up to 60000 as of Android 5.1; don't rely on this to be exact
     }
 
     public void KeepDataTransferAliveBT() {
@@ -1311,7 +1312,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         Intent name = new Intent(WelcomeActivity.this, BackgroundServiceKeepAliveBT.class);
         PendingIntent pintent = PendingIntent.getService(getApplicationContext(), 0, name, PendingIntent.FLAG_IMMUTABLE);
         AlarmManager alarm = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        alarm.setRepeating(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), (1000 * 60 * 5), pintent); // Repeat every 5 minutes
+        alarm.setRepeating(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), (1000 * 60 * 60), pintent); // Repeat every 1 hr //5 minutes
 
         timerBTKeepAlive = new Timer("TimerBTKeepAlive");
         TimerTask repeatedTask = new TimerTask() {
@@ -1765,9 +1766,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
     public void GoButtonFunctionalityForSingleLink(String LinkCommunicationType) {
         try {
-
             if (IsGateHub.equalsIgnoreCase("True") && LinkCommunicationType.equalsIgnoreCase("BT")) {
-
                 if (AppConstants.GoButtonAlreadyClicked) {
                     return;
                 } else {
@@ -2261,8 +2260,6 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
         @Override
         protected void onPostExecute(String siteResponse) {
-
-
             if (!WelcomeActivity.this.isFinishing() && alertDialog != null) {
                 if (alertDialog.isShowing()) {
                     alertDialog.dismiss();
@@ -2270,21 +2267,16 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             }
 
             try {
-
                 if (siteResponse != null && !siteResponse.isEmpty()) {
-
-
                     JSONObject jsonObjectSite = new JSONObject(siteResponse);
                     String ResponseMessageSite = jsonObjectSite.getString(AppConstants.RES_MESSAGE);
 
                     if (ResponseMessageSite.equalsIgnoreCase("success")) {
-
                         String dataSite = jsonObjectSite.getString(AppConstants.RES_DATA_SSID);
                         CommonUtils.SaveDataInPref(WelcomeActivity.this, dataSite, Constants.PREF_COLUMN_SITE);
                         startWelcomeActivity();
 
                     } else if (ResponseMessageSite.equalsIgnoreCase("fail")) {
-
                         flagGoBtn = true;//Enable go button
                         String ResponseTextSite = null;
                         ResponseTextSite = jsonObjectSite.getString(AppConstants.RES_TEXT);
@@ -2320,17 +2312,13 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(txtnTypeForLog + "-" + TAG + "HandleGetAndroidSSID SiteResponse Empty!");
                 }
-
             } catch (JSONException e) {
                 e.printStackTrace();
                 if (OfflineConstants.isOfflineAccess(WelcomeActivity.this)) {
                     AppConstants.NETWORK_STRENGTH = false;
                 }
             }
-
-
         }
-
     }
 
 
@@ -2669,7 +2657,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                             AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "Sending relayOff command (UDP) to Link: " + selSSID);
                         new Thread(new ClientSendAndListenUDPOne(BTConstants.relay_off_cmd, ipForUDP1, this)).start();
                     } else {
-                        if (BTLinkCommType != null && BTLinkCommType.equalsIgnoreCase("BLE")) {
+                        if ((BTLinkCommType != null && BTLinkCommType.equalsIgnoreCase("BLE")) || BTConstants.isBTSPPTxnContinuedWithBLE1) {
                             BT_BLE_Constants.isStopButtonPressed1 = true;
                         } else {
                             if (AppConstants.GenerateLogs)
@@ -2754,7 +2742,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                             AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "Sending relayOff command (UDP) to Link: " + selSSID2);
                         new Thread(new ClientSendAndListenUDPTwo(BTConstants.relay_off_cmd, ipForUDP2, this)).start();
                     } else {
-                        if (BTLinkCommType2 != null && BTLinkCommType2.equalsIgnoreCase("BLE")) {
+                        if ((BTLinkCommType2 != null && BTLinkCommType2.equalsIgnoreCase("BLE")) || BTConstants.isBTSPPTxnContinuedWithBLE2) {
                             BT_BLE_Constants.isStopButtonPressed2 = true;
                         } else {
                             if (AppConstants.GenerateLogs)
@@ -2813,7 +2801,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                             AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "Sending relayOff command (UDP) to Link: " + selSSID3);
                         new Thread(new ClientSendAndListenUDPThree(BTConstants.relay_off_cmd, ipForUDP3, this)).start();
                     } else {
-                        if (BTLinkCommType3 != null && BTLinkCommType3.equalsIgnoreCase("BLE")) {
+                        if ((BTLinkCommType3 != null && BTLinkCommType3.equalsIgnoreCase("BLE")) || BTConstants.isBTSPPTxnContinuedWithBLE3) {
                             BT_BLE_Constants.isStopButtonPressed3 = true;
                         } else {
                             if (AppConstants.GenerateLogs)
@@ -2854,7 +2842,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                             AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "Sending relayOff command (UDP) to Link: " + selSSID4);
                         new Thread(new ClientSendAndListenUDPFour(BTConstants.relay_off_cmd, ipForUDP4, this)).start();
                     } else {
-                        if (BTLinkCommType4 != null && BTLinkCommType4.equalsIgnoreCase("BLE")) {
+                        if ((BTLinkCommType4 != null && BTLinkCommType4.equalsIgnoreCase("BLE")) || BTConstants.isBTSPPTxnContinuedWithBLE4) {
                             BT_BLE_Constants.isStopButtonPressed4 = true;
                         } else {
                             if (AppConstants.GenerateLogs)
@@ -2897,7 +2885,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                             AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "Sending relayOff command (UDP) to Link: " + selSSID5);
                         new Thread(new ClientSendAndListenUDPFive(BTConstants.relay_off_cmd, ipForUDP5, this)).start();
                     } else {
-                        if (BTLinkCommType5 != null && BTLinkCommType5.equalsIgnoreCase("BLE")) {
+                        if ((BTLinkCommType5 != null && BTLinkCommType5.equalsIgnoreCase("BLE")) || BTConstants.isBTSPPTxnContinuedWithBLE5) {
                             BT_BLE_Constants.isStopButtonPressed5 = true;
                         } else {
                             if (AppConstants.GenerateLogs)
@@ -2940,7 +2928,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                             AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "Sending relayOff command (UDP) to Link: " + selSSID6);
                         new Thread(new ClientSendAndListenUDPSix(BTConstants.relay_off_cmd, ipForUDP6, this)).start();
                     } else {
-                        if (BTLinkCommType6 != null && BTLinkCommType6.equalsIgnoreCase("BLE")) {
+                        if ((BTLinkCommType6 != null && BTLinkCommType6.equalsIgnoreCase("BLE")) || BTConstants.isBTSPPTxnContinuedWithBLE6) {
                             BT_BLE_Constants.isStopButtonPressed6 = true;
                         } else {
                             if (AppConstants.GenerateLogs)
@@ -3580,7 +3568,6 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                             //InabilityToConnectLink(selSSID);
 
                             try {
-
                                 if (IsDefective != null && IsDefective.equalsIgnoreCase("True")) {//some issue
 
                                     tvSSIDName.setText(getResources().getString(R.string.HoseOutOfOrder));
@@ -3642,7 +3629,6 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
                                         AppConstants.FS_selected = String.valueOf(position);
                                         if (String.valueOf(position).equalsIgnoreCase("0") && !IsUpgradeInprogress_FS1) {
-
 
                                             AppConstants.LastSelectedHose = String.valueOf(position);
                                             if (Constants.FS_1STATUS.equalsIgnoreCase("FREE") && IsBusy.equalsIgnoreCase("N")) {
@@ -3921,7 +3907,6 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                     if (Constants.FS_2STATUS.equalsIgnoreCase("FREE")) {
                                         // linear_fs_1.setBackgroundColor(getResources().getColor(android.R.color.holo_red_light));
 
-
                                         Constants.AccPersonnelPIN = "";
                                         tvSSIDName.setText(selSSID);
                                         AppConstants.FS2_CONNECTED_SSID = selSSID;
@@ -3940,7 +3925,6 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                     if (Constants.FS_3STATUS.equalsIgnoreCase("FREE")) {
                                         // linear_fs_1.setBackgroundColor(getResources().getColor(android.R.color.holo_red_light));
 
-
                                         Constants.AccPersonnelPIN = "";
                                         tvSSIDName.setText(selSSID);
                                         AppConstants.FS3_CONNECTED_SSID = selSSID;
@@ -3958,7 +3942,6 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                     AppConstants.LastSelectedHose = String.valueOf(position);
                                     if (Constants.FS_4STATUS.equalsIgnoreCase("FREE")) {
                                         // linear_fs_1.setBackgroundColor(getResources().getColor(android.R.color.holo_red_light));
-
 
                                         Constants.AccPersonnelPIN = "";
                                         tvSSIDName.setText(selSSID);
@@ -4006,20 +3989,16 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                         RestrictHoseSelection(getResources().getString(R.string.HoseInUse));
                                     }
                                 } else {
-
                                     tvSSIDName.setText(getResources().getString(R.string.TryAgainLater));
                                     btnGo.setVisibility(View.GONE);
                                 }
                                 //}
-
-
                             } catch (Exception e) {
                                 if (AppConstants.GenerateLogs)
                                     AppConstants.WriteinFile(TAG + "alertSelectHoseList offline --Exception: " + e.getMessage());
                                 e.printStackTrace();
                             }
                             /////////////////////offfline///////////////////////////
-
                         }
                     }
                 } catch (Exception e) {
@@ -4027,9 +4006,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 }
             }
         });
-
         dialog.show();
-
     }
 
     class WifiReceiver extends BroadcastReceiver {
@@ -4113,7 +4090,6 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     public class GetConnectedDevicesIP extends AsyncTask<String, Void, String> {
-
         protected String doInBackground(String... arg0) {
 
             ListOfConnectedDevices.clear();
@@ -6165,7 +6141,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         //Display MAX fuel limit message on screen
         if (AppConstants.DisplayToastmaxlimit && !AppConstants.MaxlimitMessage.isEmpty()) {
             //AppConstants.colorToastBigFont(this, AppConstants.MaxlimitMessage, Color.BLUE);
-            CommonUtils.AutoCloseCustomMessageDilaog(WelcomeActivity.this, "Message", AppConstants.MaxlimitMessage);
+            CommonUtils.AutoCloseCustomMessageDialog(WelcomeActivity.this, "Message", AppConstants.MaxlimitMessage);
             AppConstants.DisplayToastmaxlimit = false;
             AppConstants.MaxlimitMessage = "";
         }
@@ -6245,9 +6221,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             if (AppConstants.isHTTPTxnRunningFS1) {
                 AppConstants.isHTTPTxnRunningFS1 = false;
             }
-
         } else {
-
             if ((fs1Cnt5Sec >= 5 || Integer.parseInt(Constants.FS_1Pulse) >= 1) && AppConstants.isRelayON_fs1) {
                 tvFs1_beginFuel.setText(R.string.BeforeStartFueling);
                 Fs1_beginFuel.setVisibility(View.GONE);
@@ -7452,8 +7426,6 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 }
             }
         }
-
-
     }
 
     public void OnHoseSelected_OnClick(String position) {
@@ -7540,11 +7512,9 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             RestrictHoseSelection(getResources().getString(R.string.TryAgainLater));
 
         } else {
-
-            if (!LinkCommunicationType.equalsIgnoreCase("BT")) {
+            /*if (!LinkCommunicationType.equalsIgnoreCase("BT")) {
                 try {
                     IpAddress = "";
-
                     if (AppConstants.DetailsListOfConnectedDevices != null) {
                         for (int i = 0; i < AppConstants.DetailsListOfConnectedDevices.size(); i++) {
                             String MA_ConnectedDevices = AppConstants.DetailsListOfConnectedDevices.get(i).get("macAddress");
@@ -7556,7 +7526,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         }
                     }
 
-                    /*boolean isMacConnected = false;
+                    *//*boolean isMacConnected = false;
                     if (AppConstants.DetailsListOfConnectedDevices != null) {
                         for (int i = 0; i < AppConstants.DetailsListOfConnectedDevices.size(); i++) {
                             String MA_ConnectedDevices = AppConstants.DetailsListOfConnectedDevices.get(i).get("macAddress");
@@ -7590,23 +7560,13 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                             if (AppConstants.GenerateLogs)
                                 AppConstants.WriteinFile("===================================================================");
                         }
-                    }*/
+                    }*//*
                 } catch (Exception e) {
                     System.out.println(e);
                 }
-            }
-
-            /*if (IpAddress.equals("") && !LinkCommunicationType.equalsIgnoreCase("BT")) {
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + " Issue #812 HNC-3(selMacAddress:" + selMacAddress + ") " + AppConstants.DetailsListOfConnectedDevices);
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + " Hose not connected");
-                RestrictHoseSelection("Hose not connected");
-
-            } else {*/
+            }*/
 
             //Selected position
-
             AppConstants.FS_selected = String.valueOf(position);
             if (String.valueOf(position).equalsIgnoreCase("0")) {
 
@@ -10224,7 +10184,6 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             String resp = "";
 
             try {
-
                 UserInfoEntity userInfoEntity = CommonUtils.getCustomerDetails(WelcomeActivity.this);
 
                 ServerHandler serverHandler = new ServerHandler();
@@ -10259,9 +10218,6 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 //------------------------------
 
             } catch (Exception e) {
-                if (alertDialog.isShowing()) {
-                    alertDialog.dismiss();
-                }
                 System.out.println("Ex" + e.getMessage());
                 if (AppConstants.GenerateLogs)
                     AppConstants.WriteinFile(TAG + "GetSSIDUsingLocationOnResume InBackground --Exception " + e);
@@ -10269,15 +10225,11 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     AppConstants.NETWORK_STRENGTH = false;
                 }
             }
-
             return resp;
         }
 
-
         @Override
         protected void onPostExecute(String result) {
-
-
             try {
                 if (alertDialog.isShowing()) {
                     alertDialog.dismiss();
@@ -10501,7 +10453,6 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                 map.put("GetPulserTypeFromLINK", GetPulserTypeFromLINK);
 
                                 if (ResponceMessage.equalsIgnoreCase("success")) {
-
                                     if (isNotNULL(SiteId) && isNotNULL(HoseId) && isNotNULL(WifiSSId)) {
                                         serverSSIDList.add(map);
                                         AppConstants.DetailsServerSSIDList = serverSSIDList;
@@ -10523,47 +10474,37 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                         editor.commit();*/
 
                                         if (rebootDay == 0) {
-
                                             try {
                                                 Intent name = new Intent(WelcomeActivity.this, BackgroundServiceScheduleReboot.class);
                                                 PendingIntent pintent = PendingIntent.getService(getApplicationContext(), REBOOT_INTENT_ID, name, PendingIntent.FLAG_IMMUTABLE);
                                                 AlarmManager alarm = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
                                                 pintent.cancel();
                                                 alarm.cancel(pintent);
-
                                             } catch (Exception e) {
                                                 e.printStackTrace();
                                             }
-
                                         } else if (rebootDay == -1) {
-
                                             if (lastDay != currentDay) {
                                                 SharedPreferences.Editor editor = settings.edit();
                                                 editor.putInt("day", currentDay);
                                                 editor.commit();
-
                                                 //Code that runs once in a day
                                                 if (AppConstants.DisableAllRebootOptions.equalsIgnoreCase("N")) {
                                                     scheduleReboot(rebootHours, rebootMinutes, rebootDay);
                                                 }
                                             }
-
                                         } else if (today == rebootDay) {
-
                                             if (lastDay != currentDay) {
                                                 SharedPreferences.Editor editor = settings.edit();
                                                 editor.putInt("day", currentDay);
                                                 editor.commit();
-
                                                 //Code that runs once in a day
                                                 if (AppConstants.DisableAllRebootOptions.equalsIgnoreCase("N")) {
                                                     scheduleReboot(rebootHours, rebootMinutes, rebootDay);
                                                 }
                                             }
                                         }
-
                                     }
-
                                 } else {
                                     errMsg = ResponceText;
                                     if (AppConstants.GenerateLogs)
@@ -10575,13 +10516,11 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                     }
                                 }
                             }
-
                             AppConstants.temp_serverSSIDList = serverSSIDList;
                         }
                         try {
                             HideAddLinkMenu();
                             if (serverSSIDList != null && serverSSIDList.size() == 1 && IsGateHub.equalsIgnoreCase("True") && Constants.FS_1STATUS.equalsIgnoreCase("FREE")) {
-
                                 cancelThinDownloadManager();
                                 try {
                                     String SSID_mac = serverSSIDList.get(0).get("MacAddress");
@@ -10596,7 +10535,6 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                     OfflineConstants.storeCurrentTransaction(WelcomeActivity.this, "", AppConstants.SITE_ID, "", "", "", "", "", AppConstants.currentDateFormat("yyyy-MM-dd HH:mm"), "", "", "", "");
 
                                     if (LinkCommunicationType.equalsIgnoreCase("HTTP")) {
-
                                         String Chk_ip = "";
                                         if (AppConstants.DetailsListOfConnectedDevices != null && AppConstants.DetailsListOfConnectedDevices.size() > 0)
                                             Chk_ip = AppConstants.DetailsListOfConnectedDevices.get(0).get("ipAddress");
@@ -10605,7 +10543,6 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                         }
 
                                         if (Chk_ip != null && Chk_ip.length() > 3 && !ReconfigureLink.equalsIgnoreCase("true")) {
-
                                             boolean isMacConnected = false;
                                             if (AppConstants.DetailsListOfConnectedDevices != null) {
                                                 for (int i = 0; i < AppConstants.DetailsListOfConnectedDevices.size(); i++) {
@@ -10794,7 +10731,6 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
                     }
                 } else {
-
                     if (OfflineConstants.isOfflineAccess(WelcomeActivity.this)) {
                         AppConstants.NETWORK_STRENGTH = false;
                         if (AppConstants.GenerateLogs)
@@ -11817,14 +11753,11 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 if (AppConstants.GenerateLogs)
                     AppConstants.WriteinFile(TAG + "GetOfflineSSIDUsingLocation --Exception: " + e.getMessage());
             }
-
             return resp;
         }
 
-
         @Override
         protected void onPostExecute(String result) {
-
             hoseClicked = false;
 
             if (alertDialog.isShowing()) {
@@ -13722,18 +13655,13 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     private void CheckBTConnection(int selectedItemPos, String selSSID, String selMacAddress, String BTLinkCommType) {
-
         switch (selectedItemPos) {
-
             case 0:
                 //Link one
                 if (BTConstants.BTLinkOneStatus) {
-
                     if (Constants.FS_1STATUS.equalsIgnoreCase("FREE")) {
-
                         AppConstants.FS_selected = String.valueOf(selectedItemPos);
                         RedirectBtLinkOneToNextScreen(selSSID);
-
                     } else {
                         BTL1State = 0;
                         BTConstants.CurrentSelectedLinkBT = 0;
@@ -13741,9 +13669,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                             AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
                         RestrictHoseSelection(getResources().getString(R.string.HoseInUse));
                     }
-
                 } else {
-
                     if (!BTConstants.deviceAddress1.isEmpty()) {
                         NearByBTDevices.clear();
                         mBluetoothAdapter.startDiscovery();
@@ -13764,7 +13690,6 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                 RedirectBtLinkOneToNextScreen(selSSID);
                             }
                         }, delay);
-
                     } else {
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + getResources().getString(R.string.MakeSureBTMacIsSet));
@@ -13776,10 +13701,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 //Link Two
                 if (BTConstants.BTLinkTwoStatus) {
                     if (Constants.FS_2STATUS.equalsIgnoreCase("FREE")) {
-
                         AppConstants.FS_selected = String.valueOf(selectedItemPos);
                         RedirectBtLinkTwoToNextScreen(selSSID);
-
                     } else {
                         BTL2State = 0;
                         BTConstants.CurrentSelectedLinkBT = 0;
@@ -13787,9 +13710,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                             AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
                         RestrictHoseSelection(getResources().getString(R.string.HoseInUse));
                     }
-
                 } else {
-
                     if (!BTConstants.deviceAddress2.isEmpty()) {
                         NearByBTDevices.clear();
                         mBluetoothAdapter.startDiscovery();
@@ -13810,7 +13731,6 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                 RedirectBtLinkTwoToNextScreen(selSSID);
                             }
                         }, delay);
-
                     } else {
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + getResources().getString(R.string.MakeSureBTMacIsSet));
@@ -13819,14 +13739,11 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 }
                 break;
             case 2:
-
                 //Link Three
                 if (BTConstants.BTLinkThreeStatus) {
                     if (Constants.FS_3STATUS.equalsIgnoreCase("FREE")) {
-
                         AppConstants.FS_selected = String.valueOf(selectedItemPos);
                         RedirectBtLinkThreeToNextScreen(selSSID);
-
                     } else {
                         BTL3State = 0;
                         BTConstants.CurrentSelectedLinkBT = 0;
@@ -13834,9 +13751,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                             AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
                         RestrictHoseSelection(getResources().getString(R.string.HoseInUse));
                     }
-
                 } else {
-
                     if (!BTConstants.deviceAddress3.isEmpty()) {
                         NearByBTDevices.clear();
                         mBluetoothAdapter.startDiscovery();
@@ -13857,24 +13772,18 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                 RedirectBtLinkThreeToNextScreen(selSSID);
                             }
                         }, delay);
-
                     } else {
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + getResources().getString(R.string.MakeSureBTMacIsSet));
                         //AppConstants.colorToast(WelcomeActivity.this, getResources().getString(R.string.MakeSureBTMacIsSet), Color.BLUE);
                     }
                 }
-
                 break;
             case 3://Link Four
-
                 if (BTConstants.BTLinkFourStatus) {
-
                     if (Constants.FS_4STATUS.equalsIgnoreCase("FREE")) {
-
                         AppConstants.FS_selected = String.valueOf(selectedItemPos);
                         RedirectBtLinkFourToNextScreen(selSSID);
-
                     } else {
                         BTL4State = 0;
                         BTConstants.CurrentSelectedLinkBT = 0;
@@ -13882,9 +13791,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                             AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
                         RestrictHoseSelection(getResources().getString(R.string.HoseInUse));
                     }
-
                 } else {
-
                     if (!BTConstants.deviceAddress4.isEmpty()) {
                         NearByBTDevices.clear();
                         mBluetoothAdapter.startDiscovery();
@@ -13905,7 +13812,6 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                 RedirectBtLinkFourToNextScreen(selSSID);
                             }
                         }, delay);
-
                     } else {
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + getResources().getString(R.string.MakeSureBTMacIsSet));
@@ -13914,14 +13820,10 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 }
                 break;
             case 4://Link Five
-
                 if (BTConstants.BTLinkFiveStatus) {
-
                     if (Constants.FS_5STATUS.equalsIgnoreCase("FREE")) {
-
                         AppConstants.FS_selected = String.valueOf(selectedItemPos);
                         RedirectBtLinkFiveToNextScreen(selSSID);
-
                     } else {
                         BTL5State = 0;
                         BTConstants.CurrentSelectedLinkBT = 0;
@@ -13929,9 +13831,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                             AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
                         RestrictHoseSelection(getResources().getString(R.string.HoseInUse));
                     }
-
                 } else {
-
                     if (!BTConstants.deviceAddress5.isEmpty()) {
                         NearByBTDevices.clear();
                         mBluetoothAdapter.startDiscovery();
@@ -13952,7 +13852,6 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                 RedirectBtLinkFiveToNextScreen(selSSID);
                             }
                         }, delay);
-
                     } else {
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + getResources().getString(R.string.MakeSureBTMacIsSet));
@@ -13961,14 +13860,10 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 }
                 break;
             case 5://Link Six
-
                 if (BTConstants.BTLinkSixStatus) {
-
                     if (Constants.FS_6STATUS.equalsIgnoreCase("FREE")) {
-
                         AppConstants.FS_selected = String.valueOf(selectedItemPos);
                         RedirectBtLinkSixToNextScreen(selSSID);
-
                     } else {
                         BTL6State = 0;
                         BTConstants.CurrentSelectedLinkBT = 0;
@@ -13976,9 +13871,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                             AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
                         RestrictHoseSelection(getResources().getString(R.string.HoseInUse));
                     }
-
                 } else {
-
                     if (!BTConstants.deviceAddress6.isEmpty()) {
                         NearByBTDevices.clear();
                         mBluetoothAdapter.startDiscovery();
@@ -13999,7 +13892,6 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                 RedirectBtLinkSixToNextScreen(selSSID);
                             }
                         }, delay);
-
                     } else {
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + getResources().getString(R.string.MakeSureBTMacIsSet));
@@ -14008,7 +13900,6 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 }
                 break;
         }
-
     }
 
     public class UDPClientTask extends AsyncTask<String, Void, String> {
@@ -14218,7 +14109,6 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
     private void SetSSIDIfSingleHose() {
 
         if (serverSSIDList != null && serverSSIDList.size() == 1 && Constants.FS_1STATUS.equalsIgnoreCase("FREE") && Constants.FS_2STATUS.equalsIgnoreCase("FREE") && Constants.FS_3STATUS.equalsIgnoreCase("FREE") && Constants.FS_4STATUS.equalsIgnoreCase("FREE")) {
-
             try {
                 AppConstants.IsSingleLink = true;
                 String ssidFromList = serverSSIDList.get(0).get("WifiSSId");
@@ -14394,13 +14284,16 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     private void IsSingleHoseRefreshReq() {
-
         try {
             //Implemented this logic on 1444 (Nic)
             if (Constants.FS_1STATUS.equalsIgnoreCase("FREE") && Constants.FS_2STATUS.equalsIgnoreCase("FREE") && Constants.FS_3STATUS.equalsIgnoreCase("FREE") && Constants.FS_4STATUS.equalsIgnoreCase("FREE") && Constants.FS_5STATUS.equalsIgnoreCase("FREE") && Constants.FS_6STATUS.equalsIgnoreCase("FREE")) {
 
                 if (AppConstants.RefreshSingleHose) {
                     AppConstants.RefreshSingleHose = false;
+                    showSingleHoseBusyStatus = true;
+                    if (BTConnectionHandler != null) {
+                        BTConnectionHandler.removeCallbacksAndMessages(null);
+                    }
                     SetSSIDIfSingleHose();
                 }
 
@@ -14410,10 +14303,16 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 //#1508 One Hose System message to show in “Tap Here to Select Hose”.
                 if (serverSSIDList != null && serverSSIDList.size() == 1) {
                     try {
-                        tvSSIDName.setText(serverSSIDList.get(0).get("WifiSSId"));
-                        tvSSIDName.setText(getResources().getString(R.string.HoseInUse));
+                        //tvSSIDName.setText(serverSSIDList.get(0).get("WifiSSId"));
+                        //tvSSIDName.setText(getResources().getString(R.string.HoseInUse));
+                        if (showSingleHoseBusyStatus) {
+                            tvSSIDName.setText(getResources().getString(R.string.HoseInUse));
+                            if (Integer.parseInt(Constants.FS_1Pulse) >= 1) {
+                                showSingleHoseBusyStatus = false;
+                                RestrictHoseSelection(getResources().getString(R.string.SingleHoseBusyStatus));
+                            }
+                        }
                         btnGo.setVisibility(View.GONE);
-
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -14445,13 +14344,12 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
     public void ShowAnimatedStatus(String s, TextView textView) {
         try {
-
             //Handler handler = new Handler(Looper.getMainLooper());
             BTConnectionHandler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
                     if ((delayMillis / 4) == 100) {
-                        st = getResources().getString(R.string.connecting);
+                        st = s.replace("...", ""); //getResources().getString(R.string.connecting);
                         delayMillis = 100;
                     } else {
                         st = st + ".";
@@ -14468,30 +14366,31 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     private void RestrictHoseSelection(String s) {
-
         try {
-            if (!s.equalsIgnoreCase(getResources().getString(R.string.LinkIsConnecting))) {
-                tvSSIDName.setText(s);
-            } else {
+            if (s.equalsIgnoreCase(getResources().getString(R.string.LinkIsConnecting))) {
+                st = getResources().getString(R.string.connecting);
                 ShowAnimatedStatus(s, tvSSIDName);
+            } else if (s.equalsIgnoreCase(getResources().getString(R.string.SingleHoseBusyStatus))) {
+                st = getResources().getString(R.string.SingleHoseBusyStatus).replace("...", "");
+                ShowAnimatedStatus(s, tvSSIDName);
+            } else {
+                tvSSIDName.setText(s);
             }
             //tvSSIDName.setText(s); // uncomment this if the above code is not in use.
             btnGo.setVisibility(View.GONE);
 
-            new Handler().postDelayed(new Runnable() {
+            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    if (!s.equalsIgnoreCase(getResources().getString(R.string.LinkIsConnecting))) {
+                    if (!s.equalsIgnoreCase(getResources().getString(R.string.LinkIsConnecting)) && !s.equalsIgnoreCase(getResources().getString(R.string.SingleHoseBusyStatus))) {
                         tvSSIDName.setText(R.string.selectHose);
                     }
                     btnGo.setVisibility(View.GONE);
                 }
             }, 6000);
-
         } catch (Exception e) {
             e.printStackTrace();
         }
-
     }
 
     // Create a BroadcastReceiver for ACTION_FOUND.
@@ -15139,7 +15038,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
         try {
             /*if (!CommonUtils.isHotspotEnabled(this) && !AppConstants.IsBTLinkSelectedCurrently && Constants.hotspotstayOn) {
-                wifiApManager = new com.TrakEngineering.FluidSecureHub.WifiHotspot.WifiApManager(this);
+                wifiApManager = new com.TrakEngineering.FluidSecureHub.wifihotspot.WifiApManager(this);
                 wifiApManager.setWifiApEnabled(null, true); //one try for auto on
             }*/
 

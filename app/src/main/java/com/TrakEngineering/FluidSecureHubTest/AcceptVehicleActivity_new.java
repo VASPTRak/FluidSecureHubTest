@@ -594,7 +594,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
 
                 if (AppConstants.GenerateLogs)
                     AppConstants.WriteinFile(TAG + "Unable to read fob: " + Str_data);
-                CommonUtils.AutoCloseCustomMessageDilaog(AcceptVehicleActivity_new.this, "Message", "Unable to read fob.  Please Try again");
+                CommonUtils.AutoCloseCustomMessageDialog(AcceptVehicleActivity_new.this, "Message", "Unable to read fob.  Please Try again");
 
             } else if (CommonUtils.ValidateFobkey(Str_check) && Str_check.length() > 4) {
 
@@ -699,7 +699,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
 
                 if (AppConstants.GenerateLogs)
                     AppConstants.WriteinFile(TAG + "Unable to read fob: " + Str_data);
-                CommonUtils.AutoCloseCustomMessageDilaog(AcceptVehicleActivity_new.this, "Message", "Unable to read fob.  Please Try again..");
+                CommonUtils.AutoCloseCustomMessageDialog(AcceptVehicleActivity_new.this, "Message", "Unable to read fob.  Please Try again..");
 
             } else if (CommonUtils.ValidateFobkey(Str_check) && Str_check.length() > 4) {
 
@@ -805,7 +805,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
             if (!CommonUtils.ValidateFobkey(Str_check) || Str_data.contains("FFFFFFFFFFFFFFFFFFFF") || Str_data.contains("FF FF FF FF FF FF FF FF FF FF")) {
 
                 MagCard_vehicle = "";
-                // CommonUtils.AutoCloseCustomMessageDilaog(DeviceControlActivity_vehicle.this, "Message", "Unable to read MagCard.  Please Try again..");
+                // CommonUtils.AutoCloseCustomMessageDialog(DeviceControlActivity_vehicle.this, "Message", "Unable to read MagCard.  Please Try again..");
 
             } else if (Str_check.length() > 5) {
 
@@ -931,7 +931,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                 } else {
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(TAG + "Offline Access not granted to this HUB.");
-                    //CommonUtils.AutoCloseCustomMessageDilaog(AcceptVehicleActivity_new.this, "Message", "Unable to connect server"); // Removed from all places as per #1899 => Eva's comment (Aug 4th)
+                    //CommonUtils.AutoCloseCustomMessageDialog(AcceptVehicleActivity_new.this, "Message", "Unable to connect server"); // Removed from all places as per #1899 => Eva's comment (Aug 4th)
                 }
             }
 
@@ -976,7 +976,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                 } else {
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(TAG + "Offline Access not granted to this HUB.");
-                    //CommonUtils.AutoCloseCustomMessageDilaog(AcceptVehicleActivity_new.this, "Message", "Unable to connect server");
+                    //CommonUtils.AutoCloseCustomMessageDialog(AcceptVehicleActivity_new.this, "Message", "Unable to connect server");
                 }
             }
 
@@ -1443,7 +1443,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                             inputMethodManager.showSoftInput(editVehicleNumber, 0);
 
                             if (IsVehicleHasFob.equalsIgnoreCase("true")) {
-                                CommonUtils.AutoCloseCustomMessageDilaog(AcceptVehicleActivity_new.this, "Message", ResponceText);
+                                CommonUtils.AutoCloseCustomMessageDialog(AcceptVehicleActivity_new.this, "Message", ResponceText);
                             } else {
                                 RestTimeoutVehicleScreen();
                                 CommonUtils.showCustomMessageDilaog(AcceptVehicleActivity_new.this, "Message", ResponceText);
@@ -1456,7 +1456,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                             if (AppConstants.GenerateLogs)
                                 AppConstants.WriteinFile(TAG + "Vehicle Activity ValidationFor Pin" + ResponceText);
 
-                            CommonUtils.AutoCloseCustomMessageDilaog(AcceptVehicleActivity_new.this, "Message", ResponceText);
+                            CommonUtils.AutoCloseCustomMessageDialog(AcceptVehicleActivity_new.this, "Message", ResponceText);
 
                             IsNewFobVar = true;
                             Thread.sleep(1000);
@@ -1479,7 +1479,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                             inputMethodManager.showSoftInput(editVehicleNumber, 0);
 
                             if (IsVehicleHasFob.equalsIgnoreCase("true")) {
-                                CommonUtils.AutoCloseCustomMessageDilaog(AcceptVehicleActivity_new.this, "Message", ResponceText);
+                                CommonUtils.AutoCloseCustomMessageDialog(AcceptVehicleActivity_new.this, "Message", ResponceText);
                             } else {
                                 RestTimeoutVehicleScreen();
                                 CommonUtils.showCustomMessageDilaog(AcceptVehicleActivity_new.this, "Message", ResponceText);
@@ -1523,7 +1523,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                     } else {
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + "Offline Access not granted to this HUB.");
-                        //CommonUtils.AutoCloseCustomMessageDilaog(AcceptVehicleActivity_new.this, "Message", "Unable to connect server");
+                        //CommonUtils.AutoCloseCustomMessageDialog(AcceptVehicleActivity_new.this, "Message", "Unable to connect server");
                     }
                 }
 
@@ -1578,7 +1578,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                     } else {
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + "Offline Access not granted to this HUB.");
-                        //CommonUtils.AutoCloseCustomMessageDilaog(AcceptVehicleActivity_new.this, "Message", "Unable to connect server");
+                        //CommonUtils.AutoCloseCustomMessageDialog(AcceptVehicleActivity_new.this, "Message", "Unable to connect server");
                     }
 
                 }
@@ -1713,7 +1713,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                     } else {
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + "Offline Access not granted to this HUB.");
-                        //CommonUtils.AutoCloseCustomMessageDilaog(AcceptVehicleActivity_new.this, "Message", "Unable to connect server");
+                        //CommonUtils.AutoCloseCustomMessageDialog(AcceptVehicleActivity_new.this, "Message", "Unable to connect server");
                     }
 
                 }
@@ -2078,7 +2078,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                                 btnCancel.setLayoutParams(par);
 
                                 btnSave.setVisibility(View.VISIBLE);
-                                CommonUtils.AutoCloseCustomMessageDilaog(AcceptVehicleActivity_new.this, "Message", ResponceText);
+                                CommonUtils.AutoCloseCustomMessageDialog(AcceptVehicleActivity_new.this, "Message", ResponceText);
                             } else {
                                 CommonUtils.showCustomMessageDilaog(AcceptVehicleActivity_new.this, "Message", ResponceText);
                             }
@@ -2171,7 +2171,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                     } else {
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + "Offline Access not granted to this HUB.");
-                        //CommonUtils.AutoCloseCustomMessageDilaog(AcceptVehicleActivity_new.this, "Message", "Unable to connect server");
+                        //CommonUtils.AutoCloseCustomMessageDialog(AcceptVehicleActivity_new.this, "Message", "Unable to connect server");
                     }
 
 
@@ -2822,7 +2822,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                     //Toast.makeText(mBluetoothLeServiceVehicle, "FStagMac Address Not found", Toast.LENGTH_SHORT).show();
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(TAG + "FStagMac Address Not found");
-                    CommonUtils.AutoCloseCustomMessageDilaog(AcceptVehicleActivity_new.this, "Message", "FStagMac Address Not found");
+                    CommonUtils.AutoCloseCustomMessageDialog(AcceptVehicleActivity_new.this, "Message", "FStagMac Address Not found");
                     Log.i(TAG, "FStagMac Address Empty");
                 }
 
@@ -2949,7 +2949,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                         } else {
                             if (AppConstants.GenerateLogs)
                                 AppConstants.WriteinFile(TAG + "Offline Access not granted to this HUB.");
-                            //CommonUtils.AutoCloseCustomMessageDilaog(AcceptVehicleActivity_new.this, "Message", "Unable to connect server");
+                            //CommonUtils.AutoCloseCustomMessageDialog(AcceptVehicleActivity_new.this, "Message", "Unable to connect server");
                         }
 
                     }
@@ -3072,7 +3072,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                             AppConstants.APDU_FOB_KEY = "";
                             if (AppConstants.GenerateLogs)
                                 AppConstants.WriteinFile(TAG + "Vehicle is not allowed for selected Link");
-                            CommonUtils.AutoCloseCustomMessageDilaog(AcceptVehicleActivity_new.this, "Message", ScreenNameForVehicle + " is not allowed for selected Link");
+                            CommonUtils.AutoCloseCustomMessageDialog(AcceptVehicleActivity_new.this, "Message", ScreenNameForVehicle + " is not allowed for selected Link");
                         }
 
                     }
@@ -3081,7 +3081,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                     AppConstants.APDU_FOB_KEY = "";
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(TAG + "Vehicle is not active");
-                    CommonUtils.AutoCloseCustomMessageDilaog(AcceptVehicleActivity_new.this, "Message", ScreenNameForVehicle + " is not active");
+                    CommonUtils.AutoCloseCustomMessageDialog(AcceptVehicleActivity_new.this, "Message", ScreenNameForVehicle + " is not active");
                 }
             }
         } else {
@@ -3127,12 +3127,12 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                         String msg = "This is " + ScreenNameForPersonnel + " Access Device. Please use your " + ScreenNameForVehicle + " Access Device";
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + "Vehicle Number not found in offline db. Access Device (" + fob + ") is personnel access device.");
-                        CommonUtils.AutoCloseCustomMessageDilaog(AcceptVehicleActivity_new.this, "Message", msg);
+                        CommonUtils.AutoCloseCustomMessageDialog(AcceptVehicleActivity_new.this, "Message", msg);
 
                     } else {
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + "Vehicle Number not found in offline db");
-                        CommonUtils.AutoCloseCustomMessageDilaog(AcceptVehicleActivity_new.this, "Message", "Invalid Access Device");
+                        CommonUtils.AutoCloseCustomMessageDialog(AcceptVehicleActivity_new.this, "Message", "Invalid Access Device");
                     }
 
                 } else if (editVehicleNumber.getText().toString().trim() != null && !editVehicleNumber.getText().toString().trim().isEmpty()) {
@@ -3145,12 +3145,12 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                         String msg = "This is " + ScreenNameForPersonnel + ". Please use your " + ScreenNameForVehicle + ".";
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + "Vehicle Number not found in offline db. This (" + pin + ") is pin number.");
-                        CommonUtils.AutoCloseCustomMessageDilaog(AcceptVehicleActivity_new.this, "Message", msg);
+                        CommonUtils.AutoCloseCustomMessageDialog(AcceptVehicleActivity_new.this, "Message", msg);
 
                     } else {
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + "Vehicle Number not found in offline db.");
-                        CommonUtils.AutoCloseCustomMessageDilaog(AcceptVehicleActivity_new.this, "Message", "Invalid " + ScreenNameForVehicle);
+                        CommonUtils.AutoCloseCustomMessageDialog(AcceptVehicleActivity_new.this, "Message", "Invalid " + ScreenNameForVehicle);
                     }
                 }
             }
@@ -3681,7 +3681,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                             } else {
                                 if (AppConstants.GenerateLogs)
                                     AppConstants.WriteinFile(TAG + "Offline Access not granted to this HUB.");
-                                //CommonUtils.AutoCloseCustomMessageDilaog(AcceptVehicleActivity_new.this, "Message", "Unable to connect server");
+                                //CommonUtils.AutoCloseCustomMessageDialog(AcceptVehicleActivity_new.this, "Message", "Unable to connect server");
                             }
 
                         }

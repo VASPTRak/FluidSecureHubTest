@@ -29,35 +29,43 @@ public class AlertDialogUtil {
     public static void runAnimatedLoadingDots(Activity activity, String messagePrefix, final AlertDialog alertDialog, boolean showSpannableString) {
 
         int dotsCount = 0;
+        int spaceCount = 5;
         while (alertDialog != null && alertDialog.isShowing()) {
             dotsCount++;
             dotsCount = dotsCount % 5; // looks good w/4 dots
 
-            try {
-                Thread.sleep(800);
-            }
-            catch (Exception ex) {}
+            if (dotsCount > 0) {
+                try {
+                    Thread.sleep(800);
+                } catch (Exception ex) {}
 
-            final StringBuffer updateValue = new StringBuffer(messagePrefix);
-            for (int i = 0; i < dotsCount; i++) {
-                updateValue.append('.');
-            }
-
-            activity.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    if (showSpannableString) {
-                        SpannableString ss2 = new SpannableString(updateValue.toString());
-                        ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
-                        ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
-                        alertDialog.setMessage(ss2);
-                    } else {
-                        alertDialog.setMessage(updateValue.toString());
-                    }
+                final StringBuffer updateValue = new StringBuffer(messagePrefix);
+                for (int i = 0; i < dotsCount; i++) {
+                    updateValue.append('.');
                 }
-            });
-        }
+                String PleaseWaitMsgAfterHotspotToggle = activity.getResources().getString(R.string.PleaseWaitAfterHotspotToggle);
+                if (messagePrefix.equalsIgnoreCase(PleaseWaitMsgAfterHotspotToggle)) {
+                    for (int i = 0; i < (spaceCount - dotsCount); i++) {
+                        updateValue.append(' ');
+                    }
+                    updateValue.append(AppConstants.HSConnectionTimeout);
+                }
 
+                activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (showSpannableString) {
+                            SpannableString ss2 = new SpannableString(updateValue.toString());
+                            ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
+                            ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
+                            alertDialog.setMessage(ss2);
+                        } else {
+                            alertDialog.setMessage(updateValue.toString());
+                        }
+                    }
+                });
+            }
+        }
     }
 
 }

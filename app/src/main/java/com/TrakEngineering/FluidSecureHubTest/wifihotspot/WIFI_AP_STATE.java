@@ -1,4 +1,4 @@
-package com.TrakEngineering.FluidSecureHubTest.WifiHotspot;
+package com.TrakEngineering.FluidSecureHubTest.wifihotspot;
 
 /**
  * Created by VASP on 9/1/2017.

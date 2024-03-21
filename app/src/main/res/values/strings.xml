@@ -302,6 +302,7 @@
     <string name="UnableToGetHoseList">Unable to get hose list from server</string>
     <string name="HoseListIsNotAvailable">Hose list is not available</string>
     <string name="OneOfTheHoseIsBusy">One of the hose is busy, please try again later.</string>
+    <string name="SingleHoseBusyStatus">Fueling...</string>
 
     <string name="Quantity">Quantity:</string>
     <string name="Pulse">Pulse:</string>
@@ -344,7 +345,7 @@
     <string name="PleaseWait">Please Wait...</string>
     <string name="PleaseWaitMessage">Please Wait</string>
     <string name="PleaseWaitForWifiConnect">Connecting to wifi. Please wait...</string>
-    <string name="PleaseWaitAfterHotspotToggle">Re-Establishing Hotspot Connection, Please Wait</string>
+    <string name="PleaseWaitAfterHotspotToggle">Connecting. Please wait</string>
     <string name="ReadAccessDeviceAgain">Click to read Access Device again</string>
     <string name="peVehicle">Please enter Vehicle. If you still have issues, please contact your Manager.</string>
     <string name="peVehicleOrAccessDevice">Please enter Vehicle or present an Access Device. If you still have issues, please contact your Manager.</string>

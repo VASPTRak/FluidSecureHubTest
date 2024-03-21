@@ -37,7 +37,7 @@ import com.TrakEngineering.FluidSecureHubTest.offline.OffDBController;
 import com.TrakEngineering.FluidSecureHubTest.offline.OffTranzSyncService;
 import com.TrakEngineering.FluidSecureHubTest.offline.OfflineConstants;
 import com.TrakEngineering.FluidSecureHubTest.server.ServerHandler;
-import com.TrakEngineering.FluidSecureHubTest.WifiHotspot.WifiApManager;
+import com.TrakEngineering.FluidSecureHubTest.wifihotspot.WifiApManager;
 import com.google.gson.Gson;
 
 import java.text.DecimalFormat;
@@ -61,7 +61,7 @@ public class BackgroundService_BTOne extends Service {
 
     private static final String TAG = AppConstants.LOG_TXTN_BT + "-"; // + BackgroundService_BTOne.class.getSimpleName();
     public long sqlite_id = 0;
-    String TransactionId, VehicleId, PhoneNumber, PersonId, PulseRatio, MinLimit, FuelTypeId, ServerDate, IntervalToStopFuel, IsTLDCall, EnablePrinter, PumpOnTime, VehicleNumber, TransactionDateWithFormat;
+    String TransactionId, VehicleId, PhoneNumber, PersonId, PulseRatio, MinLimit, FuelTypeId, ServerDate, IntervalToStopFuel, IsTLDCall, EnablePrinter, PumpOnTime, LimitReachedMessage, VehicleNumber, TransactionDateWithFormat;
     public BroadcastBlueLinkOneData broadcastBlueLinkOneData = null;
     String Request = "", Response = "";
     String FDRequest = "", FDResponse = "";
@@ -97,6 +97,7 @@ public class BackgroundService_BTOne extends Service {
     public String IsBypassPumpReset;
     public String GetPulserTypeFromLINK;
     public boolean IsAnyPostTxnCommandExecuted = false;
+    public boolean isTxnLimitReached = false;
 
     SimpleDateFormat sdformat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
     ArrayList<HashMap<String, String>> quantityRecords = new ArrayList<>();
@@ -142,6 +143,7 @@ public class BackgroundService_BTOne extends Service {
                 IsTLDCall = sharedPref.getString("IsTLDCall_FS1", "False");
                 EnablePrinter = sharedPref.getString("EnablePrinter_FS1", "False");
                 PumpOnTime = sharedPref.getString("PumpOnTime_FS1", "0");
+                LimitReachedMessage = sharedPref.getString("LimitReachedMessage_FS1", "");
 
                 numPulseRatio = Double.parseDouble(PulseRatio);
                 minFuelLimit = Double.parseDouble(MinLimit);
@@ -1215,13 +1217,14 @@ public class BackgroundService_BTOne extends Service {
             e.printStackTrace();
             if (AppConstants.GenerateLogs)
                 AppConstants.WriteinFile(TAG + " BTLink_1: StopTransaction Exception:>>" + e.getMessage());
+            CloseTransaction(startBackgroundServices); // from StopTransaction exception
         }
     }
 
     private void CloseTransaction(boolean startBackgroundServices) {
+        clearEditTextFields();
+        AppConstants.IsTransactionCompleted1 = true;
         try {
-            clearEditTextFields();
-            AppConstants.IsTransactionCompleted1 = true;
             try {
                 if (isBroadcastReceiverRegistered) {
                     unregisterReceiver(broadcastBlueLinkOneData);
@@ -1499,10 +1502,14 @@ public class BackgroundService_BTOne extends Service {
     private void TerminateBTTxnAfterInterruption() {
         try {
             IsThisBTTrnx = false;
-            if (isOnlineTxn) {
-                CommonUtils.UpgradeTransactionStatusToSqlite(TransactionId, "10", BackgroundService_BTOne.this);
+            if (fillqty > 0) {
+                if (isOnlineTxn) {
+                    CommonUtils.UpgradeTransactionStatusToSqlite(TransactionId, "10", BackgroundService_BTOne.this);
+                } else {
+                    offlineController.updateOfflineTransactionStatus(sqlite_id + "", "10");
+                }
             } else {
-                offlineController.updateOfflineTransactionStatus(sqlite_id + "", "10");
+                CommonUtils.UpgradeTransactionStatusToSqlite(TransactionId, "6", BackgroundService_BTOne.this);
             }
             Log.i(TAG, " BTLink_1: Link not connected. Please try again!");
             if (AppConstants.GenerateLogs)
@@ -1833,10 +1840,13 @@ public class BackgroundService_BTOne extends Service {
 
     private void reachMaxLimit() {
         //if quantity reach max limit
-        if (minFuelLimit > 0 && fillqty >= minFuelLimit) {
+        if (minFuelLimit > 0 && fillqty >= minFuelLimit && !isTxnLimitReached) {
+            isTxnLimitReached = true;
             Log.i(TAG, "BTLink_1: Auto Stop Hit>> You reached MAX fuel limit.");
             if (AppConstants.GenerateLogs)
                 AppConstants.WriteinFile(TAG + " BTLink_1: Auto Stop Hit>> You reached MAX fuel limit.");
+            AppConstants.DisplayToastmaxlimit = true;
+            AppConstants.MaxlimitMessage = LimitReachedMessage;
             relayOffCommand(); //RelayOff
         }
     }
