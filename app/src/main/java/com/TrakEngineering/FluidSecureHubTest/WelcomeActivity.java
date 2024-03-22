@@ -294,6 +294,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
     public static int CountBeforeReconnectRelay5 = 0;
     public static int CountBeforeReconnectRelay6 = 0;
 
+    public boolean showSingleHoseConnectingStatus = true;
     public boolean showSingleHoseBusyStatus = true;
 
     public static boolean FA_DebugWindow = false;
@@ -3459,7 +3460,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                             if (AppConstants.GenerateLogs)
                                 AppConstants.WriteinFile(TAG + "Flagged Link: " + LinkFlaggedMessage);
                             CommonUtils.AlertDialogAutoClose(WelcomeActivity.this, "", LinkFlaggedMessage);
-                            RestrictHoseSelection(getResources().getString(R.string.TryAgainLater));
+                            RestrictHoseSelection(getResources().getString(R.string.TryAgainLater), false);
 
                         } else if (CommonFunctions.CheckIfPresentInPairedDeviceList(BTselMacAddress)) {
                             AppConstants.SELECTED_MACADDRESS = BTselMacAddress;
@@ -3475,7 +3476,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         } else {
                             CommonUtils.AutoCloseBTLinkMessage(WelcomeActivity.this, "", getResources().getString(R.string.BTLinkNotInPairList));
                             BTConstants.CurrentSelectedLinkBT = 0;
-                            RestrictHoseSelection(getResources().getString(R.string.PairingMode)); //"Please try again later" changed as per #1899.
+                            RestrictHoseSelection(getResources().getString(R.string.PairingMode), false); //"Please try again later" changed as per #1899.
                         }
                     } else if (LinkCommunicationType.equalsIgnoreCase("UDP")) {
 
@@ -3609,7 +3610,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                         if (AppConstants.GenerateLogs)
                                             AppConstants.WriteinFile(TAG + "Flagged Link: " + LinkFlaggedMessage);
                                         CommonUtils.AlertDialogAutoClose(WelcomeActivity.this, "", LinkFlaggedMessage);
-                                        RestrictHoseSelection(getResources().getString(R.string.TryAgainLater));
+                                        RestrictHoseSelection(getResources().getString(R.string.TryAgainLater), false);
 
                                     } else {
 
@@ -3653,7 +3654,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                                 RestHoseinUse_FS1 = true;
                                                 if (AppConstants.GenerateLogs)
                                                     AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
-                                                RestrictHoseSelection(getResources().getString(R.string.HoseInUse));
+                                                RestrictHoseSelection(getResources().getString(R.string.HoseInUse), false);
 
                                             }
 
@@ -3682,7 +3683,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                                 RestHoseinUse_FS2 = true;
                                                 if (AppConstants.GenerateLogs)
                                                     AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
-                                                RestrictHoseSelection(getResources().getString(R.string.HoseInUse));
+                                                RestrictHoseSelection(getResources().getString(R.string.HoseInUse), false);
                                             }
 
                                         } else if (String.valueOf(position).equalsIgnoreCase("2") && !IsUpgradeInprogress_FS3) {
@@ -3710,7 +3711,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                                 RestHoseinUse_FS3 = true;
                                                 if (AppConstants.GenerateLogs)
                                                     AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
-                                                RestrictHoseSelection(getResources().getString(R.string.HoseInUse));
+                                                RestrictHoseSelection(getResources().getString(R.string.HoseInUse), false);
                                             }
 
 
@@ -3738,7 +3739,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                                 RestHoseinUse_FS4 = true;
                                                 if (AppConstants.GenerateLogs)
                                                     AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
-                                                RestrictHoseSelection(getResources().getString(R.string.HoseInUse));
+                                                RestrictHoseSelection(getResources().getString(R.string.HoseInUse), false);
                                             }
                                         } else if (String.valueOf(position).equalsIgnoreCase("4") && !IsUpgradeInprogress_FS5) {
 
@@ -3765,7 +3766,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                                 RestHoseinUse_FS5 = true;
                                                 if (AppConstants.GenerateLogs)
                                                     AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
-                                                RestrictHoseSelection(getResources().getString(R.string.HoseInUse));
+                                                RestrictHoseSelection(getResources().getString(R.string.HoseInUse), false);
                                             }
 
                                         } else if (String.valueOf(position).equalsIgnoreCase("5") && !IsUpgradeInprogress_FS6) {
@@ -3791,7 +3792,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                                 RestHoseinUse_FS6 = true;
                                                 if (AppConstants.GenerateLogs)
                                                     AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
-                                                RestrictHoseSelection(getResources().getString(R.string.HoseInUse));
+                                                RestrictHoseSelection(getResources().getString(R.string.HoseInUse), false);
                                             }
                                         } else {
 
@@ -3898,7 +3899,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                     } else {
                                         if (AppConstants.GenerateLogs)
                                             AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
-                                        RestrictHoseSelection(getResources().getString(R.string.HoseInUse));
+                                        RestrictHoseSelection(getResources().getString(R.string.HoseInUse), false);
 
                                     }
                                 } else if (String.valueOf(position).equalsIgnoreCase("1") && !IsUpgradeInprogress_FS2) {
@@ -3916,7 +3917,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                     } else {
                                         if (AppConstants.GenerateLogs)
                                             AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
-                                        RestrictHoseSelection(getResources().getString(R.string.HoseInUse));
+                                        RestrictHoseSelection(getResources().getString(R.string.HoseInUse), false);
                                     }
 
                                 } else if (String.valueOf(position).equalsIgnoreCase("2") && !IsUpgradeInprogress_FS3) {
@@ -3934,7 +3935,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                     } else {
                                         if (AppConstants.GenerateLogs)
                                             AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
-                                        RestrictHoseSelection(getResources().getString(R.string.HoseInUse));
+                                        RestrictHoseSelection(getResources().getString(R.string.HoseInUse), false);
                                     }
 
                                 } else if (String.valueOf(position).equalsIgnoreCase("3") && !IsUpgradeInprogress_FS4) {
@@ -3952,7 +3953,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                     } else {
                                         if (AppConstants.GenerateLogs)
                                             AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
-                                        RestrictHoseSelection(getResources().getString(R.string.HoseInUse));
+                                        RestrictHoseSelection(getResources().getString(R.string.HoseInUse), false);
                                     }
 
                                 } else if (String.valueOf(position).equalsIgnoreCase("4") && !IsUpgradeInprogress_FS5) {
@@ -3969,7 +3970,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                     } else {
                                         if (AppConstants.GenerateLogs)
                                             AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
-                                        RestrictHoseSelection(getResources().getString(R.string.HoseInUse));
+                                        RestrictHoseSelection(getResources().getString(R.string.HoseInUse), false);
                                     }
 
                                 } else if (String.valueOf(position).equalsIgnoreCase("5") && !IsUpgradeInprogress_FS6) {
@@ -3986,7 +3987,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                     } else {
                                         if (AppConstants.GenerateLogs)
                                             AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
-                                        RestrictHoseSelection(getResources().getString(R.string.HoseInUse));
+                                        RestrictHoseSelection(getResources().getString(R.string.HoseInUse), false);
                                     }
                                 } else {
                                     tvSSIDName.setText(getResources().getString(R.string.TryAgainLater));
@@ -7327,8 +7328,13 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     System.out.println("eeee1" + ResponceText);
                     if (ResponceText.equalsIgnoreCase("Y")) {
                         flagGoBtn = true;//Enable go button
-                        // AppConstants.colorToastBigFont(WelcomeActivity.this, "Hose in use", Color.BLUE);
-                        CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.HoseInUseRetry));
+                        //CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.HoseInUseRetry));
+                        if (serverSSIDList != null && serverSSIDList.size() == 1) {
+                            tvSSIDName.setText(getResources().getString(R.string.HoseInUse));
+                            btnGo.setVisibility(View.GONE);
+                        } else {
+                            RestrictHoseSelection(getResources().getString(R.string.HoseInUse), false);
+                        }
 
                         String txtnTypeForLog = "";
                         if (LinkCommType.equalsIgnoreCase("BT")) {
@@ -7338,7 +7344,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         }
 
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(txtnTypeForLog + "-" + TAG + getResources().getString(R.string.HoseInUseRetry));
+                            AppConstants.WriteinFile(txtnTypeForLog + "-" + TAG + getResources().getString(R.string.HoseInUse)); //HoseInUseRetry
                     } else {
                         new handleGetAndroidSSID().execute(AppConstants.LAST_CONNECTED_SSID, LinkCommType);//AppConstants.LAST_CONNECTED_SSID = selectedSSID
                         //startWelcomeActivity();
@@ -7509,7 +7515,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             if (AppConstants.GenerateLogs)
                 AppConstants.WriteinFile(TAG + "Flagged Link: " + LinkFlaggedMessage);
             CommonUtils.AlertDialogAutoClose(WelcomeActivity.this, "", LinkFlaggedMessage);
-            RestrictHoseSelection(getResources().getString(R.string.TryAgainLater));
+            RestrictHoseSelection(getResources().getString(R.string.TryAgainLater), false);
 
         } else {
             /*if (!LinkCommunicationType.equalsIgnoreCase("BT")) {
@@ -7591,7 +7597,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 } else {
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
-                    RestrictHoseSelection(getResources().getString(R.string.HoseInUse));
+                    RestrictHoseSelection(getResources().getString(R.string.HoseInUse), false);
 
                 }
             } else if (String.valueOf(position).equalsIgnoreCase("1")) {
@@ -7615,7 +7621,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 } else {
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
-                    RestrictHoseSelection(getResources().getString(R.string.HoseInUse));
+                    RestrictHoseSelection(getResources().getString(R.string.HoseInUse), false);
                 }
 
             } else if (String.valueOf(position).equalsIgnoreCase("2")) {
@@ -7641,7 +7647,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 } else {
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
-                    RestrictHoseSelection(getResources().getString(R.string.HoseInUse));
+                    RestrictHoseSelection(getResources().getString(R.string.HoseInUse), false);
                 }
 
 
@@ -7667,7 +7673,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 } else {
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
-                    RestrictHoseSelection(getResources().getString(R.string.HoseInUse));
+                    RestrictHoseSelection(getResources().getString(R.string.HoseInUse), false);
                 }
             } else if (String.valueOf(position).equalsIgnoreCase("4")) {
 
@@ -7690,7 +7696,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 } else {
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
-                    RestrictHoseSelection(getResources().getString(R.string.HoseInUse));
+                    RestrictHoseSelection(getResources().getString(R.string.HoseInUse), false);
                 }
             } else if (String.valueOf(position).equalsIgnoreCase("5")) {
 
@@ -7713,7 +7719,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 } else {
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
-                    RestrictHoseSelection(getResources().getString(R.string.HoseInUse));
+                    RestrictHoseSelection(getResources().getString(R.string.HoseInUse), false);
                 }
             } else {
                 tvSSIDName.setText(getResources().getString(R.string.TryAgainLater));
@@ -13667,13 +13673,13 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         BTConstants.CurrentSelectedLinkBT = 0;
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
-                        RestrictHoseSelection(getResources().getString(R.string.HoseInUse));
+                        RestrictHoseSelection(getResources().getString(R.string.HoseInUse), false);
                     }
                 } else {
                     if (!BTConstants.deviceAddress1.isEmpty()) {
                         NearByBTDevices.clear();
                         mBluetoothAdapter.startDiscovery();
-                        RestrictHoseSelection(getResources().getString(R.string.ConnectingStatus));
+                        RestrictHoseSelection(getResources().getString(R.string.ConnectingStatus), true);
 
                         Handler handler = new Handler();
                         int delay = 1000;
@@ -13708,13 +13714,13 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         BTConstants.CurrentSelectedLinkBT = 0;
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
-                        RestrictHoseSelection(getResources().getString(R.string.HoseInUse));
+                        RestrictHoseSelection(getResources().getString(R.string.HoseInUse), false);
                     }
                 } else {
                     if (!BTConstants.deviceAddress2.isEmpty()) {
                         NearByBTDevices.clear();
                         mBluetoothAdapter.startDiscovery();
-                        RestrictHoseSelection(getResources().getString(R.string.ConnectingStatus));
+                        RestrictHoseSelection(getResources().getString(R.string.ConnectingStatus), true);
 
                         Handler handler = new Handler();
                         int delay = 1000;
@@ -13749,13 +13755,13 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         BTConstants.CurrentSelectedLinkBT = 0;
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
-                        RestrictHoseSelection(getResources().getString(R.string.HoseInUse));
+                        RestrictHoseSelection(getResources().getString(R.string.HoseInUse), false);
                     }
                 } else {
                     if (!BTConstants.deviceAddress3.isEmpty()) {
                         NearByBTDevices.clear();
                         mBluetoothAdapter.startDiscovery();
-                        RestrictHoseSelection(getResources().getString(R.string.ConnectingStatus));
+                        RestrictHoseSelection(getResources().getString(R.string.ConnectingStatus), true);
 
                         Handler handler = new Handler();
                         int delay = 1000;
@@ -13789,13 +13795,13 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         BTConstants.CurrentSelectedLinkBT = 0;
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
-                        RestrictHoseSelection(getResources().getString(R.string.HoseInUse));
+                        RestrictHoseSelection(getResources().getString(R.string.HoseInUse), false);
                     }
                 } else {
                     if (!BTConstants.deviceAddress4.isEmpty()) {
                         NearByBTDevices.clear();
                         mBluetoothAdapter.startDiscovery();
-                        RestrictHoseSelection(getResources().getString(R.string.ConnectingStatus));
+                        RestrictHoseSelection(getResources().getString(R.string.ConnectingStatus), true);
 
                         Handler handler = new Handler();
                         int delay = 1000;
@@ -13829,13 +13835,13 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         BTConstants.CurrentSelectedLinkBT = 0;
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
-                        RestrictHoseSelection(getResources().getString(R.string.HoseInUse));
+                        RestrictHoseSelection(getResources().getString(R.string.HoseInUse), false);
                     }
                 } else {
                     if (!BTConstants.deviceAddress5.isEmpty()) {
                         NearByBTDevices.clear();
                         mBluetoothAdapter.startDiscovery();
-                        RestrictHoseSelection(getResources().getString(R.string.ConnectingStatus));
+                        RestrictHoseSelection(getResources().getString(R.string.ConnectingStatus), true);
 
                         Handler handler = new Handler();
                         int delay = 1000;
@@ -13869,13 +13875,13 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         BTConstants.CurrentSelectedLinkBT = 0;
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
-                        RestrictHoseSelection(getResources().getString(R.string.HoseInUse));
+                        RestrictHoseSelection(getResources().getString(R.string.HoseInUse), false);
                     }
                 } else {
                     if (!BTConstants.deviceAddress6.isEmpty()) {
                         NearByBTDevices.clear();
                         mBluetoothAdapter.startDiscovery();
-                        RestrictHoseSelection(getResources().getString(R.string.ConnectingStatus));
+                        RestrictHoseSelection(getResources().getString(R.string.ConnectingStatus), true);
 
                         Handler handler = new Handler();
                         int delay = 1000;
@@ -14290,6 +14296,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
                 if (AppConstants.RefreshSingleHose) {
                     AppConstants.RefreshSingleHose = false;
+                    showSingleHoseConnectingStatus = true;
                     showSingleHoseBusyStatus = true;
                     if (BTConnectionHandler != null) {
                         BTConnectionHandler.removeCallbacksAndMessages(null);
@@ -14305,11 +14312,19 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     try {
                         //tvSSIDName.setText(serverSSIDList.get(0).get("WifiSSId"));
                         //tvSSIDName.setText(getResources().getString(R.string.HoseInUse));
+                        if (showSingleHoseConnectingStatus) {
+                            showSingleHoseConnectingStatus = false;
+                            RestrictHoseSelection("", true);
+                        }
                         if (showSingleHoseBusyStatus) {
-                            tvSSIDName.setText(getResources().getString(R.string.HoseInUse));
-                            if (Integer.parseInt(Constants.FS_1Pulse) >= 1) {
+                            //tvSSIDName.setText(getResources().getString(R.string.HoseInUse));
+                            if (AppConstants.isRelayON_fs1) { //Integer.parseInt(Constants.FS_1Pulse) >= 1
+                                tvSSIDName.setText(getResources().getString(R.string.SingleHoseBusyStatus).replace("...", ""));
+                                if (BTConnectionHandler != null) {
+                                    BTConnectionHandler.removeCallbacksAndMessages(null);
+                                }
                                 showSingleHoseBusyStatus = false;
-                                RestrictHoseSelection(getResources().getString(R.string.SingleHoseBusyStatus));
+                                RestrictHoseSelection(getResources().getString(R.string.SingleHoseBusyStatus), true);
                             }
                         }
                         btnGo.setVisibility(View.GONE);
@@ -14365,29 +14380,26 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         }
     }
 
-    private void RestrictHoseSelection(String s) {
+    private void RestrictHoseSelection(String msg, boolean showAnimatedMsg) {
         try {
-            if (s.equalsIgnoreCase(getResources().getString(R.string.LinkIsConnecting))) {
-                st = getResources().getString(R.string.connecting);
-                ShowAnimatedStatus(s, tvSSIDName);
-            } else if (s.equalsIgnoreCase(getResources().getString(R.string.SingleHoseBusyStatus))) {
-                st = getResources().getString(R.string.SingleHoseBusyStatus).replace("...", "");
-                ShowAnimatedStatus(s, tvSSIDName);
+            if (showAnimatedMsg) {
+                st = msg.replace("...", "");
+                ShowAnimatedStatus(msg, tvSSIDName);
             } else {
-                tvSSIDName.setText(s);
+                tvSSIDName.setText(msg);
             }
             //tvSSIDName.setText(s); // uncomment this if the above code is not in use.
             btnGo.setVisibility(View.GONE);
 
-            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    if (!s.equalsIgnoreCase(getResources().getString(R.string.LinkIsConnecting)) && !s.equalsIgnoreCase(getResources().getString(R.string.SingleHoseBusyStatus))) {
+            if (!showAnimatedMsg) {
+                new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
                         tvSSIDName.setText(R.string.selectHose);
+                        btnGo.setVisibility(View.GONE);
                     }
-                    btnGo.setVisibility(View.GONE);
-                }
-            }, 6000);
+                }, 6000);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
