@@ -294,7 +294,6 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
         }
         //getIpOverOSVersion();
 
-        //UDP Connection..!!
         SERVERIP = "";
         String IpAddress = "";
         try {
@@ -808,8 +807,8 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
 
                 if (LinkCommunicationType.equalsIgnoreCase("BT")) {
                     BTServiceSelectionFunction();
-                } else if (LinkCommunicationType.equalsIgnoreCase("UDP")) {
-                    UDPServiceSelectionFunction();
+                /*} else if (LinkCommunicationType.equalsIgnoreCase("UDP")) {
+                    UDPServiceSelectionFunction();*/
                 } else if (LinkCommunicationType.equalsIgnoreCase("HTTP")) {
                     if (cd.isConnectingToInternet() && AppConstants.NETWORK_STRENGTH) {
                         StartButtonFunctionality();
@@ -4120,8 +4119,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
         }
     }
 
-    private void UDPServiceSelectionFunction() {
-
+    /*private void UDPServiceSelectionFunction() {
         if (!SERVER_IP.isEmpty()) {
             BtnStartStateChange(true);
             Log.i(TAG, "UDP Link ");
@@ -4220,7 +4218,7 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
                     break;
             }
         }
-    }
+    }*/
 
     private void BackToWelcomeActivity() {
         Intent i = new Intent(DisplayMeterActivity.this, WelcomeActivity.class);
@@ -4229,24 +4227,21 @@ public class DisplayMeterActivity extends AppCompatActivity implements View.OnCl
     }
 
     private void proceedToPostResume() {
-
         if (LinkCommunicationType.equalsIgnoreCase("BT")) {
             if (!onResumeAlreadyCalled) {
                 onResumeAlreadyCalled = true;
                 new CheckAndRetryBTConnection().execute();
             }
-        } else if (LinkCommunicationType.equalsIgnoreCase("UDP")) {
-            //cHECK UDP INFO COMMAND HERE
+        /*} else if (LinkCommunicationType.equalsIgnoreCase("UDP")) {
+            //cHECK UDP INFO COMMAND HERE*/
         } else if (LinkCommunicationType.equalsIgnoreCase("HTTP")) {
             CompleteTasksbeforeStartbuttonClick();
         } else {
             //Something went wrong in hose selection.
         }
-
     }
 
     public class CheckAndRetryBTConnection extends AsyncTask<String, Void, String> {
-
         boolean isReconnectionTried = false;
 
         @Override

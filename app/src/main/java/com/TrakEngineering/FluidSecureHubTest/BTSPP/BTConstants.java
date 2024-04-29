@@ -37,12 +37,12 @@ public class BTConstants {
     public static String selectedSiteIdForScope = "0";
     public static boolean forOscilloscope = false;
 
-    public static boolean SwitchedBTToUDP1 = false;
-    public static boolean SwitchedBTToUDP2 = false;
-    public static boolean SwitchedBTToUDP3 = false;
-    public static boolean SwitchedBTToUDP4 = false;
-    public static boolean SwitchedBTToUDP5 = false;
-    public static boolean SwitchedBTToUDP6 = false;
+    //public static boolean SwitchedBTToUDP1 = false;
+    //public static boolean SwitchedBTToUDP2 = false;
+    //public static boolean SwitchedBTToUDP3 = false;
+    //public static boolean SwitchedBTToUDP4 = false;
+    //public static boolean SwitchedBTToUDP5 = false;
+    //public static boolean SwitchedBTToUDP6 = false;
 
     public static boolean isBTSPPTxnContinuedWithBLE1 = false;
     public static boolean isBTSPPTxnContinuedWithBLE2 = false;
@@ -70,6 +70,8 @@ public class BTConstants {
     public static String last1_cmd = "LK_COMM=last1";
     public static String last20_cmd = "LK_COMM=last20";
     public static String reboot_cmd = "LK_COMM=restartnow";
+    public static String checkMOStatus_command = "LK_COMM=if_check_mo_status=";
+    public static String resetMOCheckFlag_command = "LK_COMM=mo_check_flag_reset";
     public static String ScopeStatus = "";
     public static String[] p_types = {"1", "2", "3", "4"};
 

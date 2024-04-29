@@ -8,8 +8,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
-import android.net.wifi.WifiInfo;
-import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -18,7 +16,6 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.util.Log;
-import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
@@ -26,13 +23,11 @@ import androidx.annotation.RequiresApi;
 import com.TrakEngineering.FluidSecureHubTest.AppConstants;
 import com.TrakEngineering.FluidSecureHubTest.BTBLE.BTBLE_LinkThree.BLEServiceCodeThree;
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTConstants;
-import com.TrakEngineering.FluidSecureHubTest.BTSPP.ClientSendAndListenUDPThree;
 import com.TrakEngineering.FluidSecureHubTest.BackgroundService;
 import com.TrakEngineering.FluidSecureHubTest.CommonUtils;
 import com.TrakEngineering.FluidSecureHubTest.ConnectionDetector;
 import com.TrakEngineering.FluidSecureHubTest.Constants;
 import com.TrakEngineering.FluidSecureHubTest.DBController;
-import com.TrakEngineering.FluidSecureHubTest.R;
 import com.TrakEngineering.FluidSecureHubTest.WelcomeActivity;
 import com.TrakEngineering.FluidSecureHubTest.entity.RenameHose;
 import com.TrakEngineering.FluidSecureHubTest.entity.SwitchTimeBounce;
@@ -41,7 +36,6 @@ import com.TrakEngineering.FluidSecureHubTest.entity.UpdatePulserTypeOfLINK_enti
 import com.TrakEngineering.FluidSecureHubTest.entity.UpgradeVersionEntity;
 import com.TrakEngineering.FluidSecureHubTest.offline.EntityOffTranz;
 import com.TrakEngineering.FluidSecureHubTest.offline.OffDBController;
-import com.TrakEngineering.FluidSecureHubTest.wifihotspot.WifiApManager;
 import com.TrakEngineering.FluidSecureHubTest.offline.OffTranzSyncService;
 import com.TrakEngineering.FluidSecureHubTest.offline.OfflineConstants;
 import com.TrakEngineering.FluidSecureHubTest.server.ServerHandler;
@@ -92,17 +86,16 @@ public class BS_BLE_BTThree extends Service {
     String OffLastTXNid = "0";
     ConnectionDetector cd = new ConnectionDetector(BS_BLE_BTThree.this);
     OffDBController offlineController = new OffDBController(BS_BLE_BTThree.this);
-    String ipForUDP = "192.168.4.1";
+    //String ipForUDP = "192.168.4.1"; // Removed UDP code as per #2553
     public int infoCommandAttempt = 0;
     public boolean isConnected = false;
     public boolean isHotspotDisabled = false;
     public boolean isOnlineTxn = true;
     public int versionNumberOfLinkThree = 0;
-    public String PulserTimingAdjust;
-    public String IsResetSwitchTimeBounce;
-    public String GetPulserTypeFromLINK;
+    public String PulserTimingAdjust, IsResetSwitchTimeBounce, GetPulserTypeFromLINK;
     public boolean IsAnyPostTxnCommandExecuted = false;
     public boolean isTxnLimitReached = false;
+    public int relayOffAttemptCount = 0;
 
     SimpleDateFormat sdformat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
     ArrayList<HashMap<String, String>> quantityRecords = new ArrayList<>();
@@ -156,20 +149,19 @@ public class BS_BLE_BTThree extends Service {
                     VehicleNumber = VehicleNumber.substring(VehicleNumber.length() - 20);
                 }
 
-                //UDP Connection..!!
                 if (WelcomeActivity.serverSSIDList != null && WelcomeActivity.serverSSIDList.size() > 0) {
                     LinkCommunicationType = WelcomeActivity.serverSSIDList.get(WelcomeActivity.SelectedItemPos).get("LinkCommunicationType");
-                    CurrentLinkMac = WelcomeActivity.serverSSIDList.get(WelcomeActivity.SelectedItemPos).get("MacAddress");
+                    //CurrentLinkMac = WelcomeActivity.serverSSIDList.get(WelcomeActivity.SelectedItemPos).get("MacAddress");
                 }
 
                 // Offline functionality
-                if (!cd.isConnectingToInternet()) {
+                if (cd.isConnectingToInternet() && AppConstants.NETWORK_STRENGTH) {
+                    isOnlineTxn = true;
+                } else {
                     isOnlineTxn = false;
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(TAG + " --Offline mode--");
                     offlineLogicBT3();
-                } else {
-                    isOnlineTxn = true;
                 }
 
                 BT_BLE_Constants.isLinkThreeNotifyEnabled = false;
@@ -186,11 +178,10 @@ public class BS_BLE_BTThree extends Service {
                     BT_BLE_Constants.BTBLELinkThreeStatus = false;
                     BT_BLE_Constants.BTBLEStatusStrThree = "";
                     checkBTLinkStatus("info"); // Changed from "upgrade" to "info" as per #1657
-
-                } else if (LinkCommunicationType.equalsIgnoreCase("UDP")) {
+                /*} else if (LinkCommunicationType.equalsIgnoreCase("UDP")) {
                     IsThisBTTrnx = false;
                     infoCommand();
-                    //BeginProcessUsingUDP();
+                    //BeginProcessUsingUDP();*/
                 } else {
                     //Something went Wrong in hose selection.
                     IsThisBTTrnx = false;
@@ -376,7 +367,7 @@ public class BS_BLE_BTThree extends Service {
                     checkPulses = "pulse:";
                 }
 
-                if (!BT_BLE_Constants.BTBLELinkThreeStatus && AppConstants.isRelayON_fs3 && !BTConstants.SwitchedBTToUDP3) {
+                if (!BT_BLE_Constants.BTBLELinkThreeStatus && AppConstants.isRelayON_fs3) { // && !BTConstants.SwitchedBTToUDP3
                     if (CountBeforeReconnectRelay3 >= 1) {
                         if (BT_BLE_Constants.BTBLEStatusStrThree.equalsIgnoreCase("Disconnect")) {
                             SaveLastQtyInSharedPref(Constants.FS_3Pulse);
@@ -438,11 +429,11 @@ public class BS_BLE_BTThree extends Service {
 
                         int delay = 100;
                         cancel();
-                        if (BTConstants.SwitchedBTToUDP3) {
+                        /*if (BTConstants.SwitchedBTToUDP3) {
                             DisableWifiConnection();
                             BTConstants.SwitchedBTToUDP3 = false;
                             delay = 1000;
-                        }
+                        }*/
                         new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                             @Override
                             public void run() {
@@ -532,7 +523,7 @@ public class BS_BLE_BTThree extends Service {
             Constants.FS_3Gallons = (precision.format(fillqty));
             Constants.FS_3Pulse = outputQuantity;
 
-            if (isOnlineTxn || BTConstants.SwitchedBTToUDP3) { //cd.isConnectingToInternet()
+            if (isOnlineTxn) { // || BTConstants.SwitchedBTToUDP3
                 UpdateTransactionToSqlite(outputQuantity);
             } else {
                 if (fillqty > 0) {
@@ -618,7 +609,7 @@ public class BS_BLE_BTThree extends Service {
             isTxnLimitReached = true;
             Log.i(TAG, "Auto Stop Hit>> You reached MAX fuel limit.");
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " Auto Stop Hit>> You reached MAX fuel limit.");
+                AppConstants.WriteinFile(TAG + " Auto Stop Hit>> " + LimitReachedMessage);
             AppConstants.DisplayToastmaxlimit = true;
             AppConstants.MaxlimitMessage = LimitReachedMessage;
             relayOffCommand(); //RelayOff
@@ -775,7 +766,7 @@ public class BS_BLE_BTThree extends Service {
                     } else {
                         isConnected = false;
                         if (nextAction.equalsIgnoreCase("info")) { // Terminate BT Transaction
-                            UDPFunctionalityAfterBTFailure(); //TerminateBTTransaction();
+                            TerminateBTTransaction(); //UDPFunctionalityAfterBTFailure();
                         } else if (nextAction.equalsIgnoreCase("relay")) { // Terminate BT Txn After Interruption
                             TerminateBTTxnAfterInterruption();
                         }
@@ -793,7 +784,7 @@ public class BS_BLE_BTThree extends Service {
         }
     }
 
-    private void UDPFunctionalityAfterBTFailure() {
+    /*private void UDPFunctionalityAfterBTFailure() {
         try {
             if (CommonUtils.CheckAllHTTPLinksAreFree()) {
                 if (AppConstants.GenerateLogs)
@@ -830,9 +821,9 @@ public class BS_BLE_BTThree extends Service {
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
+    }*/
 
-    private void BeginProcessUsingUDP() {
+    /*private void BeginProcessUsingUDP() {
         try {
             Toast.makeText(BS_BLE_BTThree.this, getResources().getString(R.string.PleaseWaitForWifiConnect), Toast.LENGTH_SHORT).show();
 
@@ -886,7 +877,7 @@ public class BS_BLE_BTThree extends Service {
             TerminateBTTransaction();
             e.printStackTrace();
         }
-    }
+    }*/
 
     public void proceedToInfoCommand() {
         try {
@@ -953,11 +944,12 @@ public class BS_BLE_BTThree extends Service {
                 if (AppConstants.GenerateLogs)
                     AppConstants.WriteinFile(TAG + " Sending Info command to Link: " + LinkName);
                 mBluetoothLeService.writeCustomCharacteristic(BTConstants.info_cmd);
-            } else {
+            }
+            /*else {
                 if (AppConstants.GenerateLogs)
                     AppConstants.WriteinFile(TAG + " Sending Info command (UDP) to Link: " + LinkName);
                 new Thread(new ClientSendAndListenUDPThree(BTConstants.info_cmd, ipForUDP, this)).start();
-            }
+            }*/
             //Thread.sleep(1000);
             new CountDownTimer(5000, 1000) {
                 public void onTick(long millisUntilFinished) {
@@ -1198,11 +1190,12 @@ public class BS_BLE_BTThree extends Service {
                 if (AppConstants.GenerateLogs)
                     AppConstants.WriteinFile(TAG + " Sending transactionId command to Link: " + LinkName);
                 mBluetoothLeService.writeCustomCharacteristic(transaction_id_cmd);
-            } else {
+            }
+            /*else {
                 if (AppConstants.GenerateLogs)
                     AppConstants.WriteinFile(TAG + " Sending transactionId command (UDP) to Link: " + LinkName);
                 new Thread(new ClientSendAndListenUDPThree(transaction_id_cmd, ipForUDP, this)).start();
-            }
+            }*/
             Thread.sleep(500);
             new CountDownTimer(4000, 1000) {
                 public void onTick(long millisUntilFinished) {
@@ -1272,11 +1265,12 @@ public class BS_BLE_BTThree extends Service {
                 if (AppConstants.GenerateLogs)
                     AppConstants.WriteinFile(TAG + " Sending relayOn command to Link: " + LinkName);
                 mBluetoothLeService.writeCustomCharacteristic(BTConstants.relay_on_cmd);
-            } else {
+            }
+            /*else {
                 if (AppConstants.GenerateLogs)
                     AppConstants.WriteinFile(TAG + " Sending relayOn command (UDP) to Link: " + LinkName);
                 new Thread(new ClientSendAndListenUDPThree(BTConstants.relay_on_cmd, ipForUDP, this)).start();
-            }
+            }*/
 
             if (!isAfterReconnect) {
                 InsertInitialTransactionToSqlite();//Insert empty transaction into sqlite
@@ -1341,15 +1335,17 @@ public class BS_BLE_BTThree extends Service {
         try {
             //Execute relayOff Command
             Response = "";
+            relayOffAttemptCount++;
             if (IsThisBTTrnx) {
                 if (AppConstants.GenerateLogs)
                     AppConstants.WriteinFile(TAG + " Sending relayOff command to Link: " + LinkName);
                 mBluetoothLeService.writeCustomCharacteristic(BTConstants.relay_off_cmd);
-            } else {
+            }
+            /*else {
                 if (AppConstants.GenerateLogs)
                     AppConstants.WriteinFile(TAG + " Sending relayOff command (UDP) to Link: " + LinkName);
                 new Thread(new ClientSendAndListenUDPThree(BTConstants.relay_off_cmd, ipForUDP, this)).start();
-            }
+            }*/
 
             new CountDownTimer(4000, 1000) {
                 public void onTick(long millisUntilFinished) {
@@ -1381,6 +1377,16 @@ public class BS_BLE_BTThree extends Service {
                         Log.i(TAG, " Failed to get relayOff Command Response:>>" + Response);
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + " Checking relayOff command response. Response: false");
+                        if (relayOffAttemptCount >= 2) {
+                            if (fillqty > 0) {
+                                if (isOnlineTxn) {
+                                    CommonUtils.UpgradeTransactionStatusToSqlite(TransactionId, "10", BS_BLE_BTThree.this);
+                                } else {
+                                    offlineController.updateOfflineTransactionStatus(sqlite_id + "", "10");
+                                }
+                            }
+                            StopTransaction(true, true);
+                        }
                     }
                     if (!AppConstants.isRelayON_fs3) {
                         TransactionCompleteFunction();
@@ -1400,7 +1406,7 @@ public class BS_BLE_BTThree extends Service {
 
     private void TransactionCompleteFunction() {
 
-        if (cd.isConnectingToInternet()) {
+        if (isOnlineTxn) {
             if (BTConstants.BT3REPLACEBLE_WIFI_NAME == null) {
                 BTConstants.BT3REPLACEBLE_WIFI_NAME = "";
             }
@@ -1440,11 +1446,12 @@ public class BS_BLE_BTThree extends Service {
                 if (AppConstants.GenerateLogs)
                     AppConstants.WriteinFile(TAG + " Sending rename command to Link: " + LinkName + " (New Name: " + BTConstants.BT3REPLACEBLE_WIFI_NAME + ")");
                 mBluetoothLeService.writeCustomCharacteristic(BTConstants.namecommand + BTConstants.BT3REPLACEBLE_WIFI_NAME);
-            } else {
+            }
+            /*else {
                 if (AppConstants.GenerateLogs)
                     AppConstants.WriteinFile(TAG + " Sending rename command (UDP) to Link: " + LinkName + " (New Name: " + BTConstants.BT3REPLACEBLE_WIFI_NAME + ")");
                 new Thread(new ClientSendAndListenUDPThree(BTConstants.namecommand + BTConstants.BT3REPLACEBLE_WIFI_NAME, ipForUDP, this)).start();
-            }
+            }*/
 
             String userEmail = CommonUtils.getCustomerDetails_backgroundServiceBT(BS_BLE_BTThree.this).PersonEmail;
             String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(this) + ":" + userEmail + ":" + "SetHoseNameReplacedFlag" + AppConstants.LANG_PARAM);
@@ -1642,8 +1649,8 @@ public class BS_BLE_BTThree extends Service {
             CountBeforeReconnectRelay3 = 0;
             AppConstants.GoButtonAlreadyClicked = false;
             AppConstants.isInfoCommandSuccess_fs3 = false;
-            BTConstants.SwitchedBTToUDP3 = false;
-            DisableWifiConnection();
+            //BTConstants.SwitchedBTToUDP3 = false;
+            //DisableWifiConnection();
             CancelTimer();
             IsAnyPostTxnCommandExecuted = true;
             if (AppConstants.GenerateLogs)
@@ -2045,7 +2052,7 @@ public class BS_BLE_BTThree extends Service {
 
     private void PostTransactionBackgroundTasks(boolean isTransactionCompleted) {
         try {
-            if (cd.isConnectingToInternet()) {
+            if (isOnlineTxn) {
                 if (!isTransactionCompleted) {
                     // Save upgrade details to cloud
                     SharedPreferences sharedPref = this.getSharedPreferences(Constants.PREF_FS_UPGRADE, Context.MODE_PRIVATE);
@@ -2143,7 +2150,7 @@ public class BS_BLE_BTThree extends Service {
     private void SyncOfflineData() {
         if (Constants.FS_1STATUS.equalsIgnoreCase("FREE") && Constants.FS_2STATUS.equalsIgnoreCase("FREE") && Constants.FS_3STATUS.equalsIgnoreCase("FREE") && Constants.FS_4STATUS.equalsIgnoreCase("FREE") && Constants.FS_5STATUS.equalsIgnoreCase("FREE") && Constants.FS_6STATUS.equalsIgnoreCase("FREE")) {
 
-            if (cd.isConnecting()) {
+            if (isOnlineTxn) {
                 try {
                     //sync offline transactions
                     String off_json = offlineController.getAllOfflineTransactionJSON(BS_BLE_BTThree.this);
@@ -2174,7 +2181,7 @@ public class BS_BLE_BTThree extends Service {
         Constants.AccHours_FS3 = 0;
     }
 
-    private void DisableWifiConnection() {
+    /*private void DisableWifiConnection() {
         try {
             //Disable wifi connection
             WifiManager wifiManagerMM = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
@@ -2196,7 +2203,7 @@ public class BS_BLE_BTThree extends Service {
                         }
                         isHotspotDisabled = false;
                     }
-                    if (cd.isConnectingToInternet()) {
+                    if (isOnlineTxn) {
                         boolean BSRunning = CommonUtils.checkServiceRunning(BS_BLE_BTThree.this, AppConstants.PACKAGE_BACKGROUND_SERVICE);
                         if (!BSRunning) {
                             startService(new Intent(BS_BLE_BTThree.this, BackgroundService.class));
@@ -2208,5 +2215,5 @@ public class BS_BLE_BTThree extends Service {
             if (AppConstants.GenerateLogs)
                 AppConstants.WriteinFile(TAG + " DisableWifiConnection Exception>> " + e.getMessage());
         }
-    }
+    }*/
 }
