@@ -17,11 +17,11 @@ android {
         targetSdkVersion 28
         //targetSdkVersion 31
         versionCode 49
-        versionName "0.61(2553)"
+        versionName "0.62(2544)"
         multiDexEnabled true
 
         ndk {
-            abiFilters "armeabi-v7a", "x86", "x86_64"
+            abiFilters "armeabi-v7a", "arm64-v8a", "x86", "x86_64" //, "x86"
         }
     }
     buildTypes {

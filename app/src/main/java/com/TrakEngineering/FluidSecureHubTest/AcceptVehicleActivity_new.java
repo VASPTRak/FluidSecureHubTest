@@ -115,7 +115,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
     private String mDeviceAddress_hf_trak;
     private String HFDeviceName;
     private String HFDeviceAddress;
-    InputMethodManager imm;
+    //InputMethodManager imm;
     public BroadcastMagCard_dataFromServiceToUI ServiceCardReader_vehicle = null;
 
     private EditText etInput;
@@ -358,7 +358,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
 
             @Override
             public void onClick(View v) {
-                hideKeybord();
+                CommonUtils.hideKeyboard(AcceptVehicleActivity_new.this);
             }
         });
 
@@ -1107,7 +1107,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
     }
 
     public void cancelAction(View v) {
-
+        CommonUtils.hideKeyboard(AcceptVehicleActivity_new.this);
         onBackPressed();
     }
 
@@ -1299,7 +1299,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
         @RequiresApi(api = Build.VERSION_CODES.N)
         @Override
         protected void onPostExecute(String serverRes) {
-
+            CommonUtils.hideKeyboard(AcceptVehicleActivity_new.this);
             String VehicleNumber = "";
             try {
 
@@ -1362,7 +1362,6 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                             if (AppConstants.GenerateLogs)
                                 AppConstants.WriteinFile(TAG + "Something went wrong in hose selection");
                         }
-
 
                         SharedPreferences sharedPref = AcceptVehicleActivity_new.this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
                         SharedPreferences.Editor editor = sharedPref.edit();
@@ -1437,7 +1436,8 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                             // AppConstants.APDU_FOB_KEY = "";
                             AppConstants.VehicleLocal_FOB_KEY = "";
                             tv_vehicle_no_below.setText(getResources().getString(R.string.EnterHeading) + " " + ScreenNameForVehicle + ":");
-
+                            if (AppConstants.GenerateLogs)
+                                AppConstants.WriteinFile(TAG + "<(New Barcode) Showing the keyboard.>");
                             InputMethodManager inputMethodManager = (InputMethodManager) editVehicleNumber.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
                             editVehicleNumber.requestFocus();
                             inputMethodManager.showSoftInput(editVehicleNumber, 0);
@@ -1473,7 +1473,8 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                             // AppConstants.APDU_FOB_KEY = "";
                             AppConstants.VehicleLocal_FOB_KEY = "";
                             tv_vehicle_no_below.setText(getResources().getString(R.string.EnterHeading) + " " + ScreenNameForVehicle + ":");
-
+                            if (AppConstants.GenerateLogs)
+                                AppConstants.WriteinFile(TAG + "<(NewFob) Showing the keyboard.>");
                             InputMethodManager inputMethodManager = (InputMethodManager) editVehicleNumber.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
                             editVehicleNumber.requestFocus();
                             inputMethodManager.showSoftInput(editVehicleNumber, 0);
@@ -1659,7 +1660,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                     } else if (Constants.CurrentSelectedHose.equalsIgnoreCase("FS6")) {
                         Constants.AccVehicleNumber_FS6 = V_Number;
                     }
-
+                    CommonUtils.hideKeyboard(AcceptVehicleActivity_new.this);
                     if (IsOdoMeterRequire.equalsIgnoreCase("True") && !IsGateHub.equalsIgnoreCase("True")) {
 
                         Intent intent = new Intent(AcceptVehicleActivity_new.this, AcceptOdoActivity.class);//AcceptPinActivity
@@ -2055,14 +2056,14 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
 
                         } else if (IsNewFob.equalsIgnoreCase("Yes")) {
 
-
                             AcceptVehicleNumber();//Enable edittext field and Enter button
                             IsNewFobVar = false;
 
                             // AppConstants.APDU_FOB_KEY = "";
                             AppConstants.VehicleLocal_FOB_KEY = "";
                             tv_vehicle_no_below.setText(getResources().getString(R.string.EnterHeading) + " " + ScreenNameForVehicle + ":");
-
+                            if (AppConstants.GenerateLogs)
+                                AppConstants.WriteinFile(TAG + "<(NewFobDetect) Showing the keyboard.>");
                             InputMethodManager inputMethodManager = (InputMethodManager) editVehicleNumber.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
                             editVehicleNumber.requestFocus();
                             inputMethodManager.showSoftInput(editVehicleNumber, 0);
@@ -2368,7 +2369,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                 btnCancel.setLayoutParams(par);
             }
 
-            hideKeybord();
+            CommonUtils.hideKeyboard(AcceptVehicleActivity_new.this);
 
 
         } else {
@@ -2430,16 +2431,17 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
 
     }
 
-    public void hideKeybord() {
+    /*public void hideKeybord() {
         imm = (InputMethodManager) this.getSystemService(INPUT_METHOD_SERVICE);
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
-    }
 
-    public void showKeybord() {
+    }*/
+
+    /*public void showKeybord() {
 
         imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, InputMethodManager.HIDE_IMPLICIT_ONLY);
-    }
+    }*/
 
     public void AcceptVehicleNumber() {
 
@@ -2654,8 +2656,8 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                         dialog.dismiss();
 
                         CallSaveButtonFunctionality();
-                        InputMethodManager imm = (InputMethodManager) context.getSystemService(INPUT_METHOD_SERVICE);
-                        imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, InputMethodManager.HIDE_IMPLICIT_ONLY);
+                        /*InputMethodManager imm = (InputMethodManager) context.getSystemService(INPUT_METHOD_SERVICE);
+                        imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, InputMethodManager.HIDE_IMPLICIT_ONLY);*/
                     }
                 }
         );
@@ -2665,8 +2667,8 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                     public void onClick(DialogInterface dialog, int arg1) {
                         dialog.dismiss();
 
-                        InputMethodManager imm = (InputMethodManager) context.getSystemService(INPUT_METHOD_SERVICE);
-                        imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, InputMethodManager.HIDE_IMPLICIT_ONLY);
+                        /*InputMethodManager imm = (InputMethodManager) context.getSystemService(INPUT_METHOD_SERVICE);
+                        imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, InputMethodManager.HIDE_IMPLICIT_ONLY);*/
                     }
                 }
         );
@@ -2688,7 +2690,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
         IsHoursRequire = sharedPrefODO.getString(AppConstants.IsHoursRequire, "");
         IsExtraOther = sharedPrefODO.getString(AppConstants.IsExtraOther, "");
 
-
+        CommonUtils.hideKeyboard(AcceptVehicleActivity_new.this);
         if (IsOdoMeterRequire.equalsIgnoreCase("True") && !IsGateHub.equalsIgnoreCase("True")) {
 
             Intent intent = new Intent(AcceptVehicleActivity_new.this, AcceptOdoActivity.class);//AcceptPinActivity
@@ -3036,7 +3038,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                         }
 
                         /////////////////
-
+                        CommonUtils.hideKeyboard(AcceptVehicleActivity_new.this);
                         if (isAllowed) {
 
                             if (RequireOdometerEntry.trim().toLowerCase().equalsIgnoreCase("y")) {
@@ -3082,7 +3084,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
                 }
             }
         } else {
-
+            CommonUtils.hideKeyboard(AcceptVehicleActivity_new.this);
             String validateVehicles = "Yes";
             if (IsNonValidateVehicle.equalsIgnoreCase("True")) {
                 validateVehicles = "No";
@@ -3786,11 +3788,10 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
         btnCancel.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                CommonUtils.hideKeyboard(AcceptVehicleActivity_new.this);
                 if (dialogBus.isShowing()) {
                     dialogBus.dismiss();
                 }
-
             }
         });
 

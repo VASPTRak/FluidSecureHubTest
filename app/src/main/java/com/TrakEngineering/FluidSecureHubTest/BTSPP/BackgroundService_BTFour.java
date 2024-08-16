@@ -23,6 +23,7 @@ import com.TrakEngineering.FluidSecureHubTest.Constants;
 import com.TrakEngineering.FluidSecureHubTest.DBController;
 import com.TrakEngineering.FluidSecureHubTest.WelcomeActivity;
 import com.TrakEngineering.FluidSecureHubTest.entity.BypassPumpResetEntity;
+import com.TrakEngineering.FluidSecureHubTest.entity.EleventhTransaction;
 import com.TrakEngineering.FluidSecureHubTest.entity.ManualOverrideStatus;
 import com.TrakEngineering.FluidSecureHubTest.entity.RenameHose;
 import com.TrakEngineering.FluidSecureHubTest.entity.SwitchTimeBounce;
@@ -67,7 +68,6 @@ public class BackgroundService_BTFour extends Service {
     int pulseCount = 0;
     int stopCount = 0;
     int RespCount = 0; //, LinkResponseCount = 0;
-    int fdCheckCount = 0;
     long stopAutoFuelSeconds = 0;
     Integer Pulses = 0;
     Integer pre_pulse = 0;
@@ -82,21 +82,22 @@ public class BackgroundService_BTFour extends Service {
     String OffLastTXNid = "0";
     ConnectionDetector cd = new ConnectionDetector(BackgroundService_BTFour.this);
     OffDBController offlineController = new OffDBController(BackgroundService_BTFour.this);
-    //String ipForUDP = "192.168.4.1"; // Removed UDP code as per #2553
+    //String ipForUDP = "192.168.4.1"; // Removed UDP code as per #2603
     public int infoCommandAttempt = 0;
     public boolean isConnected = false;
     public boolean isHotspotDisabled = false;
     public boolean isOnlineTxn = true;
-    public int versionNumberOfLinkFour = 0;
+    public String versionNumberOfLinkFour = "";
     public String PulserTimingAdjust, IsResetSwitchTimeBounce, IsBypassPumpReset, GetPulserTypeFromLINK;
     public boolean IsAnyPostTxnCommandExecuted = false;
     public boolean isTxnLimitReached = false;
     public String MOStatusCheckFlag, IsCheckMOStatus, IsResetMOCheckFlag;
     public boolean isManualOverrideDetected = false;
-    public int relayOffAttemptCount = 0;
+    //public int relayOffAttemptCount = 0;
 
     SimpleDateFormat sdformat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
     ArrayList<HashMap<String, String>> quantityRecords = new ArrayList<>();
+    public String IsEleventhTransaction;
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -140,6 +141,7 @@ public class BackgroundService_BTFour extends Service {
                 EnablePrinter = sharedPref.getString("EnablePrinter_FS4", "False");
                 PumpOnTime = sharedPref.getString("PumpOnTime_FS4", "0");
                 LimitReachedMessage = sharedPref.getString("LimitReachedMessage_FS4", "");
+                IsEleventhTransaction = sharedPref.getString("IsEleventhTransaction_FS4", "false");
 
                 numPulseRatio = Double.parseDouble(PulseRatio);
                 minFuelLimit = Double.parseDouble(MinLimit);
@@ -186,7 +188,7 @@ public class BackgroundService_BTFour extends Service {
                     AppConstants.WriteinFile(TAG + " BTLink_4: <Registered successfully. (" + broadcastBlueLinkFourData + ")>");
 
                 AppConstants.isRelayON_fs4 = false;
-                LinkName = CommonUtils.getlinkName(3);
+                LinkName = CommonUtils.getLinkName(3);
                 if (LinkCommunicationType.equalsIgnoreCase("BT")) {
                     IsThisBTTrnx = true;
 
@@ -220,7 +222,7 @@ public class BackgroundService_BTFour extends Service {
 
                 // Disable Hotspot
                 if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "<Disabling hotspot.>");
+                    AppConstants.WriteinFile(TAG + " <Turning OFF the Hotspot. (if enabled)>");
                 WifiApManager wifiApManager = new WifiApManager(BackgroundService_BTFour.this);
                 wifiApManager.setWifiApEnabled(null, false);
                 isHotspotDisabled = true;
@@ -453,7 +455,7 @@ public class BackgroundService_BTFour extends Service {
                                     @Override
                                     public void run() {
                                         AppConstants.isInfoCommandSuccess_fs4 = true;
-                                        if (IsThisBTTrnx && BTConstants.isNewVersionLinkFour && (versionNumberOfLinkFour >= 1411)) {
+                                        if (IsThisBTTrnx && BTConstants.isNewVersionLinkFour && CommonUtils.checkBTVersionCompatibility(versionNumberOfLinkFour, BTConstants.supportedLinkVersionForLast1)) {
                                             last1Command();
                                         } else {
                                             transactionIdCommand(TransactionId);
@@ -496,7 +498,7 @@ public class BackgroundService_BTFour extends Service {
                                 @Override
                                 public void run() {
                                     AppConstants.isInfoCommandSuccess_fs4 = true;
-                                    if (IsThisBTTrnx && BTConstants.isNewVersionLinkFour && (versionNumberOfLinkFour >= 1411)) {
+                                    if (IsThisBTTrnx && BTConstants.isNewVersionLinkFour && CommonUtils.checkBTVersionCompatibility(versionNumberOfLinkFour, BTConstants.supportedLinkVersionForLast1)) {
                                         last1Command();
                                     } else {
                                         transactionIdCommand(TransactionId);
@@ -822,7 +824,7 @@ public class BackgroundService_BTFour extends Service {
             //Execute relayOff Command
             Request = "";
             Response = "";
-            relayOffAttemptCount++;
+            //relayOffAttemptCount++;
             if (IsThisBTTrnx) {
                 if (AppConstants.GenerateLogs)
                     AppConstants.WriteinFile(TAG + " BTLink_4: Sending relayOff command to Link: " + LinkName);
@@ -865,7 +867,7 @@ public class BackgroundService_BTFour extends Service {
                         Log.i(TAG, "BTLink_4: Failed to get relayOff Command Response:>>" + Response);
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + " BTLink_4: Checking relayOff command response. Response: false");
-                        if (relayOffAttemptCount >= 2) {
+                        if (BTConstants.isRelayOnAfterReconnect4) {
                             if (fillqty > 0) {
                                 if (isOnlineTxn) {
                                     CommonUtils.UpgradeTransactionStatusToSqlite(TransactionId, "10", BackgroundService_BTFour.this);
@@ -873,8 +875,8 @@ public class BackgroundService_BTFour extends Service {
                                     offlineController.updateOfflineTransactionStatus(sqlite_id + "", "10");
                                 }
                             }
-                            StopTransaction(true, true);
                         }
+                        StopTransaction(true, true);
                     }
                     if (!AppConstants.isRelayON_fs4) {
                         TransactionCompleteFunction();
@@ -917,11 +919,11 @@ public class BackgroundService_BTFour extends Service {
     public void ProceedToPostTransactionCommands() {
         // Free the link and continue to post transaction commands
         StopTransaction(true, false); // Free the link
-        if (versionNumberOfLinkFour >= 1411) { // Last20 command supported from this version onwards
+        if (CommonUtils.checkBTVersionCompatibility(versionNumberOfLinkFour, BTConstants.supportedLinkVersionForLast20) && IsEleventhTransaction.equalsIgnoreCase("true")) { // Last20 command supported from this version onwards
             last20Command();
-        } else if (versionNumberOfLinkFour >= 148) { // Bypass pump reset command supported from this version onwards
+        } else if (CommonUtils.checkBTVersionCompatibility(versionNumberOfLinkFour, BTConstants.supportedLinkVersionForBypassPumpReset)) { // Bypass pump reset command supported from this version onwards
             BypassPumpResetCommand();
-        } else if (versionNumberOfLinkFour >= 145) { // Set P_Type command supported from this version onwards
+        } else if (CommonUtils.checkBTVersionCompatibility(versionNumberOfLinkFour, BTConstants.supportedLinkVersionForP_Type)) { // Set P_Type command supported from this version onwards
             P_Type_Command();
         } else {
             CloseTransaction(false); // ProceedToPostTransactionCommands
@@ -995,8 +997,9 @@ public class BackgroundService_BTFour extends Service {
                             //last20 command success.
                             Log.i(TAG, "BTLink_4: last20 Command Response success 1:>>" + Response);
                             if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(TAG + " BTLink_4: Checking last20 command response. Response:>>" + Response.trim());
+                                AppConstants.WriteinFile(TAG + " BTLink_4: Checking last20 command response. Response: true"); //>>" + Response.trim()
                             parseLast20CommandResponse(Response.trim());
+                            ResetEleventhTransactionFlag();
                             BypassPumpResetCommand();
                             cancel();
                         } else {
@@ -1012,8 +1015,9 @@ public class BackgroundService_BTFour extends Service {
                         //last20 command success.
                         Log.i(TAG, "BTLink_4: last20 Command Response success 2:>>" + Response);
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + " BTLink_4: Checking last20 command response. Response:>>" + Response.trim());
+                            AppConstants.WriteinFile(TAG + " BTLink_4: Checking last20 command response. Response: true"); //>>" + Response.trim()
                         parseLast20CommandResponse(Response.trim());
+                        ResetEleventhTransactionFlag();
                     }
                     BypassPumpResetCommand();
                 }
@@ -1086,7 +1090,7 @@ public class BackgroundService_BTFour extends Service {
     //endregion
 
     private void ProceedToNextCommand() {
-        if (versionNumberOfLinkFour >= 1412) { // CheckMOStatus command supported from this version onwards
+        if (CommonUtils.checkBTVersionCompatibility(versionNumberOfLinkFour, BTConstants.supportedLinkVersionForMOStatus)) { // CheckMOStatus command supported from this version onwards
             CheckMOStatusCommand();
         } else {
             P_Type_Command();
@@ -1667,7 +1671,7 @@ public class BackgroundService_BTFour extends Service {
             WifiManager wifiManagerMM = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
             if (wifiManagerMM.isWifiEnabled()) {
                 if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + " <Disabling wifi.>");
+                    AppConstants.WriteinFile(TAG + " <Turning OFF the Wifi.>");
                 wifiManagerMM.setWifiEnabled(false);
             }
             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
@@ -1678,7 +1682,7 @@ public class BackgroundService_BTFour extends Service {
                         WifiApManager wifiApManager = new WifiApManager(BackgroundService_BTFour.this);
                         if (!CommonUtils.isHotspotEnabled(BackgroundService_BTFour.this) && !AppConstants.isAllLinksAreBTLinks) {
                             if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(TAG + "<Enabling hotspot.>");
+                                AppConstants.WriteinFile(TAG + " <Turning ON the Hotspot.>");
                             wifiApManager.setWifiApEnabled(null, true);
                         }
                         isHotspotDisabled = false;
@@ -1915,9 +1919,7 @@ public class BackgroundService_BTFour extends Service {
             boolean isInsert = true;
             ArrayList<HashMap<String, String>> alltranz = controller.getAllTransaction();
             if (alltranz != null && alltranz.size() > 0) {
-
                 for (int i = 0; i < alltranz.size(); i++) {
-
                     if (jsonData.equalsIgnoreCase(alltranz.get(i).get("jsonData")) && authString.equalsIgnoreCase(alltranz.get(i).get("authString"))) {
                         isInsert = false;
                         break;
@@ -1930,7 +1932,7 @@ public class BackgroundService_BTFour extends Service {
             }
         } catch (Exception e) {
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " BTLink_4: SaveLastBTTransactionToServer Exception: " + e.getMessage());
+                AppConstants.WriteinFile(TAG + " BTLink_4: SaveLastBTTransactionInLocalDB Exception: " + e.getMessage());
         }
     }
 
@@ -2083,7 +2085,7 @@ public class BackgroundService_BTFour extends Service {
             if (AppConstants.GenerateLogs)
                 AppConstants.WriteinFile(TAG + " BTLink_4: LINK Version >> " + version);
             storeUpgradeFSVersion(BackgroundService_BTFour.this, AppConstants.UP_HoseId_fs4, version);
-            versionNumberOfLinkFour = CommonUtils.GetVersionNumberFromLink(version);
+            versionNumberOfLinkFour = CommonUtils.getVersionFromLink(version);
         } catch (Exception e) {
             e.printStackTrace();
             if (AppConstants.GenerateLogs)
@@ -2343,49 +2345,19 @@ public class BackgroundService_BTFour extends Service {
 
     private void parseLast1CommandResponse(String response) {
         try {
-            ArrayList<HashMap<String, String>> arrayList = new ArrayList<>();
             JSONObject jsonObject = new JSONObject(response);
             JSONArray jsonArray = jsonObject.getJSONArray("records");
             for (int i = 0; i < jsonArray.length(); i++) {
 
                 JSONObject j = jsonArray.getJSONObject(i);
                 String txtn = j.getString("txtn");
-                String date = j.getString("date");
-                String vehicle = j.getString("vehicle");
                 String pulse = j.getString("pulse");
-                String dflag = j.getString("dflag");
 
-                try {
-                    if (!date.contains("-") && date.length() == 12) { // change date format from "yyMMddHHmmss" to "yyyy-MM-dd HH:mm:ss"
-                        date = BTConstants.parseDateForOldVersion(date);
-                    }
-                } catch (Exception e) {
-                    Log.i(TAG, " Exception while parsing date format.>> " + e.getMessage());
+                if (!txtn.equalsIgnoreCase("N/A") && !pulse.equalsIgnoreCase("-1")) {
+                    SaveLastBTTransactionInLocalDB(txtn, pulse);
                 }
-
-                HashMap<String, String> Hmap = new HashMap<>();
-                Hmap.put("TransactionID", txtn);//TransactionID
-                Hmap.put("Pulses", pulse);//Pulses
-                Hmap.put("FuelQuantity", ReturnQty(pulse));//FuelQuantity
-                Hmap.put("TransactionDateTime", date); //TransactionDateTime
-                Hmap.put("VehicleId", vehicle); //VehicleId
-                Hmap.put("dflag", dflag);
-
-                arrayList.add(Hmap);
             }
-
-            Gson gs = new Gson();
-            EntityCmd20Txn ety = new EntityCmd20Txn();
-            ety.cmtxtnid_20_record = arrayList;
-
-            String json20txn = gs.toJson(ety);
-
-            SharedPreferences sharedPref = this.getSharedPreferences("storeCmtxtnid_20_record", Context.MODE_PRIVATE);
-            SharedPreferences.Editor editor = sharedPref.edit();
-            editor.putString("LAST1_LINK4", json20txn);
-            editor.apply();
         } catch (Exception e) {
-            e.printStackTrace();
             if (AppConstants.GenerateLogs)
                 AppConstants.WriteinFile(TAG + " BTLink_4: Exception in parseLast1CommandResponse. response>> " + response + "; Exception>>" + e.getMessage());
         }
@@ -2529,6 +2501,36 @@ public class BackgroundService_BTFour extends Service {
         } catch (Exception ex) {
             if (AppConstants.GenerateLogs)
                 AppConstants.WriteinFile(TAG + " BTLink_4: UpdateManualOverrideStatusOfLink Exception: " + ex.getMessage());
+        }
+    }
+
+    private void ResetEleventhTransactionFlag() {
+        try {
+            String userEmail = CommonUtils.getCustomerDetails_backgroundServiceBT(BackgroundService_BTFour.this).PersonEmail;
+
+            String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(BackgroundService_BTFour.this) + ":" + userEmail + ":" + "SetEleventhTransaction" + AppConstants.LANG_PARAM);
+
+            EleventhTransaction eleventhTransaction = new EleventhTransaction();
+            eleventhTransaction.SiteId = BTConstants.BT4SITE_ID;
+
+            Gson gson = new Gson();
+            String jsonData = gson.toJson(eleventhTransaction);
+
+            SharedPreferences pref;
+            SharedPreferences.Editor editor;
+
+            pref = BackgroundService_BTFour.this.getSharedPreferences("storeEleventhTransactionFlag4", 0);
+            editor = pref.edit();
+
+            // Storing
+            editor.putString("jsonData", jsonData);
+            editor.putString("authString", authString);
+
+            // commit changes
+            editor.commit();
+        } catch (Exception ex) {
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + " BTLink_4: ResetEleventhTransactionFlag Exception: " + ex.getMessage());
         }
     }
 }

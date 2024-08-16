@@ -72,7 +72,6 @@ public class BS_BLE_BTOne extends Service {
     int pulseCount = 0;
     int stopCount = 0;
     int RespCount = 0; //, LinkResponseCount = 0;
-    int fdCheckCount = 0;
     long stopAutoFuelSeconds = 0;
     Integer Pulses = 0;
     Integer pre_pulse = 0;
@@ -87,16 +86,16 @@ public class BS_BLE_BTOne extends Service {
     String OffLastTXNid = "0";
     ConnectionDetector cd = new ConnectionDetector(BS_BLE_BTOne.this);
     OffDBController offlineController = new OffDBController(BS_BLE_BTOne.this);
-    //String ipForUDP = "192.168.4.1"; // Removed UDP code as per #2553
+    //String ipForUDP = "192.168.4.1"; // Removed UDP code as per #2603
     public int infoCommandAttempt = 0;
     public boolean isConnected = false;
     public boolean isHotspotDisabled = false;
     public boolean isOnlineTxn = true;
-    public int versionNumberOfLinkOne = 0;
+    public String versionNumberOfLinkOne = "";
     public String PulserTimingAdjust, IsResetSwitchTimeBounce, GetPulserTypeFromLINK;
     public boolean IsAnyPostTxnCommandExecuted = false;
     public boolean isTxnLimitReached = false;
-    public int relayOffAttemptCount = 0;
+    //public int relayOffAttemptCount = 0;
 
     SimpleDateFormat sdformat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
     ArrayList<HashMap<String, String>> quantityRecords = new ArrayList<>();
@@ -173,7 +172,7 @@ public class BS_BLE_BTOne extends Service {
 
                 Thread.sleep(2000);
                 AppConstants.isRelayON_fs1 = false;
-                LinkName = CommonUtils.getlinkName(0);
+                LinkName = CommonUtils.getLinkName(0);
                 if (LinkCommunicationType.equalsIgnoreCase("BT")) {
                     IsThisBTTrnx = true;
                     BT_BLE_Constants.BTBLELinkOneStatus = false;
@@ -743,7 +742,6 @@ public class BS_BLE_BTOne extends Service {
                 }
 
                 public void onFinish() {
-
                     if (BT_BLE_Constants.BTBLEStatusStrOne.equalsIgnoreCase("Connected")) {
                         isConnected = true;
                         if (AppConstants.GenerateLogs)
@@ -794,7 +792,7 @@ public class BS_BLE_BTOne extends Service {
                 if (CommonUtils.isHotspotEnabled(BS_BLE_BTOne.this)) {
                     // Disable Hotspot
                     if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + "<Disabling hotspot.>");
+                        AppConstants.WriteinFile(TAG + " <Turning OFF the Hotspot. (if enabled)>");
                     WifiApManager wifiApManager = new WifiApManager(BS_BLE_BTOne.this);
                     wifiApManager.setWifiApEnabled(null, false);
                     isHotspotDisabled = true;
@@ -975,7 +973,7 @@ public class BS_BLE_BTOne extends Service {
                                     @Override
                                     public void run() {
                                         AppConstants.isInfoCommandSuccess_fs1 = true;
-                                        if (IsThisBTTrnx && BT_BLE_Constants.isNewVersionLinkOne) { // && (versionNumberOfLinkOne >= 145)) {
+                                        if (IsThisBTTrnx && BT_BLE_Constants.isNewVersionLinkOne) {
                                             last1Command();
                                         } else {
                                             transactionIdCommand(TransactionId);
@@ -1017,7 +1015,7 @@ public class BS_BLE_BTOne extends Service {
                                 @Override
                                 public void run() {
                                     AppConstants.isInfoCommandSuccess_fs1 = true;
-                                    if (IsThisBTTrnx && BT_BLE_Constants.isNewVersionLinkOne) { // && (versionNumberOfLinkOne >= 145)) {
+                                    if (IsThisBTTrnx && BT_BLE_Constants.isNewVersionLinkOne) {
                                         last1Command();
                                     } else {
                                         transactionIdCommand(TransactionId);
@@ -1336,7 +1334,7 @@ public class BS_BLE_BTOne extends Service {
         try {
             //Execute relayOff Command
             Response = "";
-            relayOffAttemptCount++;
+            //relayOffAttemptCount++;
             if (IsThisBTTrnx) {
                 if (AppConstants.GenerateLogs)
                     AppConstants.WriteinFile(TAG + " Sending relayOff command to Link: " + LinkName);
@@ -1378,7 +1376,7 @@ public class BS_BLE_BTOne extends Service {
                         Log.i(TAG, " Failed to get relayOff Command Response:>>" + Response);
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + " Checking relayOff command response. Response: false");
-                        if (relayOffAttemptCount >= 2) {
+                        if (BTConstants.isRelayOnAfterReconnect1) {
                             if (fillqty > 0) {
                                 if (isOnlineTxn) {
                                     CommonUtils.UpgradeTransactionStatusToSqlite(TransactionId, "10", BS_BLE_BTOne.this);
@@ -1386,8 +1384,8 @@ public class BS_BLE_BTOne extends Service {
                                     offlineController.updateOfflineTransactionStatus(sqlite_id + "", "10");
                                 }
                             }
-                            StopTransaction(true, true);
                         }
+                        StopTransaction(true, true);
                     }
                     if (!AppConstants.isRelayON_fs1) {
                         TransactionCompleteFunction();
@@ -1430,7 +1428,7 @@ public class BS_BLE_BTOne extends Service {
     public void ProceedToPostTransactionCommands() {
         // Free the link and continue to post transaction commands
         StopTransaction(true, false); // Free the link
-        if (versionNumberOfLinkOne >= 145) { // Set P_Type command supported from this version onwards
+        if (CommonUtils.checkBTVersionCompatibility(versionNumberOfLinkOne, BTConstants.supportedLinkVersionForP_Type)) { // Set P_Type command supported from this version onwards
             P_Type_Command();
         } else {
             CloseTransaction(false); // ProceedToPostTransactionCommands
@@ -1731,7 +1729,7 @@ public class BS_BLE_BTOne extends Service {
             if (AppConstants.GenerateLogs)
                 AppConstants.WriteinFile(TAG + " LINK Version >> " + version);
             storeUpgradeFSVersion(BS_BLE_BTOne.this, AppConstants.UP_HoseId_fs1, version);
-            versionNumberOfLinkOne = CommonUtils.GetVersionNumberFromLink(version);
+            versionNumberOfLinkOne = CommonUtils.getVersionFromLink(version);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -1849,86 +1847,28 @@ public class BS_BLE_BTOne extends Service {
             }
         } catch (Exception e) {
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " SaveLastBTTransactionToServer Exception: " + e.getMessage());
+                AppConstants.WriteinFile(TAG + " SaveLastBTTransactionInLocalDB Exception: " + e.getMessage());
         }
     }
 
     private void parseLast1CommandResponse(String response) {
         try {
-            ArrayList<HashMap<String, String>> arrayList = new ArrayList<>();
             JSONObject jsonObject = new JSONObject(response);
             JSONArray jsonArray = jsonObject.getJSONArray("records");
             for (int i = 0; i < jsonArray.length(); i++) {
 
                 JSONObject j = jsonArray.getJSONObject(i);
                 String txtn = j.getString("txtn");
-                String date = j.getString("date");
-                String vehicle = j.getString("vehicle");
                 String pulse = j.getString("pulse");
-                String dflag = j.getString("dflag");
 
-                try {
-                    if (!date.contains("-") && date.length() == 12) { // change date format from "yyMMddHHmmss" to "yyyy-MM-dd HH:mm:ss"
-                        date = BTConstants.parseDateForOldVersion(date);
-                    }
-                } catch (Exception e) {
-                    Log.i(TAG, " Exception while parsing date format.>> " + e.getMessage());
+                if (!txtn.equalsIgnoreCase("N/A") && !pulse.equalsIgnoreCase("-1")) {
+                    SaveLastBTTransactionInLocalDB(txtn, pulse);
                 }
-
-                HashMap<String, String> Hmap = new HashMap<>();
-                Hmap.put("TransactionID", txtn);//TransactionID
-                Hmap.put("Pulses", pulse);//Pulses
-                Hmap.put("FuelQuantity", ReturnQty(pulse));//FuelQuantity
-                Hmap.put("TransactionDateTime", date); //TransactionDateTime
-                Hmap.put("VehicleId", vehicle); //VehicleId
-                Hmap.put("dflag", dflag);
-
-                arrayList.add(Hmap);
             }
-
-            Gson gs = new Gson();
-            EntityCmd20Txn ety = new EntityCmd20Txn();
-            ety.cmtxtnid_20_record = arrayList;
-
-            String json20txn = gs.toJson(ety);
-
-            SharedPreferences sharedPref = BS_BLE_BTOne.this.getSharedPreferences("storeCmtxtnid_20_record", Context.MODE_PRIVATE);
-            SharedPreferences.Editor editor = sharedPref.edit();
-            editor.putString("BLE_LINK1", json20txn);
-            editor.apply();
-
         } catch (Exception e) {
-            e.printStackTrace();
             if (AppConstants.GenerateLogs)
                 AppConstants.WriteinFile(TAG + " Exception in parseLast1CommandResponse. response>> " + response + "; Exception>>" + e.getMessage());
         }
-    }
-
-    private String ReturnQty(String outputQuantity) {
-        String return_qty = "";
-        try {
-            double fillqty = 0;
-            Integer Pulses = Integer.parseInt(outputQuantity);
-            if (Pulses > 0) {
-                fillqty = Double.parseDouble(outputQuantity);
-                fillqty = fillqty / numPulseRatio;//convert to gallons
-
-                fillqty = AppConstants.roundNumber(fillqty, 2);
-
-                DecimalFormat precision = new DecimalFormat("0.00");
-                return_qty = (precision.format(fillqty));
-            } else {
-                return_qty = "0";
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return return_qty;
-    }
-
-    public class EntityCmd20Txn {
-        ArrayList cmtxtnid_20_record;
-        String jsonfromLink;
     }
 
     private void ParseGetPulserTypeCommandResponse(String response) {
@@ -2188,7 +2128,7 @@ public class BS_BLE_BTOne extends Service {
             WifiManager wifiManagerMM = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
             if (wifiManagerMM.isWifiEnabled()) {
                 if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + " <Disabling wifi.>");
+                    AppConstants.WriteinFile(TAG + " <Turning OFF the Wifi.>");
                 wifiManagerMM.setWifiEnabled(false);
             }
             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
@@ -2199,7 +2139,7 @@ public class BS_BLE_BTOne extends Service {
                         WifiApManager wifiApManager = new WifiApManager(BS_BLE_BTOne.this);
                         if (!CommonUtils.isHotspotEnabled(BS_BLE_BTOne.this) && !AppConstants.isAllLinksAreBTLinks) {
                             if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(TAG + "<Enabling hotspot.>");
+                                AppConstants.WriteinFile(TAG + " <Turning ON the Hotspot.>");
                             wifiApManager.setWifiApEnabled(null, true);
                         }
                         isHotspotDisabled = false;

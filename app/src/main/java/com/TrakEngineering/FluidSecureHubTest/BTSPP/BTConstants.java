@@ -8,7 +8,12 @@ public class BTConstants {
 
     public static int SelectedLinkForPaireddevices = 0;
     public static int CurrentSelectedLinkBT = 0;
-    public static boolean CurrentTransactionIsBT = false;
+    public static boolean CurrentTransactionIsBT1 = false;
+    public static boolean CurrentTransactionIsBT2 = false;
+    public static boolean CurrentTransactionIsBT3 = false;
+    public static boolean CurrentTransactionIsBT4 = false;
+    public static boolean CurrentTransactionIsBT5 = false;
+    public static boolean CurrentTransactionIsBT6 = false;
     public static boolean BTLinkOneStatus = false;
     public static boolean BTLinkTwoStatus = false;
     public static boolean BTLinkThreeStatus = false;
@@ -74,6 +79,12 @@ public class BTConstants {
     public static String resetMOCheckFlag_command = "LK_COMM=mo_check_flag_reset";
     public static String ScopeStatus = "";
     public static String[] p_types = {"1", "2", "3", "4"};
+
+    public static String supportedLinkVersionForP_Type = "1.4.5";
+    public static String supportedLinkVersionForBypassPumpReset = "1.4.8";
+    public static String supportedLinkVersionForLast1 = "1.4.11";
+    public static String supportedLinkVersionForLast20 = "1.4.11";
+    public static String supportedLinkVersionForMOStatus = "1.4.12";
 
     public static boolean retryConnForInfoCommand1 = false;
     public static boolean retryConnForInfoCommand2 = false;

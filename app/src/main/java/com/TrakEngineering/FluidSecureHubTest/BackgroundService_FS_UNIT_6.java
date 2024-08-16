@@ -271,7 +271,6 @@ public class BackgroundService_FS_UNIT_6 extends Service {
                 LimitReachedMessage = sharedPref.getString("LimitReachedMessage_FS6", "");
                 SiteId = sharedPref.getString("SiteId_FS6", "");
 
-
                 if (cd.isConnectingToInternet() && CurrTxnMode.equalsIgnoreCase("online")) {
 
 
@@ -990,20 +989,20 @@ public class BackgroundService_FS_UNIT_6 extends Service {
                 try {
                     if (minFuelLimit > 0) {
                         if (fillqty >= minFuelLimit) {
-                            if (!Constants.BusyVehicleNumberList.equals(null)) {
+                            if (Constants.BusyVehicleNumberList != null) {
                                 Constants.BusyVehicleNumberList.remove(Constants.AccVehicleNumber_FS6);
                             }
                             IsFuelingStop = "1";
                             System.out.println("APFS_PIPE Auto Stop! You reached MAX fuel limit.");
                             if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(TAG + "Link:" + LinkName + " Auto Stop! You reached MAX fuel limit.");
+                                AppConstants.WriteinFile(TAG + "Link: " + LinkName + "; Auto Stop! You reached MAX fuel limit.");
                             AppConstants.DisplayToastmaxlimit = true;
                             AppConstants.MaxlimitMessage = LimitReachedMessage;
                             stopButtonFunctionality();
                             this.stopSelf();
                         }
                     } else if (minFuelLimit == -1) {
-                        if (!Constants.BusyVehicleNumberList.equals(null)) {
+                        if (Constants.BusyVehicleNumberList != null) {
                             Constants.BusyVehicleNumberList.remove(Constants.AccVehicleNumber_FS6);
                         }
                         IsFuelingStop = "1";
@@ -1588,26 +1587,17 @@ public class BackgroundService_FS_UNIT_6 extends Service {
                 boolean isInsert = true;
                 ArrayList<HashMap<String, String>> alltranz = controller.getAllTransaction();
                 if (alltranz != null && alltranz.size() > 0) {
-
                     for (int i = 0; i < alltranz.size(); i++) {
-
                         if (jsonData.equalsIgnoreCase(alltranz.get(i).get("jsonData")) && authString.equalsIgnoreCase(alltranz.get(i).get("authString"))) {
                             isInsert = false;
                             break;
                         }
                     }
                 }
-
-
-                //==========================*/
                 clearEditTextFields();
-
-
             } catch (Exception ex) {
-
                 CommonUtils.LogMessage("APFS_6", "AuthTestAsyncTask ", ex);
             }
-
 
             isTransactionComp = true;
 

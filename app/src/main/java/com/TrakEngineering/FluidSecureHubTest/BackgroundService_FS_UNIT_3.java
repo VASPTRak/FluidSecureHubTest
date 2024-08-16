@@ -992,26 +992,26 @@ public class BackgroundService_FS_UNIT_3 extends Service {
                 try {
                     if (minFuelLimit > 0) {
                         if (fillqty >= minFuelLimit) {
-                            if (!Constants.BusyVehicleNumberList.equals(null)) {
+                            if (Constants.BusyVehicleNumberList != null) {
                                 Constants.BusyVehicleNumberList.remove(Constants.AccVehicleNumber_FS3);
                             }
                             IsFuelingStop = "1";
                             System.out.println("APFS_PIPE Auto Stop! You reached MAX fuel limit.");
                             if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(TAG + "Link:" + LinkName + " Auto Stop! You reached MAX fuel limit.");
+                                AppConstants.WriteinFile(TAG + "Link: " + LinkName + "; Auto Stop! You reached MAX fuel limit.");
                             AppConstants.DisplayToastmaxlimit = true;
                             AppConstants.MaxlimitMessage = LimitReachedMessage;
                             stopButtonFunctionality();
                             this.stopSelf();
                         }
                     } else if (minFuelLimit == -1) {
-                        if (!Constants.BusyVehicleNumberList.equals(null)) {
+                        if (Constants.BusyVehicleNumberList != null) {
                             Constants.BusyVehicleNumberList.remove(Constants.AccVehicleNumber_FS3);
                         }
                         IsFuelingStop = "1";
                         System.out.println("APFS_PIPE Auto Stop! You reached MAX fuel limit.");
                         if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "Link:" + LinkName + " Auto Stop! You reached MAX fuel limit**.");
+                            AppConstants.WriteinFile(TAG + "Link:" + LinkName + " Auto Stop! You reached MAX fuel limit.");
                         AppConstants.DisplayToastmaxlimit = true;
                         AppConstants.MaxlimitMessage = LimitReachedMessage;
                         stopButtonFunctionality();
@@ -1590,26 +1590,17 @@ public class BackgroundService_FS_UNIT_3 extends Service {
                 boolean isInsert = true;
                 ArrayList<HashMap<String, String>> alltranz = controller.getAllTransaction();
                 if (alltranz != null && alltranz.size() > 0) {
-
                     for (int i = 0; i < alltranz.size(); i++) {
-
                         if (jsonData.equalsIgnoreCase(alltranz.get(i).get("jsonData")) && authString.equalsIgnoreCase(alltranz.get(i).get("authString"))) {
                             isInsert = false;
                             break;
                         }
                     }
                 }
-
-
-                //==========================*/
                 clearEditTextFields();
-
-
             } catch (Exception ex) {
-
                 CommonUtils.LogMessage("APFS_3", "AuthTestAsyncTask ", ex);
             }
-
 
             isTransactionComp = true;
 

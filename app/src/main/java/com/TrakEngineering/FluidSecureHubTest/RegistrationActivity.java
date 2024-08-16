@@ -85,7 +85,8 @@ public class RegistrationActivity extends AppCompatActivity {
         StoreLanguageSettings(language, false);
 
         // ----------------------------------------------------------------------------------------------
-        this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+        //this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+        CommonUtils.hideKeyboard(RegistrationActivity.this);
         // ----------------------------------------------------------------------------------------------
 
         getSupportActionBar().setTitle(getResources().getString(R.string.NewHUBRegistration));
@@ -571,6 +572,7 @@ public class RegistrationActivity extends AppCompatActivity {
                         } else if (cd.isConnectingToInternet()) {
                             new ReplaceHUBFromApp().execute(hubName, imeiNumber, userName, userPass, userMobile);
                         } else {
+                            AppConstants.WriteinFile(TAG + " " + getResources().getString(R.string.no_internet));
                             CommonUtils.showNoInternetDialog(RegistrationActivity.this);
                         }
 
@@ -698,11 +700,11 @@ public class RegistrationActivity extends AppCompatActivity {
         }
     }
 
-    public void hideKeybord() {
+    /*public void hideKeybord() {
 
         InputMethodManager imm = (InputMethodManager) this.getSystemService(INPUT_METHOD_SERVICE);
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
-    }
+    }*/
 
     public void showKeybord() {
 

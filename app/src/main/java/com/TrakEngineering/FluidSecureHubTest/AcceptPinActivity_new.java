@@ -299,7 +299,7 @@ public class AcceptPinActivity_new extends AppCompatActivity {
         btnCancel.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                hideKeybord();
+                CommonUtils.hideKeyboard(AcceptPinActivity_new.this);
                 onBackPressed();
 
             }
@@ -498,7 +498,7 @@ public class AcceptPinActivity_new extends AppCompatActivity {
         tv_return.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                hideKeybord();
+                CommonUtils.hideKeyboard(AcceptPinActivity_new.this);
             }
         });
 
@@ -687,7 +687,7 @@ public class AcceptPinActivity_new extends AppCompatActivity {
                 return true;
             case R.id.mreboot_reader:
                 AppConstants.showReaderStatus = true;
-                CustomDilaogForRebootCmd(AcceptPinActivity_new.this, "Please enter a code to continue.", "Message");
+                CustomDialogForRebootCmd(AcceptPinActivity_new.this, "Please enter a code to continue.", "Message");
                 return true;
             case R.id.mshow_reader_status:
                 if (AppConstants.GenerateLogs)
@@ -1127,7 +1127,7 @@ public class AcceptPinActivity_new extends AppCompatActivity {
 
     public void cancelAction(View v) {
 
-        hideKeybord();
+        CommonUtils.hideKeyboard(AcceptPinActivity_new.this);
         onBackPressed();
     }
 
@@ -1228,7 +1228,7 @@ public class AcceptPinActivity_new extends AppCompatActivity {
                 btnCancel.setTextSize(18);
                 btnCancel.setLayoutParams(par);
             }
-            hideKeybord();
+            CommonUtils.hideKeyboard(AcceptPinActivity_new.this);
 
         } else {
 
@@ -1481,9 +1481,8 @@ public class AcceptPinActivity_new extends AppCompatActivity {
                     alertDialog.dismiss();
                 }
             }
-
+            CommonUtils.hideKeyboard(AcceptPinActivity_new.this);
             if (serverRes != null && !serverRes.isEmpty()) {
-
                 try {
 
                     JSONObject jsonObject = new JSONObject(serverRes);
@@ -1494,7 +1493,6 @@ public class AcceptPinActivity_new extends AppCompatActivity {
 
                     if (ResponceMessage.equalsIgnoreCase("success")) {
 
-
                         //if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG +" PIN Accepted:" + etPersonnelPin.getText().toString().trim());
 
                         btnSave.setClickable(false);
@@ -1504,7 +1502,6 @@ public class AcceptPinActivity_new extends AppCompatActivity {
                         String IsHoursRequire = sharedPrefODO.getString(AppConstants.IsHoursRequire, "");
                         String IsDepartmentRequire = sharedPrefODO.getString(AppConstants.IsDepartmentRequire, "");
                         String IsOtherRequire = sharedPrefODO.getString(AppConstants.IsOtherRequire, "");
-
 
                         if (IsDepartmentRequire.equalsIgnoreCase("True") && !IsGateHub.equalsIgnoreCase("True")) {
 
@@ -1865,7 +1862,8 @@ public class AcceptPinActivity_new extends AppCompatActivity {
                         } else if (IsBothFobAndPinRequired.equalsIgnoreCase("yes")) {
 
                             AcceptPinNumber();
-
+                            if (AppConstants.GenerateLogs)
+                                AppConstants.WriteinFile(TAG + "<(BothFobAndPinRequired) Showing the keyboard.>");
                             InputMethodManager inputMethodManager = (InputMethodManager) etPersonnelPin.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
                             etPersonnelPin.requestFocus();
                             inputMethodManager.showSoftInput(etPersonnelPin, 0);
@@ -1875,10 +1873,7 @@ public class AcceptPinActivity_new extends AppCompatActivity {
                             } else {
                                 ResetTimeoutPinScreen();
                                 CommonUtils.AutoCloseCustomMessageDialog(AcceptPinActivity_new.this, "Message", ResponceMessage);
-
                             }
-
-
                         } else if (IsNewFob.equalsIgnoreCase("No")) {
                             AppConstants.APDU_FOB_KEY = "";
                             tv_fob_Reader.setVisibility(View.GONE);
@@ -1897,7 +1892,8 @@ public class AcceptPinActivity_new extends AppCompatActivity {
                         } else if (IsNewMagneticCardReaderNumber.equalsIgnoreCase("yes")) {
 
                             AcceptPinNumber();
-
+                            if (AppConstants.GenerateLogs)
+                                AppConstants.WriteinFile(TAG + "<(NewMagneticCardReaderNumber) Showing the keyboard.>");
                             InputMethodManager inputMethodManager = (InputMethodManager) etPersonnelPin.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
                             etPersonnelPin.requestFocus();
                             inputMethodManager.showSoftInput(etPersonnelPin, 0);
@@ -1920,7 +1916,8 @@ public class AcceptPinActivity_new extends AppCompatActivity {
                         } else if (IsNewFob.equalsIgnoreCase("Yes") && IsPersonHasFob.equalsIgnoreCase("true")) {
 
                             AcceptPinNumber();
-
+                            if (AppConstants.GenerateLogs)
+                                AppConstants.WriteinFile(TAG + "<(NewFob) Showing the keyboard.>");
                             InputMethodManager inputMethodManager = (InputMethodManager) etPersonnelPin.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
                             etPersonnelPin.requestFocus();
                             inputMethodManager.showSoftInput(etPersonnelPin, 0);
@@ -1938,7 +1935,8 @@ public class AcceptPinActivity_new extends AppCompatActivity {
                         } else {
 
                             AcceptPinNumber();
-
+                            if (AppConstants.GenerateLogs)
+                                AppConstants.WriteinFile(TAG + "<Showing the keyboard.>");
                             InputMethodManager inputMethodManager = (InputMethodManager) etPersonnelPin.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
                             etPersonnelPin.requestFocus();
                             inputMethodManager.showSoftInput(etPersonnelPin, 0);
@@ -2036,7 +2034,7 @@ public class AcceptPinActivity_new extends AppCompatActivity {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                hideKeybord();
+                                CommonUtils.hideKeyboard(AcceptPinActivity_new.this);
                                 Istimeout_Sec = false;
                                 AppConstants.ClearEdittextFielsOnBack(AcceptPinActivity_new.this);
 
@@ -2078,16 +2076,16 @@ public class AcceptPinActivity_new extends AppCompatActivity {
         TimeoutPinScreen();
     }
 
-    public void hideKeybord() {
+    /*public void hideKeybord() {
         InputMethodManager imm = (InputMethodManager) this.getSystemService(INPUT_METHOD_SERVICE);
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
-    }
+    }*/
 
-    public void showKeybord() {
+    /*public void showKeybord() {
 
         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, InputMethodManager.HIDE_IMPLICIT_ONLY);
-    }
+    }*/
 
     public void AcceptPinNumber() {
 
@@ -2149,7 +2147,7 @@ public class AcceptPinActivity_new extends AppCompatActivity {
     public void InCaseOfGateHub() {
 
         //if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG +" InCaseOfGateHub PIN Accepted:" + etPersonnelPin.getText().toString().trim());
-
+        CommonUtils.hideKeyboard(AcceptPinActivity_new.this);
         String vehicleNumber = "";
 
         if (!etPersonnelPin.getText().toString().trim().isEmpty()) {
@@ -2182,7 +2180,6 @@ public class AcceptPinActivity_new extends AppCompatActivity {
 
         Istimeout_Sec = false;
 
-
         btnSave.setClickable(false);
 
         SharedPreferences sharedPrefODO = AcceptPinActivity_new.this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
@@ -2190,7 +2187,6 @@ public class AcceptPinActivity_new extends AppCompatActivity {
         String IsHoursRequire = sharedPrefODO.getString(AppConstants.IsHoursRequire, "");
         String IsDepartmentRequire = sharedPrefODO.getString(AppConstants.IsDepartmentRequire, "");
         String IsOtherRequire = sharedPrefODO.getString(AppConstants.IsOtherRequire, "");
-
 
         if (IsDepartmentRequire.equalsIgnoreCase("True") && !IsGateHub.equalsIgnoreCase("True")) {
 
@@ -2256,7 +2252,7 @@ public class AcceptPinActivity_new extends AppCompatActivity {
                         break;
                     }
                 }
-
+                CommonUtils.hideKeyboard(AcceptPinActivity_new.this);
                 if (isAllowed) {
 
                     boolean isAssigned = false;
@@ -2966,7 +2962,7 @@ public class AcceptPinActivity_new extends AppCompatActivity {
 
     }
 
-    private void CustomDilaogForRebootCmd(final Activity context, String title, String message) {
+    private void CustomDialogForRebootCmd(final Activity context, String title, String message) {
 
         final Dialog dialogBus = new Dialog(context);
         dialogBus.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -2977,7 +2973,7 @@ public class AcceptPinActivity_new extends AppCompatActivity {
         EditText edt_code = (EditText) dialogBus.findViewById(R.id.edt_code);
         TextView edt_message = (TextView) dialogBus.findViewById(R.id.edt_message);
         Button btnAllow = (Button) dialogBus.findViewById(R.id.btnAllow);
-        Button btnCancel = (Button) dialogBus.findViewById(R.id.btn_cancel);
+        Button btnCancelDialog = (Button) dialogBus.findViewById(R.id.btn_cancel);
         edt_message.setText(Html.fromHtml(title));
 
         btnAllow.setOnClickListener(new View.OnClickListener() {
@@ -3000,7 +2996,7 @@ public class AcceptPinActivity_new extends AppCompatActivity {
             }
         });
 
-        btnCancel.setOnClickListener(new View.OnClickListener() {
+        btnCancelDialog.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
@@ -3130,8 +3126,8 @@ public class AcceptPinActivity_new extends AppCompatActivity {
                             timer.cancel();
                         }
 
-                        InputMethodManager imm = (InputMethodManager) context.getSystemService(INPUT_METHOD_SERVICE);
-                        imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, InputMethodManager.HIDE_IMPLICIT_ONLY);
+                        /*InputMethodManager imm = (InputMethodManager) context.getSystemService(INPUT_METHOD_SERVICE);
+                        imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, InputMethodManager.HIDE_IMPLICIT_ONLY);*/
                         onResume();
                     }
                 }
@@ -3147,8 +3143,8 @@ public class AcceptPinActivity_new extends AppCompatActivity {
                     alertDialog.dismiss();
                 }
                 timer.cancel();
-                InputMethodManager imm = (InputMethodManager) context.getSystemService(INPUT_METHOD_SERVICE);
-                imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, InputMethodManager.HIDE_IMPLICIT_ONLY);
+                /*InputMethodManager imm = (InputMethodManager) context.getSystemService(INPUT_METHOD_SERVICE);
+                imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, InputMethodManager.HIDE_IMPLICIT_ONLY);*/
                 onResume();
             }
         }, 4000);

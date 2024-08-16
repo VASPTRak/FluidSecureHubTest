@@ -40,6 +40,7 @@ import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
 import android.net.NetworkRequest;
+import android.net.Uri;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
@@ -145,6 +146,9 @@ import com.squareup.okhttp.Response;
 import com.squareup.okhttp.ResponseBody;
 import com.squareup.picasso.Picasso;
 import com.thanosfisherman.wifiutils.WifiUtils;
+import com.thin.downloadmanager.DefaultRetryPolicy;
+import com.thin.downloadmanager.DownloadRequest;
+import com.thin.downloadmanager.DownloadStatusListenerV1;
 import com.thin.downloadmanager.ThinDownloadManager;
 
 import org.json.JSONArray;
@@ -412,6 +416,13 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
     ServerHandler serverHandler = new ServerHandler();
     public int HotspotEnableErrorCount = 0;
     public ProgressDialog pdUpgradeProcess;
+
+    // Upgrade File Download =================
+    public ProgressDialog pdUpgradeFileDownloadProcess;
+    public int downloadedFileProgress = 0;
+    public long lengthOfFile = 0;
+    public long downloadedFileLength = 0;
+    //=========================================
     public Handler BTConnectionHandler = new Handler(Looper.getMainLooper());
     public int delayMillis = 100;
     public String st = "";
@@ -425,6 +436,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
     public boolean proceedAfterManualWifiConnect = false;
     public boolean skipOnResume = false;
     public int linkPositionForUpgrade = 0;
+    public int waitCounterToHideKeyboard = 0;
 
     // ============ Bluetooth receiver for BT-SPP Upgrade =========//
     public BroadcastBlueLinkData broadcastBlueLinkData = null;
@@ -459,7 +471,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
     protected void onResume() {
         super.onResume();
 
-        hideKeyboard();
+        CommonUtils.hideKeyboard(WelcomeActivity.this);
         IsHotspotEnabled();
         AppConstants.IsBTLinkSelectedCurrently = false;
 
@@ -523,6 +535,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         ReConnectBTReader();
 
         tvSSIDName.setText(R.string.selectHose);
+        CommonUtils.hideKeyboard(WelcomeActivity.this);
         SelectedItemPos = -1;
 
         final IntentFilter intentFilter = new IntentFilter();
@@ -536,10 +549,6 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             mProgressDialog.dismiss();
             mProgressDialog = null;
         }
-
-        //Hide keyboard
-        //this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
-        hideKeyboard();
 
         linear_fs_1.setVisibility(View.INVISIBLE);
         linear_fs_2.setVisibility(View.INVISIBLE);
@@ -599,15 +608,6 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
         DebugWindow();
         AppConstants.showWelcomeDialogForAddNewLink = true;
-    }
-
-    public void hideKeyboard() {
-        try {
-            getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
-        } catch (Exception ex) {
-            AppConstants.WriteinFile(TAG + "hideKeyboard: Exception: " + ex.getMessage());
-            Log.e(TAG, "hideKeyboard: Exception: " + ex.getMessage());
-        }
     }
 
     private void copyFileFromAssets() {
@@ -706,17 +706,13 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             timerGate.cancel();
 
         if (AppConstants.EnableFA) {
-
-
             if (mHandler != null && mPruneTask != null)
                 mHandler.removeCallbacks(mPruneTask);
 
             if (mService != null)
                 mService.setBeaconEventListener(null);
 
-
             unbindService(this);
-
         }
 
         OnWelcomeActivity = false;
@@ -732,13 +728,16 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
         unregisterReceiver(btreceiver);
 
-
         if (receiver != null) {
             this.unregisterReceiver(receiver);
         }
 
         if (wifiApReciver != null) {
             this.unregisterReceiver(wifiApReciver);
+        }
+
+        if(dialogReceiver != null) {
+            unregisterReceiver(dialogReceiver);
         }
     }
 
@@ -811,7 +810,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         //mGoogleApiClient.connect();
 
         InItGUI();
-
+        CommonUtils.hideKeyboard(WelcomeActivity.this);
 
         //If checkbox is checked write logs in text file else not wite logs
         //And Set Fuiel branding Information
@@ -1177,6 +1176,10 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         IntentFilter mIntentFilter = new IntentFilter();
         mIntentFilter = new IntentFilter("android.net.wifi.WIFI_AP_STATE_CHANGED");
         registerReceiver(wifiApReciver, mIntentFilter);
+
+        // register BroadcastReceiver for offline data download
+        IntentFilter dialogFilter = new IntentFilter(OffBackgroundService.ACTION_SHOW_DIALOG);
+        registerReceiver(dialogReceiver, dialogFilter);
 
         //CallJobSchedular();//Job Scheduler hotspot check
 
@@ -3382,7 +3385,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         }*/
                     } else {
                         //Normal hub app code below....
-                        BTConstants.CurrentTransactionIsBT = false;
+                        ResetCurrentTransactionIsBTFlag(SelectedItemPos);
                         BTConstants.CurrentSelectedLinkBT = 0;
                         OfflineConstants.storeCurrentTransaction(WelcomeActivity.this, "", selSiteId, "", "", "", "", "", AppConstants.currentDateFormat("yyyy-MM-dd HH:mm"), "", "", "", "");
 
@@ -3894,6 +3897,36 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             }
         });
         dialog.show();
+    }
+
+    private void ResetCurrentTransactionIsBTFlag(int selectedItemPos) {
+        try {
+            switch (selectedItemPos) {
+                case 0:
+                    BTConstants.CurrentTransactionIsBT1 = false;
+                    break;
+                case 1://Link Two
+                    BTConstants.CurrentTransactionIsBT2 = false;
+                    break;
+                case 2://Link Three
+                    BTConstants.CurrentTransactionIsBT3 = false;
+                    break;
+                case 3://Link Four
+                    BTConstants.CurrentTransactionIsBT4 = false;
+                    break;
+                case 4://Link Five
+                    BTConstants.CurrentTransactionIsBT5 = false;
+                    break;
+                case 5://Link Six
+                    BTConstants.CurrentTransactionIsBT6 = false;
+                    break;
+                default://Something went wrong in link selection please try again.
+                    break;
+            }
+        } catch (Exception e) {
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + "ResetCurrentTransactionIsBTFlag Exception:" + e.getMessage());
+        }
     }
 
     class WifiReceiver extends BroadcastReceiver {
@@ -6024,11 +6057,15 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
     /////////////////////////////////////////////////////////////////////////////////////////////////
     public void DisplayDashboardEveSecond() {
-        hideKeyboard();
+        if (waitCounterToHideKeyboard >= 30) {
+            waitCounterToHideKeyboard = 0;
+            CommonUtils.hideKeyboard(WelcomeActivity.this);
+        } else { waitCounterToHideKeyboard++; }
+
         //Display MAX fuel limit message on screen
         if (AppConstants.DisplayToastmaxlimit && !AppConstants.MaxlimitMessage.isEmpty()) {
             //AppConstants.colorToastBigFont(this, AppConstants.MaxlimitMessage, Color.BLUE);
-            CommonUtils.AutoCloseCustomMessageDialog(WelcomeActivity.this, "Message", AppConstants.MaxlimitMessage);
+            CommonUtils.AutoCloseCustomMessageDialog(WelcomeActivity.this, "", AppConstants.MaxlimitMessage);
             AppConstants.DisplayToastmaxlimit = false;
             AppConstants.MaxlimitMessage = "";
         }
@@ -6050,13 +6087,13 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
             if (AppConstants.IsTransactionFailed1) {
                 AppConstants.IsTransactionFailed1 = false;
-                if (!CommonUtils.isHotspotEnabled(WelcomeActivity.this) && !BTConstants.CurrentTransactionIsBT) {
+                if (!CommonUtils.isHotspotEnabled(WelcomeActivity.this) && !BTConstants.CurrentTransactionIsBT1) {
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "BS_FS1: " + getResources().getString(R.string.HotspotOffMessage));
                     CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.HotspotOffMessage));
                 } else {
                     String logType = "", logPrefix = "";
-                    if (BTConstants.CurrentTransactionIsBT) {
+                    if (BTConstants.CurrentTransactionIsBT1) {
                         logType = AppConstants.LOG_TXTN_BT;
                         logPrefix = "BTLink_1: ";
                     } else {
@@ -6139,7 +6176,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
             String BTLinkCommType1 = serverSSIDList.get(0).get("BTLinkCommType");
             // BT Link reconnection attempt for interrupted transaction
-            if (BTConstants.CurrentTransactionIsBT && (!BTConstants.BTLinkOneStatus && !BT_BLE_Constants.BTBLELinkOneStatus) && AppConstants.isRelayON_fs1) { // && !BTConstants.SwitchedBTToUDP1
+            if (BTConstants.CurrentTransactionIsBT1 && (!BTConstants.BTLinkOneStatus && !BT_BLE_Constants.BTBLELinkOneStatus) && AppConstants.isRelayON_fs1) { // && !BTConstants.SwitchedBTToUDP1
                 if (BTLinkCommType1 != null && BTLinkCommType1.equalsIgnoreCase("SPP")) {
                     if (CountBeforeReconnectRelay1 >= 1) {
                         if (BTConstants.BTStatusStrOne.equalsIgnoreCase("Disconnect")) {
@@ -6215,13 +6252,13 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
             if (AppConstants.IsTransactionFailed2) {
                 AppConstants.IsTransactionFailed2 = false;
-                if (!CommonUtils.isHotspotEnabled(WelcomeActivity.this) && !BTConstants.CurrentTransactionIsBT) {
+                if (!CommonUtils.isHotspotEnabled(WelcomeActivity.this) && !BTConstants.CurrentTransactionIsBT2) {
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "BS_FS2: " + getResources().getString(R.string.HotspotOffMessage));
                     CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.HotspotOffMessage));
                 } else {
                     String logType = "", logPrefix = "";
-                    if (BTConstants.CurrentTransactionIsBT) {
+                    if (BTConstants.CurrentTransactionIsBT2) {
                         logType = AppConstants.LOG_TXTN_BT;
                         logPrefix = "BTLink_2: ";
                     } else {
@@ -6304,7 +6341,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
             String BTLinkCommType2 = serverSSIDList.get(1).get("BTLinkCommType");
             // BT Link reconnection attempt for interrupted transaction
-            if (BTConstants.CurrentTransactionIsBT && (!BTConstants.BTLinkTwoStatus && !BT_BLE_Constants.BTBLELinkTwoStatus) && AppConstants.isRelayON_fs2) { // && !BTConstants.SwitchedBTToUDP2
+            if (BTConstants.CurrentTransactionIsBT2 && (!BTConstants.BTLinkTwoStatus && !BT_BLE_Constants.BTBLELinkTwoStatus) && AppConstants.isRelayON_fs2) { // && !BTConstants.SwitchedBTToUDP2
                 if (BTLinkCommType2 != null && BTLinkCommType2.equalsIgnoreCase("SPP")) {
                     if (CountBeforeReconnectRelay2 >= 1) {
                         if (BTConstants.BTStatusStrTwo.equalsIgnoreCase("Disconnect")) {
@@ -6379,13 +6416,13 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
             if (AppConstants.IsTransactionFailed3) {
                 AppConstants.IsTransactionFailed3 = false;
-                if (!CommonUtils.isHotspotEnabled(WelcomeActivity.this) && !BTConstants.CurrentTransactionIsBT) {
+                if (!CommonUtils.isHotspotEnabled(WelcomeActivity.this) && !BTConstants.CurrentTransactionIsBT3) {
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "BS_FS3: " + getResources().getString(R.string.HotspotOffMessage));
                     CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.HotspotOffMessage));
                 } else {
                     String logType = "", logPrefix = "";
-                    if (BTConstants.CurrentTransactionIsBT) {
+                    if (BTConstants.CurrentTransactionIsBT3) {
                         logType = AppConstants.LOG_TXTN_BT;
                         logPrefix = "BTLink_3: ";
                     } else {
@@ -6468,7 +6505,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
             String BTLinkCommType3 = serverSSIDList.get(2).get("BTLinkCommType");
             // BT Link reconnection attempt for interrupted transaction
-            if (BTConstants.CurrentTransactionIsBT && (!BTConstants.BTLinkThreeStatus && !BT_BLE_Constants.BTBLELinkThreeStatus) && AppConstants.isRelayON_fs3) { // && !BTConstants.SwitchedBTToUDP3
+            if (BTConstants.CurrentTransactionIsBT3 && (!BTConstants.BTLinkThreeStatus && !BT_BLE_Constants.BTBLELinkThreeStatus) && AppConstants.isRelayON_fs3) { // && !BTConstants.SwitchedBTToUDP3
                 if (BTLinkCommType3 != null && BTLinkCommType3.equalsIgnoreCase("SPP")) {
                     if (CountBeforeReconnectRelay3 >= 1) {
                         if (BTConstants.BTStatusStrThree.equalsIgnoreCase("Disconnect")) {
@@ -6543,13 +6580,13 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
             if (AppConstants.IsTransactionFailed4) {
                 AppConstants.IsTransactionFailed4 = false;
-                if (!CommonUtils.isHotspotEnabled(WelcomeActivity.this) && !BTConstants.CurrentTransactionIsBT) {
+                if (!CommonUtils.isHotspotEnabled(WelcomeActivity.this) && !BTConstants.CurrentTransactionIsBT4) {
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "BS_FS4: " + getResources().getString(R.string.HotspotOffMessage));
                     CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.HotspotOffMessage));
                 } else {
                     String logType = "", logPrefix = "";
-                    if (BTConstants.CurrentTransactionIsBT) {
+                    if (BTConstants.CurrentTransactionIsBT4) {
                         logType = AppConstants.LOG_TXTN_BT;
                         logPrefix = "BTLink_4: ";
                     } else {
@@ -6632,7 +6669,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
             String BTLinkCommType4 = serverSSIDList.get(3).get("BTLinkCommType");
             // BT Link reconnection attempt for interrupted transaction
-            if (BTConstants.CurrentTransactionIsBT && (!BTConstants.BTLinkFourStatus && !BT_BLE_Constants.BTBLELinkFourStatus) && AppConstants.isRelayON_fs4) { // && !BTConstants.SwitchedBTToUDP4
+            if (BTConstants.CurrentTransactionIsBT4 && (!BTConstants.BTLinkFourStatus && !BT_BLE_Constants.BTBLELinkFourStatus) && AppConstants.isRelayON_fs4) { // && !BTConstants.SwitchedBTToUDP4
                 if (BTLinkCommType4 != null && BTLinkCommType4.equalsIgnoreCase("SPP")) {
                     if (CountBeforeReconnectRelay4 >= 1) {
                         if (BTConstants.BTStatusStrFour.equalsIgnoreCase("Disconnect")) {
@@ -6708,13 +6745,13 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
             if (AppConstants.IsTransactionFailed5) {
                 AppConstants.IsTransactionFailed5 = false;
-                if (!CommonUtils.isHotspotEnabled(WelcomeActivity.this) && !BTConstants.CurrentTransactionIsBT) {
+                if (!CommonUtils.isHotspotEnabled(WelcomeActivity.this) && !BTConstants.CurrentTransactionIsBT5) {
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "BS_FS5: " + getResources().getString(R.string.HotspotOffMessage));
                     CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.HotspotOffMessage));
                 } else {
                     String logType = "", logPrefix = "";
-                    if (BTConstants.CurrentTransactionIsBT) {
+                    if (BTConstants.CurrentTransactionIsBT5) {
                         logType = AppConstants.LOG_TXTN_BT;
                         logPrefix = "BTLink_5: ";
                     } else {
@@ -6797,7 +6834,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
             String BTLinkCommType5 = serverSSIDList.get(4).get("BTLinkCommType");
             // BT Link reconnection attempt for interrupted transaction
-            if (BTConstants.CurrentTransactionIsBT && (!BTConstants.BTLinkFiveStatus && !BT_BLE_Constants.BTBLELinkFiveStatus) && AppConstants.isRelayON_fs5) { // && !BTConstants.SwitchedBTToUDP5
+            if (BTConstants.CurrentTransactionIsBT5 && (!BTConstants.BTLinkFiveStatus && !BT_BLE_Constants.BTBLELinkFiveStatus) && AppConstants.isRelayON_fs5) { // && !BTConstants.SwitchedBTToUDP5
                 if (BTLinkCommType5 != null && BTLinkCommType5.equalsIgnoreCase("SPP")) {
                     if (CountBeforeReconnectRelay5 >= 1) {
                         if (BTConstants.BTStatusStrFive.equalsIgnoreCase("Disconnect")) {
@@ -6872,13 +6909,13 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
             if (AppConstants.IsTransactionFailed6) {
                 AppConstants.IsTransactionFailed6 = false;
-                if (!CommonUtils.isHotspotEnabled(WelcomeActivity.this) && !BTConstants.CurrentTransactionIsBT) {
+                if (!CommonUtils.isHotspotEnabled(WelcomeActivity.this) && !BTConstants.CurrentTransactionIsBT6) {
                     if (AppConstants.GenerateLogs)
                         AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "BS_FS6: " + getResources().getString(R.string.HotspotOffMessage));
                     CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.HotspotOffMessage));
                 } else {
                     String logType = "", logPrefix = "";
-                    if (BTConstants.CurrentTransactionIsBT) {
+                    if (BTConstants.CurrentTransactionIsBT6) {
                         logType = AppConstants.LOG_TXTN_BT;
                         logPrefix = "BTLink_6: ";
                     } else {
@@ -6961,7 +6998,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
             String BTLinkCommType6 = serverSSIDList.get(5).get("BTLinkCommType");
             // BT Link reconnection attempt for interrupted transaction
-            if (BTConstants.CurrentTransactionIsBT && (!BTConstants.BTLinkSixStatus && !BT_BLE_Constants.BTBLELinkSixStatus) && AppConstants.isRelayON_fs6) { // && !BTConstants.SwitchedBTToUDP6
+            if (BTConstants.CurrentTransactionIsBT6 && (!BTConstants.BTLinkSixStatus && !BT_BLE_Constants.BTBLELinkSixStatus) && AppConstants.isRelayON_fs6) { // && !BTConstants.SwitchedBTToUDP6
                 if (BTLinkCommType6 != null && BTLinkCommType6.equalsIgnoreCase("SPP")) {
                     if (CountBeforeReconnectRelay6 >= 1) {
                         if (BTConstants.BTStatusStrSix.equalsIgnoreCase("Disconnect")) {
@@ -13546,81 +13583,69 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         try {
             switch (position) {
                 case 1:
-                    if (BTConstants.BTStatusStrOne.equalsIgnoreCase("Connecting...")) {
-                        BTConstants.CurrentTransactionIsBT = false;
-                    } else {
+                    if (BTConstants.BTStatusStrOne.equalsIgnoreCase("Disconnect")) {
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_1: Retrying to Connect");
                         //Retrying to connect to link
                         BTSPPMain btspp = new BTSPPMain();
                         btspp.activity = WelcomeActivity.this;
                         btspp.connect1();
-                        BTConstants.CurrentTransactionIsBT = false;
+                        BTConstants.CurrentTransactionIsBT1 = false;
                     }
                     break;
                 case 2:
-                    if (BTConstants.BTStatusStrTwo.equalsIgnoreCase("Connecting...")) {
-                        BTConstants.CurrentTransactionIsBT = false;
-                    } else {
+                    if (BTConstants.BTStatusStrTwo.equalsIgnoreCase("Disconnect")) {
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_2: Retrying to Connect");
                         //Retrying to connect to link
                         BTSPPMain btspp = new BTSPPMain();
                         btspp.activity = WelcomeActivity.this;
                         btspp.connect2();
-                        BTConstants.CurrentTransactionIsBT = false;
+                        BTConstants.CurrentTransactionIsBT2 = false;
                     }
                     break;
                 case 3:
-                    if (BTConstants.BTStatusStrThree.equalsIgnoreCase("Connecting...")) {
-                        BTConstants.CurrentTransactionIsBT = false;
-                    } else {
+                    if (BTConstants.BTStatusStrThree.equalsIgnoreCase("Disconnect")) {
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_3: Retrying to Connect");
                         //Retrying to connect to link
                         BTSPPMain btspp = new BTSPPMain();
                         btspp.activity = WelcomeActivity.this;
                         btspp.connect3();
-                        BTConstants.CurrentTransactionIsBT = false;
+                        BTConstants.CurrentTransactionIsBT3 = false;
                     }
                     break;
                 case 4:
-                    if (BTConstants.BTStatusStrFour.equalsIgnoreCase("Connecting...")) {
-                        BTConstants.CurrentTransactionIsBT = false;
-                    } else {
+                    if (BTConstants.BTStatusStrFour.equalsIgnoreCase("Disconnect")) {
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_4: Retrying to Connect");
                         //Retrying to connect to link
                         BTSPPMain btspp = new BTSPPMain();
                         btspp.activity = WelcomeActivity.this;
                         btspp.connect4();
-                        BTConstants.CurrentTransactionIsBT = false;
+                        BTConstants.CurrentTransactionIsBT4 = false;
                     }
                     break;
                 case 5:
-                    if (BTConstants.BTStatusStrFive.equalsIgnoreCase("Connecting...")) {
-                        BTConstants.CurrentTransactionIsBT = false;
-                    } else {
+                    if (BTConstants.BTStatusStrFive.equalsIgnoreCase("Disconnect")) {
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_5: Retrying to Connect");
                         //Retrying to connect to link
                         BTSPPMain btspp = new BTSPPMain();
                         btspp.activity = WelcomeActivity.this;
                         btspp.connect5();
-                        BTConstants.CurrentTransactionIsBT = false;
+                        BTConstants.CurrentTransactionIsBT5 = false;
                     }
                     break;
                 case 6:
-                    if (BTConstants.BTStatusStrSix.equalsIgnoreCase("Connecting...")) {
-                        BTConstants.CurrentTransactionIsBT = false;
-                    } else {
+                    if (BTConstants.BTStatusStrSix.equalsIgnoreCase("Disconnect")) {
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_6: Retrying to Connect");
                         //Retrying to connect to link
                         BTSPPMain btspp = new BTSPPMain();
                         btspp.activity = WelcomeActivity.this;
                         btspp.connect6();
-                        BTConstants.CurrentTransactionIsBT = false;
+                        BTConstants.CurrentTransactionIsBT6 = false;
                     }
                     break;
             }
@@ -13642,6 +13667,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     } else {
                         BTL1State = 0;
                         BTConstants.CurrentSelectedLinkBT = 0;
+                        BTConstants.CurrentTransactionIsBT1 = true;
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
                         RestrictHoseSelection(getResources().getString(R.string.HoseInUse), false);
@@ -13650,21 +13676,31 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     if (!BTConstants.deviceAddress1.isEmpty()) {
                         NearByBTDevices.clear();
                         mBluetoothAdapter.startDiscovery();
-                        RestrictHoseSelection(getResources().getString(R.string.ConnectingStatus), true);
+                        if (Constants.FS_1STATUS.equalsIgnoreCase("FREE")) {
+                            RestrictHoseSelection(getResources().getString(R.string.ConnectingStatus), true);
+                        }
 
                         Handler handler = new Handler();
                         int delay = 1000;
                         handler.postDelayed(new Runnable() {
                             public void run() {
-
                                 if (!checkBTLinkStatus(1) && BTLinkCommType != null && BTLinkCommType.equalsIgnoreCase("SPP")) {
                                     retryConnect(1);
                                 }
                                 if (BTConnectionHandler != null) {
                                     BTConnectionHandler.removeCallbacksAndMessages(null);
                                 }
-                                AppConstants.FS_selected = String.valueOf(selectedItemPos);
-                                RedirectBtLinkOneToNextScreen(selSSID);
+                                if (Constants.FS_1STATUS.equalsIgnoreCase("FREE")) {
+                                    AppConstants.FS_selected = String.valueOf(selectedItemPos);
+                                    RedirectBtLinkOneToNextScreen(selSSID);
+                                } else {
+                                    BTL1State = 0;
+                                    BTConstants.CurrentSelectedLinkBT = 0;
+                                    BTConstants.CurrentTransactionIsBT1 = true;
+                                    if (AppConstants.GenerateLogs)
+                                        AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
+                                    RestrictHoseSelection(getResources().getString(R.string.HoseInUse), false);
+                                }
                             }
                         }, delay);
                     } else {
@@ -13683,6 +13719,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     } else {
                         BTL2State = 0;
                         BTConstants.CurrentSelectedLinkBT = 0;
+                        BTConstants.CurrentTransactionIsBT2 = true;
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
                         RestrictHoseSelection(getResources().getString(R.string.HoseInUse), false);
@@ -13691,21 +13728,31 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     if (!BTConstants.deviceAddress2.isEmpty()) {
                         NearByBTDevices.clear();
                         mBluetoothAdapter.startDiscovery();
-                        RestrictHoseSelection(getResources().getString(R.string.ConnectingStatus), true);
+                        if (Constants.FS_2STATUS.equalsIgnoreCase("FREE")) {
+                            RestrictHoseSelection(getResources().getString(R.string.ConnectingStatus), true);
+                        }
 
                         Handler handler = new Handler();
                         int delay = 1000;
                         handler.postDelayed(new Runnable() {
                             public void run() {
-
                                 if (!checkBTLinkStatus(2) && BTLinkCommType != null && BTLinkCommType.equalsIgnoreCase("SPP")) {
                                     retryConnect(2);
                                 }
                                 if (BTConnectionHandler != null) {
                                     BTConnectionHandler.removeCallbacksAndMessages(null);
                                 }
-                                AppConstants.FS_selected = String.valueOf(selectedItemPos);
-                                RedirectBtLinkTwoToNextScreen(selSSID);
+                                if (Constants.FS_2STATUS.equalsIgnoreCase("FREE")) {
+                                    AppConstants.FS_selected = String.valueOf(selectedItemPos);
+                                    RedirectBtLinkTwoToNextScreen(selSSID);
+                                } else {
+                                    BTL2State = 0;
+                                    BTConstants.CurrentSelectedLinkBT = 0;
+                                    BTConstants.CurrentTransactionIsBT2 = true;
+                                    if (AppConstants.GenerateLogs)
+                                        AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
+                                    RestrictHoseSelection(getResources().getString(R.string.HoseInUse), false);
+                                }
                             }
                         }, delay);
                     } else {
@@ -13724,6 +13771,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     } else {
                         BTL3State = 0;
                         BTConstants.CurrentSelectedLinkBT = 0;
+                        BTConstants.CurrentTransactionIsBT3 = true;
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
                         RestrictHoseSelection(getResources().getString(R.string.HoseInUse), false);
@@ -13732,21 +13780,31 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     if (!BTConstants.deviceAddress3.isEmpty()) {
                         NearByBTDevices.clear();
                         mBluetoothAdapter.startDiscovery();
-                        RestrictHoseSelection(getResources().getString(R.string.ConnectingStatus), true);
+                        if (Constants.FS_3STATUS.equalsIgnoreCase("FREE")) {
+                            RestrictHoseSelection(getResources().getString(R.string.ConnectingStatus), true);
+                        }
 
                         Handler handler = new Handler();
                         int delay = 1000;
                         handler.postDelayed(new Runnable() {
                             public void run() {
-
                                 if (!checkBTLinkStatus(3) && BTLinkCommType != null && BTLinkCommType.equalsIgnoreCase("SPP")) {
                                     retryConnect(3);
                                 }
                                 if (BTConnectionHandler != null) {
                                     BTConnectionHandler.removeCallbacksAndMessages(null);
                                 }
-                                AppConstants.FS_selected = String.valueOf(selectedItemPos);
-                                RedirectBtLinkThreeToNextScreen(selSSID);
+                                if (Constants.FS_3STATUS.equalsIgnoreCase("FREE")) {
+                                    AppConstants.FS_selected = String.valueOf(selectedItemPos);
+                                    RedirectBtLinkThreeToNextScreen(selSSID);
+                                } else {
+                                    BTL3State = 0;
+                                    BTConstants.CurrentSelectedLinkBT = 0;
+                                    BTConstants.CurrentTransactionIsBT3 = true;
+                                    if (AppConstants.GenerateLogs)
+                                        AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
+                                    RestrictHoseSelection(getResources().getString(R.string.HoseInUse), false);
+                                }
                             }
                         }, delay);
                     } else {
@@ -13764,6 +13822,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     } else {
                         BTL4State = 0;
                         BTConstants.CurrentSelectedLinkBT = 0;
+                        BTConstants.CurrentTransactionIsBT4 = true;
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
                         RestrictHoseSelection(getResources().getString(R.string.HoseInUse), false);
@@ -13772,21 +13831,31 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     if (!BTConstants.deviceAddress4.isEmpty()) {
                         NearByBTDevices.clear();
                         mBluetoothAdapter.startDiscovery();
-                        RestrictHoseSelection(getResources().getString(R.string.ConnectingStatus), true);
+                        if (Constants.FS_4STATUS.equalsIgnoreCase("FREE")) {
+                            RestrictHoseSelection(getResources().getString(R.string.ConnectingStatus), true);
+                        }
 
                         Handler handler = new Handler();
                         int delay = 1000;
                         handler.postDelayed(new Runnable() {
                             public void run() {
-
                                 if (!checkBTLinkStatus(4) && BTLinkCommType != null && BTLinkCommType.equalsIgnoreCase("SPP")) {
                                     retryConnect(4);
                                 }
                                 if (BTConnectionHandler != null) {
                                     BTConnectionHandler.removeCallbacksAndMessages(null);
                                 }
-                                AppConstants.FS_selected = String.valueOf(selectedItemPos);
-                                RedirectBtLinkFourToNextScreen(selSSID);
+                                if (Constants.FS_4STATUS.equalsIgnoreCase("FREE")) {
+                                    AppConstants.FS_selected = String.valueOf(selectedItemPos);
+                                    RedirectBtLinkFourToNextScreen(selSSID);
+                                } else {
+                                    BTL4State = 0;
+                                    BTConstants.CurrentSelectedLinkBT = 0;
+                                    BTConstants.CurrentTransactionIsBT4 = true;
+                                    if (AppConstants.GenerateLogs)
+                                        AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
+                                    RestrictHoseSelection(getResources().getString(R.string.HoseInUse), false);
+                                }
                             }
                         }, delay);
                     } else {
@@ -13804,6 +13873,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     } else {
                         BTL5State = 0;
                         BTConstants.CurrentSelectedLinkBT = 0;
+                        BTConstants.CurrentTransactionIsBT5 = true;
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
                         RestrictHoseSelection(getResources().getString(R.string.HoseInUse), false);
@@ -13812,21 +13882,31 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     if (!BTConstants.deviceAddress5.isEmpty()) {
                         NearByBTDevices.clear();
                         mBluetoothAdapter.startDiscovery();
-                        RestrictHoseSelection(getResources().getString(R.string.ConnectingStatus), true);
+                        if (Constants.FS_5STATUS.equalsIgnoreCase("FREE")) {
+                            RestrictHoseSelection(getResources().getString(R.string.ConnectingStatus), true);
+                        }
 
                         Handler handler = new Handler();
                         int delay = 1000;
                         handler.postDelayed(new Runnable() {
                             public void run() {
-
                                 if (!checkBTLinkStatus(5) && BTLinkCommType != null && BTLinkCommType.equalsIgnoreCase("SPP")) {
                                     retryConnect(5);
                                 }
                                 if (BTConnectionHandler != null) {
                                     BTConnectionHandler.removeCallbacksAndMessages(null);
                                 }
-                                AppConstants.FS_selected = String.valueOf(selectedItemPos);
-                                RedirectBtLinkFiveToNextScreen(selSSID);
+                                if (Constants.FS_5STATUS.equalsIgnoreCase("FREE")) {
+                                    AppConstants.FS_selected = String.valueOf(selectedItemPos);
+                                    RedirectBtLinkFiveToNextScreen(selSSID);
+                                } else {
+                                    BTL5State = 0;
+                                    BTConstants.CurrentSelectedLinkBT = 0;
+                                    BTConstants.CurrentTransactionIsBT5 = true;
+                                    if (AppConstants.GenerateLogs)
+                                        AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
+                                    RestrictHoseSelection(getResources().getString(R.string.HoseInUse), false);
+                                }
                             }
                         }, delay);
                     } else {
@@ -13844,6 +13924,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     } else {
                         BTL6State = 0;
                         BTConstants.CurrentSelectedLinkBT = 0;
+                        BTConstants.CurrentTransactionIsBT6 = true;
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
                         RestrictHoseSelection(getResources().getString(R.string.HoseInUse), false);
@@ -13852,21 +13933,31 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     if (!BTConstants.deviceAddress6.isEmpty()) {
                         NearByBTDevices.clear();
                         mBluetoothAdapter.startDiscovery();
-                        RestrictHoseSelection(getResources().getString(R.string.ConnectingStatus), true);
+                        if (Constants.FS_6STATUS.equalsIgnoreCase("FREE")) {
+                            RestrictHoseSelection(getResources().getString(R.string.ConnectingStatus), true);
+                        }
 
                         Handler handler = new Handler();
                         int delay = 1000;
                         handler.postDelayed(new Runnable() {
                             public void run() {
-
                                 if (!checkBTLinkStatus(6) && BTLinkCommType != null && BTLinkCommType.equalsIgnoreCase("SPP")) {
                                     retryConnect(6);
                                 }
                                 if (BTConnectionHandler != null) {
                                     BTConnectionHandler.removeCallbacksAndMessages(null);
                                 }
-                                AppConstants.FS_selected = String.valueOf(selectedItemPos);
-                                RedirectBtLinkSixToNextScreen(selSSID);
+                                if (Constants.FS_6STATUS.equalsIgnoreCase("FREE")) {
+                                    AppConstants.FS_selected = String.valueOf(selectedItemPos);
+                                    RedirectBtLinkSixToNextScreen(selSSID);
+                                } else {
+                                    BTL6State = 0;
+                                    BTConstants.CurrentSelectedLinkBT = 0;
+                                    BTConstants.CurrentTransactionIsBT6 = true;
+                                    if (AppConstants.GenerateLogs)
+                                        AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
+                                    RestrictHoseSelection(getResources().getString(R.string.HoseInUse), false);
+                                }
                             }
                         }, delay);
                     } else {
@@ -14400,7 +14491,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         tvSSIDName.setText(selSSID);
         AppConstants.FS1_CONNECTED_SSID = selSSID;
         Constants.CurrentSelectedHose = "FS1";
-        BTConstants.CurrentTransactionIsBT = true;
+        BTConstants.CurrentTransactionIsBT1 = true;
         BTConstants.CurrentSelectedLinkBT = 1;
         String ReplaceableHoseName = "";
 
@@ -14453,7 +14544,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         tvSSIDName.setText(selSSID);
         AppConstants.FS2_CONNECTED_SSID = selSSID;
         Constants.CurrentSelectedHose = "FS2";
-        BTConstants.CurrentTransactionIsBT = true;
+        BTConstants.CurrentTransactionIsBT2 = true;
         BTConstants.CurrentSelectedLinkBT = 2;
         String ReplaceableHoseName = "";
 
@@ -14505,7 +14596,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         tvSSIDName.setText(selSSID);
         AppConstants.FS3_CONNECTED_SSID = selSSID;
         Constants.CurrentSelectedHose = "FS3";
-        BTConstants.CurrentTransactionIsBT = true;
+        BTConstants.CurrentTransactionIsBT3 = true;
         BTConstants.CurrentSelectedLinkBT = 3;
         String ReplaceableHoseName = "";
 
@@ -14557,7 +14648,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         tvSSIDName.setText(selSSID);
         AppConstants.FS4_CONNECTED_SSID = selSSID;
         Constants.CurrentSelectedHose = "FS4";
-        BTConstants.CurrentTransactionIsBT = true;
+        BTConstants.CurrentTransactionIsBT4 = true;
         BTConstants.CurrentSelectedLinkBT = 4;
         String ReplaceableHoseName = "";
 
@@ -14608,7 +14699,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         tvSSIDName.setText(selSSID);
         AppConstants.FS5_CONNECTED_SSID = selSSID;
         Constants.CurrentSelectedHose = "FS5";
-        BTConstants.CurrentTransactionIsBT = true;
+        BTConstants.CurrentTransactionIsBT5 = true;
         BTConstants.CurrentSelectedLinkBT = 5;
         String ReplaceableHoseName = "";
 
@@ -14659,7 +14750,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         tvSSIDName.setText(selSSID);
         AppConstants.FS6_CONNECTED_SSID = selSSID;
         Constants.CurrentSelectedHose = "FS6";
-        BTConstants.CurrentTransactionIsBT = true;
+        BTConstants.CurrentTransactionIsBT6 = true;
         BTConstants.CurrentSelectedLinkBT = 6;
         String ReplaceableHoseName = "";
 
@@ -14965,15 +15056,11 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
     }
 
-    public class SppLinkFirmwareUpgrade extends AsyncTask<String, String, String> {
-
+    /*public class SppLinkFirmwareUpgrade extends AsyncTask<String, String, String> {
         String ret = "";
-
         @Override
         protected String doInBackground(String... f_url) {
-
             try {
-
                 String LocalPath = getApplicationContext().getExternalFilesDir(AppConstants.FOLDER_BIN) + "/" + "user1.2048.new.5.bin";//AppConstants.UP_Upgrade_File_name;
                 File file = new File(LocalPath);
                 int file_size = Integer.parseInt(String.valueOf(file.length() / 1024));
@@ -15007,11 +15094,9 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             } catch (InterruptedException e) {
                 Log.e(TAG, "InterruptedException: " + e.toString());
             }
-
             return null;
         }
-
-    }
+    }*/
 
     private void IsHotspotEnabled() {
 
@@ -15822,6 +15907,25 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         String logUpgrade = AppConstants.LOG_UPGRADE_HTTP;
         String linkType, btLinkCommType;
         int linkPosition;
+        ProgressDialog pd;
+
+        @Override
+        protected void onPreExecute() {
+            pd = new ProgressDialog(WelcomeActivity.this);
+            String message = getResources().getString(R.string.PleaseWaitSeveralSeconds);
+            pd.setMessage(GetSpinnerMessage(message));
+            pd.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+
+            // #2323
+            Window window = pd.getWindow();
+            WindowManager.LayoutParams wlp = window.getAttributes();
+            wlp.gravity = Gravity.BOTTOM | Gravity.CENTER;
+            window.setAttributes(wlp);
+            //==========================
+
+            pd.setCancelable(false);
+            pd.show();
+        }
 
         @Override
         protected Boolean doInBackground(String... param) {
@@ -15865,6 +15969,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         @Override
         protected void onPostExecute(Boolean isFileExist) {
             try {
+                pd.dismiss();
                 if (linkType.equalsIgnoreCase("BT")) {
                     if (btLinkCommType.equalsIgnoreCase("BLE")) {
                         logUpgrade = AppConstants.LOG_UPGRADE_BT_BLE;
@@ -15896,7 +16001,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         String binFolderPath = String.valueOf(getApplicationContext().getExternalFilesDir(AppConstants.FOLDER_BIN));
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(logUpgrade + "-" + TAG + "Downloading link upgrade firmware file (" + AppConstants.UP_Upgrade_File_name + ")");
-                        new DownloadFileFromURL().execute(AppConstants.UP_FilePath, binFolderPath, AppConstants.UP_Upgrade_File_name, linkType, String.valueOf(linkPosition), btLinkCommType);
+                        //new DownloadFileFromURL().execute(AppConstants.UP_FilePath, binFolderPath, AppConstants.UP_Upgrade_File_name, linkType, String.valueOf(linkPosition), btLinkCommType);
+                        DownloadFileFromURL(AppConstants.UP_FilePath, binFolderPath, AppConstants.UP_Upgrade_File_name, linkType, linkPosition, btLinkCommType);
                     } else {
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(logUpgrade + "-" + TAG + "Link upgrade File path null. Upgrade process skipped.");
@@ -15912,7 +16018,148 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         }
     }
 
-    public class DownloadFileFromURL extends AsyncTask<String, String, String> {
+    public void DownloadFileFromURL(String downloadUrl, String filePath, String fileName, String linkType, int linkPosition, String btLinkCommType) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            pdUpgradeFileDownloadProcess = new ProgressDialog(WelcomeActivity.this);
+                            String message = getResources().getString(R.string.FileDownloadInProgress) + "\n" + getResources().getString(R.string.PleaseWaitSeveralSeconds);
+                            pdUpgradeFileDownloadProcess.setMessage(GetSpinnerMessage(message));
+                            pdUpgradeFileDownloadProcess.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+
+                            // #2323
+                            Window window = pdUpgradeFileDownloadProcess.getWindow();
+                            WindowManager.LayoutParams wlp = window.getAttributes();
+                            wlp.gravity = Gravity.BOTTOM | Gravity.CENTER;
+                            window.setAttributes(wlp);
+                            //==========================
+
+                            pdUpgradeFileDownloadProcess.setCancelable(false);
+                            pdUpgradeFileDownloadProcess.show();
+                        }
+                    });
+
+                    try {
+                        URL url = new URL(downloadUrl);
+                        URLConnection connection = url.openConnection();
+                        connection.connect();
+
+                        // getting file length
+                        lengthOfFile = connection.getContentLength();
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + "<Size of the file to be downloaded: " + lengthOfFile + ">");
+                    } catch (Exception e) {
+                        if (AppConstants.GenerateLogs)
+                            AppConstants.WriteinFile(TAG + "Error occurred while getting size of the file. Exception is: " + e.getMessage());
+                    }
+
+                    ThinDownloadManager downloadManager = new ThinDownloadManager();
+                    Uri downloadUri = Uri.parse(downloadUrl);
+                    Uri destinationUri = Uri.parse(filePath + "/" + fileName);
+                    DownloadRequest downloadRequest = new DownloadRequest(downloadUri)
+                            //.setRetryPolicy(new DefaultRetryPolicy())
+                            .setDestinationURI(destinationUri).setPriority(DownloadRequest.Priority.HIGH)
+                            .setDownloadResumable(true)
+                            .setStatusListener(new DownloadStatusListenerV1() {
+                                @Override
+                                public void onDownloadComplete(DownloadRequest downloadRequest) {
+                                    if (AppConstants.GenerateLogs)
+                                        AppConstants.WriteinFile(TAG + "<Download Complete. Size of the downloaded file: " + downloadedFileLength + ">");
+                                    runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            ProceedAfterDownload(filePath, fileName, linkType, linkPosition, btLinkCommType);
+                                        }
+                                    });
+                                }
+
+                                @Override
+                                public void onDownloadFailed(DownloadRequest downloadRequest, int errorCode, String errorMessage) {
+                                    if (AppConstants.GenerateLogs)
+                                        AppConstants.WriteinFile(TAG + "<Download Failed. Size of the downloaded file: " + downloadedFileLength + "; Error: " + errorMessage + ">");
+                                    runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            ProceedAfterDownload(filePath, fileName, linkType, linkPosition, btLinkCommType);
+                                        }
+                                    });
+                                }
+
+                                @Override
+                                public void onProgress(DownloadRequest downloadRequest, long totalBytes, long downloadedBytes, int progress) {
+                                    downloadedFileProgress = progress;
+                                    downloadedFileLength = downloadedBytes;
+                                    runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            if (pdUpgradeFileDownloadProcess != null) {
+                                                if (pdUpgradeFileDownloadProcess.isShowing()) {
+                                                    pdUpgradeFileDownloadProcess.setProgress(progress);
+                                                }
+                                            }
+                                        }
+                                    });
+                                }
+                            });
+                    int downloadId = downloadManager.add(downloadRequest);
+                } catch (Exception e) {
+                    Log.e("Error: ", e.getMessage());
+                    if (AppConstants.GenerateLogs)
+                        AppConstants.WriteinFile(TAG + "DownloadFileFromURL Exception: " + e.getMessage() + " (Progress: " + String.valueOf(downloadedFileProgress) + "%)");
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            ProceedAfterDownload(filePath, fileName, linkType, linkPosition, btLinkCommType);
+                        }
+                    });
+                }
+            }
+        }).start();
+    }
+
+    private void ProceedAfterDownload(String filePath, String fileName, String linkType, int linkPosition, String btLinkCommType) {
+        try {
+            if (pdUpgradeFileDownloadProcess != null) {
+                if (pdUpgradeFileDownloadProcess.isShowing()) {
+                    pdUpgradeFileDownloadProcess.dismiss();
+                }
+            }
+            if (downloadedFileLength < lengthOfFile || lengthOfFile == 0) {
+                DeleteDownloadedFileAndContinueToTxn(filePath, fileName);
+            } else {
+                new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        // Continue to upgrade
+                        if (linkType.equalsIgnoreCase("BT")) {
+                            if (btLinkCommType.equalsIgnoreCase("BLE")) {
+                                // BLE LINK upgrade code
+                                startBTBLEServicesAndRegisterReceiver(linkPosition);
+                                try {
+                                    Thread.sleep(2000);
+                                } catch (Exception e) { e.printStackTrace(); }
+                                CheckBTBLELinkStatusForUpgrade(linkPosition);
+                            } else {
+                                CheckBTLinkStatusForUpgrade(linkPosition, false);
+                            }
+                        } else {
+                            CheckHTTPLinkStatusForUpgrade(linkPosition);
+                        }
+                    }
+                }, 100);
+            }
+        } catch (Exception e) {
+            Log.e("Error: ", e.getMessage());
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + "ProceedAfterDownload Exception: " + e.getMessage());
+        }
+    }
+
+    /*public class DownloadFileFromURL extends AsyncTask<String, String, String> {
         ProgressDialog pd;
         String linkType, filePath, fileName, btLinkCommType;
         int linkPosition;
@@ -15957,12 +16204,12 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     AppConstants.WriteinFile(TAG + "<Size of the file to be downloaded: " + lengthOfFile + ">");
 
                 // input stream to read file - with 8k buffer
-                InputStream input = new BufferedInputStream(url.openStream(), 8192);
+                InputStream input = new BufferedInputStream(connection.getInputStream(), 65536); //url.openStream()//8192
 
                 // Output stream to write file
                 OutputStream output = new FileOutputStream(filePath + "/" + fileName);
 
-                byte[] data = new byte[1024];
+                byte[] data = new byte[2048]; //1024
 
                 while ((count = input.read(data)) != -1) {
                     downloadedFileLength += count;
@@ -16025,7 +16272,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 }, 100);
             }
         }
-    }
+    }*/
 
     private void DeleteDownloadedFileAndContinueToTxn(String filePath, String fileName) {
         try {
@@ -16736,24 +16983,75 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             SendBTCommands(linkPosition, BTConstants.info_cmd);
 
             new CountDownTimer(5000, 1000) {
-
                 public void onTick(long millisUntilFinished) {
                     long attempt = (5 - (millisUntilFinished / 1000));
                     if (attempt > 0) {
                         if (upRequest.equalsIgnoreCase(BTConstants.info_cmd) && !upResponse.equalsIgnoreCase("")) {
+                            boolean proceedToUpgrade = true;
                             //Info command (before upgrade) success.
                             if (upResponse.contains("mac_address")) {
                                 if (AppConstants.GenerateLogs)
                                     AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Checking Info command response (before upgrade). Response: true");
                                 SetNewVersionFlag(linkPosition, true);
-                                getVersionFromLinkResponse(upResponse.trim(), true, linkPosition, "Before");
+                                proceedToUpgrade = getVersionFromLinkResponse(upResponse.trim(), true, linkPosition, "Before");
                                 upResponse = "";
                             } else {
                                 if (AppConstants.GenerateLogs)
                                     AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Checking Info command response (before upgrade). Response:>>" + upResponse.trim());
                                 SetNewVersionFlag(linkPosition, false);
-                                getVersionFromLinkResponse(upResponse.trim(), false, linkPosition, "Before");
+                                proceedToUpgrade = getVersionFromLinkResponse(upResponse.trim(), false, linkPosition, "Before");
                             }
+
+                            if (proceedToUpgrade) {
+                                new Handler().postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        if (pdUpgradeProcess != null) {
+                                            if (pdUpgradeProcess.isShowing()) {
+                                                pdUpgradeProcess.setMessage(GetSpinnerMessage(getResources().getString(R.string.SoftwareUpdateInProgress) + "\n" + getResources().getString(R.string.PleaseWaitSeveralSeconds)));
+                                            }
+                                        }
+                                        upgradeCommand(linkPosition);
+                                    }
+                                }, 1000);
+                            } else {
+                                if (AppConstants.GenerateLogs)
+                                    AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " The version set for upgrade is already on the LINK.");
+                                new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        if (AppConstants.GenerateLogs)
+                                            AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Upgrade process skipped.");
+                                        ContinueToTheTransaction();
+                                    }
+                                }, 100);
+                            }
+                            cancel();
+                        } else {
+                            if (AppConstants.GenerateLogs)
+                                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Checking Info command response (before upgrade). Response: false");
+                        }
+                    }
+                }
+
+                public void onFinish() {
+                    if (upRequest.equalsIgnoreCase(BTConstants.info_cmd) && !upResponse.equalsIgnoreCase("")) {
+                        boolean proceedToUpgrade = true;
+                        //Info command (before upgrade) success.
+                        if (upResponse.contains("mac_address")) {
+                            if (AppConstants.GenerateLogs)
+                                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Checking Info command response (before upgrade). Response: true");
+                            SetNewVersionFlag(linkPosition, true);
+                            proceedToUpgrade = getVersionFromLinkResponse(upResponse.trim(), true, linkPosition, "Before");
+                            upResponse = "";
+                        } else {
+                            if (AppConstants.GenerateLogs)
+                                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Checking Info command response (before upgrade). Response:>>" + upResponse.trim());
+                            SetNewVersionFlag(linkPosition, false);
+                            proceedToUpgrade = getVersionFromLinkResponse(upResponse.trim(), false, linkPosition, "Before");
+                        }
+
+                        if (proceedToUpgrade) {
                             new Handler().postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
@@ -16765,41 +17063,18 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                     upgradeCommand(linkPosition);
                                 }
                             }, 1000);
-                            cancel();
                         } else {
                             if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Checking Info command response (before upgrade). Response: false");
-                        }
-                    }
-                }
-
-                public void onFinish() {
-
-                    if (upRequest.equalsIgnoreCase(BTConstants.info_cmd) && !upResponse.equalsIgnoreCase("")) {
-                        //Info command (before upgrade) success.
-                        if (upResponse.contains("mac_address")) {
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Checking Info command response (before upgrade). Response: true");
-                            SetNewVersionFlag(linkPosition, true);
-                            getVersionFromLinkResponse(upResponse.trim(), true, linkPosition, "Before");
-                            upResponse = "";
-                        } else {
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Checking Info command response (before upgrade). Response:>>" + upResponse.trim());
-                            SetNewVersionFlag(linkPosition, false);
-                            getVersionFromLinkResponse(upResponse.trim(), false, linkPosition, "Before");
-                        }
-                        new Handler().postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                if (pdUpgradeProcess != null) {
-                                    if (pdUpgradeProcess.isShowing()) {
-                                        pdUpgradeProcess.setMessage(GetSpinnerMessage(getResources().getString(R.string.SoftwareUpdateInProgress) + "\n" + getResources().getString(R.string.PleaseWaitSeveralSeconds)));
-                                    }
+                                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " The version set for upgrade is already on the LINK.");
+                            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    if (AppConstants.GenerateLogs)
+                                        AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Upgrade process skipped.");
+                                    ContinueToTheTransaction();
                                 }
-                                upgradeCommand(linkPosition);
-                            }
-                        }, 1000);
+                            }, 100);
+                        }
                     } else {
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Checking Info command response (before upgrade). Response: false.");
@@ -16822,7 +17097,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         }
     }
 
-    public void getVersionFromLinkResponse(String response, boolean isNewLink, int linkPosition, String beforeOrAfter) {
+    public boolean getVersionFromLinkResponse(String response, boolean isNewLink, int linkPosition, String beforeOrAfter) {
+        boolean returnFlag = true;
         try {
             String versionFromLink = "";
             if (isNewLink) {
@@ -16850,7 +17126,12 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 if (AppConstants.GenerateLogs)
                     AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " LINK Version (" + beforeOrAfter + " Upgrade) >> " + versionFromLink);
             }
-            if (beforeOrAfter.equalsIgnoreCase("After")) {
+            if (beforeOrAfter.equalsIgnoreCase("Before")) {
+                if (versionFromLink.trim().equalsIgnoreCase(AppConstants.UP_FirmwareVersion.trim())) {
+                    returnFlag = false;
+                    storeUpgradeFSVersion(WelcomeActivity.this, linkPosition, versionFromLink, "BT");
+                }
+            } else if (beforeOrAfter.equalsIgnoreCase("After")) {
                 storeUpgradeFSVersion(WelcomeActivity.this, linkPosition, versionFromLink, "BT");
             }
         } catch (Exception e) {
@@ -16858,6 +17139,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             if (AppConstants.GenerateLogs)
                 AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " getVersionFromLinkResponse (" + beforeOrAfter + " Upgrade) Exception:>>" + e.getMessage());
         }
+        return returnFlag;
     }
 
     private void upgradeCommand(int linkPosition) {
@@ -16985,12 +17267,12 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         bytesWritten += amountOfBytesRead;
                         int progressValue = (int) (100 * ((double) bytesWritten) / ((double) file_size));
 
-                        if (pdUpgradeProcess != null) {
+                        /*if (pdUpgradeProcess != null) {
                             if (pdUpgradeProcess.isShowing()) {
                                 pdUpgradeProcess.setMessage(GetSpinnerMessage((getResources().getString(R.string.SoftwareUpdateInProgress) + "\n" + getResources().getString(R.string.PleaseWaitSeveralSeconds)) + " " + String.valueOf(progressValue) + " %"));
                             }
-                        }
-                        //publishProgress(String.valueOf(progressValue));
+                        }*/
+                        publishProgress(String.valueOf(progressValue));
 
                         if (getBTStatusStr(linkPosition).equalsIgnoreCase("Connected")) {
                             SendBytes(linkPosition, bufferBytes);
@@ -17005,7 +17287,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                             }
 
                             try {
-                                Thread.sleep(10);
+                                Thread.sleep(5);
                             } catch (Exception e) {
                                 if (AppConstants.GenerateLogs)
                                     AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Thread exception: " + e.getMessage() + " (Progress: " + progressValue + ")");
@@ -17029,6 +17311,15 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " UpgradeFileUploadFunctionality InBackground Exception: " + e.getMessage());
             }
             return null;
+        }
+
+        protected void onProgressUpdate(String... progress) {
+            // setting progress percentage
+            if (pdUpgradeProcess != null) {
+                if (pdUpgradeProcess.isShowing()) {
+                    pdUpgradeProcess.setMessage(GetSpinnerMessage((getResources().getString(R.string.SoftwareUpdateInProgress) + "\n" + getResources().getString(R.string.PleaseWaitSeveralSeconds)) + " " + progress[0] + " %"));
+                }
+            }
         }
 
         @Override
@@ -18168,17 +18459,68 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     long attempt = (5 - (millisUntilFinished / 1000));
                     if (attempt > 0) {
                         if (BLE_Request.equalsIgnoreCase(BTConstants.info_cmd) && !BLE_Response.equalsIgnoreCase("")) {
+                            boolean proceedToUpgrade = true;
                             //Info command (before upgrade) success.
                             if (BLE_Response.contains("mac_address")) {
                                 if (AppConstants.GenerateLogs)
                                     AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Checking Info command response (before upgrade). Response: true");
-                                getVersionFromBLELinkResponse(BLE_Response.trim(), true, linkPosition, "Before");
+                                proceedToUpgrade = getVersionFromBLELinkResponse(BLE_Response.trim(), true, linkPosition, "Before");
                                 BLE_Response = "";
                             } else {
                                 if (AppConstants.GenerateLogs)
                                     AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Checking Info command response (before upgrade). Response:>>" + BLE_Response.trim());
-                                getVersionFromBLELinkResponse(BLE_Response.trim(), false, linkPosition, "Before");
+                                proceedToUpgrade = getVersionFromBLELinkResponse(BLE_Response.trim(), false, linkPosition, "Before");
                             }
+
+                            if (proceedToUpgrade) {
+                                new Handler().postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        if (pdUpgradeProcess != null) {
+                                            if (pdUpgradeProcess.isShowing()) {
+                                                pdUpgradeProcess.setMessage(GetSpinnerMessage(getResources().getString(R.string.SoftwareUpdateInProgress) + "\n" + getResources().getString(R.string.PleaseWaitSeveralSeconds)));
+                                            }
+                                        }
+                                        BTBLEUpgradeCommand(linkPosition);
+                                    }
+                                }, 1000);
+                            } else {
+                                if (AppConstants.GenerateLogs)
+                                    AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " The version set for upgrade is already on the LINK.");
+                                new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        if (AppConstants.GenerateLogs)
+                                            AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Upgrade process skipped.");
+                                        unbindBTBLEServicesAndUnregisterReceiver(linkPosition);
+                                        ContinueToTheTransaction();
+                                    }
+                                }, 100);
+                            }
+                            cancel();
+                        } else {
+                            if (AppConstants.GenerateLogs)
+                                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Checking Info command response. Response: false");
+                        }
+                    }
+                }
+
+                public void onFinish() {
+                    if (BLE_Request.equalsIgnoreCase(BTConstants.info_cmd) && !BLE_Response.equalsIgnoreCase("")) {
+                        boolean proceedToUpgrade = true;
+                        //Info command (before upgrade) success.
+                        if (BLE_Response.contains("mac_address")) {
+                            if (AppConstants.GenerateLogs)
+                                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Checking Info command response (before upgrade). Response: true");
+                            proceedToUpgrade = getVersionFromBLELinkResponse(BLE_Response.trim(), true, linkPosition, "Before");
+                            BLE_Response = "";
+                        } else {
+                            if (AppConstants.GenerateLogs)
+                                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Checking Info command response (before upgrade). Response:>>" + BLE_Response.trim());
+                            proceedToUpgrade = getVersionFromBLELinkResponse(BLE_Response.trim(), false, linkPosition, "Before");
+                        }
+
+                        if (proceedToUpgrade) {
                             new Handler().postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
@@ -18190,39 +18532,19 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                     BTBLEUpgradeCommand(linkPosition);
                                 }
                             }, 1000);
-                            cancel();
                         } else {
                             if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Checking Info command response. Response: false");
-                        }
-                    }
-                }
-
-                public void onFinish() {
-
-                    if (BLE_Request.equalsIgnoreCase(BTConstants.info_cmd) && !BLE_Response.equalsIgnoreCase("")) {
-                        //Info command (before upgrade) success.
-                        if (BLE_Response.contains("mac_address")) {
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Checking Info command response (before upgrade). Response: true");
-                            getVersionFromBLELinkResponse(BLE_Response.trim(), true, linkPosition, "Before");
-                            BLE_Response = "";
-                        } else {
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Checking Info command response (before upgrade). Response:>>" + BLE_Response.trim());
-                            getVersionFromBLELinkResponse(BLE_Response.trim(), false, linkPosition, "Before");
-                        }
-                        new Handler().postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                if (pdUpgradeProcess != null) {
-                                    if (pdUpgradeProcess.isShowing()) {
-                                        pdUpgradeProcess.setMessage(GetSpinnerMessage(getResources().getString(R.string.SoftwareUpdateInProgress) + "\n" + getResources().getString(R.string.PleaseWaitSeveralSeconds)));
-                                    }
+                                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " The version set for upgrade is already on the LINK.");
+                            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    if (AppConstants.GenerateLogs)
+                                        AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Upgrade process skipped.");
+                                    unbindBTBLEServicesAndUnregisterReceiver(linkPosition);
+                                    ContinueToTheTransaction();
                                 }
-                                BTBLEUpgradeCommand(linkPosition);
-                            }
-                        }, 1000);
+                            }, 100);
+                        }
                     } else {
                         if (AppConstants.GenerateLogs)
                             AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Checking Info command response (before upgrade). Response: false.");
@@ -18248,7 +18570,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         }
     }
 
-    public void getVersionFromBLELinkResponse(String response, boolean isNewLink, int linkPosition, String beforeOrAfter) {
+    public boolean getVersionFromBLELinkResponse(String response, boolean isNewLink, int linkPosition, String beforeOrAfter) {
+        boolean returnFlag = true;
         try {
             String versionFromLink = "";
             if (isNewLink) {
@@ -18276,7 +18599,12 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 if (AppConstants.GenerateLogs)
                     AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " LINK Version (" + beforeOrAfter + " Upgrade) >> " + versionFromLink);
             }
-            if (beforeOrAfter.equalsIgnoreCase("After")) {
+            if (beforeOrAfter.equalsIgnoreCase("Before")) {
+                if (versionFromLink.trim().equalsIgnoreCase(AppConstants.UP_FirmwareVersion.trim())) {
+                    returnFlag = false;
+                    storeUpgradeFSVersion(WelcomeActivity.this, linkPosition, versionFromLink, "BT");
+                }
+            } else if (beforeOrAfter.equalsIgnoreCase("After")) {
                 storeUpgradeFSVersion(WelcomeActivity.this, linkPosition, versionFromLink, "BT");
             }
         } catch (Exception e) {
@@ -18284,6 +18612,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             if (AppConstants.GenerateLogs)
                 AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " getVersionFromBLELinkResponse (" + beforeOrAfter + " Upgrade) Exception:>>" + e.getMessage());
         }
+        return returnFlag;
     }
 
     private void BTBLEUpgradeCommand(int linkPosition) {
@@ -18926,7 +19255,18 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             GoButtonFunctionalityForSingleLink(LinkCommunicationType);
         } catch (Exception ex) {
             if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "ProceedWithSingleHoseSelection InBackground --Exception " + ex.getMessage());
+                AppConstants.WriteinFile(TAG + "ProceedWithSingleHoseSelection Exception " + ex.getMessage());
         }
     }
+
+    private final BroadcastReceiver dialogReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().equals(OffBackgroundService.ACTION_SHOW_DIALOG)) {
+                String msg = "Offline data downloaded successfully.";
+                CommonUtils.AutoCloseCustomMessageDialog(WelcomeActivity.this, "", msg);
+            }
+        }
+    };
+
 }

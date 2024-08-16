@@ -6,17 +6,18 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.util.Base64;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.TrakEngineering.FluidSecureHubTest.Aes_Encryption;
 import com.TrakEngineering.FluidSecureHubTest.AppConstants;
+import com.TrakEngineering.FluidSecureHubTest.BuildConfig;
 import com.TrakEngineering.FluidSecureHubTest.CommonUtils;
 import com.TrakEngineering.FluidSecureHubTest.ConnectionDetector;
-import com.TrakEngineering.FluidSecureHubTest.Constants;
 import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
@@ -58,6 +59,7 @@ public class OffBackgroundService extends Service {
     TimerTask repeatedTask;
     SimpleDateFormat timeParser = new SimpleDateFormat("HH:mm");
     public String IsDepartmentRequire = "false";
+    public static final String ACTION_SHOW_DIALOG = BuildConfig.APPLICATION_ID + ".action.SHOW_DIALOG";
 
     public OffBackgroundService() {
     }
@@ -215,6 +217,24 @@ public class OffBackgroundService extends Service {
         }
 
         return super.onStartCommand(intent, flags, startId);
+    }
+
+    private void ShowDialog() {
+        try {
+            /*new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    String s = "Offline data downloaded successfully.";
+                    Toast.makeText(OffBackgroundService.this, s, Toast.LENGTH_LONG).show();
+                }
+            }, 100);*/
+            Intent showDialogIntent = new Intent(ACTION_SHOW_DIALOG);
+            sendBroadcast(showDialogIntent);
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (AppConstants.GenerateLogs)
+                AppConstants.WriteinFile(TAG + " ShowDialog Exception: " + e.getMessage());
+        }
     }
 
     public class GetAPIToken extends AsyncTask<String, Void, String> {
@@ -479,6 +499,7 @@ public class OffBackgroundService extends Service {
                                     timer.cancel();
 
                                 AppConstants.WriteinFile("All 4 files downloaded successfully.");
+                                ShowDialog();
                             }
                         } else {
 
@@ -487,6 +508,7 @@ public class OffBackgroundService extends Service {
                             if (timer != null)
                                 timer.cancel();
                             AppConstants.WriteinFile("All 3 files downloaded successfully.");
+                            ShowDialog();
                         }
                     }
                 }

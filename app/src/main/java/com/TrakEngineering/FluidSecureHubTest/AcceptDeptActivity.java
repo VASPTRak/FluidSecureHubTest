@@ -190,7 +190,7 @@ public class AcceptDeptActivity extends AppCompatActivity {
         btnSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                CommonUtils.hideKeyboard(AcceptDeptActivity.this);
                 Istimeout_Sec=false;
 
                 CommonUtils.LogMessage(TAG, TAG + "Entered Department : " + etDeptNumber.getText(), null);
@@ -212,7 +212,6 @@ public class AcceptDeptActivity extends AppCompatActivity {
                         AppConstants.WriteinFile(TAG + "Please enter " + ScreenNameForDepartment + ", and try again.");
                     CommonUtils.showMessageDilaog(AcceptDeptActivity.this, "Error Message", getResources().getString(R.string.RequireDeptNumber).replace("Department", ScreenNameForDepartment));
                 }
-
             }
         });
 
@@ -252,7 +251,7 @@ public class AcceptDeptActivity extends AppCompatActivity {
         tv_return.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                hideKeybord();
+                CommonUtils.hideKeyboard(AcceptDeptActivity.this);
             }
         });
     }
@@ -317,7 +316,7 @@ public class AcceptDeptActivity extends AppCompatActivity {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                hideKeybord();
+                                CommonUtils.hideKeyboard(AcceptDeptActivity.this);
                                 Istimeout_Sec = false;
                                 AppConstants.ClearEdittextFielsOnBack(AcceptDeptActivity.this);
 
@@ -407,11 +406,11 @@ public class AcceptDeptActivity extends AppCompatActivity {
         CancelTimerScreenOut();
     }
 
-    public void hideKeybord() {
+    /*public void hideKeybord() {
 
         InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
         imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
-    }
+    }*/
 
     private class CallSaveButtonValidation extends AsyncTask<Void, Void, String> {
 
@@ -673,6 +672,7 @@ public class AcceptDeptActivity extends AppCompatActivity {
     }
 
     public void allValid() {
+        CommonUtils.hideKeyboard(AcceptDeptActivity.this);
         EntityHub obj = controller.getOfflineHubDetails(AcceptDeptActivity.this);
         if (obj.IsOtherRequire.equalsIgnoreCase("True") && !obj.HUBType.equalsIgnoreCase("G")) {
             Intent intent = new Intent(AcceptDeptActivity.this, AcceptOtherActivity.class);
