@@ -106,18 +106,18 @@ public class SerialSocketThree implements Runnable {
                         if(listener != null)
                             listener.onSerialReadThree(data);
                         Log.i(TAG, "BTLink_3:InreadPulse data: "+data.toString());
-                        if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " BTLink_3:InreadPulse data: "+data.toString());
+                        if (AppConstants.GENERATE_LOGS)AppConstants.writeInFile(TAG + " BTLink_3:InreadPulse data: "+data.toString());
                     }
 
                 }else{
                     Log.i(TAG, "BTLink_3:InreadPulse socketInputStream not avilable ");
-                    if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " BTLink_3:InreadPulse socketInputStream not avilable ");
+                    if (AppConstants.GENERATE_LOGS)AppConstants.writeInFile(TAG + " BTLink_3:InreadPulse socketInputStream not avilable ");
                 }
 
             }catch (Exception e){
                 e.printStackTrace();
                 Log.i(TAG, "BTLink_3:InreadPulse:Exception:"+e.toString());
-                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " BTLink_3:InreadPulse:Exception:"+e.toString());
+                if (AppConstants.GENERATE_LOGS)AppConstants.writeInFile(TAG + " BTLink_3:InreadPulse:Exception:"+e.toString());
             }
 
         }catch (Exception e){
@@ -137,8 +137,8 @@ public class SerialSocketThree implements Runnable {
             if (listener != null) {
                 listener.onSerialConnectErrorThree(e);
             } else {
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile("<" + TAG + " Connect Exception: " + e.getMessage() + ">");
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile("<" + TAG + " Connect Exception: " + e.getMessage() + ">");
             }
             try {
                 socket.close();
@@ -163,8 +163,8 @@ public class SerialSocketThree implements Runnable {
             if (listener != null) {
                 listener.onSerialIoErrorThree(e, 6);
             } else {
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile("<" + TAG + " Serial IO Exception: " + e.getMessage() + ">");
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile("<" + TAG + " Serial IO Exception: " + e.getMessage() + ">");
             }
             try {
                 socket.close();

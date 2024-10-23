@@ -59,12 +59,12 @@ public class BackgroundService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
 
         Log.i(TAG, "BackgroundService is on....");
-        /*if (AppConstants.GenerateLogs)
-            AppConstants.WriteinFile(TAG + "Started.");*/
+        /*if (AppConstants.GENERATE_LOGS)
+            AppConstants.writeInFile(TAG + "Started.");*/
         //Log.e("Totaloffline_check","Online data BackgroundService");
         //If all hoses are free cleare
-        if (Constants.FS_1STATUS.equalsIgnoreCase("FREE") && Constants.FS_2STATUS.equalsIgnoreCase("FREE") && Constants.FS_3STATUS.equalsIgnoreCase("FREE") && Constants.FS_4STATUS.equalsIgnoreCase("FREE") && Constants.FS_5STATUS.equalsIgnoreCase("FREE") && Constants.FS_6STATUS.equalsIgnoreCase("FREE")) {
-            AppConstants.ListOfRunningTransactions.clear();
+        if (Constants.FS_1_STATUS.equalsIgnoreCase("FREE") && Constants.FS_2_STATUS.equalsIgnoreCase("FREE") && Constants.FS_3_STATUS.equalsIgnoreCase("FREE") && Constants.FS_4_STATUS.equalsIgnoreCase("FREE") && Constants.FS_5_STATUS.equalsIgnoreCase("FREE") && Constants.FS_6_STATUS.equalsIgnoreCase("FREE")) {
+            AppConstants.LIST_OF_RUNNING_TRANSACTIONS.clear();
         }
 
         //---UpdateTransaction Status to server------
@@ -76,8 +76,8 @@ public class BackgroundService extends Service {
                 String transId = stsData.get(i).get("transId");
                 String transStatus = stsData.get(i).get("transStatus");
                 System.out.println("resp...Transstatus transId:" + transId + " :"+transStatus);
-                /*if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "Update Transaction Status. TransactionId: " + transId + "; Status: " + transStatus);*/
+                /*if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(TAG + "Update Transaction Status. TransactionId: " + transId + "; Status: " + transStatus);*/
                 if (transId != null && !transId.isEmpty()) {
                     new SetTransactionStatus().execute(Id, transId, transStatus);
                 }
@@ -96,25 +96,25 @@ public class BackgroundService extends Service {
 
                 try {
                     //Log.i(TAG, "Transaction UploadTask Id:" + Id + " jsonData:" + jsonData + " authString:" + authString);
-                    //if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  Transaction UploadTask Id:" + Id + " jsonData:" + jsonData + " authString:" + authString);
+                    //if (AppConstants.GENERATE_LOGS)AppConstants.writeInFile(TAG + "  Transaction UploadTask Id:" + Id + " jsonData:" + jsonData + " authString:" + authString);
 
                     if (!jsonData.equals("")) {
                         JSONObject jsonObject = new JSONObject(jsonData);
                         String txnId = String.valueOf(jsonObject.get("TransactionId"));
                         String pulses = String.valueOf(jsonObject.get("Pulses"));
-                        if (AppConstants.ListOfRunningTransactions.contains(txnId)) {
+                        if (AppConstants.LIST_OF_RUNNING_TRANSACTIONS.contains(txnId)) {
                             //transaction running
                             Log.i(TAG, "Transaction is in progress" + txnId);
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(TAG + "Transaction is in progress. TransactionId: " + txnId);
+                            if (AppConstants.GENERATE_LOGS)
+                                AppConstants.writeInFile(TAG + "Transaction is in progress. TransactionId: " + txnId);
                         } else {
                             //transaction completed
                             //new UploadTask().execute(Id, jsonData, authString);
-                            if (!AppConstants.ListOfUploadingTransactions.contains(txnId)) {
-                                AppConstants.ListOfUploadingTransactions.add(txnId);
+                            if (!AppConstants.List_Of_Uploading_Transactions.contains(txnId)) {
+                                AppConstants.List_Of_Uploading_Transactions.add(txnId);
                                 UploadTaskRetroFit(Id, jsonData, authString, txnId, pulses);
                             }
-                            //if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "TempLog  Transaction UploadTask Id:" + Id + " jsonData:" + jsonData);
+                            //if (AppConstants.GENERATE_LOGS)AppConstants.writeInFile(TAG + "TempLog  Transaction UploadTask Id:" + Id + " jsonData:" + jsonData);
                         }
                     } else {
                         controller.deleteTransactions(Id);
@@ -124,12 +124,12 @@ public class BackgroundService extends Service {
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + " Transaction UploadTask--JSONException " + e);
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(TAG + " Transaction UploadTask--JSONException " + e);
                 } catch (Exception ex) {
                     ex.printStackTrace();
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + " Transaction UploadTask--Exception " + ex);
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(TAG + " Transaction UploadTask--Exception " + ex);
                 }
 
             }
@@ -138,21 +138,21 @@ public class BackgroundService extends Service {
 
         ReplaceHoseNameFlagSynToServer();
 
-        UpdateSwitchTimeBounceForLink();
+        updateSwitchTimeBounceForLink();
 
         UpdatePulserTypeOfLINKMaster();
 
-        UpdateBypassPumpResetFlagForLink();
+        updateBypassPumpResetFlagForLink();
 
         uploadLast20TransactionOnce(); // last 20 trxn
 
         uploadConnectionissueLogtoserver();// upload connection issue log.
 
-        UpdateCheckMOStatusFlagOfLink();
+        updateCheckMOStatusFlagOfLink();
 
-        UpdateResetMOCheckFlagOfLink();
+        updateResetMOCheckFlagOfLink();
 
-        UpdateManualOverrideStatusOfLink();
+        updateManualOverrideStatusOfLink();
 
         EleventhTransactionFlag();
 
@@ -161,8 +161,8 @@ public class BackgroundService extends Service {
             @Override
             public void run() {
                 AppConstants.clearSharedPrefByName(BackgroundService.this,"storeCmtxtnid_20_record");
-                AppConstants.clearSharedPrefByName(BackgroundService.this,AppConstants.LinkConnectionIssuePref);
-                AppConstants.ListOfUploadingTransactions.clear();
+                AppConstants.clearSharedPrefByName(BackgroundService.this,AppConstants.PREF_LINK_CONNECTION_ISSUE);
+                AppConstants.List_Of_Uploading_Transactions.clear();
                 stopSelf();
             }
         },10000);
@@ -170,7 +170,7 @@ public class BackgroundService extends Service {
         return super.onStartCommand(intent, flags, startId);
     }
 
-    private void UpdateSwitchTimeBounceForLink() {
+    private void updateSwitchTimeBounceForLink() {
         try {
             //For Hose One......1
             SharedPreferences FS1Pref = this.getSharedPreferences("storeSwitchTimeBounceFlag1", 0);
@@ -226,8 +226,8 @@ public class BackgroundService extends Service {
                 new SetSwitchTimeBounceFlag().execute(jsonData6, authString6, "storeSwitchTimeBounceFlag6");
             }
         } catch (Exception e) {
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "UpdateSwitchTimeBounceForLink Exception: " + e.getMessage());
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + "updateSwitchTimeBounceForLink Exception: " + e.getMessage());
         }
     }
 
@@ -244,7 +244,7 @@ public class BackgroundService extends Service {
 
                 RequestBody body = RequestBody.create(TEXT, param[0]);
                 Request request = new Request.Builder()
-                        .url(AppConstants.webURL)
+                        .url(AppConstants.WEB_URL)
                         .post(body)
                         .addHeader("Authorization", param[1])
                         .build();
@@ -333,8 +333,8 @@ public class BackgroundService extends Service {
                 new UpdatePulserTypeOfLINK().execute(jsonData6, authString6, "UpdatePulserType6");
             }
         } catch (Exception e) {
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "UpdatePulserTypeOfLINK Exception: " + e.getMessage());
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + "UpdatePulserTypeOfLINK Exception: " + e.getMessage());
         }
     }
 
@@ -351,7 +351,7 @@ public class BackgroundService extends Service {
 
                 RequestBody body = RequestBody.create(TEXT, param[0]);
                 Request request = new Request.Builder()
-                        .url(AppConstants.webURL)
+                        .url(AppConstants.WEB_URL)
                         .post(body)
                         .addHeader("Authorization", param[1])
                         .build();
@@ -380,7 +380,7 @@ public class BackgroundService extends Service {
         }
     }
 
-    private void UpdateBypassPumpResetFlagForLink() {
+    private void updateBypassPumpResetFlagForLink() {
         try {
             //For Hose One......1
             SharedPreferences FS1Pref = this.getSharedPreferences("storeBypassPumpResetFlag1", 0);
@@ -436,8 +436,8 @@ public class BackgroundService extends Service {
                 new UpdateBypassPumpResetFlagOfLINK().execute(jsonData6, authString6, "storeBypassPumpResetFlag6");
             }
         } catch (Exception e) {
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "UpdateBypassPumpResetFlagForLink Exception: " + e.getMessage());
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + "updateBypassPumpResetFlagForLink Exception: " + e.getMessage());
         }
     }
 
@@ -454,7 +454,7 @@ public class BackgroundService extends Service {
 
                 RequestBody body = RequestBody.create(TEXT, param[0]);
                 Request request = new Request.Builder()
-                        .url(AppConstants.webURL)
+                        .url(AppConstants.WEB_URL)
                         .post(body)
                         .addHeader("Authorization", param[1])
                         .build();
@@ -551,8 +551,8 @@ public class BackgroundService extends Service {
                 new SetHoseNameReplacedFlag().execute(jsonData6, authString6, "storeIsRenameFlagFS6");
             }
         } catch (Exception e) {
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "ReplaceHoseNameFlagSynToServer Exception: " + e.getMessage());
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + "ReplaceHoseNameFlagSynToServer Exception: " + e.getMessage());
         }
     }
 
@@ -569,7 +569,7 @@ public class BackgroundService extends Service {
 
                 RequestBody body = RequestBody.create(TEXT, param[0]);
                 Request request = new Request.Builder()
-                        .url(AppConstants.webURL)
+                        .url(AppConstants.WEB_URL)
                         .post(body)
                         .addHeader("Authorization", param[1])
                         .build();
@@ -620,7 +620,7 @@ public class BackgroundService extends Service {
 
     private void uploadConnectionissueLogtoserver(){
 
-        SharedPreferences sharedPref = BackgroundService.this.getSharedPreferences(AppConstants.LinkConnectionIssuePref, Context.MODE_PRIVATE);
+        SharedPreferences sharedPref = BackgroundService.this.getSharedPreferences(AppConstants.PREF_LINK_CONNECTION_ISSUE, Context.MODE_PRIVATE);
         for (int i = 1; i < 7 ; i++) {
             String linkJsonData = sharedPref.getString("NLINK"+i, "");
             if (!linkJsonData.equals("")){
@@ -650,7 +650,7 @@ public class BackgroundService extends Service {
                 .client(httpClient.build())
                 .addConverterFactory(GsonConverterFactory.create())
                 .addConverterFactory(ScalarsConverterFactory.create())
-                .baseUrl(AppConstants.webIP)
+                .baseUrl(AppConstants.SERVER_BASE_URL)
                 .build();
         Interface service = retrofit.create(Interface.class);
 
@@ -672,8 +672,8 @@ public class BackgroundService extends Service {
                 if (ResponceMessage.equalsIgnoreCase("fail")) {
                     respText = "; ResponseText: " + ResponceText;
                 }
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "Transaction UploadTask. TransactionId: " + transactionId + "; Pulses: " + pulses + "; ResponseMessage: " + ResponceMessage + respText);
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(TAG + "Transaction UploadTask. TransactionId: " + transactionId + "; Pulses: " + pulses + "; ResponseMessage: " + ResponceMessage + respText);
                 RemoveTxnFromListOfUploadingTransactions(transactionId);
                 try {
                     if (ResponceMessage.equalsIgnoreCase("success") || ResponceMessage.equalsIgnoreCase("fail")) {
@@ -693,7 +693,7 @@ public class BackgroundService extends Service {
                             System.out.println("deleteTransactions..." + Id);
 
                         } else if (ResponceMessage.equalsIgnoreCase("fail") && ResponceText.equalsIgnoreCase("TransactionId not found.")) {
-                            //if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " TransactionId not found. deleted from Sqlite -json:"+jsonData);
+                            //if (AppConstants.GENERATE_LOGS)AppConstants.writeInFile(TAG + " TransactionId not found. deleted from Sqlite -json:"+jsonData);
                             controller.deleteTransactions(Id);
                         }
                     }
@@ -705,16 +705,16 @@ public class BackgroundService extends Service {
                     }
                 } catch (Exception e) {
                     System.out.println(e.getMessage());
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + "UploadTaskRetroFit onResponse. TransactionId: " + transactionId + "; Exception: " + e.getMessage());
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(TAG + "UploadTaskRetroFit onResponse. TransactionId: " + transactionId + "; Exception: " + e.getMessage());
                 }
             }
 
             @Override
             public void onFailure(Call<ServerResponse> call, Throwable t) {
                 Log.i(TAG, "Something went wrong in UploadTaskRetroFit call No internet connectivity or server connection fail.");
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "UploadTaskRetroFit onFailure. TransactionId: " + transactionId + "; Exception: " + t.getMessage());
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(TAG + "UploadTaskRetroFit onFailure. TransactionId: " + transactionId + "; Exception: " + t.getMessage());
                 RemoveTxnFromListOfUploadingTransactions(transactionId);
                 // handle execution failures like no internet connectivity
                 BusProvider.getInstance().post(new ErrorEvent(-2, t.getMessage()));
@@ -723,8 +723,8 @@ public class BackgroundService extends Service {
     }
 
     public void RemoveTxnFromListOfUploadingTransactions(String transactionId) {
-        if (AppConstants.ListOfUploadingTransactions != null && AppConstants.ListOfUploadingTransactions.contains(transactionId)) {
-            AppConstants.ListOfUploadingTransactions.remove(transactionId);
+        if (AppConstants.List_Of_Uploading_Transactions != null && AppConstants.List_Of_Uploading_Transactions.contains(transactionId)) {
+            AppConstants.List_Of_Uploading_Transactions.remove(transactionId);
         }
     }
 
@@ -743,7 +743,7 @@ public class BackgroundService extends Service {
 
                 //----------------------------------------------------------------------------------
                 String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(BackgroundService.this) + ":" + userEmail + ":" + "LINKDisconnectionErrorLog" + AppConstants.LANG_PARAM);
-                response = serverHandler.PostTextData(BackgroundService.this, AppConstants.webURL, jsonData, authString);
+                response = serverHandler.PostTextData(BackgroundService.this, AppConstants.WEB_URL, jsonData, authString);
                 //----------------------------------------------------------------------------------
 
             } catch (Exception ex) {
@@ -765,11 +765,11 @@ public class BackgroundService extends Service {
 
                     if (ResponseMessage.equalsIgnoreCase("success")) {
 
-                        //if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "success LINKDisconnectionErrorLog");
+                        //if (AppConstants.GENERATE_LOGS)AppConstants.writeInFile(TAG + "success LINKDisconnectionErrorLog");
 
                     } else if (ResponseMessage.equalsIgnoreCase("fail")) {
 
-                        //if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " Fail LINKDisconnectionErrorLog");
+                        //if (AppConstants.GENERATE_LOGS)AppConstants.writeInFile(TAG + " Fail LINKDisconnectionErrorLog");
 
                     }
 
@@ -777,7 +777,7 @@ public class BackgroundService extends Service {
 
             } catch (Exception e) {
 
-                if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  LINKDisconnectionErrorLog onPostExecute--Exception " + e);
+                if (AppConstants.GENERATE_LOGS)AppConstants.writeInFile(TAG + "  LINKDisconnectionErrorLog onPostExecute--Exception " + e);
 
             }
         }
@@ -798,7 +798,7 @@ public class BackgroundService extends Service {
                 .client(httpClient.build())
                 .addConverterFactory(GsonConverterFactory.create())
                 .addConverterFactory(ScalarsConverterFactory.create())
-                .baseUrl(AppConstants.webIP)
+                .baseUrl(AppConstants.SERVER_BASE_URL)
                 .build();
         Interface service = retrofit.create(Interface.class);
 
@@ -830,8 +830,8 @@ public class BackgroundService extends Service {
                 // handle execution failures like no internet connectivity
                 BusProvider.getInstance().post(new ErrorEvent(-2, t.getMessage()));
                 Log.i(TAG, "Something went wrong in SaveMultipleTransactionsRetroFit call No internet connectivity or server connection fail.");
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + " SaveMultipleTransactionsRetroFit onFailure: " + t.getMessage());
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(TAG + " SaveMultipleTransactionsRetroFit onFailure: " + t.getMessage());
             }
         });
 
@@ -873,7 +873,7 @@ public class BackgroundService extends Service {
                 System.out.println("authString--" + authString);
 
 
-                response = serverHandler.PostTextData(BackgroundService.this, AppConstants.webURL, jsonData, authString);
+                response = serverHandler.PostTextData(BackgroundService.this, AppConstants.WEB_URL, jsonData, authString);
 
                 System.out.println("Id..." + Id);
 
@@ -914,7 +914,7 @@ public class BackgroundService extends Service {
 
                     }else if (ResponceMessage.equalsIgnoreCase("fail") && ResponceText.equalsIgnoreCase("TransactionId not found.")){
 
-                        if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " TransactionId not found. deleted from Sqlite -json:"+jsonData);
+                        if (AppConstants.GENERATE_LOGS)AppConstants.writeInFile(TAG + " TransactionId not found. deleted from Sqlite -json:"+jsonData);
                         controller.deleteTransactions(Id);
 
                     }
@@ -962,11 +962,11 @@ public class BackgroundService extends Service {
                 //----------------------------------------------------------------------------------
                 String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(BackgroundService.this) + ":" + userEmail + ":" + "SaveMultipleTransactions" + AppConstants.LANG_PARAM);
                 if (jsonData.trim().length() > 2)
-                    response = serverHandler.PostTextData(BackgroundService.this, AppConstants.webURL, jsonData, authString);
+                    response = serverHandler.PostTextData(BackgroundService.this, AppConstants.WEB_URL, jsonData, authString);
                 //----------------------------------------------------------------------------------
 
             } catch (Exception ex) {
-                //AppConstants.WriteinFile(getApplicationContext(), this.getClass().getSimpleName() + "~~~" + ex.getMessage());
+                //AppConstants.writeInFile(getApplicationContext(), this.getClass().getSimpleName() + "~~~" + ex.getMessage());
                 //AppConstants.WriteInDeveloperLog(getApplicationContext(), "14BackgroundService~~~" + ex.getMessage());
             }
             return response;
@@ -987,7 +987,7 @@ public class BackgroundService extends Service {
                     editor.apply();
                 }
             } catch (Exception e) {
-                // AppConstants.WriteinFile(getApplicationContext(), this.getClass().getSimpleName() + "~~~" + e.getMessage());
+                // AppConstants.writeInFile(getApplicationContext(), this.getClass().getSimpleName() + "~~~" + e.getMessage());
                 // AppConstants.WriteInDeveloperLog(getApplicationContext(), "15BackgroundService~~~" + e.getMessage());
             }
 
@@ -1026,7 +1026,7 @@ public class BackgroundService extends Service {
                 System.out.println("TransactionStatus......" + jsonData);
 
 
-                response = serverHandler.PostTextData(BackgroundService.this, AppConstants.webURL, jsonData, authString);
+                response = serverHandler.PostTextData(BackgroundService.this, AppConstants.WEB_URL, jsonData, authString);
 
                 System.out.println("Id..." + Id);
 
@@ -1064,7 +1064,7 @@ public class BackgroundService extends Service {
         }
     }
 
-    private void UpdateCheckMOStatusFlagOfLink() {
+    private void updateCheckMOStatusFlagOfLink() {
         try {
             //For Hose One......1
             SharedPreferences FS1Pref = this.getSharedPreferences("storeCheckMOStatusFlag1", 0);
@@ -1120,12 +1120,12 @@ public class BackgroundService extends Service {
                 new UpdateMOStatusDetailsOfLink().execute(jsonData6, authString6, "storeCheckMOStatusFlag6");
             }
         } catch (Exception e) {
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "UpdateCheckMOStatusFlagOfLink Exception: " + e.getMessage());
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + "updateCheckMOStatusFlagOfLink Exception: " + e.getMessage());
         }
     }
 
-    private void UpdateResetMOCheckFlagOfLink() {
+    private void updateResetMOCheckFlagOfLink() {
         try {
             //For Hose One......1
             SharedPreferences FS1Pref = this.getSharedPreferences("storeResetMOCheckFlag1", 0);
@@ -1181,12 +1181,12 @@ public class BackgroundService extends Service {
                 new UpdateMOStatusDetailsOfLink().execute(jsonData6, authString6, "storeResetMOCheckFlag6");
             }
         } catch (Exception e) {
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "UpdateResetMOCheckFlagOfLink Exception: " + e.getMessage());
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + "updateResetMOCheckFlagOfLink Exception: " + e.getMessage());
         }
     }
 
-    private void UpdateManualOverrideStatusOfLink() {
+    private void updateManualOverrideStatusOfLink() {
         try {
             //For Hose One......1
             SharedPreferences FS1Pref = this.getSharedPreferences("storeManualOverrideStatus1", 0);
@@ -1266,8 +1266,8 @@ public class BackgroundService extends Service {
                 new UpdateMOStatusDetailsOfLink().execute(jsonData6, authString6, "storeManualOverrideStatus6");
             }
         } catch (Exception e) {
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "UpdateManualOverrideStatusOfLink Exception: " + e.getMessage());
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + "updateManualOverrideStatusOfLink Exception: " + e.getMessage());
         }
     }
 
@@ -1283,7 +1283,7 @@ public class BackgroundService extends Service {
 
                 RequestBody body = RequestBody.create(TEXT, param[0]);
                 Request request = new Request.Builder()
-                        .url(AppConstants.webURL)
+                        .url(AppConstants.WEB_URL)
                         .post(body)
                         .addHeader("Authorization", param[1])
                         .build();
@@ -1367,8 +1367,8 @@ public class BackgroundService extends Service {
                 new ResetEleventhTransactionFlag().execute(jsonData6, authString6, "storeEleventhTransactionFlag6");
             }
         } catch (Exception e) {
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "EleventhTransactionFlag Exception: " + e.getMessage());
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + "EleventhTransactionFlag Exception: " + e.getMessage());
         }
     }
 
@@ -1385,7 +1385,7 @@ public class BackgroundService extends Service {
 
                 RequestBody body = RequestBody.create(TEXT, param[0]);
                 Request request = new Request.Builder()
-                        .url(AppConstants.webURL)
+                        .url(AppConstants.WEB_URL)
                         .post(body)
                         .addHeader("Authorization", param[1])
                         .build();

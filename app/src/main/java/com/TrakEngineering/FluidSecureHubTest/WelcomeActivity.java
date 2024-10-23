@@ -84,8 +84,10 @@ import android.widget.Toast;
 
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.work.PeriodicWorkRequest;
+import androidx.work.WorkManager;
+import androidx.work.WorkRequest;
 
-import com.TrakEngineering.FluidSecureHubTest.BTBLE.BS_BLE_BTOne;
 import com.TrakEngineering.FluidSecureHubTest.BTBLE.BTBLE_LinkOne.BLEServiceCodeOne;
 import com.TrakEngineering.FluidSecureHubTest.BTBLE.BTBLE_LinkTwo.BLEServiceCodeTwo;
 import com.TrakEngineering.FluidSecureHubTest.BTBLE.BTBLE_LinkThree.BLEServiceCodeThree;
@@ -101,12 +103,6 @@ import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkThree.SerialServic
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkFour.SerialServiceFour;
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkFive.SerialServiceFive;
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkSix.SerialServiceSix;
-import com.TrakEngineering.FluidSecureHubTest.BTSPP.BackgroundService_BTOne;
-import com.TrakEngineering.FluidSecureHubTest.BTSPP.BackgroundService_BTTwo;
-import com.TrakEngineering.FluidSecureHubTest.BTSPP.BackgroundService_BTThree;
-import com.TrakEngineering.FluidSecureHubTest.BTSPP.BackgroundService_BTFour;
-import com.TrakEngineering.FluidSecureHubTest.BTSPP.BackgroundService_BTFive;
-import com.TrakEngineering.FluidSecureHubTest.BTSPP.BackgroundService_BTSix;
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.CommonFunctions;
 import com.TrakEngineering.FluidSecureHubTest.EddystoneScanner.EddystoneScannerService;
 import com.TrakEngineering.FluidSecureHubTest.EddystoneScanner.SampleBeacon;
@@ -202,11 +198,10 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
     public boolean hoseClicked = false;
 
-
-    OffDBController offcontroller = new OffDBController(WelcomeActivity.this);
+    OffDBController offController = new OffDBController(WelcomeActivity.this);
 
     public static HashMap<String, Date> lastFSNPDate = new HashMap<>();
-    private ArrayList<String> NearByBTDevices = new ArrayList<>();
+    private ArrayList<String> nearbyBTDevices = new ArrayList<>();
     public static int countFSVMUpgrade;
     public static SerialServiceOne service1;
     public static SerialServiceTwo service2;
@@ -223,7 +218,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
     String ssid_pass_success = "";
 
-    private WifiAPReceiver wifiApReciver = new WifiAPReceiver();
+    private WifiAPReceiver wifiApReceiver = new WifiAPReceiver();
     private NetworkReceiver receiver = new NetworkReceiver();
     public Activity activity;
     private String TAG = "Wel_Act ";
@@ -278,19 +273,19 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
     int WifiChannelToUse = 11;
     BroadcastReceiver mReceiver;
     //Upgrade firmware status for each hose
-    public static boolean IsUpgradeInprogress_FS1 = false;
-    public static boolean IsUpgradeInprogress_FS2 = false;
-    public static boolean IsUpgradeInprogress_FS3 = false;
-    public static boolean IsUpgradeInprogress_FS4 = false;
-    public static boolean IsUpgradeInprogress_FS5 = false;
-    public static boolean IsUpgradeInprogress_FS6 = false;
+    public static boolean isUpgradeInProgress_FS1 = false;
+    public static boolean isUpgradeInProgress_FS2 = false;
+    public static boolean isUpgradeInProgress_FS3 = false;
+    public static boolean isUpgradeInProgress_FS4 = false;
+    public static boolean isUpgradeInProgress_FS5 = false;
+    public static boolean isUpgradeInProgress_FS6 = false;
 
-    public static int CountBeforeReconnectRelay1 = 0;
-    public static int CountBeforeReconnectRelay2 = 0;
-    public static int CountBeforeReconnectRelay3 = 0;
-    public static int CountBeforeReconnectRelay4 = 0;
-    public static int CountBeforeReconnectRelay5 = 0;
-    public static int CountBeforeReconnectRelay6 = 0;
+    public static int countBeforeReconnectRelay1 = 0;
+    public static int countBeforeReconnectRelay2 = 0;
+    public static int countBeforeReconnectRelay3 = 0;
+    public static int countBeforeReconnectRelay4 = 0;
+    public static int countBeforeReconnectRelay5 = 0;
+    public static int countBeforeReconnectRelay6 = 0;
 
     public boolean showSingleHoseConnectingStatus = true;
     public boolean showSingleHoseBusyStatus = true;
@@ -473,9 +468,11 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
         CommonUtils.hideKeyboard(WelcomeActivity.this);
         IsHotspotEnabled();
-        AppConstants.IsBTLinkSelectedCurrently = false;
+        AppConstants.IS_BT_LINK_SELECTED_CURRENTLY = false;
 
         if (skipOnResume && !proceedAfterManualWifiConnect) {
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + "<onResume Skipped.>");
             skipOnResume = false;
             return;
         }
@@ -484,8 +481,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             new WiFiConnectTask().execute();
         }
 
-        AppConstants.showReaderStatus = false;
-        //AppConstants.selectHosePressed = false;
+        AppConstants.SHOW_READER_STATUS = false;
+        //AppConstants.SELECT_HOSE_PRESSED = false;
         AppConstants.NonValidateVehicle_FOB_KEY = "";
         BTL1State = 0;
         BTL2State = 0;
@@ -528,7 +525,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         ctx = WelcomeActivity.this;
         IsFARequired();//Enable disable FA on Checkbox on ui
 
-        getipOverOSVersion();
+        getIpOverOSVersion();
 
         //Reconnect BT reader if disconnected
         ConnectCount = 0;
@@ -561,7 +558,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
         if (cd.isConnectingToInternet() && AppConstants.NETWORK_STRENGTH) {
 
-            AppConstants.CURRENT_STATE_MOBILEDATA = true;
+            AppConstants.CURRENT_STATE_MOBILE_DATA = true;
             if (IsGateHub.equalsIgnoreCase("True")) {
                 CheckForGateSoftwareTimer();//gate software timer executor
             } else {
@@ -569,12 +566,12 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             }
         } else if (!ConfigurationStep1IsInProgress) {
 
-            AppConstants.CURRENT_STATE_MOBILEDATA = false;
+            AppConstants.CURRENT_STATE_MOBILE_DATA = false;
             if (OfflineConstants.isOfflineAccess(WelcomeActivity.this)) {
                 new GetOfflineSSIDUsingLocationOnResume().execute();
             } else {
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + AppConstants.OFF1);
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(TAG + AppConstants.OFF1);
                 AppConstants.colorToastBigFont(WelcomeActivity.this, AppConstants.OFF1, Color.BLUE);
             }
         }
@@ -607,7 +604,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         ConnectAllAvailableBTLinks();
 
         DebugWindow();
-        AppConstants.showWelcomeDialogForAddNewLink = true;
+        AppConstants.SHOW_WELCOME_DIALOG_FOR_ADD_NEW_LINK = true;
     }
 
     private void copyFileFromAssets() {
@@ -638,7 +635,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 }
             }
         } catch (Exception e) {
-            AppConstants.WriteinFile("Exception in copyFileFromAssets: " + e.getMessage());
+            AppConstants.writeInFile("Exception in copyFileFromAssets: " + e.getMessage());
         } finally {
             try {
                 if (inputStream != null) {
@@ -685,8 +682,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (AppConstants.GenerateLogs)
-            AppConstants.WriteinFile(TAG + "<Closed.>");
+        if (AppConstants.GENERATE_LOGS)
+            AppConstants.writeInFile(TAG + "<Closed.>");
         closeBTSppMain();
         qrcodebleServiceOff();
 
@@ -705,7 +702,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         if (timerGate != null)
             timerGate.cancel();
 
-        if (AppConstants.EnableFA) {
+        if (AppConstants.ENABLE_FA) {
             if (mHandler != null && mPruneTask != null)
                 mHandler.removeCallbacks(mPruneTask);
 
@@ -732,8 +729,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             this.unregisterReceiver(receiver);
         }
 
-        if (wifiApReciver != null) {
-            this.unregisterReceiver(wifiApReciver);
+        if (wifiApReceiver != null) {
+            this.unregisterReceiver(wifiApReceiver);
         }
 
         if(dialogReceiver != null) {
@@ -764,8 +761,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         QRCodeBluetoothMacAddressForBarcode = sharedPre2.getString("QRCodeBluetoothMacAddressForBarcode", ""); //
         mMagCardDeviceName = sharedPre2.getString("MagneticCardReader", "");
         mMagCardDeviceAddress = sharedPre2.getString("MagneticCardReaderMacAddress", "");
-        AppConstants.DisableAllRebootOptions = sharedPre2.getString("DisableAllReboots", "N");
-        AppConstants.ScreenResolutionYOffSet = AppConstants.GetYOffsetFromScreenResolution(WelcomeActivity.this);
+        AppConstants.DISABLE_ALL_REBOOT_OPTIONS = sharedPre2.getString("DisableAllReboots", "N");
+        AppConstants.SCREEN_RESOLUTION_Y_OFFSET = AppConstants.getYOffsetFromScreenResolution(WelcomeActivity.this);
         System.out.println(mDeviceName + "####" + mDeviceAddress);
 
         timerFSNP = new Timer("TimerFSNP");
@@ -774,17 +771,17 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         tvSSIDName = (TextView) findViewById(R.id.tvSSIDName);
         tvLatLng = (TextView) findViewById(R.id.tvLatLng);
         tvLatLng.setVisibility(View.GONE);
-        AppConstants.Server_mesage = "Server Not Connected..!!!";
+        AppConstants.SERVER_MESSAGE = "Server Not Connected..!!!";
         if (cd.isConnectingToInternet() && AppConstants.NETWORK_STRENGTH) {
-            AppConstants.PRE_STATE_MOBILEDATA = true;
+            AppConstants.PRE_STATE_MOBILE_DATA = true;
         } else {
-            AppConstants.PRE_STATE_MOBILEDATA = false;
+            AppConstants.PRE_STATE_MOBILE_DATA = false;
         }
         FOLDER_PATH = getApplicationContext().getExternalFilesDir(AppConstants.FOLDER_BIN) + "/";
 
         SelectedItemPos = -1;
 
-        AppConstants.DetailsListOfConnectedDevices = new ArrayList<>();
+        AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES = new ArrayList<>();
         getSupportActionBar().setTitle(R.string.fs_name);
         getSupportActionBar().setIcon(R.drawable.fuel_secure_lock);
 
@@ -817,11 +814,11 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         IsLogRequiredAndBranding();
 
         SharedPreferences sharedPrefGatehub = WelcomeActivity.this.getSharedPreferences(Constants.PREF_COLUMN_GATE_HUB, Context.MODE_PRIVATE);
-        IsGateHub = sharedPrefGatehub.getString(AppConstants.IsGateHub, "");
-        IsStayOpenGate = sharedPrefGatehub.getString(AppConstants.IsStayOpenGate, "");
+        IsGateHub = sharedPrefGatehub.getString(AppConstants.IS_GATE_HUB, "");
+        IsStayOpenGate = sharedPrefGatehub.getString(AppConstants.IS_STAY_OPEN_GATE, "");
 
         //Cleare TLD data in SharedPreferance
-        AppConstants.clearSharedPrefByName(WelcomeActivity.this, Constants.PREF_TldDetails);
+        AppConstants.clearSharedPrefByName(WelcomeActivity.this, Constants.PREF_TLD_DETAILS);
 
         tv_request = (TextView) findViewById(R.id.tv_request);
         tv_response = (TextView) findViewById(R.id.tv_response);
@@ -834,7 +831,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         //setUrlFromSharedPref(this);//Set url App Txt URL
         //UpdateServerMessages();
         DownloadFile();
-        //getipOverOSVersion();
+        //getIpOverOSVersion();
         KeepDataTransferAlive();//Check For FirmwreUpgrade & KeepDataTransferAlive
         KeepDataTransferAliveBT();//Check For Keep Alive BT Links
 
@@ -843,6 +840,13 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         if (OfflineConstants.isOfflineAccess(WelcomeActivity.this)) {
             MidnightTaskExecute();
         }
+
+        //============= WorkManager ================
+        WorkManager workManager = WorkManager.getInstance(WelcomeActivity.this);
+        WorkRequest workRequest = new PeriodicWorkRequest.Builder(BackgroundWorker.class, 15, TimeUnit.MINUTES).build();
+        workManager.enqueue(workRequest);
+        //==========================================
+
         //Network signal strength check
         /*
         psListener = new PhoneCustomStateListener();
@@ -863,10 +867,10 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             @Override
             public void onClick(View view) {
 
-                //AppConstants.Server_mesage = "???";
-                AppConstants.Header_data = "";
-                AppConstants.Server_Request = "";
-                AppConstants.Server_Response = "";
+                //AppConstants.SERVER_MESSAGE = "???";
+                AppConstants.HEADER_DATA = "";
+                AppConstants.SERVER_REQUEST = "";
+                AppConstants.SERVER_RESPONSE = "";
             }
         });
 
@@ -878,11 +882,11 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 String Offinfo = "";
                 try {
 
-                    String OfflineDataBaseSize = OfflineConstants.GetOfflineDatabaseSize(WelcomeActivity.this);
+                    String OfflineDataBaseSize = OfflineConstants.getOfflineDatabaseSize(WelcomeActivity.this);
 
                     SharedPreferences sharedPref = ctx.getSharedPreferences(PREF_OFF_DB_SIZE, Context.MODE_PRIVATE);
 
-                    String DbUpdateTime = sharedPref.getString(AppConstants.DbUpdateTime, "");
+                    String DbUpdateTime = sharedPref.getString(AppConstants.DB_UPDATE_TIME, "");
                     String AppMode = "";
                     if (cd.isConnectingToInternet() && AppConstants.NETWORK_STRENGTH) {
                         AppMode = "ON";
@@ -890,14 +894,14 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         AppMode = "OFF";
                     }
 
-                    String rowCounts = offcontroller.selectRowCountOfDatabase();
+                    String rowCounts = offController.selectRowCountOfDatabase();
 
                     Offinfo = OfflineDataBaseSize + " " + DbUpdateTime + " " + AppMode + " " + rowCounts;
                     Log.i(TAG, " Offinfo: " + Offinfo);
 
                 } catch (Exception e) {
                     e.printStackTrace();
-                    AppConstants.WriteinFile("layout_support_info Exception: " + e);
+                    AppConstants.writeInFile("layout_support_info Exception: " + e);
                 }
 
 
@@ -951,8 +955,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     biggerText.setSpan(new RelativeSizeSpan(2.00f), 0, text.length(), 0);
                     Toast.makeText(WelcomeActivity.this, biggerText, Toast.LENGTH_LONG).show();
                     Log.i(TAG, "mConnectState: " + text);
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + "mConnectState: " + text);
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(TAG + "mConnectState: " + text);
 
                 } else {
 
@@ -977,25 +981,25 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         // set User Information
         UserInfoEntity userInfoEntity = CommonUtils.getCustomerDetails(WelcomeActivity.this);
 
-        AppConstants.Title = getResources().getString(R.string.HUBNumber) + " " + CommonUtils.getHUBNumberByName(userInfoEntity.PersonName);//+ "\nMobile : " + userInfoEntity.PhoneNumber + "\nEmail : " + userInfoEntity.PersonEmail
-        AppConstants.SiteName = getResources().getString(R.string.SiteName) + " " + userInfoEntity.FluidSecureSiteName;//+ "\nMobile : " + userInfoEntity.PhoneNumber + "\nEmail : " + userInfoEntity.PersonEmail
-        AppConstants.HubName = userInfoEntity.PersonName;
+        AppConstants.TITLE = getResources().getString(R.string.HUBNumber) + " " + CommonUtils.getHUBNumberByName(userInfoEntity.PersonName);//+ "\nMobile : " + userInfoEntity.PhoneNumber + "\nEmail : " + userInfoEntity.PersonEmail
+        AppConstants.SITE_NAME = getResources().getString(R.string.SiteName) + " " + userInfoEntity.FluidSecureSiteName;//+ "\nMobile : " + userInfoEntity.PhoneNumber + "\nEmail : " + userInfoEntity.PersonEmail
+        AppConstants.HUB_NAME = userInfoEntity.PersonName;
         tvTitle = (TextView) findViewById(textView);
         tv_SiteName = (TextView) findViewById(R.id.tv_SiteName);
         Fa_log = (TextView) findViewById(R.id.Fa_log);
-        tvTitle.setText(AppConstants.Title);
-        tv_SiteName.setText(AppConstants.SiteName);
-        AppConstants.WriteinFile(TAG + " HUB Name: " + userInfoEntity.PersonName);
-        AppConstants.WriteinFile(TAG + " Site Name: " + userInfoEntity.FluidSecureSiteName);
-        AppConstants.WriteinFile(TAG + " App Version: " + CommonUtils.getVersionCode(WelcomeActivity.this) + " " + AppConstants.getDeviceName() + " Android " + Build.VERSION.RELEASE + " ");
+        tvTitle.setText(AppConstants.TITLE);
+        tv_SiteName.setText(AppConstants.SITE_NAME);
+        AppConstants.writeInFile(TAG + " HUB Name: " + userInfoEntity.PersonName);
+        AppConstants.writeInFile(TAG + " Site Name: " + userInfoEntity.FluidSecureSiteName);
+        AppConstants.writeInFile(TAG + " App Version: " + CommonUtils.getVersionCode(WelcomeActivity.this) + " " + AppConstants.getDeviceName() + " Android " + Build.VERSION.RELEASE + " ");
 
-        AppConstants.showWelcomeDialogForAddNewLink = true;
+        AppConstants.SHOW_WELCOME_DIALOG_FOR_ADD_NEW_LINK = true;
 
         wifiApManager = new WifiApManager(this);
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
 
             try {
-                AppConstants.HubGeneratedpassword = PasswordGeneration();
+                AppConstants.HUB_GENERATED_PASSWORD = PasswordGeneration();
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -1032,8 +1036,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             public void onClick(View v) {
                 AppConstants.colorToastBigFont(WelcomeActivity.this, "Please wait for few seconds....", Color.BLUE);
                 Log.i(TAG, "Please wait for few seconds....");
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "Please wait for few seconds....");
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(TAG + "Please wait for few seconds....");
                 connectWiFiLibrary("1");
             }
         });
@@ -1137,8 +1141,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                             "The device is not supported!",
                                             Toast.LENGTH_SHORT).show();
                                     Log.i(TAG, "The device is not supported!");
-                                    if (AppConstants.GenerateLogs)
-                                        AppConstants.WriteinFile(TAG + "The device is not supported!");
+                                    if (AppConstants.GENERATE_LOGS)
+                                        AppConstants.writeInFile(TAG + "The device is not supported!");
 
 
                                     /* Disconnect Bluetooth reader */
@@ -1157,7 +1161,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 });
 
         //SureMDM call if battery less then 30%
-        if (AppConstants.DisableAllRebootOptions.equalsIgnoreCase("N")) {
+        if (AppConstants.DISABLE_ALL_REBOOT_OPTIONS.equalsIgnoreCase("N")) {
             BatteryPercentageService();
         }
 
@@ -1175,7 +1179,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         // Registers BroadcastReceiver to track Hotspot connection changes.
         IntentFilter mIntentFilter = new IntentFilter();
         mIntentFilter = new IntentFilter("android.net.wifi.WIFI_AP_STATE_CHANGED");
-        registerReceiver(wifiApReciver, mIntentFilter);
+        registerReceiver(wifiApReceiver, mIntentFilter);
 
         // register BroadcastReceiver for offline data download
         IntentFilter dialogFilter = new IntentFilter(OffBackgroundService.ACTION_SHOW_DIALOG);
@@ -1183,12 +1187,12 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
         //CallJobSchedular();//Job Scheduler hotspot check
 
-        AppConstants.enableHotspotManuallyWindow = true;
-        if (!CommonUtils.isHotspotEnabled(WelcomeActivity.this) && Constants.hotspotstayOn && AppConstants.enableHotspotManuallyWindow) {
+        AppConstants.ENABLE_HOTSPOT_MANUALLY_WINDOW = true;
+        if (!CommonUtils.isHotspotEnabled(WelcomeActivity.this) && Constants.HOTSPOT_STAY_ON && AppConstants.ENABLE_HOTSPOT_MANUALLY_WINDOW) {
 
-            AppConstants.enableHotspotManuallyWindow = false;
+            AppConstants.ENABLE_HOTSPOT_MANUALLY_WINDOW = false;
 
-            //AppConstants.WriteinFile(TAG + " enableMobileHotspotmanuallyStartTimer-3");
+            //AppConstants.writeInFile(TAG + " enableMobileHotspotmanuallyStartTimer-3");
             //CommonUtils.enableMobileHotspotmanuallyStartTimer(this);
         }
 
@@ -1197,15 +1201,40 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         cancelThinDownloadManager();
 
         copyFileFromAssets();
+
+        logOfflineDownloadDetails();
+    }
+
+    private void logOfflineDownloadDetails() {
+        try {
+            SharedPreferences sharedPref = getApplicationContext().getSharedPreferences("storeOfflineAccess", Context.MODE_PRIVATE);
+            String isOffline = sharedPref.getString("isOffline", "false");
+            String OFFLineDataDwnldFreq = sharedPref.getString("OFFLineDataDwnldFreq", "Weekly");
+            int WeekDay = sharedPref.getInt("DayOfWeek", 2);
+            int OfflineDataDownloadTimeInHrs = sharedPref.getInt("HourOfDay", 2);
+            int OfflineDataDownloadTimeInMin = sharedPref.getInt("MinuteOfHour", 22);
+
+            if (isOffline.equalsIgnoreCase("True")) {
+                String DayOfWeek = "";
+                if (OFFLineDataDwnldFreq.equalsIgnoreCase("Weekly")) {
+                    DayOfWeek = " (" + WeekDay + ")";
+                }
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(TAG + " <Scheduled offline download: " + OFFLineDataDwnldFreq + DayOfWeek + "; HourOfDay:" + OfflineDataDownloadTimeInHrs + "; Minute:" + OfflineDataDownloadTimeInMin + ">");
+            }
+        } catch (Exception e) {
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + "logOfflineDownloadDetails Exception:>> " + e.getMessage());
+        }
     }
 
     public void cancelThinDownloadManager() {
         try {
             if (OfflineConstants.isOfflineAccess(WelcomeActivity.this)) {
-                //AppConstants.WriteinFile(TAG + " cancelThinDownloadManager Execute///");
+                //AppConstants.writeInFile(TAG + " cancelThinDownloadManager Execute///");
                 ThinDownloadManager downloadManager = new ThinDownloadManager();
                 downloadManager.cancelAll();
-                AppConstants.offlineDownloadIds.clear();
+                AppConstants.OFFLINE_DOWNLOAD_IDS.clear();
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -1214,14 +1243,14 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
     public void cancelOfflineDownload() {
         try {
-            AppConstants.isOfflineDownloadStarted = false;
-            AppConstants.forceDownloadOfflineData = false;
+            AppConstants.IS_OFFLINE_DOWNLOAD_STARTED = false;
+            AppConstants.FORCE_DOWNLOAD_OFFLINE_DATA = false;
             cancelThinDownloadManager();
             stopService(new Intent(WelcomeActivity.this, OffBackgroundService.class));
         } catch (Exception e) {
             e.printStackTrace();
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "cancelOfflineDownload Exception:>> " + e.getMessage());
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + "cancelOfflineDownload Exception:>> " + e.getMessage());
         }
     }
 
@@ -1255,7 +1284,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         AlarmManager alarm = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         alarm.setRepeating(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), 60000 * 60, pintent); //60000 * 60 = 1 hour
         //scan and enable hotspot if OFF
-        Constants.hotspotstayOn = true;
+        Constants.HOTSPOT_STAY_ON = true;
 
     }
 
@@ -1326,9 +1355,9 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         timerBTKeepAlive = new Timer("TimerBTKeepAlive");
         TimerTask repeatedTask = new TimerTask() {
             public void run() {
-                if (BTConstants.RetryBTConnectionLinkPosition > -1) {
-                    retryBTConnection(BTConstants.RetryBTConnectionLinkPosition, false);
-                    BTConstants.RetryBTConnectionLinkPosition = -1;
+                if (BTConstants.RETRY_BT_CONNECTION_LINK_POSITION > -1) {
+                    retryBTConnection(BTConstants.RETRY_BT_CONNECTION_LINK_POSITION, false);
+                    BTConstants.RETRY_BT_CONNECTION_LINK_POSITION = -1;
                 }
             }
         };
@@ -1340,12 +1369,11 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
     @Override
     protected void onStop() {
         super.onStop();
-
         OnWelcomeActivity = false;
         if (loading != null) {
             loading.dismiss();
-            if (!AppConstants.ManuallReconfigure) {
-                Constants.hotspotstayOn = true;
+            if (!AppConstants.MANUAL_RECONFIGURE) {
+                Constants.HOTSPOT_STAY_ON = true;
             }
             loading = null;
         }
@@ -1362,7 +1390,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 CommonUtils.getAllFilesInDir(file);
             }
 
-            //String LocalPath = getApplicationContext().getExternalFilesDir(AppConstants.FOLDER_BIN) + "/" + AppConstants.UP_Upgrade_File_name;
+            //String LocalPath = getApplicationContext().getExternalFilesDir(AppConstants.FOLDER_BIN) + "/" + AppConstants.UP_UPGRADE_FILE_NAME;
             File firmwareFile = new File(String.valueOf(getApplicationContext().getExternalFilesDir(AppConstants.FOLDER_BIN)));
             boolean exists1 = firmwareFile.exists();
             if (exists1) {
@@ -1538,7 +1566,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             }
 
             if (latitude == 0 && longitude == 0) {
-                AppConstants.AlertDialogFinish(WelcomeActivity.this, "Unable to get current location.\nPlease try again later!");
+                AppConstants.alertDialogFinish(WelcomeActivity.this, "Unable to get current location.\nPlease try again later!");
             }
         }
     }*/
@@ -1657,7 +1685,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         //Connect to BT links
         ConnectAllAvailableBTLinks();
 
-        AppConstants.selectHosePressed = true;
+        AppConstants.SELECT_HOSE_PRESSED = true;
         cancelOfflineDownload();
 
         cancelThinDownloadManager();
@@ -1672,8 +1700,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 ReConnectBTReader();
             }
 
-            if (AppConstants.DetailsListOfConnectedDevices == null || AppConstants.DetailsListOfConnectedDevices.size() == 0) {
-                getipOverOSVersion();//Refreshed donnected devices list on hose selection.
+            if (AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES == null || AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.size() == 0) {
+                getIpOverOSVersion();//Refreshed donnected devices list on hose selection.
             }
 
             refreshWiFiList(v);
@@ -1776,10 +1804,10 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
     public void GoButtonFunctionalityForSingleLink(String LinkCommunicationType) {
         try {
             if (IsGateHub.equalsIgnoreCase("True") && LinkCommunicationType.equalsIgnoreCase("BT")) {
-                if (AppConstants.GoButtonAlreadyClicked) {
+                if (AppConstants.GO_BUTTON_ALREADY_CLICKED) {
                     return;
                 } else {
-                    AppConstants.GoButtonAlreadyClicked = true;
+                    AppConstants.GO_BUTTON_ALREADY_CLICKED = true;
                 }
             }
 
@@ -1787,7 +1815,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             String hoseID = serverSSIDList.get(0).get("HoseId");
             String IsUpgrade = serverSSIDList.get(0).get("IsUpgrade");
             String FirmwareVersion = serverSSIDList.get(0).get("FirmwareVersion");
-            AppConstants.UP_FilePath = serverSSIDList.get(0).get("UPFilePath");
+            AppConstants.UP_FILE_PATH = serverSSIDList.get(0).get("UPFilePath");
             String selSSID = serverSSIDList.get(0).get("WifiSSId");
             String selMacAddress = serverSSIDList.get(0).get("MacAddress");
             String BTselMacAddress = serverSSIDList.get(0).get("BTMacAddress");
@@ -1804,17 +1832,17 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             SaveMOStatusDetailsInSharedPref(0, MOStatusCheckFlag, IsCheckMOStatus, IsResetMOCheckFlag);
 
             AppConstants.CURRENT_SELECTED_SSID = selSSID;
-            AppConstants.CURRENT_SELECTED_SITEID = selSiteId;
+            AppConstants.CURRENT_SELECTED_SITE_ID = selSiteId;
             AppConstants.FS1_CONNECTED_SSID = selSSID;
-            Constants.CurrentSelectedHose = "FS1";
+            Constants.CURRENT_SELECTED_HOSE = "FS1";
 
             if (LinkCommunicationType.equalsIgnoreCase("BT")) {
                 SetBTLinksMacAddress(0, BTselMacAddress);
-                AppConstants.IsBTLinkSelectedCurrently = true;
-                AppConstants.SELECTED_MACADDRESS = BTselMacAddress;
+                AppConstants.IS_BT_LINK_SELECTED_CURRENTLY = true;
+                AppConstants.SELECTED_MAC_ADDRESS = BTselMacAddress;
             } else {
-                AppConstants.IsBTLinkSelectedCurrently = false;
-                AppConstants.SELECTED_MACADDRESS = selMacAddress;
+                AppConstants.IS_BT_LINK_SELECTED_CURRENTLY = false;
+                AppConstants.SELECTED_MAC_ADDRESS = selMacAddress;
             }
 
             if (hoseID == null) {
@@ -1832,7 +1860,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
             SetSiteIdByLinkPosition(0, selSiteId);
             SetHoseIdByLinkPosition(0, hoseID);
-            if (!IsUpgrade.isEmpty() && !AppConstants.isTestTransaction) {
+            if (!IsUpgrade.isEmpty() && !AppConstants.IS_TEST_TRANSACTION) {
                 SetUpgradeFirmwareDetails(0, IsUpgrade, FirmwareVersion, FirmwareFileName, selSiteId, hoseID);
             }
 
@@ -1847,8 +1875,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 LinkUpgradeFunctionality("HTTP", 0, ""); // To handle Single HTTP link
             }
         } catch (Exception e) {
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "Exception in GoButtonFunctionalityForSingleLink: " + e.getMessage());
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + "Exception in GoButtonFunctionalityForSingleLink: " + e.getMessage());
         }
     }
 
@@ -1877,22 +1905,22 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             if (selectedLinkPosition >= 0) {
                 switch (selectedLinkPosition) {
                     case 0:
-                        isPreviousTxnCompleted = AppConstants.IsTransactionCompleted1;
+                        isPreviousTxnCompleted = AppConstants.IS_TRANSACTION_COMPLETED_1;
                         break;
                     case 1://Link Two
-                        isPreviousTxnCompleted = AppConstants.IsTransactionCompleted2;
+                        isPreviousTxnCompleted = AppConstants.IS_TRANSACTION_COMPLETED_2;
                         break;
                     case 2://Link Three
-                        isPreviousTxnCompleted = AppConstants.IsTransactionCompleted3;
+                        isPreviousTxnCompleted = AppConstants.IS_TRANSACTION_COMPLETED_3;
                         break;
                     case 3://Link Four
-                        isPreviousTxnCompleted = AppConstants.IsTransactionCompleted4;
+                        isPreviousTxnCompleted = AppConstants.IS_TRANSACTION_COMPLETED_4;
                         break;
                     case 4://Link Five
-                        isPreviousTxnCompleted = AppConstants.IsTransactionCompleted5;
+                        isPreviousTxnCompleted = AppConstants.IS_TRANSACTION_COMPLETED_5;
                         break;
                     case 5://Link Six
-                        isPreviousTxnCompleted = AppConstants.IsTransactionCompleted6;
+                        isPreviousTxnCompleted = AppConstants.IS_TRANSACTION_COMPLETED_6;
                         break;
                     default://Something went wrong in link selection please try again.
                         break;
@@ -1923,8 +1951,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             }.start();
         } catch (Exception e) {
             e.printStackTrace();
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "Exception in goButtonAction: " + e.getMessage());
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + "Exception in goButtonAction: " + e.getMessage());
             continueToGoButtonAction(view);
         }
     }
@@ -1932,17 +1960,17 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
     public void continueToGoButtonAction(View view) {
         qrcodebleServiceOn();
         //launchCamera();     //Calling camera activity for image capture on GO button click
-        AppConstants.serverAuthCallCompleted = false;
-        AppConstants.serverCallInProgressForPin = false;
-        AppConstants.serverCallInProgressForVehicle = false;
-        BTConstants.forOscilloscope = false;
-        AppConstants.forceDownloadOfflineData = false;
+        AppConstants.SERVER_AUTH_CALL_COMPLETED = false;
+        AppConstants.SERVER_CALL_IN_PROGRESS_FOR_PIN = false;
+        AppConstants.SERVER_CALL_IN_PROGRESS_FOR_VEHICLE = false;
+        BTConstants.FOR_OSCILLOSCOPE = false;
+        AppConstants.FORCE_DOWNLOAD_OFFLINE_DATA = false;
         try {
             if (cd.isConnectingToInternet() && serverSSIDList != null && serverSSIDList.size() == 1) {
-                AppConstants.FS_selected = "0";
-                AppConstants.selectHosePressed = true;
+                AppConstants.FS_SELECTED = "0";
+                AppConstants.SELECT_HOSE_PRESSED = true;
                 cancelOfflineDownload();
-                AppConstants.IsSingleLink = true;
+                AppConstants.IS_SINGLE_LINK = true;
                 SelectedItemPos = 0;
 
                 if (view != null) { // GO button clicked.
@@ -1955,15 +1983,15 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 }
             }
         } catch (Exception ex) {
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "Exception in goButtonAction: single link selection. " + ex.getMessage());
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + "Exception in goButtonAction: single link selection. " + ex.getMessage());
         }
 
         // Start background services (Change for #2108 & #2109)
         SyncSqliteData();
 
         ///////////////////common online offline///////////////////////////////
-        EntityHub obj = offcontroller.getOfflineHubDetails(WelcomeActivity.this);
+        EntityHub obj = offController.getOfflineHubDetails(WelcomeActivity.this);
 
         OfflineConstants.storeCurrentTransaction(WelcomeActivity.this, obj.HubId, "", "", "", "", "", "", "", "", "", "", "");
 
@@ -1977,7 +2005,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     flagGoBtn = false;
 
                     if (SelectedItemPos >= 0) {
-                        AppConstants.selectHosePressed = true;
+                        AppConstants.SELECT_HOSE_PRESSED = true;
                         cancelOfflineDownload();
 
                         if (serverSSIDList.size() > 0) {
@@ -1995,8 +2023,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                             AppConstants.LAST_CONNECTED_SSID = selectedSSID;
 
                             if (IsTankEmpty.equalsIgnoreCase("True")) {
-                                if (AppConstants.GenerateLogs)
-                                    AppConstants.WriteinFile(TAG + getResources().getString(R.string.EmptyTankWarning));
+                                if (AppConstants.GENERATE_LOGS)
+                                    AppConstants.writeInFile(TAG + getResources().getString(R.string.EmptyTankWarning));
                                 CommonUtils.AlertDialogAutoClose(WelcomeActivity.this, "", getResources().getString(R.string.EmptyTankWarning));
                                 tvSSIDName.setText(R.string.selectHose);
                                 btnGo.setVisibility(View.GONE);
@@ -2007,8 +2035,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                 Toast.makeText(getApplicationContext(), "Link Configuration flag true. please check", Toast.LENGTH_LONG).show();
 
                             } else if (IsLinkFlagged != null && IsLinkFlagged.equalsIgnoreCase("True")) {
-                                if (AppConstants.GenerateLogs)
-                                    AppConstants.WriteinFile(TAG + "Flagged Link: " + LinkFlaggedMessage);
+                                if (AppConstants.GENERATE_LOGS)
+                                    AppConstants.writeInFile(TAG + "Flagged Link: " + LinkFlaggedMessage);
                                 CommonUtils.AlertDialogAutoClose(WelcomeActivity.this, "", LinkFlaggedMessage);
                                 tvSSIDName.setText(R.string.selectHose);
                                 btnGo.setVisibility(View.GONE);
@@ -2017,15 +2045,15 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
                                 if (IsHoseNameReplaced.equalsIgnoreCase("Y")) {
 
-                                    AppConstants.NeedToRename = false;
-                                    AppConstants.REPLACEBLE_WIFI_NAME = "";
+                                    AppConstants.NEED_TO_RENAME = false;
+                                    AppConstants.REPLACEABLE_WIFI_NAME = "";
                                     AppConstants.R_HOSE_ID = "";
                                     AppConstants.R_SITE_ID = "";
 
                                 } else {
 
-                                    AppConstants.NeedToRename = true;
-                                    AppConstants.REPLACEBLE_WIFI_NAME = ReplaceableHoseName;
+                                    AppConstants.NEED_TO_RENAME = true;
+                                    AppConstants.REPLACEABLE_WIFI_NAME = ReplaceableHoseName;
                                     AppConstants.R_HOSE_ID = HoseId;
                                     AppConstants.R_SITE_ID = SiteId;
 
@@ -2047,8 +2075,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                 } else {
                                     flagGoBtn = true;//Enable go button
                                     Toast.makeText(WelcomeActivity.this, "Please try later.", Toast.LENGTH_SHORT).show();
-                                    if (AppConstants.GenerateLogs)
-                                        AppConstants.WriteinFile(TAG + "goButtonAction Please try later.");
+                                    if (AppConstants.GENERATE_LOGS)
+                                        AppConstants.writeInFile(TAG + "goButtonAction Please try later.");
                                 }
 
                         /*
@@ -2064,14 +2092,14 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         } else {
                             flagGoBtn = true;
                             CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.UnableToGetHoseList));
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(TAG + "Unable to get hose list from server");
+                            if (AppConstants.GENERATE_LOGS)
+                                AppConstants.writeInFile(TAG + "Unable to get hose list from server");
                         }
                     } else {
                         flagGoBtn = true;
                         CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.SelectHoseAlert));
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "Please select Hose");
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(TAG + "Please select Hose");
                     }
 
 
@@ -2091,7 +2119,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         flagGoBtn = false;
 
                         if (SelectedItemPos >= 0) {
-                            AppConstants.selectHosePressed = true;
+                            AppConstants.SELECT_HOSE_PRESSED = true;
                             cancelOfflineDownload();
 
                             if (serverSSIDList.size() > 0) {
@@ -2111,64 +2139,64 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                     if (obj.VehicleNumberRequired.equalsIgnoreCase("Y")) {
 
                                         btnGo.setClickable(false);
-                                        Constants.GateHubPinNo = "";
-                                        Constants.GateHubvehicleNo = "";
+                                        Constants.GATE_HUB_PIN_NUM = "";
+                                        Constants.GATE_HUB_VEHICLE_NUM = "";
                                         Intent intent = new Intent(WelcomeActivity.this, AcceptVehicleActivity_new.class);
                                         startActivity(intent);
 
                                     } else if (obj.PersonnelPINNumberRequired.equalsIgnoreCase("Y")) {
 
                                         btnGo.setClickable(false);
-                                        Constants.GateHubPinNo = "";
-                                        Constants.GateHubvehicleNo = "";
+                                        Constants.GATE_HUB_PIN_NUM = "";
+                                        Constants.GATE_HUB_VEHICLE_NUM = "";
                                         Intent intent = new Intent(WelcomeActivity.this, AcceptPinActivity_new.class);
                                         startActivity(intent);
 
                                     } else if (obj.IsDepartmentRequire.equalsIgnoreCase("true")) {
 
                                         btnGo.setClickable(false);
-                                        Constants.GateHubPinNo = "";
-                                        Constants.GateHubvehicleNo = "";
+                                        Constants.GATE_HUB_PIN_NUM = "";
+                                        Constants.GATE_HUB_VEHICLE_NUM = "";
                                         Intent intent = new Intent(WelcomeActivity.this, AcceptDeptActivity.class);
                                         startActivity(intent);
 
                                     } else if (obj.IsOtherRequire.equalsIgnoreCase("True") && !obj.HUBType.equalsIgnoreCase("G")) {
 
                                         btnGo.setClickable(false);
-                                        Constants.GateHubPinNo = "";
-                                        Constants.GateHubvehicleNo = "";
+                                        Constants.GATE_HUB_PIN_NUM = "";
+                                        Constants.GATE_HUB_VEHICLE_NUM = "";
                                         Intent intent = new Intent(WelcomeActivity.this, AcceptOtherActivity.class);
                                         startActivity(intent);
 
                                     } else {
                                         /*AppConstants.colorToastBigFont(WelcomeActivity.this, "Fuel screen", Color.BLUE);
-                                        if (AppConstants.GenerateLogs)
-                                            AppConstants.WriteinFile(TAG + "Fuel screen");*/
+                                        if (AppConstants.GENERATE_LOGS)
+                                            AppConstants.writeInFile(TAG + "Fuel screen");*/
 
                                         btnGo.setClickable(false);
-                                        Constants.GateHubPinNo = "";
-                                        Constants.GateHubvehicleNo = "";
+                                        Constants.GATE_HUB_PIN_NUM = "";
+                                        Constants.GATE_HUB_VEHICLE_NUM = "";
                                         Intent intent = new Intent(WelcomeActivity.this, DisplayMeterActivity.class);
                                         startActivity(intent);
 
                                     }
                                 } else {
                                     AppConstants.colorToastBigFont(WelcomeActivity.this, "Unauthorized day or timings", Color.BLUE);
-                                    if (AppConstants.GenerateLogs)
-                                        AppConstants.WriteinFile(TAG + "Unauthorized day or timings");
+                                    if (AppConstants.GENERATE_LOGS)
+                                        AppConstants.writeInFile(TAG + "Unauthorized day or timings");
                                 }
 
                             } else {
                                 flagGoBtn = true;
                                 CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.UnableToGetHoseList));
-                                if (AppConstants.GenerateLogs)
-                                    AppConstants.WriteinFile(TAG + "Unable to get hose list from server");
+                                if (AppConstants.GENERATE_LOGS)
+                                    AppConstants.writeInFile(TAG + "Unable to get hose list from server");
                             }
                         } else {
                             flagGoBtn = true;
                             CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.SelectHoseAlert));
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(TAG + "Please select Hose");
+                            if (AppConstants.GENERATE_LOGS)
+                                AppConstants.writeInFile(TAG + "Please select Hose");
                         }
 
                     } else {
@@ -2181,8 +2209,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 }
 
             } else {
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + AppConstants.OFF1);
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(TAG + AppConstants.OFF1);
                 AppConstants.colorToastBigFont(WelcomeActivity.this, AppConstants.OFF1, Color.BLUE);
             }
         }
@@ -2236,7 +2264,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
                 RequestBody body = RequestBody.create(TEXT, selectedSSID);
                 Request request = new Request.Builder()
-                        .url(AppConstants.webURL)
+                        .url(AppConstants.WEB_URL)
                         .post(body)
                         .addHeader("Authorization", authString)
                         .build();
@@ -2307,8 +2335,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         txtnTypeForLog = AppConstants.LOG_TXTN_HTTP;
                     }
 
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(txtnTypeForLog + "-" + TAG + "HandleGetAndroidSSID SiteResponse Empty!");
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(txtnTypeForLog + "-" + TAG + "HandleGetAndroidSSID SiteResponse Empty!");
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -2324,38 +2352,38 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
         SharedPreferences sharedPrefODO = WelcomeActivity.this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
 
-        IsDepartmentRequire = sharedPrefODO.getString(AppConstants.IsDepartmentRequire, "");
-        IsPersonnelPINRequire = sharedPrefODO.getString(AppConstants.IsPersonnelPINRequire, "");
-        IsPersonnelPINRequireForHub = sharedPrefODO.getString(AppConstants.IsPersonnelPINRequireForHub, "");
-        IsOtherRequire = sharedPrefODO.getString(AppConstants.IsOtherRequire, "");
-        IsVehicleNumberRequire = sharedPrefODO.getString(AppConstants.IsVehicleNumberRequire, "");
-        AppConstants.HUB_ID = sharedPrefODO.getString(AppConstants.HubId, "");
+        IsDepartmentRequire = sharedPrefODO.getString(AppConstants.IS_DEPARTMENT_REQUIRE, "");
+        IsPersonnelPINRequire = sharedPrefODO.getString(AppConstants.IS_PERSONNEL_PIN_REQUIRE, "");
+        IsPersonnelPINRequireForHub = sharedPrefODO.getString(AppConstants.IS_PERSONNEL_PIN_REQUIRE_FOR_HUB, "");
+        IsOtherRequire = sharedPrefODO.getString(AppConstants.IS_OTHER_REQUIRE, "");
+        IsVehicleNumberRequire = sharedPrefODO.getString(AppConstants.IS_VEHICLE_NUMBER_REQUIRE, "");
+        AppConstants.HUB_ID = sharedPrefODO.getString(AppConstants.HUBID, "");
 
         //Skip PinActivity and pass pin= "";
-        if (Constants.CurrentSelectedHose != null)
-            if (Constants.CurrentSelectedHose.equals("FS1")) {
-                Constants.AccPersonnelPIN_FS1 = "";
-            } else if (Constants.CurrentSelectedHose.equals("FS2")) {
-                Constants.AccPersonnelPIN = "";
-            } else if (Constants.CurrentSelectedHose.equals("FS3")) {
-                Constants.AccPersonnelPIN_FS3 = "";
-            } else if (Constants.CurrentSelectedHose.equals("FS4")) {
-                Constants.AccPersonnelPIN_FS4 = "";
-            } else if (Constants.CurrentSelectedHose.equals("FS5")) {
-                Constants.AccPersonnelPIN_FS5 = "";
-            } else if (Constants.CurrentSelectedHose.equals("FS6")) {
-                Constants.AccPersonnelPIN_FS6 = "";
+        if (Constants.CURRENT_SELECTED_HOSE != null)
+            if (Constants.CURRENT_SELECTED_HOSE.equals("FS1")) {
+                Constants.PERSONNEL_PIN_FS1 = "";
+            } else if (Constants.CURRENT_SELECTED_HOSE.equals("FS2")) {
+                Constants.PERSONNEL_PIN_FS2 = "";
+            } else if (Constants.CURRENT_SELECTED_HOSE.equals("FS3")) {
+                Constants.PERSONNEL_PIN_FS3 = "";
+            } else if (Constants.CURRENT_SELECTED_HOSE.equals("FS4")) {
+                Constants.PERSONNEL_PIN_FS4 = "";
+            } else if (Constants.CURRENT_SELECTED_HOSE.equals("FS5")) {
+                Constants.PERSONNEL_PIN_FS5 = "";
+            } else if (Constants.CURRENT_SELECTED_HOSE.equals("FS6")) {
+                Constants.PERSONNEL_PIN_FS6 = "";
             }
 
-        if (AppConstants.isTestTransaction) {
-            AppConstants.isTestTransaction = false;
+        if (AppConstants.IS_TEST_TRANSACTION) {
+            AppConstants.IS_TEST_TRANSACTION = false;
             btnGo.setClickable(false);
-            Constants.GateHubPinNo = "";
-            Constants.GateHubvehicleNo = "";
+            Constants.GATE_HUB_PIN_NUM = "";
+            Constants.GATE_HUB_VEHICLE_NUM = "";
             Intent intent = new Intent(WelcomeActivity.this, TestTransactionPinActivity.class);
             startActivity(intent);
 
-        } else if (IsGateHub.equalsIgnoreCase("True") && IsStayOpenGate.equalsIgnoreCase("True") && (!Constants.GateHubPinNo.equalsIgnoreCase("") || !Constants.GateHubvehicleNo.equalsIgnoreCase(""))) {
+        } else if (IsGateHub.equalsIgnoreCase("True") && IsStayOpenGate.equalsIgnoreCase("True") && (!Constants.GATE_HUB_PIN_NUM.equalsIgnoreCase("") || !Constants.GATE_HUB_VEHICLE_NUM.equalsIgnoreCase(""))) {
 
             //Toast.makeText(getApplicationContext()," IsStayOpenGate True",Toast.LENGTH_LONG).show();
             AcceptServiceCall asc = new AcceptServiceCall();
@@ -2365,40 +2393,40 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         } else if (IsVehicleNumberRequire.equalsIgnoreCase("True")) {
 
             btnGo.setClickable(false);
-            Constants.GateHubPinNo = "";
-            Constants.GateHubvehicleNo = "";
+            Constants.GATE_HUB_PIN_NUM = "";
+            Constants.GATE_HUB_VEHICLE_NUM = "";
             Intent intent = new Intent(WelcomeActivity.this, AcceptVehicleActivity_new.class);
             startActivity(intent);
 
         } else if (IsPersonnelPINRequireForHub.equalsIgnoreCase("True")) {
 
             btnGo.setClickable(false);
-            Constants.GateHubPinNo = "";
-            Constants.GateHubvehicleNo = "";
+            Constants.GATE_HUB_PIN_NUM = "";
+            Constants.GATE_HUB_VEHICLE_NUM = "";
             Intent intent = new Intent(WelcomeActivity.this, AcceptPinActivity_new.class);
             startActivity(intent);
 
         } else if (IsDepartmentRequire.equalsIgnoreCase("True")) {
 
             btnGo.setClickable(false);
-            Constants.GateHubPinNo = "";
-            Constants.GateHubvehicleNo = "";
+            Constants.GATE_HUB_PIN_NUM = "";
+            Constants.GATE_HUB_VEHICLE_NUM = "";
             Intent intent = new Intent(WelcomeActivity.this, AcceptDeptActivity.class);
             startActivity(intent);
 
         } else if (IsOtherRequire.equalsIgnoreCase("True")) {
 
             btnGo.setClickable(false);
-            Constants.GateHubPinNo = "";
-            Constants.GateHubvehicleNo = "";
+            Constants.GATE_HUB_PIN_NUM = "";
+            Constants.GATE_HUB_VEHICLE_NUM = "";
             Intent intent = new Intent(WelcomeActivity.this, AcceptOtherActivity.class);
             startActivity(intent);
 
         } else {
 
             btnGo.setClickable(false);
-            Constants.GateHubPinNo = "";
-            Constants.GateHubvehicleNo = "";
+            Constants.GATE_HUB_PIN_NUM = "";
+            Constants.GATE_HUB_VEHICLE_NUM = "";
             AcceptServiceCall asc = new AcceptServiceCall();
             asc.activity = WelcomeActivity.this;
             asc.checkAllFields();
@@ -2430,7 +2458,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
             }
         } catch (Exception e) {
-            AppConstants.WriteinFile(TAG + "removeFSNPFromList Exception: " + e.getMessage());
+            AppConstants.writeInFile(TAG + "removeFSNPFromList Exception: " + e.getMessage());
         }
     }
 
@@ -2439,16 +2467,16 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         removeFSNPFromList(0);
 
         //Clear FA vehicle number and personnel pin
-        Constants.GateHubPinNo = "";
-        Constants.GateHubvehicleNo = "";
+        Constants.GATE_HUB_PIN_NUM = "";
+        Constants.GATE_HUB_VEHICLE_NUM = "";
 
         FS1_Stpflag = false;
 
         String selSSID = serverSSIDList.get(0).get("WifiSSId");
         String selMacAddress = serverSSIDList.get(0).get("MacAddress");
 
-        if (AppConstants.GenerateLogs)
-            AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "LINK: " + selSSID + ". Stop button pressed");
+        if (AppConstants.GENERATE_LOGS)
+            AppConstants.writeInFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "LINK: " + selSSID + ". Stop button pressed");
 
         SharedPreferences sharedPref = this.getSharedPreferences("PreferanceHttpAddress", Context.MODE_PRIVATE);
         HTTP_URL_FS_1 = sharedPref.getString("HttpLinkOne", "");
@@ -2460,14 +2488,14 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         URL_RELAY_FS1 = HTTP_URL_FS_1 + "config?command=relay";
 
         if (HTTP_URL_FS_1.isEmpty()) {
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "LINK: " + selSSID + ". HTTP URL is empty.");
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "LINK: " + selSSID + ". HTTP URL is empty.");
         }
 
         stopService(new Intent(WelcomeActivity.this, BackgroundService_AP_PIPE.class));
         stopButtonFunctionality_FS1(selSSID);
-        if (Constants.BusyVehicleNumberList != null) {
-            Constants.BusyVehicleNumberList.remove(Constants.AccVehicleNumber_FS1);
+        if (Constants.BUSY_VEHICLE_NUMBER_LIST != null) {
+            Constants.BUSY_VEHICLE_NUMBER_LIST.remove(Constants.VEHICLE_NUMBER_FS1);
         }
     }
 
@@ -2480,8 +2508,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         String selMacAddress = serverSSIDList.get(1).get("MacAddress");
         IpAddress = null;
 
-        if (AppConstants.GenerateLogs)
-            AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "LINK: " + selSSID + ". Stop button pressed");
+        if (AppConstants.GENERATE_LOGS)
+            AppConstants.writeInFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "LINK: " + selSSID + ". Stop button pressed");
 
         SharedPreferences sharedPref = this.getSharedPreferences("PreferanceHttpAddress", Context.MODE_PRIVATE);
         HTTP_URL_FS_2 = sharedPref.getString("HttpLinkTwo", "");
@@ -2492,14 +2520,14 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         URL_RELAY_FS2 = HTTP_URL_FS_2 + "config?command=relay";
 
         if (HTTP_URL_FS_2.isEmpty()) {
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "LINK: " + selSSID + ". HTTP URL is empty.");
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "LINK: " + selSSID + ". HTTP URL is empty.");
         }
 
         stopService(new Intent(WelcomeActivity.this, BackgroundService_AP.class));
         stopButtonFunctionality_FS2(selSSID);
-        if (Constants.BusyVehicleNumberList != null) {
-            Constants.BusyVehicleNumberList.remove(Constants.AccVehicleNumber);
+        if (Constants.BUSY_VEHICLE_NUMBER_LIST != null) {
+            Constants.BUSY_VEHICLE_NUMBER_LIST.remove(Constants.VEHICLE_NUMBER_FS2);
         }
     }
 
@@ -2512,8 +2540,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         String selMacAddress = serverSSIDList.get(2).get("MacAddress");
         IpAddress = null;
 
-        if (AppConstants.GenerateLogs)
-            AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "LINK: " + selSSID + ". Stop button pressed");
+        if (AppConstants.GENERATE_LOGS)
+            AppConstants.writeInFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "LINK: " + selSSID + ". Stop button pressed");
 
         SharedPreferences sharedPref = this.getSharedPreferences("PreferanceHttpAddress", Context.MODE_PRIVATE);
         HTTP_URL_FS_3 = sharedPref.getString("HttpLinkThree", "");
@@ -2524,14 +2552,14 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         URL_RELAY_FS3 = HTTP_URL_FS_3 + "config?command=relay";
 
         if (HTTP_URL_FS_3.isEmpty()) {
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "LINK: " + selSSID + ". HTTP URL is empty.");
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "LINK: " + selSSID + ". HTTP URL is empty.");
         }
 
         stopService(new Intent(WelcomeActivity.this, BackgroundService_FS_UNIT_3.class));
         stopButtonFunctionality_FS3(selSSID);
-        if (!Constants.BusyVehicleNumberList.equals(null)) {
-            Constants.BusyVehicleNumberList.remove(Constants.AccVehicleNumber_FS3);
+        if (!Constants.BUSY_VEHICLE_NUMBER_LIST.equals(null)) {
+            Constants.BUSY_VEHICLE_NUMBER_LIST.remove(Constants.VEHICLE_NUMBER_FS3);
         }
     }
 
@@ -2544,8 +2572,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         String selMacAddress = serverSSIDList.get(3).get("MacAddress");
         IpAddress = null;
 
-        if (AppConstants.GenerateLogs)
-            AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "LINK: " + selSSID + ". Stop button pressed");
+        if (AppConstants.GENERATE_LOGS)
+            AppConstants.writeInFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "LINK: " + selSSID + ". Stop button pressed");
 
         SharedPreferences sharedPref = this.getSharedPreferences("PreferanceHttpAddress", Context.MODE_PRIVATE);
         HTTP_URL_FS_4 = sharedPref.getString("HttpLinkFour", "");
@@ -2556,14 +2584,14 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         URL_RELAY_FS4 = HTTP_URL_FS_4 + "config?command=relay";
 
         if (HTTP_URL_FS_4.isEmpty()) {
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "LINK: " + selSSID + ". HTTP URL is empty.");
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "LINK: " + selSSID + ". HTTP URL is empty.");
         }
 
         stopService(new Intent(WelcomeActivity.this, BackgroundService_FS_UNIT_4.class));
         stopButtonFunctionality_FS4(selSSID);
-        if (Constants.BusyVehicleNumberList != null) {
-            Constants.BusyVehicleNumberList.remove(Constants.AccVehicleNumber_FS4);
+        if (Constants.BUSY_VEHICLE_NUMBER_LIST != null) {
+            Constants.BUSY_VEHICLE_NUMBER_LIST.remove(Constants.VEHICLE_NUMBER_FS4);
         }
     }
 
@@ -2576,8 +2604,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         String selMacAddress = serverSSIDList.get(4).get("MacAddress");
         IpAddress = null;
 
-        if (AppConstants.GenerateLogs)
-            AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "LINK: " + selSSID + ". Stop button pressed");
+        if (AppConstants.GENERATE_LOGS)
+            AppConstants.writeInFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "LINK: " + selSSID + ". Stop button pressed");
 
         SharedPreferences sharedPref = this.getSharedPreferences("PreferanceHttpAddress", Context.MODE_PRIVATE);
         HTTP_URL_FS_5 = sharedPref.getString("HttpLinkFive", "");
@@ -2588,14 +2616,14 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         URL_RELAY_FS5 = HTTP_URL_FS_5 + "config?command=relay";
 
         if (HTTP_URL_FS_5.isEmpty()) {
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "LINK: " + selSSID + ". HTTP URL is empty.");
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "LINK: " + selSSID + ". HTTP URL is empty.");
         }
 
         stopService(new Intent(WelcomeActivity.this, BackgroundService_FS_UNIT_5.class));
         stopButtonFunctionality_FS5(selSSID);
-        if (Constants.BusyVehicleNumberList != null) {
-            Constants.BusyVehicleNumberList.remove(Constants.AccVehicleNumber_FS5);
+        if (Constants.BUSY_VEHICLE_NUMBER_LIST != null) {
+            Constants.BUSY_VEHICLE_NUMBER_LIST.remove(Constants.VEHICLE_NUMBER_FS5);
         }
     }
 
@@ -2608,8 +2636,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         String selMacAddress = serverSSIDList.get(5).get("MacAddress");
         IpAddress = null;
 
-        if (AppConstants.GenerateLogs)
-            AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "LINK: " + selSSID + ". Stop button pressed");
+        if (AppConstants.GENERATE_LOGS)
+            AppConstants.writeInFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "LINK: " + selSSID + ". Stop button pressed");
 
         SharedPreferences sharedPref = this.getSharedPreferences("PreferanceHttpAddress", Context.MODE_PRIVATE);
         HTTP_URL_FS_6 = sharedPref.getString("HttpLinkSix", "");
@@ -2620,14 +2648,14 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         URL_RELAY_FS6 = HTTP_URL_FS_6 + "config?command=relay";
 
         if (HTTP_URL_FS_6.isEmpty()) {
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "LINK: " + selSSID + ". HTTP URL is empty.");
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "LINK: " + selSSID + ". HTTP URL is empty.");
         }
 
         stopService(new Intent(WelcomeActivity.this, BackgroundService_FS_UNIT_6.class));
         stopButtonFunctionality_FS6(selSSID);
-        if (Constants.BusyVehicleNumberList != null) {
-            Constants.BusyVehicleNumberList.remove(Constants.AccVehicleNumber_FS6);
+        if (Constants.BUSY_VEHICLE_NUMBER_LIST != null) {
+            Constants.BUSY_VEHICLE_NUMBER_LIST.remove(Constants.VEHICLE_NUMBER_FS6);
         }
     }
 
@@ -2640,27 +2668,27 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 String selSSID = serverSSIDList.get(0).get("WifiSSId");
                 String LinkCommunicationType = serverSSIDList.get(0).get("LinkCommunicationType");
                 String BTLinkCommType = serverSSIDList.get(0).get("BTLinkCommType");
-                if (Integer.parseInt(Constants.FS_1Pulse) <= 0) {
+                if (Integer.parseInt(Constants.FS_1_PULSE) <= 0) {
                     UpdateDiffStatusMessages("0");
                 }
 
                 if (LinkCommunicationType.equalsIgnoreCase("BT")) {
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "LINK: " + selSSID + ". Stop button pressed");
-                    Constants.FS_1STATUS = "FREE";
-                    /*if (BTConstants.CurrentTransactionIsBT && !BTConstants.BTLinkOneStatus && AppConstants.isRelayON_fs1 && BTConstants.SwitchedBTToUDP1) {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "Sending relayOff command (UDP) to Link: " + selSSID);
-                        new Thread(new ClientSendAndListenUDPOne(BTConstants.relay_off_cmd, ipForUDP1, this)).start();
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "LINK: " + selSSID + ". Stop button pressed");
+                    Constants.FS_1_STATUS = "FREE";
+                    /*if (BTConstants.CurrentTransactionIsBT && !BTConstants.BT_LINK_ONE_STATUS && AppConstants.IS_RELAY_ON_FS1 && BTConstants.SwitchedBTToUDP1) {
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "Sending relayOff command (UDP) to Link: " + selSSID);
+                        new Thread(new ClientSendAndListenUDPOne(BTConstants.RELAY_OFF_COMMAND, ipForUDP1, this)).start();
                     } else {*/
-                    if ((BTLinkCommType != null && BTLinkCommType.equalsIgnoreCase("BLE")) || BTConstants.isBTSPPTxnContinuedWithBLE1) {
-                        BT_BLE_Constants.isStopButtonPressed1 = true;
+                    if ((BTLinkCommType != null && BTLinkCommType.equalsIgnoreCase("BLE")) || BTConstants.IS_BT_SPP_TO_BLE_1) {
+                        BT_BLE_Constants.IS_STOP_BUTTON_PRESSED_1 = true;
                     } else {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "Sending relayOff command to Link: " + selSSID);
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "Sending relayOff command to Link: " + selSSID);
                         BTSPPMain btspp = new BTSPPMain();
                         btspp.activity = WelcomeActivity.this;
-                        btspp.send1(BTConstants.relay_off_cmd);
+                        btspp.send1(BTConstants.RELAY_OFF_COMMAND);
                     }
                     //}
                 } else if (LinkCommunicationType.equalsIgnoreCase("HTTP")) {
@@ -2675,27 +2703,27 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 String selSSID2 = serverSSIDList.get(1).get("WifiSSId");
                 String LType2 = serverSSIDList.get(1).get("LinkCommunicationType");
                 String BTLinkCommType2 = serverSSIDList.get(1).get("BTLinkCommType");
-                if (Integer.parseInt(Constants.FS_2Pulse) <= 0) {
+                if (Integer.parseInt(Constants.FS_2_PULSE) <= 0) {
                     UpdateDiffStatusMessages("1");
                 }
 
                 if (LType2.equalsIgnoreCase("BT")) {
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "LINK: " + selSSID2 + ". Stop button pressed");
-                    Constants.FS_2STATUS = "FREE";
-                    /*if (BTConstants.CurrentTransactionIsBT && !BTConstants.BTLinkTwoStatus && AppConstants.isRelayON_fs2 && BTConstants.SwitchedBTToUDP2) {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "Sending relayOff command (UDP) to Link: " + selSSID2);
-                        new Thread(new ClientSendAndListenUDPTwo(BTConstants.relay_off_cmd, ipForUDP2, this)).start();
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "LINK: " + selSSID2 + ". Stop button pressed");
+                    Constants.FS_2_STATUS = "FREE";
+                    /*if (BTConstants.CurrentTransactionIsBT && !BTConstants.BT_LINK_TWO_STATUS && AppConstants.IS_RELAY_ON_FS2 && BTConstants.SwitchedBTToUDP2) {
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "Sending relayOff command (UDP) to Link: " + selSSID2);
+                        new Thread(new ClientSendAndListenUDPTwo(BTConstants.RELAY_OFF_COMMAND, ipForUDP2, this)).start();
                     } else {*/
-                    if ((BTLinkCommType2 != null && BTLinkCommType2.equalsIgnoreCase("BLE")) || BTConstants.isBTSPPTxnContinuedWithBLE2) {
-                        BT_BLE_Constants.isStopButtonPressed2 = true;
+                    if ((BTLinkCommType2 != null && BTLinkCommType2.equalsIgnoreCase("BLE")) || BTConstants.IS_BT_SPP_TO_BLE_2) {
+                        BT_BLE_Constants.IS_STOP_BUTTON_PRESSED_2 = true;
                     } else {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "Sending relayOff command to Link: " + selSSID2);
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "Sending relayOff command to Link: " + selSSID2);
                         BTSPPMain btspp = new BTSPPMain();
                         btspp.activity = WelcomeActivity.this;
-                        btspp.send2(BTConstants.relay_off_cmd);
+                        btspp.send2(BTConstants.RELAY_OFF_COMMAND);
                     }
                     //}
                 } else if (LType2.equalsIgnoreCase("HTTP")) {
@@ -2710,27 +2738,27 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 String selSSID3 = serverSSIDList.get(2).get("WifiSSId");
                 String LType3 = serverSSIDList.get(2).get("LinkCommunicationType");
                 String BTLinkCommType3 = serverSSIDList.get(2).get("BTLinkCommType");
-                if (Integer.parseInt(Constants.FS_3Pulse) <= 0) {
+                if (Integer.parseInt(Constants.FS_3_PULSE) <= 0) {
                     UpdateDiffStatusMessages("2");
                 }
 
                 if (LType3.equalsIgnoreCase("BT")) {
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "LINK: " + selSSID3 + ". Stop button pressed");
-                    Constants.FS_3STATUS = "FREE";
-                    /*if (BTConstants.CurrentTransactionIsBT && !BTConstants.BTLinkThreeStatus && AppConstants.isRelayON_fs3 && BTConstants.SwitchedBTToUDP3) {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "Sending relayOff command (UDP) to Link: " + selSSID3);
-                        new Thread(new ClientSendAndListenUDPThree(BTConstants.relay_off_cmd, ipForUDP3, this)).start();
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "LINK: " + selSSID3 + ". Stop button pressed");
+                    Constants.FS_3_STATUS = "FREE";
+                    /*if (BTConstants.CurrentTransactionIsBT && !BTConstants.BT_LINK_THREE_STATUS && AppConstants.IS_RELAY_ON_FS3 && BTConstants.SwitchedBTToUDP3) {
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "Sending relayOff command (UDP) to Link: " + selSSID3);
+                        new Thread(new ClientSendAndListenUDPThree(BTConstants.RELAY_OFF_COMMAND, ipForUDP3, this)).start();
                     } else {*/
-                    if ((BTLinkCommType3 != null && BTLinkCommType3.equalsIgnoreCase("BLE")) || BTConstants.isBTSPPTxnContinuedWithBLE3) {
-                        BT_BLE_Constants.isStopButtonPressed3 = true;
+                    if ((BTLinkCommType3 != null && BTLinkCommType3.equalsIgnoreCase("BLE")) || BTConstants.IS_BT_SPP_TO_BLE_3) {
+                        BT_BLE_Constants.IS_STOP_BUTTON_PRESSED_3 = true;
                     } else {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "Sending relayOff command to Link: " + selSSID3);
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "Sending relayOff command to Link: " + selSSID3);
                         BTSPPMain btspp = new BTSPPMain();
                         btspp.activity = WelcomeActivity.this;
-                        btspp.send3(BTConstants.relay_off_cmd);
+                        btspp.send3(BTConstants.RELAY_OFF_COMMAND);
                     }
                     //}
                 } else if (LType3.equalsIgnoreCase("HTTP")) {
@@ -2745,27 +2773,27 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 String selSSID4 = serverSSIDList.get(3).get("WifiSSId");
                 String LType4 = serverSSIDList.get(3).get("LinkCommunicationType");
                 String BTLinkCommType4 = serverSSIDList.get(3).get("BTLinkCommType");
-                if (Integer.parseInt(Constants.FS_4Pulse) <= 0) {
+                if (Integer.parseInt(Constants.FS_4_PULSE) <= 0) {
                     UpdateDiffStatusMessages("3");
                 }
 
                 if (LType4.equalsIgnoreCase("BT")) {
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "LINK: " + selSSID4 + ". Stop button pressed");
-                    Constants.FS_4STATUS = "FREE";
-                    /*if (BTConstants.CurrentTransactionIsBT && !BTConstants.BTLinkFourStatus && AppConstants.isRelayON_fs4 && BTConstants.SwitchedBTToUDP4) {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "Sending relayOff command (UDP) to Link: " + selSSID4);
-                        new Thread(new ClientSendAndListenUDPFour(BTConstants.relay_off_cmd, ipForUDP4, this)).start();
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "LINK: " + selSSID4 + ". Stop button pressed");
+                    Constants.FS_4_STATUS = "FREE";
+                    /*if (BTConstants.CurrentTransactionIsBT && !BTConstants.BT_LINK_FOUR_STATUS && AppConstants.IS_RELAY_ON_FS4 && BTConstants.SwitchedBTToUDP4) {
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "Sending relayOff command (UDP) to Link: " + selSSID4);
+                        new Thread(new ClientSendAndListenUDPFour(BTConstants.RELAY_OFF_COMMAND, ipForUDP4, this)).start();
                     } else {*/
-                    if ((BTLinkCommType4 != null && BTLinkCommType4.equalsIgnoreCase("BLE")) || BTConstants.isBTSPPTxnContinuedWithBLE4) {
-                        BT_BLE_Constants.isStopButtonPressed4 = true;
+                    if ((BTLinkCommType4 != null && BTLinkCommType4.equalsIgnoreCase("BLE")) || BTConstants.IS_BT_SPP_TO_BLE_4) {
+                        BT_BLE_Constants.IS_STOP_BUTTON_PRESSED_4 = true;
                     } else {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "Sending relayOff command to Link: " + selSSID4);
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "Sending relayOff command to Link: " + selSSID4);
                         BTSPPMain btspp = new BTSPPMain();
                         btspp.activity = WelcomeActivity.this;
-                        btspp.send4(BTConstants.relay_off_cmd);
+                        btspp.send4(BTConstants.RELAY_OFF_COMMAND);
                     }
                     //}
                 } else if (LType4.equalsIgnoreCase("HTTP")) {
@@ -2780,27 +2808,27 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 String selSSID5 = serverSSIDList.get(4).get("WifiSSId");
                 String LType5 = serverSSIDList.get(4).get("LinkCommunicationType");
                 String BTLinkCommType5 = serverSSIDList.get(4).get("BTLinkCommType");
-                if (Integer.parseInt(Constants.FS_5Pulse) <= 0) {
+                if (Integer.parseInt(Constants.FS_5_PULSE) <= 0) {
                     UpdateDiffStatusMessages("4");
                 }
 
                 if (LType5.equalsIgnoreCase("BT")) {
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "LINK: " + selSSID5 + ". Stop button pressed");
-                    Constants.FS_5STATUS = "FREE";
-                    /*if (BTConstants.CurrentTransactionIsBT && !BTConstants.BTLinkFiveStatus && AppConstants.isRelayON_fs5 && BTConstants.SwitchedBTToUDP5) {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "Sending relayOff command (UDP) to Link: " + selSSID5);
-                        new Thread(new ClientSendAndListenUDPFive(BTConstants.relay_off_cmd, ipForUDP5, this)).start();
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "LINK: " + selSSID5 + ". Stop button pressed");
+                    Constants.FS_5_STATUS = "FREE";
+                    /*if (BTConstants.CurrentTransactionIsBT && !BTConstants.BT_LINK_FIVE_STATUS && AppConstants.IS_RELAY_ON_FS5 && BTConstants.SwitchedBTToUDP5) {
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "Sending relayOff command (UDP) to Link: " + selSSID5);
+                        new Thread(new ClientSendAndListenUDPFive(BTConstants.RELAY_OFF_COMMAND, ipForUDP5, this)).start();
                     } else {*/
-                    if ((BTLinkCommType5 != null && BTLinkCommType5.equalsIgnoreCase("BLE")) || BTConstants.isBTSPPTxnContinuedWithBLE5) {
-                        BT_BLE_Constants.isStopButtonPressed5 = true;
+                    if ((BTLinkCommType5 != null && BTLinkCommType5.equalsIgnoreCase("BLE")) || BTConstants.IS_BT_SPP_TO_BLE_5) {
+                        BT_BLE_Constants.IS_STOP_BUTTON_PRESSED_5 = true;
                     } else {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "Sending relayOff command to Link: " + selSSID5);
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "Sending relayOff command to Link: " + selSSID5);
                         BTSPPMain btspp = new BTSPPMain();
                         btspp.activity = WelcomeActivity.this;
-                        btspp.send5(BTConstants.relay_off_cmd);
+                        btspp.send5(BTConstants.RELAY_OFF_COMMAND);
                     }
                     //}
                 } else if (LType5.equalsIgnoreCase("HTTP")) {
@@ -2815,27 +2843,27 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 String selSSID6 = serverSSIDList.get(5).get("WifiSSId");
                 String LType6 = serverSSIDList.get(5).get("LinkCommunicationType");
                 String BTLinkCommType6 = serverSSIDList.get(5).get("BTLinkCommType");
-                if (Integer.parseInt(Constants.FS_6Pulse) <= 0) {
+                if (Integer.parseInt(Constants.FS_6_PULSE) <= 0) {
                     UpdateDiffStatusMessages("5");
                 }
 
                 if (LType6.equalsIgnoreCase("BT")) {
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "LINK: " + selSSID6 + ". Stop button pressed");
-                    Constants.FS_6STATUS = "FREE";
-                    /*if (BTConstants.CurrentTransactionIsBT && !BTConstants.BTLinkSixStatus && AppConstants.isRelayON_fs6 && BTConstants.SwitchedBTToUDP6) {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "Sending relayOff command (UDP) to Link: " + selSSID6);
-                        new Thread(new ClientSendAndListenUDPSix(BTConstants.relay_off_cmd, ipForUDP6, this)).start();
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "LINK: " + selSSID6 + ". Stop button pressed");
+                    Constants.FS_6_STATUS = "FREE";
+                    /*if (BTConstants.CurrentTransactionIsBT && !BTConstants.BT_LINK_SIX_STATUS && AppConstants.IS_RELAY_ON_FS6 && BTConstants.SwitchedBTToUDP6) {
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "Sending relayOff command (UDP) to Link: " + selSSID6);
+                        new Thread(new ClientSendAndListenUDPSix(BTConstants.RELAY_OFF_COMMAND, ipForUDP6, this)).start();
                     } else {*/
-                    if ((BTLinkCommType6 != null && BTLinkCommType6.equalsIgnoreCase("BLE")) || BTConstants.isBTSPPTxnContinuedWithBLE6) {
-                        BT_BLE_Constants.isStopButtonPressed6 = true;
+                    if ((BTLinkCommType6 != null && BTLinkCommType6.equalsIgnoreCase("BLE")) || BTConstants.IS_BT_SPP_TO_BLE_6) {
+                        BT_BLE_Constants.IS_STOP_BUTTON_PRESSED_6 = true;
                     } else {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "Sending relayOff command to Link: " + selSSID6);
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "Sending relayOff command to Link: " + selSSID6);
                         BTSPPMain btspp = new BTSPPMain();
                         btspp.activity = WelcomeActivity.this;
-                        btspp.send6(BTConstants.relay_off_cmd);
+                        btspp.send6(BTConstants.RELAY_OFF_COMMAND);
                     }
                     //}
                 } else if (LType6.equalsIgnoreCase("HTTP")) {
@@ -2994,14 +3022,14 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 ServerHandler serverHandler = new ServerHandler();
                 //----------------------------------------------------------------------------------
                 String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(WelcomeActivity.this) + ":" + Email + ":" + "AndroidSSID" + AppConstants.LANG_PARAM);
-                response = serverHandler.PostTextData(WelcomeActivity.this, AppConstants.webURL, latLong, authString);
+                response = serverHandler.PostTextData(WelcomeActivity.this, AppConstants.WEB_URL, latLong, authString);
                 //----------------------------------------------------------------------------------
 
             } catch (Exception ex) {
                 ex.printStackTrace();
                 CommonUtils.LogMessage(TAG, "AuthTestAsynTask ", ex);
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "GetAndroidSSID --Exception " + ex);
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(TAG + "GetAndroidSSID --Exception " + ex);
             }
             return null;
         }
@@ -3017,13 +3045,13 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         try {
 
             // refreshWiFiList();
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "onChangeWifiAction disable ");
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + "onChangeWifiAction disable ");
 
         } catch (Exception ex) {
             CommonUtils.LogMessage(TAG, "onChangeWifiAction :", ex);
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "onChangeWifiAction --Exception " + ex);
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + "onChangeWifiAction --Exception " + ex);
         }
     }
 
@@ -3036,14 +3064,14 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
             if (OfflineConstants.isOfflineAccess(WelcomeActivity.this) && (v != null)) {
 
-                if (AppConstants.GenerateLogs) AppConstants.WriteinFile(TAG + "OFFLINE MODE");
+                if (AppConstants.GENERATE_LOGS) AppConstants.writeInFile(TAG + "OFFLINE MODE");
 
                 new GetOfflineSSIDUsingLocation().execute();
 
             } else {
                 hoseClicked = false;
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + AppConstants.OFF1);
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(TAG + AppConstants.OFF1);
                 AppConstants.colorToastBigFont(WelcomeActivity.this, AppConstants.OFF1, Color.BLUE);
             }
         }
@@ -3086,8 +3114,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         Log.i("Splash", "User chose not to make required location settings changes.");
 
                         AppConstants.colorToastBigFont(WelcomeActivity.this, "Please On GPS to connect WiFi", Color.BLUE);
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "Please On GPS to connect WiFi");
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(TAG + "Please On GPS to connect WiFi");
                         break;
                 }
                 break;
@@ -3124,14 +3152,14 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 ServerHandler serverHandler = new ServerHandler();
                 //----------------------------------------------------------------------------------
                 String parm1 = AppConstants.getIMEI(WelcomeActivity.this) + ":" + userInfoEntity.PersonEmail + ":" + "Other" + AppConstants.LANG_PARAM;
-                String parm2 = "Authenticate:I:" + Constants.Latitude + "," + Constants.Longitude;
+                String parm2 = "Authenticate:I:" + Constants.LATITUDE + "," + Constants.LONGITUDE;
 
                 System.out.println("parm1----" + parm1);
                 System.out.println("parm2----" + parm2);
 
                 String authString = "Basic " + AppConstants.convertStingToBase64(parm1);
 
-                //resp = serverHandler.PostTextData(WelcomeActivity.this, AppConstants.webURL, parm2, authString);
+                //resp = serverHandler.PostTextData(WelcomeActivity.this, AppConstants.WEB_URL, parm2, authString);
                 //----------------------------------------------------------------------------------
                 OkHttpClient client = new OkHttpClient();
                 client.setConnectTimeout(20, TimeUnit.SECONDS);
@@ -3140,7 +3168,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
                 RequestBody body = RequestBody.create(ServerHandler.TEXT, parm2);
                 Request request = new Request.Builder()
-                        .url(AppConstants.webURL)
+                        .url(AppConstants.WEB_URL)
                         .post(body)
                         .addHeader("Authorization", authString)
                         .build();
@@ -3156,8 +3184,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     }
                 }
                 System.out.println("Ex" + e.getMessage());
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "GetSSIDUsingLocation doInBackground --Exception: " + e.getMessage());
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(TAG + "GetSSIDUsingLocation doInBackground --Exception: " + e.getMessage());
                 if (OfflineConstants.isOfflineAccess(WelcomeActivity.this)) {
                     AppConstants.NETWORK_STRENGTH = false;
                 }
@@ -3176,7 +3204,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 }
 
                 linearHose.setClickable(true);//Enable hose Selection
-                //tvLatLng.setText("Current Location :" + Constants.Latitude + "," + Constants.Longitude); // #2005
+                //tvLatLng.setText("Current Location :" + Constants.LATITUDE + "," + Constants.LONGITUDE); // #2005
                 tvLatLng.setText(getResources().getString(R.string.HoseListIsNotAvailable));
                 System.out.println("GetSSIDUsingLocation...." + result);
 
@@ -3252,8 +3280,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     IpAddress = "";
                     SelectedItemPos = position;
                     SelectedItemPosFor10Txn = position;
-                    BTConstants.forOscilloscope = false;
-                    AppConstants.forceDownloadOfflineData = false;
+                    BTConstants.FOR_OSCILLOSCOPE = false;
+                    AppConstants.FORCE_DOWNLOAD_OFFLINE_DATA = false;
 
                     String selSSID = serverSSIDList.get(SelectedItemPos).get("WifiSSId");
                     String selMacAddress = serverSSIDList.get(SelectedItemPos).get("MacAddress");
@@ -3290,10 +3318,10 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
                     AppConstants.CURRENT_SELECTED_SSID = selSSID;
                     AppConstants.CURRENT_HOSE_SSID = hoseID;
-                    AppConstants.CURRENT_SELECTED_SITEID = selSiteId;
-                    AppConstants.SELECTED_MACADDRESS = selMacAddress;
+                    AppConstants.CURRENT_SELECTED_SITE_ID = selSiteId;
+                    AppConstants.SELECTED_MAC_ADDRESS = selMacAddress;
                     AppConstants.SITE_ID = selSiteId;
-                    AppConstants.UP_FilePath = UPFilePath;
+                    AppConstants.UP_FILE_PATH = UPFilePath;
 
                     if (IsUpgrade == null) {
                         IsUpgrade = "";
@@ -3312,9 +3340,9 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         txtnTypeForLog = AppConstants.LOG_TXTN_HTTP;
                     }
 
-                    if (AppConstants.isTestTransaction) {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(txtnTypeForLog + "-" + TAG + "~~~~~TEST TRANSACTION~~~~~");
+                    if (AppConstants.IS_TEST_TRANSACTION) {
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(txtnTypeForLog + "-" + TAG + "~~~~~TEST TRANSACTION~~~~~");
                     }
 
                     String BTLinkCommTypeForLog = "";
@@ -3324,12 +3352,12 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         }
                     }
 
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(txtnTypeForLog + "-" + TAG + "Customer select hose: " + selSSID + " (position: " + (position + 1) + " of " + serverSSIDList.size() + ") " + BTLinkCommTypeForLog);
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(txtnTypeForLog + "-" + TAG + "Customer select hose: " + selSSID + " (position: " + (position + 1) + " of " + serverSSIDList.size() + ") " + BTLinkCommTypeForLog);
 
                     if (IsTankEmpty != null && IsTankEmpty.equalsIgnoreCase("True")) {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + getResources().getString(R.string.EmptyTankWarning));
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(TAG + getResources().getString(R.string.EmptyTankWarning));
                         CommonUtils.AlertDialogAutoClose(WelcomeActivity.this, "", getResources().getString(R.string.EmptyTankWarning));
                         tvSSIDName.setText(R.string.selectHose);
                         btnGo.setVisibility(View.GONE);
@@ -3341,7 +3369,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                 startBTSppMain(0);
                             }
                         }
-                        AppConstants.IsBTLinkSelectedCurrently = true;
+                        AppConstants.IS_BT_LINK_SELECTED_CURRENTLY = true;
                         if (ReconfigureLink != null && ReconfigureLink.equalsIgnoreCase("true")) {
 
                             Intent i = new Intent(WelcomeActivity.this, PairDeviceActivity.class);
@@ -3349,31 +3377,31 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                             WelcomeActivity.this.startActivity(i);
 
                         } else if (IsLinkFlagged != null && IsLinkFlagged.equalsIgnoreCase("True")) {
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(TAG + "Flagged Link: " + LinkFlaggedMessage);
+                            if (AppConstants.GENERATE_LOGS)
+                                AppConstants.writeInFile(TAG + "Flagged Link: " + LinkFlaggedMessage);
                             CommonUtils.AlertDialogAutoClose(WelcomeActivity.this, "", LinkFlaggedMessage);
                             RestrictHoseSelection(getResources().getString(R.string.TryAgainLater), false);
 
                         } else if (CommonFunctions.CheckIfPresentInPairedDeviceList(BTselMacAddress)) {
-                            AppConstants.SELECTED_MACADDRESS = BTselMacAddress;
+                            AppConstants.SELECTED_MAC_ADDRESS = BTselMacAddress;
                             OfflineConstants.storeCurrentTransaction(WelcomeActivity.this, "", selSiteId, "", "", "", "", "", AppConstants.currentDateFormat("yyyy-MM-dd HH:mm"), "", "", "", "");
                             SetSiteIdByLinkPosition(position, selSiteId);
                             SetHoseIdByLinkPosition(position, hoseID);
 
-                            if (!IsUpgrade.isEmpty() && !AppConstants.isTestTransaction) {
+                            if (!IsUpgrade.isEmpty() && !AppConstants.IS_TEST_TRANSACTION) {
                                 SetUpgradeFirmwareDetails(position, IsUpgrade, FirmwareVersion, FirmwareFileName, selSiteId, hoseID);
                             }
 
                             CheckBTConnection(SelectedItemPos, selSSID, BTselMacAddress, BTLinkCommType);
                         } else {
                             CommonUtils.AutoCloseBTLinkMessage(WelcomeActivity.this, "", getResources().getString(R.string.BTLinkNotInPairList));
-                            BTConstants.CurrentSelectedLinkBT = 0;
+                            BTConstants.CURRENT_SELECTED_BT_LINK_POSITION = 0;
                             RestrictHoseSelection(getResources().getString(R.string.PairingMode), false); //"Please try again later" changed as per #1899.
                         }
                     } else if (LinkCommunicationType.equalsIgnoreCase("UDP")) {
                         AppConstants.colorToastBigFont(WelcomeActivity.this, "UDP Link Selected", Color.BLUE);
                         tvSSIDName.setText(getResources().getString(R.string.TryAgainLater));
-                        BTConstants.CurrentSelectedLinkBT = 0;
+                        BTConstants.CURRENT_SELECTED_BT_LINK_POSITION = 0;
                         btnGo.setVisibility(View.GONE);
 
                         /*if (ReconfigureLink != null && ReconfigureLink.equalsIgnoreCase("true")) {
@@ -3386,7 +3414,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     } else {
                         //Normal hub app code below....
                         ResetCurrentTransactionIsBTFlag(SelectedItemPos);
-                        BTConstants.CurrentSelectedLinkBT = 0;
+                        BTConstants.CURRENT_SELECTED_BT_LINK_POSITION = 0;
                         OfflineConstants.storeCurrentTransaction(WelcomeActivity.this, "", selSiteId, "", "", "", "", "", AppConstants.currentDateFormat("yyyy-MM-dd HH:mm"), "", "", "", "");
 
                         /////////////////////////////////////////////////////
@@ -3395,12 +3423,12 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                             if (!CommonUtils.isHotspotEnabled(WelcomeActivity.this) && !ReconfigureLink.equalsIgnoreCase("true")) {
 
                                 Log.i(TAG, "EMobileHotspotManually");
-                                //if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "EMobileHotspotManually");
+                                //if (AppConstants.GENERATE_LOGS)AppConstants.writeInFile(TAG + "EMobileHotspotManually");
                                 //CommonUtils.enableMobileHotspotmanuallyStartTimer(WelcomeActivity.this);
                             }
                         } catch (Exception e) {
                             e.printStackTrace();
-                            //if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "onItemClick Check hotspot manually Exception:" + e);
+                            //if (AppConstants.GENERATE_LOGS)AppConstants.writeInFile(TAG + "onItemClick Check hotspot manually Exception:" + e);
                             //CommonUtils.enableMobileHotspotmanuallyStartTimer(WelcomeActivity.this);
                         }*/
 
@@ -3423,8 +3451,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                             AppConstants.CURRENT_SELECTED_SSID_ReqTLDCall = IsTLDCall;
                             AppConstants.CURRENT_SELECTED_SSID = selSSID;
                             AppConstants.CURRENT_HOSE_SSID = hoseID;
-                            AppConstants.CURRENT_SELECTED_SITEID = selSiteId;
-                            AppConstants.SELECTED_MACADDRESS = selMacAddress;
+                            AppConstants.CURRENT_SELECTED_SITE_ID = selSiteId;
+                            AppConstants.SELECTED_MAC_ADDRESS = selMacAddress;
                             String IsHoseNameReplaced = serverSSIDList.get(SelectedItemPos).get("IsHoseNameReplaced");
                             String ReplaceableHoseName = serverSSIDList.get(SelectedItemPos).get("ReplaceableHoseName");
                             IsDefective = serverSSIDList.get(SelectedItemPos).get("IsDefective");
@@ -3440,17 +3468,17 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                             /////////////////////////////////////////////////////
                             SetSiteIdByLinkPosition(position, selSiteId);
                             SetHoseIdByLinkPosition(position, hoseID);
-                            if (!IsUpgrade.isEmpty() && !AppConstants.isTestTransaction) {
+                            if (!IsUpgrade.isEmpty() && !AppConstants.IS_TEST_TRANSACTION) {
                                 SetUpgradeFirmwareDetails(position, IsUpgrade, FirmwareVersion, FirmwareFileName, selSiteId, hoseID);
                             }
 
                             //Rename SSID while mac address updation
                             if (IsHoseNameReplaced.equalsIgnoreCase("Y")) {
-                                AppConstants.NeedToRenameFS_ON_UPDATE_MAC = false;
-                                AppConstants.REPLACEBLE_WIFI_NAME_FS_ON_UPDATE_MAC = "";
+                                AppConstants.NEED_TO_RENAME_FS_ON_UPDATE_MAC = false;
+                                AppConstants.REPLACEABLE_WIFI_NAME_FS_ON_UPDATE_MAC = "";
                             } else {
-                                AppConstants.NeedToRenameFS_ON_UPDATE_MAC = true;
-                                AppConstants.REPLACEBLE_WIFI_NAME_FS_ON_UPDATE_MAC = ReplaceableHoseName;
+                                AppConstants.NEED_TO_RENAME_FS_ON_UPDATE_MAC = true;
+                                AppConstants.REPLACEABLE_WIFI_NAME_FS_ON_UPDATE_MAC = ReplaceableHoseName;
                             }
 
                             //#728 Inability to Connect to Links
@@ -3466,8 +3494,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                 } else {
 
                                     //Link ReConfiguration process start
-                                    if (ReconfigureLink != null && ReconfigureLink.equalsIgnoreCase("true") && (!AppConstants.isTestTransaction)) {
-                                        if (Constants.FS_1STATUS.equalsIgnoreCase("FREE") && Constants.FS_2STATUS.equalsIgnoreCase("FREE") && Constants.FS_3STATUS.equalsIgnoreCase("FREE") && Constants.FS_4STATUS.equalsIgnoreCase("FREE") && Constants.FS_5STATUS.equalsIgnoreCase("FREE") && Constants.FS_6STATUS.equalsIgnoreCase("FREE")) {
+                                    if (ReconfigureLink != null && ReconfigureLink.equalsIgnoreCase("true") && (!AppConstants.IS_TEST_TRANSACTION)) {
+                                        if (Constants.FS_1_STATUS.equalsIgnoreCase("FREE") && Constants.FS_2_STATUS.equalsIgnoreCase("FREE") && Constants.FS_3_STATUS.equalsIgnoreCase("FREE") && Constants.FS_4_STATUS.equalsIgnoreCase("FREE") && Constants.FS_5_STATUS.equalsIgnoreCase("FREE") && Constants.FS_6_STATUS.equalsIgnoreCase("FREE")) {
 
                                             SharedPreferences sharedPref = WelcomeActivity.this.getSharedPreferences("HotSpotDetails", Context.MODE_PRIVATE);
                                             String HotSpotSSID = sharedPref.getString("HotSpotSSID", "");
@@ -3479,208 +3507,208 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                                 HotSpotPassword = "";
                                             }
                                             if (HotSpotSSID.isEmpty()) {
-                                                if (AppConstants.GenerateLogs)
-                                                    AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "HotSpot SSID cannot be blank. Please contact Support.");
+                                                if (AppConstants.GENERATE_LOGS)
+                                                    AppConstants.writeInFile(AppConstants.LOG_RECONFIG + "-" + TAG + "HotSpot SSID cannot be blank. Please contact Support.");
                                                 CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.HotSpotSSIDCannotBeBlank));
                                             } else if (HotSpotPassword.isEmpty()) {
-                                                if (AppConstants.GenerateLogs)
-                                                    AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "HotSpot Password cannot be blank. Please contact Support.");
+                                                if (AppConstants.GENERATE_LOGS)
+                                                    AppConstants.writeInFile(AppConstants.LOG_RECONFIG + "-" + TAG + "HotSpot Password cannot be blank. Please contact Support.");
                                                 CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.HotSpotPasswordCannotBeBlank));
                                             } else {
                                                 reconfigureProcessBelowAndroid10(); //Android Below 10
                                             }
 
                                         } else {
-                                            if (AppConstants.GenerateLogs)
-                                                AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseIsBusy));
+                                            if (AppConstants.GENERATE_LOGS)
+                                                AppConstants.writeInFile(TAG + getResources().getString(R.string.HoseIsBusy));
                                             AppConstants.colorToastBigFont(WelcomeActivity.this, getResources().getString(R.string.HoseIsBusy), Color.BLUE);
                                         }
                                     } else if (IsLinkFlagged != null && IsLinkFlagged.equalsIgnoreCase("True")) {
-                                        if (AppConstants.GenerateLogs)
-                                            AppConstants.WriteinFile(TAG + "Flagged Link: " + LinkFlaggedMessage);
+                                        if (AppConstants.GENERATE_LOGS)
+                                            AppConstants.writeInFile(TAG + "Flagged Link: " + LinkFlaggedMessage);
                                         CommonUtils.AlertDialogAutoClose(WelcomeActivity.this, "", LinkFlaggedMessage);
                                         RestrictHoseSelection(getResources().getString(R.string.TryAgainLater), false);
 
                                     } else {
 
-                                        AppConstants.ManuallReconfigure = false;
+                                        AppConstants.MANUAL_RECONFIGURE = false;
                                         IpAddress = "";
 
-                                        if (AppConstants.DetailsListOfConnectedDevices != null) {
-                                            for (int i = 0; i < AppConstants.DetailsListOfConnectedDevices.size(); i++) {
-                                                String MA_ConnectedDevices = AppConstants.DetailsListOfConnectedDevices.get(i).get("macAddress");
+                                        if (AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES != null) {
+                                            for (int i = 0; i < AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.size(); i++) {
+                                                String MA_ConnectedDevices = AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.get(i).get("macAddress");
 
                                                 if (selMacAddress.equalsIgnoreCase(MA_ConnectedDevices)) {
-                                                    IpAddress = AppConstants.DetailsListOfConnectedDevices.get(i).get("ipAddress");
+                                                    IpAddress = AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.get(i).get("ipAddress");
                                                     break;
                                                 }
                                             }
                                         }
 
-                                        AppConstants.FS_selected = String.valueOf(position);
-                                        if (String.valueOf(position).equalsIgnoreCase("0") && !IsUpgradeInprogress_FS1) {
+                                        AppConstants.FS_SELECTED = String.valueOf(position);
+                                        if (String.valueOf(position).equalsIgnoreCase("0") && !isUpgradeInProgress_FS1) {
 
                                             AppConstants.LastSelectedHose = String.valueOf(position);
-                                            if (Constants.FS_1STATUS.equalsIgnoreCase("FREE") && IsBusy.equalsIgnoreCase("N")) {
+                                            if (Constants.FS_1_STATUS.equalsIgnoreCase("FREE") && IsBusy.equalsIgnoreCase("N")) {
                                                 // linear_fs_1.setBackgroundColor(getResources().getColor(android.R.color.holo_red_light));
 
                                                 //Rename SSID from cloud
                                                 if (IsHoseNameReplaced.equalsIgnoreCase("Y")) {
-                                                    AppConstants.NeedToRenameFS1 = false;
-                                                    AppConstants.REPLACEBLE_WIFI_NAME_FS1 = "";
+                                                    AppConstants.NEED_TO_RENAME_FS1 = false;
+                                                    AppConstants.REPLACEABLE_WIFI_NAME_FS1 = "";
                                                 } else {
-                                                    AppConstants.NeedToRenameFS1 = true;
-                                                    AppConstants.REPLACEBLE_WIFI_NAME_FS1 = ReplaceableHoseName;
+                                                    AppConstants.NEED_TO_RENAME_FS1 = true;
+                                                    AppConstants.REPLACEABLE_WIFI_NAME_FS1 = ReplaceableHoseName;
                                                 }
 
-                                                Constants.AccPersonnelPIN = "";
+                                                Constants.PERSONNEL_PIN_FS2 = "";
                                                 tvSSIDName.setText(selSSID);
                                                 AppConstants.FS1_CONNECTED_SSID = selSSID;
-                                                Constants.CurrentSelectedHose = "FS1";
+                                                Constants.CURRENT_SELECTED_HOSE = "FS1";
                                                 btnGo.setVisibility(View.VISIBLE);
                                                 LinkUpgradeFunctionality("HTTP", position, "");
                                             } else {
                                                 RestHoseinUse_FS1 = true;
-                                                if (AppConstants.GenerateLogs)
-                                                    AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
+                                                if (AppConstants.GENERATE_LOGS)
+                                                    AppConstants.writeInFile(TAG + getResources().getString(R.string.HoseInUse));
                                                 RestrictHoseSelection(getResources().getString(R.string.HoseInUse), false);
 
                                             }
 
-                                        } else if (String.valueOf(position).equalsIgnoreCase("1") && !IsUpgradeInprogress_FS2) {
+                                        } else if (String.valueOf(position).equalsIgnoreCase("1") && !isUpgradeInProgress_FS2) {
 
                                             AppConstants.LastSelectedHose = String.valueOf(position);
-                                            if (Constants.FS_2STATUS.equalsIgnoreCase("FREE") && IsBusy.equalsIgnoreCase("N")) {
+                                            if (Constants.FS_2_STATUS.equalsIgnoreCase("FREE") && IsBusy.equalsIgnoreCase("N")) {
                                                 // linear_fs_1.setBackgroundColor(getResources().getColor(android.R.color.holo_red_light));
 
                                                 //Rename SSID from cloud
                                                 if (IsHoseNameReplaced.equalsIgnoreCase("Y")) {
-                                                    AppConstants.NeedToRenameFS2 = false;
-                                                    AppConstants.REPLACEBLE_WIFI_NAME_FS2 = "";
+                                                    AppConstants.NEED_TO_RENAME_FS2 = false;
+                                                    AppConstants.REPLACEABLE_WIFI_NAME_FS2 = "";
                                                 } else {
-                                                    AppConstants.NeedToRenameFS2 = true;
-                                                    AppConstants.REPLACEBLE_WIFI_NAME_FS2 = ReplaceableHoseName;
+                                                    AppConstants.NEED_TO_RENAME_FS2 = true;
+                                                    AppConstants.REPLACEABLE_WIFI_NAME_FS2 = ReplaceableHoseName;
                                                 }
 
-                                                Constants.AccPersonnelPIN = "";
+                                                Constants.PERSONNEL_PIN_FS2 = "";
                                                 tvSSIDName.setText(selSSID);
                                                 AppConstants.FS2_CONNECTED_SSID = selSSID;
-                                                Constants.CurrentSelectedHose = "FS2";
+                                                Constants.CURRENT_SELECTED_HOSE = "FS2";
                                                 btnGo.setVisibility(View.VISIBLE);
                                                 LinkUpgradeFunctionality("HTTP", position, "");
                                             } else {
                                                 RestHoseinUse_FS2 = true;
-                                                if (AppConstants.GenerateLogs)
-                                                    AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
+                                                if (AppConstants.GENERATE_LOGS)
+                                                    AppConstants.writeInFile(TAG + getResources().getString(R.string.HoseInUse));
                                                 RestrictHoseSelection(getResources().getString(R.string.HoseInUse), false);
                                             }
 
-                                        } else if (String.valueOf(position).equalsIgnoreCase("2") && !IsUpgradeInprogress_FS3) {
+                                        } else if (String.valueOf(position).equalsIgnoreCase("2") && !isUpgradeInProgress_FS3) {
 
                                             AppConstants.LastSelectedHose = String.valueOf(position);
-                                            if (Constants.FS_3STATUS.equalsIgnoreCase("FREE") && IsBusy.equalsIgnoreCase("N")) {
+                                            if (Constants.FS_3_STATUS.equalsIgnoreCase("FREE") && IsBusy.equalsIgnoreCase("N")) {
                                                 // linear_fs_1.setBackgroundColor(getResources().getColor(android.R.color.holo_red_light));
 
                                                 //Rename SSID from cloud
                                                 if (IsHoseNameReplaced.equalsIgnoreCase("Y")) {
-                                                    AppConstants.NeedToRenameFS3 = false;
-                                                    AppConstants.REPLACEBLE_WIFI_NAME_FS3 = "";
+                                                    AppConstants.NEED_TO_RENAME_FS3 = false;
+                                                    AppConstants.REPLACEABLE_WIFI_NAME_FS3 = "";
                                                 } else {
-                                                    AppConstants.NeedToRenameFS3 = true;
-                                                    AppConstants.REPLACEBLE_WIFI_NAME_FS3 = ReplaceableHoseName;
+                                                    AppConstants.NEED_TO_RENAME_FS3 = true;
+                                                    AppConstants.REPLACEABLE_WIFI_NAME_FS3 = ReplaceableHoseName;
                                                 }
 
-                                                Constants.AccPersonnelPIN = "";
+                                                Constants.PERSONNEL_PIN_FS2 = "";
                                                 tvSSIDName.setText(selSSID);
                                                 AppConstants.FS3_CONNECTED_SSID = selSSID;
-                                                Constants.CurrentSelectedHose = "FS3";
+                                                Constants.CURRENT_SELECTED_HOSE = "FS3";
                                                 btnGo.setVisibility(View.VISIBLE);
                                                 LinkUpgradeFunctionality("HTTP", position, "");
                                             } else {
                                                 RestHoseinUse_FS3 = true;
-                                                if (AppConstants.GenerateLogs)
-                                                    AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
+                                                if (AppConstants.GENERATE_LOGS)
+                                                    AppConstants.writeInFile(TAG + getResources().getString(R.string.HoseInUse));
                                                 RestrictHoseSelection(getResources().getString(R.string.HoseInUse), false);
                                             }
 
 
-                                        } else if (String.valueOf(position).equalsIgnoreCase("3") && !IsUpgradeInprogress_FS4) {
+                                        } else if (String.valueOf(position).equalsIgnoreCase("3") && !isUpgradeInProgress_FS4) {
 
                                             AppConstants.LastSelectedHose = String.valueOf(position);
-                                            if (Constants.FS_4STATUS.equalsIgnoreCase("FREE") && IsBusy.equalsIgnoreCase("N")) {
+                                            if (Constants.FS_4_STATUS.equalsIgnoreCase("FREE") && IsBusy.equalsIgnoreCase("N")) {
                                                 // linear_fs_1.setBackgroundColor(getResources().getColor(android.R.color.holo_red_light));
                                                 //Rename SSID from cloud
                                                 if (IsHoseNameReplaced.equalsIgnoreCase("Y")) {
-                                                    AppConstants.NeedToRenameFS4 = false;
-                                                    AppConstants.REPLACEBLE_WIFI_NAME_FS4 = "";
+                                                    AppConstants.NEED_TO_RENAME_FS4 = false;
+                                                    AppConstants.REPLACEABLE_WIFI_NAME_FS4 = "";
                                                 } else {
-                                                    AppConstants.NeedToRenameFS4 = true;
-                                                    AppConstants.REPLACEBLE_WIFI_NAME_FS4 = ReplaceableHoseName;
+                                                    AppConstants.NEED_TO_RENAME_FS4 = true;
+                                                    AppConstants.REPLACEABLE_WIFI_NAME_FS4 = ReplaceableHoseName;
                                                 }
 
-                                                Constants.AccPersonnelPIN = "";
+                                                Constants.PERSONNEL_PIN_FS2 = "";
                                                 tvSSIDName.setText(selSSID);
                                                 AppConstants.FS4_CONNECTED_SSID = selSSID;
-                                                Constants.CurrentSelectedHose = "FS4";
+                                                Constants.CURRENT_SELECTED_HOSE = "FS4";
                                                 btnGo.setVisibility(View.VISIBLE);
                                                 LinkUpgradeFunctionality("HTTP", position, "");
                                             } else {
                                                 RestHoseinUse_FS4 = true;
-                                                if (AppConstants.GenerateLogs)
-                                                    AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
+                                                if (AppConstants.GENERATE_LOGS)
+                                                    AppConstants.writeInFile(TAG + getResources().getString(R.string.HoseInUse));
                                                 RestrictHoseSelection(getResources().getString(R.string.HoseInUse), false);
                                             }
-                                        } else if (String.valueOf(position).equalsIgnoreCase("4") && !IsUpgradeInprogress_FS5) {
+                                        } else if (String.valueOf(position).equalsIgnoreCase("4") && !isUpgradeInProgress_FS5) {
 
 
                                             AppConstants.LastSelectedHose = String.valueOf(position);
-                                            if (Constants.FS_5STATUS.equalsIgnoreCase("FREE") && IsBusy.equalsIgnoreCase("N")) {
+                                            if (Constants.FS_5_STATUS.equalsIgnoreCase("FREE") && IsBusy.equalsIgnoreCase("N")) {
                                                 // linear_fs_1.setBackgroundColor(getResources().getColor(android.R.color.holo_red_light));
                                                 //Rename SSID from cloud
                                                 if (IsHoseNameReplaced.equalsIgnoreCase("Y")) {
-                                                    AppConstants.NeedToRenameFS5 = false;
-                                                    AppConstants.REPLACEBLE_WIFI_NAME_FS5 = "";
+                                                    AppConstants.NEED_TO_RENAME_FS5 = false;
+                                                    AppConstants.REPLACEABLE_WIFI_NAME_FS5 = "";
                                                 } else {
-                                                    AppConstants.NeedToRenameFS5 = true;
-                                                    AppConstants.REPLACEBLE_WIFI_NAME_FS5 = ReplaceableHoseName;
+                                                    AppConstants.NEED_TO_RENAME_FS5 = true;
+                                                    AppConstants.REPLACEABLE_WIFI_NAME_FS5 = ReplaceableHoseName;
                                                 }
 
-                                                Constants.AccPersonnelPIN = "";
+                                                Constants.PERSONNEL_PIN_FS2 = "";
                                                 tvSSIDName.setText(selSSID);
                                                 AppConstants.FS5_CONNECTED_SSID = selSSID;
-                                                Constants.CurrentSelectedHose = "FS5";
+                                                Constants.CURRENT_SELECTED_HOSE = "FS5";
                                                 btnGo.setVisibility(View.VISIBLE);
                                                 LinkUpgradeFunctionality("HTTP", position, "");
                                             } else {
                                                 RestHoseinUse_FS5 = true;
-                                                if (AppConstants.GenerateLogs)
-                                                    AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
+                                                if (AppConstants.GENERATE_LOGS)
+                                                    AppConstants.writeInFile(TAG + getResources().getString(R.string.HoseInUse));
                                                 RestrictHoseSelection(getResources().getString(R.string.HoseInUse), false);
                                             }
 
-                                        } else if (String.valueOf(position).equalsIgnoreCase("5") && !IsUpgradeInprogress_FS6) {
+                                        } else if (String.valueOf(position).equalsIgnoreCase("5") && !isUpgradeInProgress_FS6) {
 
                                             AppConstants.LastSelectedHose = String.valueOf(position);
-                                            if (Constants.FS_6STATUS.equalsIgnoreCase("FREE") && IsBusy.equalsIgnoreCase("N")) {
+                                            if (Constants.FS_6_STATUS.equalsIgnoreCase("FREE") && IsBusy.equalsIgnoreCase("N")) {
 
                                                 if (IsHoseNameReplaced.equalsIgnoreCase("Y")) {
-                                                    AppConstants.NeedToRenameFS6 = false;
-                                                    AppConstants.REPLACEBLE_WIFI_NAME_FS6 = "";
+                                                    AppConstants.NEED_TO_RENAME_FS6 = false;
+                                                    AppConstants.REPLACEABLE_WIFI_NAME_FS6 = "";
                                                 } else {
-                                                    AppConstants.NeedToRenameFS6 = true;
-                                                    AppConstants.REPLACEBLE_WIFI_NAME_FS6 = ReplaceableHoseName;
+                                                    AppConstants.NEED_TO_RENAME_FS6 = true;
+                                                    AppConstants.REPLACEABLE_WIFI_NAME_FS6 = ReplaceableHoseName;
                                                 }
 
-                                                Constants.AccPersonnelPIN = "";
+                                                Constants.PERSONNEL_PIN_FS2 = "";
                                                 tvSSIDName.setText(selSSID);
                                                 AppConstants.FS6_CONNECTED_SSID = selSSID;
-                                                Constants.CurrentSelectedHose = "FS6";
+                                                Constants.CURRENT_SELECTED_HOSE = "FS6";
                                                 btnGo.setVisibility(View.VISIBLE);
                                                 LinkUpgradeFunctionality("HTTP", position, "");
                                             } else {
                                                 RestHoseinUse_FS6 = true;
-                                                if (AppConstants.GenerateLogs)
-                                                    AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
+                                                if (AppConstants.GENERATE_LOGS)
+                                                    AppConstants.writeInFile(TAG + getResources().getString(R.string.HoseInUse));
                                                 RestrictHoseSelection(getResources().getString(R.string.HoseInUse), false);
                                             }
                                         } else {
@@ -3694,8 +3722,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                 }
                                 //dialog.dismiss();
                             } catch (Exception e) {
-                                if (AppConstants.GenerateLogs)
-                                    AppConstants.WriteinFile(TAG + "alertSelectHoseList online --Exception: " + e.getMessage());
+                                if (AppConstants.GENERATE_LOGS)
+                                    AppConstants.writeInFile(TAG + "alertSelectHoseList online --Exception: " + e.getMessage());
                                 e.printStackTrace();
                             }
 
@@ -3706,12 +3734,12 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                             try {
                                 IpAddress = "";
 
-                                if (AppConstants.DetailsListOfConnectedDevices != null) {
-                                    for (int i = 0; i < AppConstants.DetailsListOfConnectedDevices.size(); i++) {
-                                        String MA_ConnectedDevices = AppConstants.DetailsListOfConnectedDevices.get(i).get("macAddress");
+                                if (AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES != null) {
+                                    for (int i = 0; i < AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.size(); i++) {
+                                        String MA_ConnectedDevices = AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.get(i).get("macAddress");
 
                                         if (selMacAddress.equalsIgnoreCase(MA_ConnectedDevices)) {
-                                            IpAddress = AppConstants.DetailsListOfConnectedDevices.get(i).get("ipAddress");
+                                            IpAddress = AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.get(i).get("ipAddress");
                                             break;
                                         }
                                     }
@@ -3720,14 +3748,14 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                     IpAddress = "";
 
                                     boolean isMacConnected = false;
-                                    if (AppConstants.DetailsListOfConnectedDevices != null) {
-                                        for (int i = 0; i < AppConstants.DetailsListOfConnectedDevices.size(); i++) {
-                                            String MA_ConnectedDevices = AppConstants.DetailsListOfConnectedDevices.get(i).get("macAddress");
+                                    if (AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES != null) {
+                                        for (int i = 0; i < AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.size(); i++) {
+                                            String MA_ConnectedDevices = AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.get(i).get("macAddress");
 
                                             if (selMacAddress.equalsIgnoreCase(MA_ConnectedDevices)) {
-                                                if (AppConstants.GenerateLogs)
-                                                    AppConstants.WriteinFile(TAG + "Selected LINK (" + selSSID + " <==> " + selMacAddress + ") is connected to hotspot.");
-                                                IpAddress = AppConstants.DetailsListOfConnectedDevices.get(i).get("ipAddress");
+                                                if (AppConstants.GENERATE_LOGS)
+                                                    AppConstants.writeInFile(TAG + "Selected LINK (" + selSSID + " <==> " + selMacAddress + ") is connected to hotspot.");
+                                                IpAddress = AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.get(i).get("ipAddress");
                                                 isMacConnected = true;
                                                 break;
                                             }
@@ -3735,147 +3763,147 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                     }
 
                                     if (!isMacConnected) {
-                                        if (AppConstants.GenerateLogs)
-                                            AppConstants.WriteinFile(TAG + "Selected LINK (" + selSSID + " <==> " + selMacAddress + ") is not found in connected devices. " + AppConstants.DetailsListOfConnectedDevices);
-                                        for (int i = 0; i < AppConstants.DetailsListOfConnectedDevices.size(); i++) {
-                                            String MA_ConnectedDevices = AppConstants.DetailsListOfConnectedDevices.get(i).get("macAddress");
-                                            if (AppConstants.GenerateLogs)
-                                                AppConstants.WriteinFile(TAG + "Checking Mac Address using info command: (" + MA_ConnectedDevices + ")");
+                                        if (AppConstants.GENERATE_LOGS)
+                                            AppConstants.writeInFile(TAG + "Selected LINK (" + selSSID + " <==> " + selMacAddress + ") is not found in connected devices. " + AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES);
+                                        for (int i = 0; i < AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.size(); i++) {
+                                            String MA_ConnectedDevices = AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.get(i).get("macAddress");
+                                            if (AppConstants.GENERATE_LOGS)
+                                                AppConstants.writeInFile(TAG + "Checking Mac Address using info command: (" + MA_ConnectedDevices + ")");
 
-                                            String connectedIp = AppConstants.DetailsListOfConnectedDevices.get(i).get("ipAddress");
+                                            String connectedIp = AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.get(i).get("ipAddress");
 
                                             IpAddress = GetAndCheckMacAddressFromInfoCommand(connectedIp, selMacAddress, MA_ConnectedDevices);
                                             if (!IpAddress.trim().isEmpty()) {
-                                                if (AppConstants.GenerateLogs)
-                                                    AppConstants.WriteinFile("===================================================================");
+                                                if (AppConstants.GENERATE_LOGS)
+                                                    AppConstants.writeInFile("===================================================================");
                                                 break;
                                             }
-                                            if (AppConstants.GenerateLogs)
-                                                AppConstants.WriteinFile("===================================================================");
+                                            if (AppConstants.GENERATE_LOGS)
+                                                AppConstants.writeInFile("===================================================================");
                                         }
                                     }
                                 } catch (Exception e) {
                                     System.out.println(e);
-                                    if (AppConstants.GenerateLogs)
-                                        AppConstants.WriteinFile(TAG + " Exception while checking hotspot connected devices in Offline mode.--Exception: " + e.getMessage());
+                                    if (AppConstants.GENERATE_LOGS)
+                                        AppConstants.writeInFile(TAG + " Exception while checking hotspot connected devices in Offline mode.--Exception: " + e.getMessage());
                                 }*/
 
                                 /*if (IpAddress.equals("")) {
-                                    if (AppConstants.GenerateLogs)
-                                        AppConstants.WriteinFile(TAG + " Issue #812 HNC-2(selMacAddress:" + selMacAddress + ") " + AppConstants.DetailsListOfConnectedDevices);
-                                    if (AppConstants.GenerateLogs)
-                                        AppConstants.WriteinFile(TAG + " Hose not connected");
+                                    if (AppConstants.GENERATE_LOGS)
+                                        AppConstants.writeInFile(TAG + " Issue #812 HNC-2(selMacAddress:" + selMacAddress + ") " + AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES);
+                                    if (AppConstants.GENERATE_LOGS)
+                                        AppConstants.writeInFile(TAG + " Hose not connected");
                                     RestrictHoseSelection("Hose not connected");
 
                                 } else {*/
 
                                 //Selected position
                                 //Toast.makeText(getApplicationContext(), "FS Position" + position, Toast.LENGTH_SHORT).show();
-                                AppConstants.FS_selected = String.valueOf(position);
-                                if (String.valueOf(position).equalsIgnoreCase("0") && !IsUpgradeInprogress_FS1) {
+                                AppConstants.FS_SELECTED = String.valueOf(position);
+                                if (String.valueOf(position).equalsIgnoreCase("0") && !isUpgradeInProgress_FS1) {
 
 
                                     AppConstants.LastSelectedHose = String.valueOf(position);
-                                    if (Constants.FS_1STATUS.equalsIgnoreCase("FREE")) {
+                                    if (Constants.FS_1_STATUS.equalsIgnoreCase("FREE")) {
                                         // linear_fs_1.setBackgroundColor(getResources().getColor(android.R.color.holo_red_light));
 
-                                        Constants.AccPersonnelPIN = "";
+                                        Constants.PERSONNEL_PIN_FS2 = "";
                                         tvSSIDName.setText(selSSID);
                                         AppConstants.FS1_CONNECTED_SSID = selSSID;
-                                        Constants.CurrentSelectedHose = "FS1";
+                                        Constants.CURRENT_SELECTED_HOSE = "FS1";
                                         btnGo.setVisibility(View.VISIBLE);
                                         goButtonAction(null);
                                     } else {
-                                        if (AppConstants.GenerateLogs)
-                                            AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
+                                        if (AppConstants.GENERATE_LOGS)
+                                            AppConstants.writeInFile(TAG + getResources().getString(R.string.HoseInUse));
                                         RestrictHoseSelection(getResources().getString(R.string.HoseInUse), false);
 
                                     }
-                                } else if (String.valueOf(position).equalsIgnoreCase("1") && !IsUpgradeInprogress_FS2) {
+                                } else if (String.valueOf(position).equalsIgnoreCase("1") && !isUpgradeInProgress_FS2) {
 
                                     AppConstants.LastSelectedHose = String.valueOf(position);
-                                    if (Constants.FS_2STATUS.equalsIgnoreCase("FREE")) {
+                                    if (Constants.FS_2_STATUS.equalsIgnoreCase("FREE")) {
                                         // linear_fs_1.setBackgroundColor(getResources().getColor(android.R.color.holo_red_light));
 
-                                        Constants.AccPersonnelPIN = "";
+                                        Constants.PERSONNEL_PIN_FS2 = "";
                                         tvSSIDName.setText(selSSID);
                                         AppConstants.FS2_CONNECTED_SSID = selSSID;
-                                        Constants.CurrentSelectedHose = "FS2";
+                                        Constants.CURRENT_SELECTED_HOSE = "FS2";
                                         btnGo.setVisibility(View.VISIBLE);
                                         goButtonAction(null);
                                     } else {
-                                        if (AppConstants.GenerateLogs)
-                                            AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
+                                        if (AppConstants.GENERATE_LOGS)
+                                            AppConstants.writeInFile(TAG + getResources().getString(R.string.HoseInUse));
                                         RestrictHoseSelection(getResources().getString(R.string.HoseInUse), false);
                                     }
 
-                                } else if (String.valueOf(position).equalsIgnoreCase("2") && !IsUpgradeInprogress_FS3) {
+                                } else if (String.valueOf(position).equalsIgnoreCase("2") && !isUpgradeInProgress_FS3) {
 
                                     AppConstants.LastSelectedHose = String.valueOf(position);
-                                    if (Constants.FS_3STATUS.equalsIgnoreCase("FREE")) {
+                                    if (Constants.FS_3_STATUS.equalsIgnoreCase("FREE")) {
                                         // linear_fs_1.setBackgroundColor(getResources().getColor(android.R.color.holo_red_light));
 
-                                        Constants.AccPersonnelPIN = "";
+                                        Constants.PERSONNEL_PIN_FS2 = "";
                                         tvSSIDName.setText(selSSID);
                                         AppConstants.FS3_CONNECTED_SSID = selSSID;
-                                        Constants.CurrentSelectedHose = "FS3";
+                                        Constants.CURRENT_SELECTED_HOSE = "FS3";
                                         btnGo.setVisibility(View.VISIBLE);
                                         goButtonAction(null);
                                     } else {
-                                        if (AppConstants.GenerateLogs)
-                                            AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
+                                        if (AppConstants.GENERATE_LOGS)
+                                            AppConstants.writeInFile(TAG + getResources().getString(R.string.HoseInUse));
                                         RestrictHoseSelection(getResources().getString(R.string.HoseInUse), false);
                                     }
 
-                                } else if (String.valueOf(position).equalsIgnoreCase("3") && !IsUpgradeInprogress_FS4) {
+                                } else if (String.valueOf(position).equalsIgnoreCase("3") && !isUpgradeInProgress_FS4) {
 
                                     AppConstants.LastSelectedHose = String.valueOf(position);
-                                    if (Constants.FS_4STATUS.equalsIgnoreCase("FREE")) {
+                                    if (Constants.FS_4_STATUS.equalsIgnoreCase("FREE")) {
                                         // linear_fs_1.setBackgroundColor(getResources().getColor(android.R.color.holo_red_light));
 
-                                        Constants.AccPersonnelPIN = "";
+                                        Constants.PERSONNEL_PIN_FS2 = "";
                                         tvSSIDName.setText(selSSID);
                                         AppConstants.FS4_CONNECTED_SSID = selSSID;
-                                        Constants.CurrentSelectedHose = "FS4";
+                                        Constants.CURRENT_SELECTED_HOSE = "FS4";
                                         btnGo.setVisibility(View.VISIBLE);
                                         goButtonAction(null);
                                     } else {
-                                        if (AppConstants.GenerateLogs)
-                                            AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
+                                        if (AppConstants.GENERATE_LOGS)
+                                            AppConstants.writeInFile(TAG + getResources().getString(R.string.HoseInUse));
                                         RestrictHoseSelection(getResources().getString(R.string.HoseInUse), false);
                                     }
 
-                                } else if (String.valueOf(position).equalsIgnoreCase("4") && !IsUpgradeInprogress_FS5) {
+                                } else if (String.valueOf(position).equalsIgnoreCase("4") && !isUpgradeInProgress_FS5) {
 
                                     AppConstants.LastSelectedHose = String.valueOf(position);
-                                    if (Constants.FS_5STATUS.equalsIgnoreCase("FREE")) {
+                                    if (Constants.FS_5_STATUS.equalsIgnoreCase("FREE")) {
 
-                                        Constants.AccPersonnelPIN = "";
+                                        Constants.PERSONNEL_PIN_FS2 = "";
                                         tvSSIDName.setText(selSSID);
                                         AppConstants.FS5_CONNECTED_SSID = selSSID;
-                                        Constants.CurrentSelectedHose = "FS5";
+                                        Constants.CURRENT_SELECTED_HOSE = "FS5";
                                         btnGo.setVisibility(View.VISIBLE);
                                         goButtonAction(null);
                                     } else {
-                                        if (AppConstants.GenerateLogs)
-                                            AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
+                                        if (AppConstants.GENERATE_LOGS)
+                                            AppConstants.writeInFile(TAG + getResources().getString(R.string.HoseInUse));
                                         RestrictHoseSelection(getResources().getString(R.string.HoseInUse), false);
                                     }
 
-                                } else if (String.valueOf(position).equalsIgnoreCase("5") && !IsUpgradeInprogress_FS6) {
+                                } else if (String.valueOf(position).equalsIgnoreCase("5") && !isUpgradeInProgress_FS6) {
 
                                     AppConstants.LastSelectedHose = String.valueOf(position);
-                                    if (Constants.FS_6STATUS.equalsIgnoreCase("FREE")) {
+                                    if (Constants.FS_6_STATUS.equalsIgnoreCase("FREE")) {
 
-                                        Constants.AccPersonnelPIN = "";
+                                        Constants.PERSONNEL_PIN_FS2 = "";
                                         tvSSIDName.setText(selSSID);
                                         AppConstants.FS6_CONNECTED_SSID = selSSID;
-                                        Constants.CurrentSelectedHose = "FS6";
+                                        Constants.CURRENT_SELECTED_HOSE = "FS6";
                                         btnGo.setVisibility(View.VISIBLE);
                                         goButtonAction(null);
                                     } else {
-                                        if (AppConstants.GenerateLogs)
-                                            AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
+                                        if (AppConstants.GENERATE_LOGS)
+                                            AppConstants.writeInFile(TAG + getResources().getString(R.string.HoseInUse));
                                         RestrictHoseSelection(getResources().getString(R.string.HoseInUse), false);
                                     }
                                 } else {
@@ -3884,8 +3912,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                 }
                                 //}
                             } catch (Exception e) {
-                                if (AppConstants.GenerateLogs)
-                                    AppConstants.WriteinFile(TAG + "alertSelectHoseList offline --Exception: " + e.getMessage());
+                                if (AppConstants.GENERATE_LOGS)
+                                    AppConstants.writeInFile(TAG + "alertSelectHoseList offline --Exception: " + e.getMessage());
                                 e.printStackTrace();
                             }
                             /////////////////////offfline///////////////////////////
@@ -3903,29 +3931,29 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         try {
             switch (selectedItemPos) {
                 case 0:
-                    BTConstants.CurrentTransactionIsBT1 = false;
+                    BTConstants.CURRENT_TRANSACTION_IS_BT_1 = false;
                     break;
                 case 1://Link Two
-                    BTConstants.CurrentTransactionIsBT2 = false;
+                    BTConstants.CURRENT_TRANSACTION_IS_BT_2 = false;
                     break;
                 case 2://Link Three
-                    BTConstants.CurrentTransactionIsBT3 = false;
+                    BTConstants.CURRENT_TRANSACTION_IS_BT_3 = false;
                     break;
                 case 3://Link Four
-                    BTConstants.CurrentTransactionIsBT4 = false;
+                    BTConstants.CURRENT_TRANSACTION_IS_BT_4 = false;
                     break;
                 case 4://Link Five
-                    BTConstants.CurrentTransactionIsBT5 = false;
+                    BTConstants.CURRENT_TRANSACTION_IS_BT_5 = false;
                     break;
                 case 5://Link Six
-                    BTConstants.CurrentTransactionIsBT6 = false;
+                    BTConstants.CURRENT_TRANSACTION_IS_BT_6 = false;
                     break;
                 default://Something went wrong in link selection please try again.
                     break;
             }
         } catch (Exception e) {
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "ResetCurrentTransactionIsBTFlag Exception:" + e.getMessage());
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + "ResetCurrentTransactionIsBTFlag Exception:" + e.getMessage());
         }
     }
 
@@ -3946,7 +3974,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         }
     }
 
-    public void getipOverOSVersion() {
+    public void getIpOverOSVersion() {
         if (Build.VERSION.SDK_INT >= 31) {
             CommonUtils.GetDetailsFromARP();
         } else if (Build.VERSION.SDK_INT >= 29) {
@@ -3999,7 +4027,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     }
                 }
                 System.out.println("Check");
-                AppConstants.DetailsListOfConnectedDevices = ListOfConnectedDevices;
+                AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES = ListOfConnectedDevices;
                 System.out.println("DeviceConnected" + ListOfConnectedDevices);
 
             } catch (Exception e) {
@@ -4055,19 +4083,19 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
                     } catch (Exception e) {
                         e.printStackTrace();
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "GetConnectedDevicesIP 1 --Exception " + e);
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(TAG + "GetConnectedDevicesIP 1 --Exception " + e);
                     } finally {
                         try {
                             br.close();
                         } catch (IOException e) {
                             e.printStackTrace();
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(TAG + "GetConnectedDevicesIP 2 --Exception " + e);
+                            if (AppConstants.GENERATE_LOGS)
+                                AppConstants.writeInFile(TAG + "GetConnectedDevicesIP 2 --Exception " + e);
                         }
                     }
 
-                    AppConstants.DetailsListOfConnectedDevices = ListOfConnectedDevices;
+                    AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES = ListOfConnectedDevices;
                     System.out.println("DeviceConnected" + ListOfConnectedDevices);
 
                 }
@@ -4102,8 +4130,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
             } catch (Exception e) {
                 Log.d("Ex", e.getMessage());
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "CommandsPOST InBackground --Exception: " + e.getMessage());
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(TAG + "CommandsPOST InBackground --Exception: " + e.getMessage());
             }
             return resp;
         }
@@ -4118,8 +4146,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                         @Override
                         public void run() {
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_HTTP + "-" + TAG + "Sending INFO command (After upgrade) to the Link.");
+                            if (AppConstants.GENERATE_LOGS)
+                                AppConstants.writeInFile(AppConstants.LOG_UPGRADE_HTTP + "-" + TAG + "Sending INFO command (After upgrade) to the Link.");
                             new CommandsGET_INFO_AfterUpgrade().execute(URL_INFO_AFTER_RESET);
                         }
                     }, 5000);
@@ -4127,8 +4155,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
             } catch (Exception e) {
                 e.printStackTrace();
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "CommandsPOST onPostExecute --Exception: " + e.getMessage());
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(TAG + "CommandsPOST onPostExecute --Exception: " + e.getMessage());
             }
         }
     }
@@ -4155,10 +4183,10 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
             } catch (Exception e) {
                 ChangeWifiState(false);//turn wifi off
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "CommandsGET_INFO InBackground --Exception: " + e.getMessage());
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(TAG + "CommandsGET_INFO InBackground --Exception: " + e.getMessage());
                 Log.d("Ex", e.getMessage());
-                Constants.hotspotstayOn = true;
+                Constants.HOTSPOT_STAY_ON = true;
                 if (loading != null) {
                     loading.dismiss();
                 }
@@ -4174,10 +4202,10 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 System.out.println("2:" + Calendar.getInstance().getTime());
             } catch (Exception e) {
                 ChangeWifiState(false);//turn wifi off
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "CommandsGET_INFO onPostExecute --Exception: " + e.getMessage());
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(TAG + "CommandsGET_INFO onPostExecute --Exception: " + e.getMessage());
                 Log.d("Ex", e.getMessage());
-                Constants.hotspotstayOn = true;
+                Constants.HOTSPOT_STAY_ON = true;
             }
         }
     }
@@ -4203,10 +4231,10 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
             } catch (Exception e) {
                 ChangeWifiState(false);//turn wifi off
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_HTTP + "-" + TAG + "CommandsGET_INFO_AfterUpgrade InBackground --Exception: " + e.getMessage());
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(AppConstants.LOG_UPGRADE_HTTP + "-" + TAG + "CommandsGET_INFO_AfterUpgrade InBackground --Exception: " + e.getMessage());
                 Log.d("Ex", e.getMessage());
-                Constants.hotspotstayOn = true;
+                Constants.HOTSPOT_STAY_ON = true;
                 if (loading != null) {
                     loading.dismiss();
                 }
@@ -4233,18 +4261,18 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         e.printStackTrace();
                     }
                 } else {
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_HTTP + "-" + TAG + "CommandsGET_INFO_AfterUpgrade Response: " + result);
-                    /*if (!AppConstants.UP_FirmwareVersion.isEmpty()) { #2310 => The Cloud WILL NOT update the firmware version until it is successfully completed.
-                        storeUpgradeFSVersion(WelcomeActivity.this, linkPositionForUpgrade, AppConstants.UP_FirmwareVersion, "HTTP");
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(AppConstants.LOG_UPGRADE_HTTP + "-" + TAG + "CommandsGET_INFO_AfterUpgrade Response: " + result);
+                    /*if (!AppConstants.UP_FIRMWARE_VERSION.isEmpty()) { #2310 => The Cloud WILL NOT update the firmware version until it is successfully completed.
+                        storeUpgradeFSVersion(WelcomeActivity.this, linkPositionForUpgrade, AppConstants.UP_FIRMWARE_VERSION, "HTTP");
                     }*/
                 }
             } catch (Exception e) {
                 ChangeWifiState(false);//turn wifi off
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_HTTP + "-" + TAG + "CommandsGET_INFO_AfterUpgrade onPostExecute --Exception: " + e.getMessage());
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(AppConstants.LOG_UPGRADE_HTTP + "-" + TAG + "CommandsGET_INFO_AfterUpgrade onPostExecute --Exception: " + e.getMessage());
                 Log.d("Ex", e.getMessage());
-                Constants.hotspotstayOn = true;
+                Constants.HOTSPOT_STAY_ON = true;
             }
         }
     }
@@ -4256,14 +4284,14 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             public void run() {
 
                 //Update SSID rename statu to server
-                if (AppConstants.NeedToRenameFS_ON_UPDATE_MAC) {
+                if (AppConstants.NEED_TO_RENAME_FS_ON_UPDATE_MAC) {
                     String userEmail = CommonUtils.getCustomerDetails(WelcomeActivity.this).PersonEmail;
 
                     String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(WelcomeActivity.this) + ":" + userEmail + ":" + "SetHoseNameReplacedFlag" + AppConstants.LANG_PARAM);
 
 
                     RenameHose rhose = new RenameHose();
-                    rhose.SiteId = AppConstants.CURRENT_SELECTED_SITEID;
+                    rhose.SiteId = AppConstants.CURRENT_SELECTED_SITE_ID;
                     rhose.HoseId = AppConstants.CURRENT_HOSE_SSID;
                     rhose.IsHoseNameReplaced = "Y";
 
@@ -4309,8 +4337,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 ssid_pass_success = "2";
                 //resp = "exception";
                 e.printStackTrace();
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Set SSID and PASS to Link (Link reset) InBackground-Exception: " + e.getMessage());
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Set SSID and PASS to Link (Link reset) InBackground-Exception: " + e.getMessage());
             }
             return resp;
         }
@@ -4323,8 +4351,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     ChangeWifiState(false);//turn wifi off
                     AppConstants.colorToastBigFont(WelcomeActivity.this, getResources().getString(R.string.ReconfigurationFailedRetry), Color.BLUE);
                     Log.i(TAG, "Step2 Failed while changing Hotspot Settings Please try again.. exception:" + result);
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Step2 Failed while changing Hotspot Settings Please try again.. exception: " + result);
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Step2 Failed while changing Hotspot Settings Please try again.. exception: " + result);
 
                     try {
                         Thread.sleep(2000);
@@ -4338,7 +4366,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
                 } else {
                     //mj
-                    //Constants.hotspotstayOn = true;//Enable hotspot flag  temp prakash
+                    //Constants.HOTSPOT_STAY_ON = true;//Enable hotspot flag  temp prakash
                     ChangeWifiState(false);//turn wifi off
                     try {
                         Thread.sleep(1000);
@@ -4350,8 +4378,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
                     System.out.println(result);
                     Log.i(TAG, " Set SSID and PASS to Link (Result" + result);
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Set SSID and PASS to Link Result >> " + result);
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Set SSID and PASS to Link Result >> " + result);
 
                     //============================================================
 
@@ -4359,18 +4387,18 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         @Override
                         public void run() {
 
-                            AppConstants.colorToastBigFont(WelcomeActivity.this, getResources().getString(R.string.MacAddressHeading) + " " + AppConstants.UPDATE_MACADDRESS, Color.BLUE);
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Mac address: " + AppConstants.UPDATE_MACADDRESS);
+                            AppConstants.colorToastBigFont(WelcomeActivity.this, getResources().getString(R.string.MacAddressHeading) + " " + AppConstants.UPDATE_MAC_ADDRESS, Color.BLUE);
+                            if (AppConstants.GENERATE_LOGS)
+                                AppConstants.writeInFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Mac address: " + AppConstants.UPDATE_MAC_ADDRESS);
 
                             //Update mac address to server and mac address status
                             try {
 
                                 UpdateMacAddressClass authEntityClass1 = new UpdateMacAddressClass();
-                                authEntityClass1.SiteId = Integer.parseInt(AppConstants.CURRENT_SELECTED_SITEID);
-                                authEntityClass1.MACAddress = AppConstants.UPDATE_MACADDRESS;
+                                authEntityClass1.SiteId = Integer.parseInt(AppConstants.CURRENT_SELECTED_SITE_ID);
+                                authEntityClass1.MACAddress = AppConstants.UPDATE_MAC_ADDRESS;
                                 authEntityClass1.RequestFrom = "AP";
-                                authEntityClass1.HubName = AppConstants.HubName;
+                                authEntityClass1.HubName = AppConstants.HUB_NAME;
 
                                 //------
                                 Gson gson = new Gson();
@@ -4390,8 +4418,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                     ssid_pass_success = "";
 
                                 } else {
-                                    if (AppConstants.GenerateLogs)
-                                        AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Please check Internet Connection.");
+                                    if (AppConstants.GENERATE_LOGS)
+                                        AppConstants.writeInFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Please check Internet Connection.");
                                     AppConstants.colorToast(WelcomeActivity.this, getResources().getString(R.string.CheckInternet), Color.BLUE);
                                     if (loading != null)
                                         loading.dismiss();
@@ -4399,32 +4427,30 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                             } catch (Exception e) {
                                 if (loading != null)
                                     loading.dismiss();
-                                Constants.hotspotstayOn = true;
+                                Constants.HOTSPOT_STAY_ON = true;
                                 System.out.println(e);
-                                if (AppConstants.GenerateLogs)
-                                    AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "ChangeHotspotSettings UpdateMacAddressClass --Exception: " + e.getMessage());
+                                if (AppConstants.GENERATE_LOGS)
+                                    AppConstants.writeInFile(AppConstants.LOG_RECONFIG + "-" + TAG + "ChangeHotspotSettings UpdateMacAddressClass --Exception: " + e.getMessage());
                             }
                         }
                     }, 10000);
                 }
-
             } catch (Exception e) {
                 ChangeWifiState(false);//turn wifi off
                 e.printStackTrace();
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Set SSID and PASS to Link (Link reset) -Exception: " + e.getMessage());
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Set SSID and PASS to Link (Link reset) -Exception: " + e.getMessage());
             }
         }
     }
-
 
     private class WiFiConnectTask extends AsyncTask<String, Void, String> {
 
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Started Reconfiguration process...");
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Started Reconfiguration process...");
             String s = getResources().getString(R.string.StartedReconfiguration);
             SpannableString ss2 = new SpannableString(s);
             ss2.setSpan(new RelativeSizeSpan(2f), 0, ss2.length(), 0);
@@ -4442,8 +4468,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             try {
             } catch (Exception e) {
                 e.printStackTrace();
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "WiFiConnectTask DoInBackground -Exception: " + e.getMessage());
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(AppConstants.LOG_RECONFIG + "-" + TAG + "WiFiConnectTask DoInBackground -Exception: " + e.getMessage());
             }
             return "";
         }
@@ -4464,8 +4490,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
                         setGlobalWifiConnection();
 
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Connected to wifi " + AppConstants.CURRENT_SELECTED_SSID);
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Connected to wifi " + AppConstants.CURRENT_SELECTED_SSID);
                         AppConstants.colorToastBigFont(WelcomeActivity.this, getResources().getString(R.string.ConnectedToWifi) + " " + AppConstants.CURRENT_SELECTED_SSID, Color.parseColor("#4CAF50"));
 
                         new Handler().postDelayed(new Runnable() {
@@ -4477,13 +4503,13 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                 HTTP_URL = "http://192.168.4.1:80/";
                                 URL_INFO = HTTP_URL + "client?command=info";
                                 try {
-                                    if (AppConstants.GenerateLogs)
-                                        AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Sending INFO command to Link: " + AppConstants.CURRENT_SELECTED_SSID);
+                                    if (AppConstants.GENERATE_LOGS)
+                                        AppConstants.writeInFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Sending INFO command to Link: " + AppConstants.CURRENT_SELECTED_SSID);
                                     String result = new CommandsGET_INFO().execute(URL_INFO).get();
                                     String mac_address = "";
 
-                                    if (AppConstants.GenerateLogs)
-                                        AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "InfoCMD-" + ssid + "-Result >> " + result);
+                                    if (AppConstants.GENERATE_LOGS)
+                                        AppConstants.writeInFile(AppConstants.LOG_RECONFIG + "-" + TAG + "InfoCMD-" + ssid + "-Result >> " + result);
 
                                     if (result.contains("Version")) {
                                         JSONObject jsonObject = new JSONObject(result);
@@ -4491,13 +4517,13 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                         String sdk_version = joPulsarStat.getString("sdk_version");
                                         String iot_version = joPulsarStat.getString("iot_version");
                                         mac_address = joPulsarStat.getString("mac_address");//station_mac_address
-                                        AppConstants.UPDATE_MACADDRESS = mac_address;
+                                        AppConstants.UPDATE_MAC_ADDRESS = mac_address;
 
                                         if (mac_address.equals("")) {
                                             loading.dismiss();
-                                            Constants.hotspotstayOn = true;//Enable hotspot flag
-                                            if (AppConstants.GenerateLogs)
-                                                AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Reconfiguration process fail. Could not get mac address.");
+                                            Constants.HOTSPOT_STAY_ON = true;//Enable hotspot flag
+                                            if (AppConstants.GENERATE_LOGS)
+                                                AppConstants.writeInFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Reconfiguration process fail. Could not get mac address.");
                                             AppConstants.colorToastBigFont(WelcomeActivity.this, getResources().getString(R.string.ReconfigurationFailed), Color.BLUE);
 
                                             //Disable wifi connection
@@ -4520,14 +4546,14 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                                     String HotSpotSSID = sharedPref.getString("HotSpotSSID", "");
                                                     String HotSpotPassword = sharedPref.getString("HotSpotPassword", "");
 
-                                                    if (AppConstants.GenerateLogs)
-                                                        AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Setting SSID and PASS to Link");
+                                                    if (AppConstants.GENERATE_LOGS)
+                                                        AppConstants.writeInFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Setting SSID and PASS to Link");
                                                     AppConstants.colorToastBigFont(WelcomeActivity.this, getResources().getString(R.string.SettingSSIDAndPASS), Color.BLUE);
 
                                                     HTTP_URL = "http://192.168.4.1:80/";
                                                     URL_UPDATE_FS_INFO = HTTP_URL + "config?command=wifi";
 
-                                                    //String jsonChangeUsernamePass = "{\"Request\":{\"Station\":{\"Connect_Station\":{\"ssid\":\"" + AppConstants.HubName + "\",\"password\":\"" + AppConstants.HubGeneratedpassword + "\" ,\"sta_connect\":1 }}}}";
+                                                    //String jsonChangeUsernamePass = "{\"Request\":{\"Station\":{\"Connect_Station\":{\"ssid\":\"" + AppConstants.HUB_NAME + "\",\"password\":\"" + AppConstants.HUB_GENERATED_PASSWORD + "\" ,\"sta_connect\":1 }}}}";
                                                     String jsonChangeUsernamePass = "{\"Request\":{\"Station\":{\"Connect_Station\":{\"ssid\":\"" + HotSpotSSID + "\",\"password\":\"" + HotSpotPassword + "\" ,\"sta_connect\":1 }}}}";
 
                                                     System.out.println("URL_UPDATE_FS_INFO-" + URL_UPDATE_FS_INFO);
@@ -4538,8 +4564,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                                         new CommandsPOST_ChangeHotspotSettings().execute(URL_UPDATE_FS_INFO, jsonChangeUsernamePass);
 
                                                     } catch (Exception e) {
-                                                        if (AppConstants.GenerateLogs)
-                                                            AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "CommandsPOST_ChangeHotspotSettings. Exception: " + e.getMessage());
+                                                        if (AppConstants.GENERATE_LOGS)
+                                                            AppConstants.writeInFile(AppConstants.LOG_RECONFIG + "-" + TAG + "CommandsPOST_ChangeHotspotSettings. Exception: " + e.getMessage());
                                                     }
                                                     btnRetryWifi.setVisibility(View.GONE);
                                                 }
@@ -4561,10 +4587,10 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                                 public void run() {
 
                                                     WifiManager wifiManagerMM = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
-                                                    AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "isWifiEnabled 2: " + wifiManagerMM.isWifiEnabled());
-                                                    AppConstants.colorToastBigFont(WelcomeActivity.this, "Mac address " + AppConstants.UPDATE_MACADDRESS, Color.BLUE);
-                                                    if (AppConstants.GenerateLogs)
-                                                        AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Mac address: " + AppConstants.UPDATE_MACADDRESS);
+                                                    AppConstants.writeInFile(AppConstants.LOG_RECONFIG + "-" + TAG + "isWifiEnabled 2: " + wifiManagerMM.isWifiEnabled());
+                                                    AppConstants.colorToastBigFont(WelcomeActivity.this, "Mac address " + AppConstants.UPDATE_MAC_ADDRESS, Color.BLUE);
+                                                    if (AppConstants.GENERATE_LOGS)
+                                                        AppConstants.writeInFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Mac address: " + AppConstants.UPDATE_MAC_ADDRESS);
 
                                                     // wifiApManager.setWifiApEnabled(null, true);//enable hotspot
 
@@ -4572,10 +4598,10 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                                     try {
 
                                                         UpdateMacAddressClass authEntityClass1 = new UpdateMacAddressClass();
-                                                        authEntityClass1.SiteId = Integer.parseInt(AppConstants.CURRENT_SELECTED_SITEID);
-                                                        authEntityClass1.MACAddress = AppConstants.UPDATE_MACADDRESS;
+                                                        authEntityClass1.SiteId = Integer.parseInt(AppConstants.CURRENT_SELECTED_SITE_ID);
+                                                        authEntityClass1.MACAddress = AppConstants.UPDATE_MAC_ADDRESS;
                                                         authEntityClass1.RequestFrom = "AP";
-                                                        authEntityClass1.HubName = AppConstants.HubName;
+                                                        authEntityClass1.HubName = AppConstants.HUB_NAME;
 
                                                         //------
                                                         Gson gson = new Gson();
@@ -4595,8 +4621,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                                             ssid_pass_success = "";
 
                                                         } else {
-                                                            if (AppConstants.GenerateLogs)
-                                                                AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Please check Internet Connection.");
+                                                            if (AppConstants.GENERATE_LOGS)
+                                                                AppConstants.writeInFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Please check Internet Connection.");
                                                             AppConstants.colorToast(WelcomeActivity.this, "Please check Internet Connection and retry.", Color.BLUE);
                                                             if (loading != null)
                                                                 loading.dismiss();
@@ -4604,19 +4630,19 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                                     } catch (Exception e) {
                                                         if (loading != null)
                                                             loading.dismiss();
-                                                        Constants.hotspotstayOn = true;
+                                                        Constants.HOTSPOT_STAY_ON = true;
                                                         System.out.println(e);
-                                                        if (AppConstants.GenerateLogs)
-                                                            AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "WiFiConnectTask UpdateMacAddressClass --Exception: " + e.getMessage());
+                                                        if (AppConstants.GENERATE_LOGS)
+                                                            AppConstants.writeInFile(AppConstants.LOG_RECONFIG + "-" + TAG + "WiFiConnectTask UpdateMacAddressClass --Exception: " + e.getMessage());
                                                     }
                                                 }
                                             }, 10000);*/
                                         }
                                     } else {
                                         loading.dismiss();
-                                        Constants.hotspotstayOn = true;//Enable hotspot flag
-                                        if (AppConstants.GenerateLogs)
-                                            AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Reconfiguration process fail.");
+                                        Constants.HOTSPOT_STAY_ON = true;//Enable hotspot flag
+                                        if (AppConstants.GENERATE_LOGS)
+                                            AppConstants.writeInFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Reconfiguration process fail.");
                                         AppConstants.colorToastBigFont(WelcomeActivity.this, getResources().getString(R.string.ReconfigurationFailedRetry), Color.BLUE);
 
                                         //Disable wifi connection
@@ -4627,15 +4653,15 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                     e.printStackTrace();
                                     if (loading != null)
                                         loading.dismiss();
-                                    if (AppConstants.GenerateLogs)
-                                        AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "WiFiConnectTask OnPostExecution --Exception: " + e.getMessage());
+                                    if (AppConstants.GENERATE_LOGS)
+                                        AppConstants.writeInFile(AppConstants.LOG_RECONFIG + "-" + TAG + "WiFiConnectTask OnPostExecution --Exception: " + e.getMessage());
                                 }
                             }
                         }, 1000);
 
                     } else {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "WiFiConnectTask => Connected SSID: " + ssid +"; Selected SSID: " + AppConstants.CURRENT_SELECTED_SSID);
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(AppConstants.LOG_RECONFIG + "-" + TAG + "WiFiConnectTask => Connected SSID: " + ssid +"; Selected SSID: " + AppConstants.CURRENT_SELECTED_SSID);
                         AppConstants.colorToastBigFont(WelcomeActivity.this, " Selected SSID: " + AppConstants.CURRENT_SELECTED_SSID +"; WiFi Connected to: " + ssid, Color.BLUE);
                         if (loading != null)
                             loading.dismiss();
@@ -4719,16 +4745,16 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
                 //----------------------------------------------------------------------------------
                 String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(WelcomeActivity.this) + ":" + userEmail + ":" + "UpdateMACAddress" + AppConstants.LANG_PARAM);
-                response = serverHandler.PostTextData(WelcomeActivity.this, AppConstants.webURL, jsonData, authString);
+                response = serverHandler.PostTextData(WelcomeActivity.this, AppConstants.WEB_URL, jsonData, authString);
                 //----------------------------------------------------------------------------------
 
             } catch (Exception ex) {
                 if (loading != null)
                     loading.dismiss();
-                Constants.hotspotstayOn = true;
+                Constants.HOTSPOT_STAY_ON = true;
                 CommonUtils.LogMessage("", "UpdateMACAddress ", ex);
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "UpdateMacAsyncTask InBackground--Exception: " + ex.getMessage());
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(AppConstants.LOG_RECONFIG + "-" + TAG + "UpdateMacAsyncTask InBackground--Exception: " + ex.getMessage());
                 response = "err";
             }
             return response;
@@ -4739,8 +4765,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
             try {
                 if (serverRes.equalsIgnoreCase("err")) {
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Link Re-configuration is partially completed.");
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Link Re-configuration is partially completed.");
                     AppConstants.alertBigFinishActivity(WelcomeActivity.this, getResources().getString(R.string.PartiallyCompleted));
                 } else if (serverRes != null) {
 
@@ -4750,14 +4776,14 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
                     if (ResponceMessage.equalsIgnoreCase("success")) {
 
-                        AppConstants.clearSharedPrefByName(WelcomeActivity.this, Constants.MAC_ADDR_RECONFIGURE);
+                        AppConstants.clearSharedPrefByName(WelcomeActivity.this, Constants.MAC_ADDRESS_RECONFIGURE);
 
                         if (loading != null)
                             loading.dismiss();
-                        Constants.hotspotstayOn = true;
+                        Constants.HOTSPOT_STAY_ON = true;
                         AppConstants.colorToastBigFont(WelcomeActivity.this, getResources().getString(R.string.MacAddressUpdated), Color.parseColor("#4CAF50"));
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Mac Address Updated.");
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Mac Address Updated.");
                         skipOnResume = true;
                         wifiApManager.setWifiApEnabled(null, true);
                         ChangeWifiState(false);
@@ -4766,10 +4792,10 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     } else if (ResponceMessage.equalsIgnoreCase("fail")) {
                         if (loading != null)
                             loading.dismiss();
-                        Constants.hotspotstayOn = true;
+                        Constants.HOTSPOT_STAY_ON = true;
                         AppConstants.colorToastBigFont(WelcomeActivity.this, getResources().getString(R.string.MacAddressNotUpdated), Color.BLUE);
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "MAC address could not be updated.");
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(AppConstants.LOG_RECONFIG + "-" + TAG + "MAC address could not be updated.");
                         skipOnResume = true;
                         wifiApManager.setWifiApEnabled(null, true);
                         ChangeWifiState(false);
@@ -4777,14 +4803,14 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
                 } else {
                     Log.i(TAG, "UpdateMacAsyncTask Server Response Empty!");
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "UpdateMacAsyncTask Server Response Empty!");
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(AppConstants.LOG_RECONFIG + "-" + TAG + "UpdateMacAsyncTask Server Response Empty!");
                     //CommonUtils.showNoInternetDialog(WelcomeActivity.this);
                 }
             } catch (Exception e) {
 
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "UpdateMacAsyncTask onPostExecute--Exception: " + e.getMessage());
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(AppConstants.LOG_RECONFIG + "-" + TAG + "UpdateMacAsyncTask onPostExecute--Exception: " + e.getMessage());
             }
         }
     }
@@ -4831,11 +4857,11 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
     public boolean setHotspotNamePassword(Context context) {
         try {
 
-            AppConstants.HubGeneratedpassword = PasswordGeneration();
+            AppConstants.HUB_GENERATED_PASSWORD = PasswordGeneration();
 
             SharedPreferences sharedPrefODO = WelcomeActivity.this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
-            IsOtherRequire = sharedPrefODO.getString(AppConstants.IsOtherRequire, "");
-            WifiChannelToUse = sharedPrefODO.getInt(AppConstants.WifiChannelToUse, 11);
+            IsOtherRequire = sharedPrefODO.getString(AppConstants.IS_OTHER_REQUIRE, "");
+            WifiChannelToUse = sharedPrefODO.getInt(AppConstants.WIFI_CHANNEL_TO_USE, 11);
 
             WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(context.WIFI_SERVICE);
             Method getConfigMethod = wifiManager.getClass().getMethod("getWifiApConfiguration");
@@ -4848,7 +4874,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             String HotSpotSSID = sharedPref.getString("HotSpotSSID", "");
             String HotSpotPassword = sharedPref.getString("HotSpotPassword", "");
 
-            //if (CurrentHotspotName.equals(AppConstants.HubName) && CurrentHotspotPassword.equals(AppConstants.HubGeneratedpassword)) {
+            //if (CurrentHotspotName.equals(AppConstants.HUB_NAME) && CurrentHotspotPassword.equals(AppConstants.HUB_GENERATED_PASSWORD)) {
             if (CurrentHotspotName.equals(HotSpotSSID) && CurrentHotspotPassword.equals(HotSpotPassword)) {
                 //No need to change hotspot username password
                 //ChangeHotspotBroadcastChannel(WelcomeActivity.this,index);
@@ -4876,10 +4902,10 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
             } else {
 
-                //String uname = AppConstants.HubName.replaceAll("\"","");
+                //String uname = AppConstants.HUB_NAME.replaceAll("\"","");
 
-                /*wifiConfig.SSID = AppConstants.HubName;
-                wifiConfig.preSharedKey = AppConstants.HubGeneratedpassword;*/
+                /*wifiConfig.SSID = AppConstants.HUB_NAME;
+                wifiConfig.preSharedKey = AppConstants.HUB_GENERATED_PASSWORD;*/
                 wifiConfig.SSID = HotSpotSSID;
                 wifiConfig.preSharedKey = HotSpotPassword;
 
@@ -4918,7 +4944,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
     public static String PasswordGeneration() {
 
         String FinalPass;
-        String hubName = AppConstants.HubName;//"HUB00000001";
+        String hubName = AppConstants.HUB_NAME;//"HUB00000001";
         String numb = hubName.substring(hubName.length() - 8);
         String numb1 = numb.substring(0, 4);
         String numb2 = hubName.substring(hubName.length() - 4);
@@ -4975,8 +5001,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
         //it stops pulsar logic------
         stopTimer = false;
-        if (AppConstants.GenerateLogs)
-            AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "Sending RELAY OFF command to Link: " + LinkName);
+        if (AppConstants.GENERATE_LOGS)
+            AppConstants.writeInFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "Sending RELAY OFF command to Link: " + LinkName);
         new CommandsPOST_FS1().execute(URL_RELAY_FS1, jsonRelayOff);
 
         new Handler().postDelayed(new Runnable() {
@@ -5013,8 +5039,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     }
                 } catch (Exception e) {
                     System.out.println(e);
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + " stopButtonFunctionality_FS1 Exception " + e.getMessage());
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(TAG + " stopButtonFunctionality_FS1 Exception " + e.getMessage());
                 }*/
             }
         }, 1000);
@@ -5154,8 +5180,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
         //it stops pulsar logic------
         stopTimer = false;
-        if (AppConstants.GenerateLogs)
-            AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "Sending RELAY OFF command to Link: " + LinkName);
+        if (AppConstants.GENERATE_LOGS)
+            AppConstants.writeInFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "Sending RELAY OFF command to Link: " + LinkName);
         new CommandsPOST_FS2().execute(URL_RELAY_FS2, jsonRelayOff);
 
         /*new Handler().postDelayed(new Runnable() {
@@ -5192,8 +5218,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     }
                 } catch (Exception e) {
                     System.out.println(e);
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + " stopButtonFunctionality_FS2 Exception " + e.getMessage());
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(TAG + " stopButtonFunctionality_FS2 Exception " + e.getMessage());
                 }
             }
         }, 1000);*/
@@ -5335,8 +5361,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
         //it stops pulsar logic------
         stopTimer = false;
-        if (AppConstants.GenerateLogs)
-            AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "Sending RELAY OFF command to Link: " + LinkName);
+        if (AppConstants.GENERATE_LOGS)
+            AppConstants.writeInFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "Sending RELAY OFF command to Link: " + LinkName);
         new CommandsPOST_FS3().execute(URL_RELAY_FS3, jsonRelayOff);
 
         /*new Handler().postDelayed(new Runnable() {
@@ -5373,8 +5399,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     }
                 } catch (Exception e) {
                     System.out.println(e);
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + " stopButtonFunctionality_FS3 Exception " + e.getMessage());
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(TAG + " stopButtonFunctionality_FS3 Exception " + e.getMessage());
                 }
             }
         }, 1000);*/
@@ -5516,8 +5542,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
         //it stops pulsar logic------
         stopTimer = false;
-        if (AppConstants.GenerateLogs)
-            AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "Sending RELAY OFF command to Link: " + LinkName);
+        if (AppConstants.GENERATE_LOGS)
+            AppConstants.writeInFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "Sending RELAY OFF command to Link: " + LinkName);
         new CommandsPOST_FS4().execute(URL_RELAY_FS4, jsonRelayOff);
 
         /*new Handler().postDelayed(new Runnable() {
@@ -5554,8 +5580,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     }
                 } catch (Exception e) {
                     System.out.println(e);
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + " stopButtonFunctionality_FS4 Exception " + e.getMessage());
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(TAG + " stopButtonFunctionality_FS4 Exception " + e.getMessage());
                 }
             }
         }, 1000);*/
@@ -5697,8 +5723,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
         //it stops pulsar logic------
         stopTimer = false;
-        if (AppConstants.GenerateLogs)
-            AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "Sending RELAY OFF command to Link: " + LinkName);
+        if (AppConstants.GENERATE_LOGS)
+            AppConstants.writeInFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "Sending RELAY OFF command to Link: " + LinkName);
         new CommandsPOST_FS5().execute(URL_RELAY_FS5, jsonRelayOff);
 
         /*new Handler().postDelayed(new Runnable() {
@@ -5735,8 +5761,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     }
                 } catch (Exception e) {
                     System.out.println(e);
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + " stopButtonFunctionality_FS5 Exception " + e.getMessage());
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(TAG + " stopButtonFunctionality_FS5 Exception " + e.getMessage());
                 }
             }
         }, 1000);*/
@@ -5879,8 +5905,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
         //it stops pulsar logic------
         stopTimer = false;
-        if (AppConstants.GenerateLogs)
-            AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "Sending RELAY OFF command to Link: " + LinkName);
+        if (AppConstants.GENERATE_LOGS)
+            AppConstants.writeInFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "Sending RELAY OFF command to Link: " + LinkName);
         new CommandsPOST_FS6().execute(URL_RELAY_FS6, jsonRelayOff);
 
         /*new Handler().postDelayed(new Runnable() {
@@ -5917,8 +5943,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     }
                 } catch (Exception e) {
                     System.out.println(e);
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + " stopButtonFunctionality_FS6 Exception " + e.getMessage());
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(TAG + " stopButtonFunctionality_FS6 Exception " + e.getMessage());
                 }
             }
         }, 1000);*/
@@ -6063,20 +6089,20 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         } else { waitCounterToHideKeyboard++; }
 
         //Display MAX fuel limit message on screen
-        if (AppConstants.DisplayToastmaxlimit && !AppConstants.MaxlimitMessage.isEmpty()) {
-            //AppConstants.colorToastBigFont(this, AppConstants.MaxlimitMessage, Color.BLUE);
-            CommonUtils.AutoCloseCustomMessageDialog(WelcomeActivity.this, "", AppConstants.MaxlimitMessage);
-            AppConstants.DisplayToastmaxlimit = false;
-            AppConstants.MaxlimitMessage = "";
+        if (AppConstants.DISPLAY_TOAST_MAX_LIMIT && !AppConstants.MAX_LIMIT_MESSAGE.isEmpty()) {
+            //AppConstants.colorToastBigFont(this, AppConstants.MAX_LIMIT_MESSAGE, Color.BLUE);
+            CommonUtils.AutoCloseCustomMessageDialog(WelcomeActivity.this, "", AppConstants.MAX_LIMIT_MESSAGE);
+            AppConstants.DISPLAY_TOAST_MAX_LIMIT = false;
+            AppConstants.MAX_LIMIT_MESSAGE = "";
         }
 
         IsUiChangeReq();
-        if (AppConstants.EnableFA || AppConstants.EnableServerForTLD) {
+        if (AppConstants.ENABLE_FA || AppConstants.Enable_Server_For_TLD) {
             UpdateServerMessages();
         }
 
         // Toast.makeText(getApplicationContext(),"FS_Count"+FS_Count,Toast.LENGTH_SHORT).show();
-        if (Constants.FS_1STATUS.equalsIgnoreCase("FREE")) {
+        if (Constants.FS_1_STATUS.equalsIgnoreCase("FREE")) {
             //Set "Tap here to select hose" message
             if (RestHoseinUse_FS1) {
                 RestHoseinUse_FS1 = false;
@@ -6085,15 +6111,15 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 btnGo.setVisibility(View.VISIBLE);
             }
 
-            if (AppConstants.IsTransactionFailed1) {
-                AppConstants.IsTransactionFailed1 = false;
-                if (!CommonUtils.isHotspotEnabled(WelcomeActivity.this) && !BTConstants.CurrentTransactionIsBT1) {
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "BS_FS1: " + getResources().getString(R.string.HotspotOffMessage));
+            if (AppConstants.IS_TRANSACTION_FAILED_1) {
+                AppConstants.IS_TRANSACTION_FAILED_1 = false;
+                if (!CommonUtils.isHotspotEnabled(WelcomeActivity.this) && !BTConstants.CURRENT_TRANSACTION_IS_BT_1) {
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "BS_FS1: " + getResources().getString(R.string.HotspotOffMessage));
                     CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.HotspotOffMessage));
                 } else {
                     String logType = "", logPrefix = "";
-                    if (BTConstants.CurrentTransactionIsBT1) {
+                    if (BTConstants.CURRENT_TRANSACTION_IS_BT_1) {
                         logType = AppConstants.LOG_TXTN_BT;
                         logPrefix = "BTLink_1: ";
                     } else {
@@ -6101,14 +6127,14 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         logPrefix = "BS_FS1: ";
                     }
 
-                    if (AppConstants.TxnFailedCount1 == 1) {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(logType + "-" + TAG + logPrefix + getResources().getString(R.string.HoseUnavailableMessage));
+                    if (AppConstants.TRANSACTION_FAILED_COUNT_1 == 1) {
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(logType + "-" + TAG + logPrefix + getResources().getString(R.string.HoseUnavailableMessage));
                         CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.HoseUnavailableMessage));
                     } else {
-                        AppConstants.TxnFailedCount1 = 0;
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(logType + "-" + TAG + logPrefix + getResources().getString(R.string.UnableToConnectToHoseMessage));
+                        AppConstants.TRANSACTION_FAILED_COUNT_1 = 0;
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(logType + "-" + TAG + logPrefix + getResources().getString(R.string.UnableToConnectToHoseMessage));
                         CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.UnableToConnectToHoseMessage));
                     }
                 }
@@ -6117,17 +6143,17 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             tvFs1_beginFuel.setText(R.string.BeforeStartFueling);
             Fs1_beginFuel.setVisibility(View.GONE); //Disable begin fueling message
             fs1Cnt5Sec = 0;
-            CountBeforeReconnectRelay1 = 0;
+            countBeforeReconnectRelay1 = 0;
 
             //Update FA Message on dashboard
             tv_FA_message.setText(Constants.FA_Message);
-            tv_fs1_Qty.setText(AppConstants.spanishNumberSystem(Constants.FS_1Gallons));
-            tv_fs1_Pulse.setText(Constants.FS_1Pulse);
+            tv_fs1_Qty.setText(AppConstants.spanishNumberSystem(Constants.FS_1_GALLONS));
+            tv_fs1_Pulse.setText(Constants.FS_1_PULSE);
             tv_fs1_stop.setClickable(false);
             FS1_Stpflag = true;
 
-            Constants.FS_1Gallons = String.valueOf("0.00");
-            Constants.FS_1Pulse = "00";
+            Constants.FS_1_GALLONS = String.valueOf("0.00");
+            Constants.FS_1_PULSE = "00";
             tv_fs1_Qty.setText("");
             tv_fs1_Pulse.setText("");
             linear_fs_1.setBackgroundResource(R.color.Dashboard_background);
@@ -6142,16 +6168,16 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             tv_fs1_stop.setClickable(false);
 
             //}
-            if (AppConstants.isHTTPTxnRunningFS1) {
-                AppConstants.isHTTPTxnRunningFS1 = false;
+            if (AppConstants.IS_HTTP_TXN_RUNNING_FS1) {
+                AppConstants.IS_HTTP_TXN_RUNNING_FS1 = false;
             }
         } else {
-            if ((fs1Cnt5Sec >= 5 || Integer.parseInt(Constants.FS_1Pulse) >= 1) && AppConstants.isRelayON_fs1) {
+            if ((fs1Cnt5Sec >= 5 || Integer.parseInt(Constants.FS_1_PULSE) >= 1) && AppConstants.IS_RELAY_ON_FS1) {
                 tvFs1_beginFuel.setText(R.string.BeforeStartFueling);
                 Fs1_beginFuel.setVisibility(View.GONE);
                 linear_fs_1.setVisibility(View.VISIBLE);
             } else {
-                if (AppConstants.isInfoCommandSuccess_fs1) {
+                if (AppConstants.IS_FIRST_COMMAND_SUCCESS_FS1) {
                     tvFs1_beginFuel.setGravity(Gravity.CENTER);
                     waitCounter1 = 0;
                     strWait1 = "";
@@ -6176,22 +6202,22 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
             String BTLinkCommType1 = serverSSIDList.get(0).get("BTLinkCommType");
             // BT Link reconnection attempt for interrupted transaction
-            if (BTConstants.CurrentTransactionIsBT1 && (!BTConstants.BTLinkOneStatus && !BT_BLE_Constants.BTBLELinkOneStatus) && AppConstants.isRelayON_fs1) { // && !BTConstants.SwitchedBTToUDP1
+            if (BTConstants.CURRENT_TRANSACTION_IS_BT_1 && (!BTConstants.BT_LINK_ONE_STATUS && !BT_BLE_Constants.BT_BLE_LINK_ONE_STATUS) && AppConstants.IS_RELAY_ON_FS1) { // && !BTConstants.SwitchedBTToUDP1
                 if (BTLinkCommType1 != null && BTLinkCommType1.equalsIgnoreCase("SPP")) {
-                    if (CountBeforeReconnectRelay1 >= 1) {
-                        if (BTConstants.BTStatusStrOne.equalsIgnoreCase("Disconnect")) {
-                            SaveLastQtyInSharedPref(1, Constants.FS_1Pulse);
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_1: Retrying to Connect");
-                            BTConstants.isRelayOnAfterReconnect1 = false;
+                    if (countBeforeReconnectRelay1 >= 1) {
+                        if (BTConstants.BT_STATUS_STR_ONE.equalsIgnoreCase("Disconnect")) {
+                            saveLastQtyInSharedPref(1, Constants.FS_1_PULSE);
+                            if (AppConstants.GENERATE_LOGS)
+                                AppConstants.writeInFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_1: Retrying to Connect");
+                            BTConstants.IS_RELAY_ON_AFTER_RECONNECT_1 = false;
                             //Retrying to connect to link
                             BTSPPMain btspp = new BTSPPMain();
                             btspp.activity = WelcomeActivity.this;
                             btspp.connect1();
-                            BTConstants.isReconnectCalled1 = true;
+                            BTConstants.IS_RECONNECT_CALLED_1 = true;
                         }
                     } else {
-                        CountBeforeReconnectRelay1++;
+                        countBeforeReconnectRelay1++;
                     }
                 }
             }
@@ -6200,8 +6226,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             if (BTLinkCommType1 != null && BTLinkCommType1.equalsIgnoreCase("SPP")) {
                 if (BTConstants.isPTypeCommandExecuted1) {
                     BTConstants.isPTypeCommandExecuted1 = false;
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_1: Retrying to Connect");
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_1: Retrying to Connect");
                     //Retrying to connect to link
                     BTSPPMain btspp = new BTSPPMain();
                     btspp.activity = WelcomeActivity.this;
@@ -6210,10 +6236,10 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             }*/
             // BT Link reconnection attempt after info command failed
             if (BTLinkCommType1 != null && BTLinkCommType1.equalsIgnoreCase("SPP")) {
-                if (BTConstants.retryConnForInfoCommand1) {
-                    BTConstants.retryConnForInfoCommand1 = false;
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_1: Retrying to Connect");
+                if (BTConstants.RETRY_CONN_FOR_INFO_COMMAND1) {
+                    BTConstants.RETRY_CONN_FOR_INFO_COMMAND1 = false;
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_1: Retrying to Connect");
                     //Retrying to connect to link
                     BTSPPMain btspp = new BTSPPMain();
                     btspp.activity = WelcomeActivity.this;
@@ -6222,8 +6248,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             }
 
             //----------------------------------------
-            tv_fs1_Qty.setText(AppConstants.spanishNumberSystem(Constants.FS_1Gallons));
-            tv_fs1_Pulse.setText(Constants.FS_1Pulse);
+            tv_fs1_Qty.setText(AppConstants.spanishNumberSystem(Constants.FS_1_GALLONS));
+            tv_fs1_Pulse.setText(Constants.FS_1_PULSE);
             linear_fs_1.setBackgroundResource(R.color.colorPrimary);
             tv_fs1_stop.setBackgroundResource(R.drawable.selector_button);
             tv_NFS1.setTextColor(getResources().getColor(R.color.white));
@@ -6240,7 +6266,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             }
         }
 
-        if (Constants.FS_2STATUS.equalsIgnoreCase("FREE")) {
+        if (Constants.FS_2_STATUS.equalsIgnoreCase("FREE")) {
 
             //Set "Tap here to select hose" message
             if (RestHoseinUse_FS2) {
@@ -6250,15 +6276,15 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 btnGo.setVisibility(View.VISIBLE);
             }
 
-            if (AppConstants.IsTransactionFailed2) {
-                AppConstants.IsTransactionFailed2 = false;
-                if (!CommonUtils.isHotspotEnabled(WelcomeActivity.this) && !BTConstants.CurrentTransactionIsBT2) {
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "BS_FS2: " + getResources().getString(R.string.HotspotOffMessage));
+            if (AppConstants.IS_TRANSACTION_FAILED_2) {
+                AppConstants.IS_TRANSACTION_FAILED_2 = false;
+                if (!CommonUtils.isHotspotEnabled(WelcomeActivity.this) && !BTConstants.CURRENT_TRANSACTION_IS_BT_2) {
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "BS_FS2: " + getResources().getString(R.string.HotspotOffMessage));
                     CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.HotspotOffMessage));
                 } else {
                     String logType = "", logPrefix = "";
-                    if (BTConstants.CurrentTransactionIsBT2) {
+                    if (BTConstants.CURRENT_TRANSACTION_IS_BT_2) {
                         logType = AppConstants.LOG_TXTN_BT;
                         logPrefix = "BTLink_2: ";
                     } else {
@@ -6266,14 +6292,14 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         logPrefix = "BS_FS2: ";
                     }
 
-                    if (AppConstants.TxnFailedCount2 == 1) {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(logType + "-" + TAG + logPrefix + getResources().getString(R.string.HoseUnavailableMessage));
+                    if (AppConstants.TRANSACTION_FAILED_COUNT_2 == 1) {
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(logType + "-" + TAG + logPrefix + getResources().getString(R.string.HoseUnavailableMessage));
                         CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.HoseUnavailableMessage));
                     } else {
-                        AppConstants.TxnFailedCount2 = 0;
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(logType + "-" + TAG + logPrefix + getResources().getString(R.string.UnableToConnectToHoseMessage));
+                        AppConstants.TRANSACTION_FAILED_COUNT_2 = 0;
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(logType + "-" + TAG + logPrefix + getResources().getString(R.string.UnableToConnectToHoseMessage));
                         CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.UnableToConnectToHoseMessage));
                     }
                 }
@@ -6282,15 +6308,15 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             tvFs2_beginFuel.setText(R.string.BeforeStartFueling);
             Fs2_beginFuel.setVisibility(View.GONE); //Disable begin fueling message
             fs2Cnt5Sec = 0;
-            CountBeforeReconnectRelay2 = 0;
+            countBeforeReconnectRelay2 = 0;
 
-            tv_fs2_Qty.setText(AppConstants.spanishNumberSystem(Constants.FS_2Gallons));
-            tv_fs2_Pulse.setText(Constants.FS_2Pulse);
+            tv_fs2_Qty.setText(AppConstants.spanishNumberSystem(Constants.FS_2_GALLONS));
+            tv_fs2_Pulse.setText(Constants.FS_2_PULSE);
             tv_fs2_stop.setClickable(false);
             FS2_Stpflag = true;
 
-            Constants.FS_2Gallons = String.valueOf("0.00");
-            Constants.FS_2Pulse = "00";
+            Constants.FS_2_GALLONS = String.valueOf("0.00");
+            Constants.FS_2_PULSE = "00";
             tv_fs2_Qty.setText("");
             tv_fs2_Pulse.setText("");
             linear_fs_2.setBackgroundResource(R.color.Dashboard_background);
@@ -6305,18 +6331,18 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             tv_fs2_stop.setClickable(false);
 
             //}
-            if (AppConstants.isHTTPTxnRunningFS2) {
-                AppConstants.isHTTPTxnRunningFS2 = false;
+            if (AppConstants.IS_HTTP_TXN_RUNNING_FS2) {
+                AppConstants.IS_HTTP_TXN_RUNNING_FS2 = false;
             }
 
         } else {
 
-            if ((fs2Cnt5Sec >= 5 || Integer.parseInt(Constants.FS_2Pulse) >= 1) && AppConstants.isRelayON_fs2) {
+            if ((fs2Cnt5Sec >= 5 || Integer.parseInt(Constants.FS_2_PULSE) >= 1) && AppConstants.IS_RELAY_ON_FS2) {
                 tvFs2_beginFuel.setText(R.string.BeforeStartFueling);
                 Fs2_beginFuel.setVisibility(View.GONE);
                 linear_fs_2.setVisibility(View.VISIBLE);
             } else {
-                if (AppConstants.isInfoCommandSuccess_fs2) {
+                if (AppConstants.IS_FIRST_COMMAND_SUCCESS_FS2) {
                     tvFs2_beginFuel.setGravity(Gravity.CENTER);
                     waitCounter2 = 0;
                     strWait2 = "";
@@ -6341,22 +6367,22 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
             String BTLinkCommType2 = serverSSIDList.get(1).get("BTLinkCommType");
             // BT Link reconnection attempt for interrupted transaction
-            if (BTConstants.CurrentTransactionIsBT2 && (!BTConstants.BTLinkTwoStatus && !BT_BLE_Constants.BTBLELinkTwoStatus) && AppConstants.isRelayON_fs2) { // && !BTConstants.SwitchedBTToUDP2
+            if (BTConstants.CURRENT_TRANSACTION_IS_BT_2 && (!BTConstants.BT_LINK_TWO_STATUS && !BT_BLE_Constants.BT_BLE_LINK_TWO_STATUS) && AppConstants.IS_RELAY_ON_FS2) { // && !BTConstants.SwitchedBTToUDP2
                 if (BTLinkCommType2 != null && BTLinkCommType2.equalsIgnoreCase("SPP")) {
-                    if (CountBeforeReconnectRelay2 >= 1) {
-                        if (BTConstants.BTStatusStrTwo.equalsIgnoreCase("Disconnect")) {
-                            SaveLastQtyInSharedPref(2, Constants.FS_2Pulse);
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_2: Retrying to Connect");
-                            BTConstants.isRelayOnAfterReconnect2 = false;
+                    if (countBeforeReconnectRelay2 >= 1) {
+                        if (BTConstants.BT_STATUS_STR_TWO.equalsIgnoreCase("Disconnect")) {
+                            saveLastQtyInSharedPref(2, Constants.FS_2_PULSE);
+                            if (AppConstants.GENERATE_LOGS)
+                                AppConstants.writeInFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_2: Retrying to Connect");
+                            BTConstants.IS_RELAY_ON_AFTER_RECONNECT_2 = false;
                             //Retrying to connect to link
                             BTSPPMain btspp = new BTSPPMain();
                             btspp.activity = WelcomeActivity.this;
                             btspp.connect2();
-                            BTConstants.isReconnectCalled2 = true;
+                            BTConstants.IS_RECONNECT_CALLED_2 = true;
                         }
                     } else {
-                        CountBeforeReconnectRelay2++;
+                        countBeforeReconnectRelay2++;
                     }
                 }
             }
@@ -6365,8 +6391,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             if (BTLinkCommType2 != null && BTLinkCommType2.equalsIgnoreCase("SPP")) {
                 if (BTConstants.isPTypeCommandExecuted2) {
                     BTConstants.isPTypeCommandExecuted2 = false;
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_2: Retrying to Connect");
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_2: Retrying to Connect");
                     //Retrying to connect to link
                     BTSPPMain btspp = new BTSPPMain();
                     btspp.activity = WelcomeActivity.this;
@@ -6375,10 +6401,10 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             }*/
             // BT Link reconnection attempt after info command failed
             if (BTLinkCommType2 != null && BTLinkCommType2.equalsIgnoreCase("SPP")) {
-                if (BTConstants.retryConnForInfoCommand2) {
-                    BTConstants.retryConnForInfoCommand2 = false;
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_2: Retrying to Connect");
+                if (BTConstants.RETRY_CONN_FOR_INFO_COMMAND2) {
+                    BTConstants.RETRY_CONN_FOR_INFO_COMMAND2 = false;
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_2: Retrying to Connect");
                     //Retrying to connect to link
                     BTSPPMain btspp = new BTSPPMain();
                     btspp.activity = WelcomeActivity.this;
@@ -6386,8 +6412,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 }
             }
 
-            tv_fs2_Qty.setText(AppConstants.spanishNumberSystem(Constants.FS_2Gallons));
-            tv_fs2_Pulse.setText(Constants.FS_2Pulse);
+            tv_fs2_Qty.setText(AppConstants.spanishNumberSystem(Constants.FS_2_GALLONS));
+            tv_fs2_Pulse.setText(Constants.FS_2_PULSE);
             linear_fs_2.setBackgroundResource(R.color.colorPrimary);
             tv_fs2_stop.setBackgroundResource(R.drawable.selector_button);
             tv_NFS2.setTextColor(getResources().getColor(R.color.white));
@@ -6404,7 +6430,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             }
         }
 
-        if (Constants.FS_3STATUS.equalsIgnoreCase("FREE")) {
+        if (Constants.FS_3_STATUS.equalsIgnoreCase("FREE")) {
 
             //Set "Tap here to select hose" message
             if (RestHoseinUse_FS3) {
@@ -6414,15 +6440,15 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 btnGo.setVisibility(View.VISIBLE);
             }
 
-            if (AppConstants.IsTransactionFailed3) {
-                AppConstants.IsTransactionFailed3 = false;
-                if (!CommonUtils.isHotspotEnabled(WelcomeActivity.this) && !BTConstants.CurrentTransactionIsBT3) {
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "BS_FS3: " + getResources().getString(R.string.HotspotOffMessage));
+            if (AppConstants.IS_TRANSACTION_FAILED_3) {
+                AppConstants.IS_TRANSACTION_FAILED_3 = false;
+                if (!CommonUtils.isHotspotEnabled(WelcomeActivity.this) && !BTConstants.CURRENT_TRANSACTION_IS_BT_3) {
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "BS_FS3: " + getResources().getString(R.string.HotspotOffMessage));
                     CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.HotspotOffMessage));
                 } else {
                     String logType = "", logPrefix = "";
-                    if (BTConstants.CurrentTransactionIsBT3) {
+                    if (BTConstants.CURRENT_TRANSACTION_IS_BT_3) {
                         logType = AppConstants.LOG_TXTN_BT;
                         logPrefix = "BTLink_3: ";
                     } else {
@@ -6430,14 +6456,14 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         logPrefix = "BS_FS3: ";
                     }
 
-                    if (AppConstants.TxnFailedCount3 == 1) {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(logType + "-" + TAG + logPrefix + getResources().getString(R.string.HoseUnavailableMessage));
+                    if (AppConstants.TRANSACTION_FAILED_COUNT_3 == 1) {
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(logType + "-" + TAG + logPrefix + getResources().getString(R.string.HoseUnavailableMessage));
                         CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.HoseUnavailableMessage));
                     } else {
-                        AppConstants.TxnFailedCount3 = 0;
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(logType + "-" + TAG + logPrefix + getResources().getString(R.string.UnableToConnectToHoseMessage));
+                        AppConstants.TRANSACTION_FAILED_COUNT_3 = 0;
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(logType + "-" + TAG + logPrefix + getResources().getString(R.string.UnableToConnectToHoseMessage));
                         CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.UnableToConnectToHoseMessage));
                     }
                 }
@@ -6446,15 +6472,15 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             tvFs3_beginFuel.setText(R.string.BeforeStartFueling);
             Fs3_beginFuel.setVisibility(View.GONE); //Disable begin fueling message
             fs3Cnt5Sec = 0;
-            CountBeforeReconnectRelay3 = 0;
+            countBeforeReconnectRelay3 = 0;
 
-            tv_fs3_Qty.setText(AppConstants.spanishNumberSystem(Constants.FS_3Gallons));
-            tv_fs3_Pulse.setText(Constants.FS_3Pulse);
+            tv_fs3_Qty.setText(AppConstants.spanishNumberSystem(Constants.FS_3_GALLONS));
+            tv_fs3_Pulse.setText(Constants.FS_3_PULSE);
             tv_fs3_stop.setClickable(false);
             FS3_Stpflag = true;
 
-            Constants.FS_3Gallons = String.valueOf("0.00");
-            Constants.FS_3Pulse = "00";
+            Constants.FS_3_GALLONS = String.valueOf("0.00");
+            Constants.FS_3_PULSE = "00";
             tv_fs3_Qty.setText("");
             tv_fs3_Pulse.setText("");
             linear_fs_3.setBackgroundResource(R.color.Dashboard_background);
@@ -6469,18 +6495,18 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             tv_fs3_stop.setClickable(false);
 
             //}
-            if (AppConstants.isHTTPTxnRunningFS3) {
-                AppConstants.isHTTPTxnRunningFS3 = false;
+            if (AppConstants.IS_HTTP_TXN_RUNNING_FS3) {
+                AppConstants.IS_HTTP_TXN_RUNNING_FS3 = false;
             }
 
         } else {
 
-            if ((fs3Cnt5Sec >= 5 || Integer.parseInt(Constants.FS_3Pulse) >= 1) && AppConstants.isRelayON_fs3) {
+            if ((fs3Cnt5Sec >= 5 || Integer.parseInt(Constants.FS_3_PULSE) >= 1) && AppConstants.IS_RELAY_ON_FS3) {
                 tvFs3_beginFuel.setText(R.string.BeforeStartFueling);
                 Fs3_beginFuel.setVisibility(View.GONE);
                 linear_fs_3.setVisibility(View.VISIBLE);
             } else {
-                if (AppConstants.isInfoCommandSuccess_fs3) {
+                if (AppConstants.IS_FIRST_COMMAND_SUCCESS_FS3) {
                     tvFs3_beginFuel.setGravity(Gravity.CENTER);
                     waitCounter3 = 0;
                     strWait3 = "";
@@ -6505,22 +6531,22 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
             String BTLinkCommType3 = serverSSIDList.get(2).get("BTLinkCommType");
             // BT Link reconnection attempt for interrupted transaction
-            if (BTConstants.CurrentTransactionIsBT3 && (!BTConstants.BTLinkThreeStatus && !BT_BLE_Constants.BTBLELinkThreeStatus) && AppConstants.isRelayON_fs3) { // && !BTConstants.SwitchedBTToUDP3
+            if (BTConstants.CURRENT_TRANSACTION_IS_BT_3 && (!BTConstants.BT_LINK_THREE_STATUS && !BT_BLE_Constants.BT_BLE_LINK_THREE_STATUS) && AppConstants.IS_RELAY_ON_FS3) { // && !BTConstants.SwitchedBTToUDP3
                 if (BTLinkCommType3 != null && BTLinkCommType3.equalsIgnoreCase("SPP")) {
-                    if (CountBeforeReconnectRelay3 >= 1) {
-                        if (BTConstants.BTStatusStrThree.equalsIgnoreCase("Disconnect")) {
-                            SaveLastQtyInSharedPref(3, Constants.FS_3Pulse);
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_3: Retrying to Connect");
-                            BTConstants.isRelayOnAfterReconnect3 = false;
+                    if (countBeforeReconnectRelay3 >= 1) {
+                        if (BTConstants.BT_STATUS_STR_THREE.equalsIgnoreCase("Disconnect")) {
+                            saveLastQtyInSharedPref(3, Constants.FS_3_PULSE);
+                            if (AppConstants.GENERATE_LOGS)
+                                AppConstants.writeInFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_3: Retrying to Connect");
+                            BTConstants.IS_RELAY_ON_AFTER_RECONNECT_3 = false;
                             //Retrying to connect to link
                             BTSPPMain btspp = new BTSPPMain();
                             btspp.activity = WelcomeActivity.this;
                             btspp.connect3();
-                            BTConstants.isReconnectCalled3 = true;
+                            BTConstants.IS_RECONNECT_CALLED_3 = true;
                         }
                     } else {
-                        CountBeforeReconnectRelay3++;
+                        countBeforeReconnectRelay3++;
                     }
                 }
             }
@@ -6529,8 +6555,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             if (BTLinkCommType3 != null && BTLinkCommType3.equalsIgnoreCase("SPP")) {
                 if (BTConstants.isPTypeCommandExecuted3) {
                     BTConstants.isPTypeCommandExecuted3 = false;
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_3: Retrying to Connect");
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_3: Retrying to Connect");
                     //Retrying to connect to link
                     BTSPPMain btspp = new BTSPPMain();
                     btspp.activity = WelcomeActivity.this;
@@ -6539,10 +6565,10 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             }*/
             // BT Link reconnection attempt after info command failed
             if (BTLinkCommType3 != null && BTLinkCommType3.equalsIgnoreCase("SPP")) {
-                if (BTConstants.retryConnForInfoCommand3) {
-                    BTConstants.retryConnForInfoCommand3 = false;
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_3: Retrying to Connect");
+                if (BTConstants.RETRY_CONN_FOR_INFO_COMMAND3) {
+                    BTConstants.RETRY_CONN_FOR_INFO_COMMAND3 = false;
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_3: Retrying to Connect");
                     //Retrying to connect to link
                     BTSPPMain btspp = new BTSPPMain();
                     btspp.activity = WelcomeActivity.this;
@@ -6550,8 +6576,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 }
             }
 
-            tv_fs3_Qty.setText(AppConstants.spanishNumberSystem(Constants.FS_3Gallons));
-            tv_fs3_Pulse.setText(Constants.FS_3Pulse);
+            tv_fs3_Qty.setText(AppConstants.spanishNumberSystem(Constants.FS_3_GALLONS));
+            tv_fs3_Pulse.setText(Constants.FS_3_PULSE);
             linear_fs_3.setBackgroundResource(R.color.colorPrimary);
             tv_fs3_stop.setBackgroundResource(R.drawable.selector_button);
             tv_NFS3.setTextColor(getResources().getColor(R.color.white));
@@ -6568,7 +6594,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             }
         }
 
-        if (Constants.FS_4STATUS.equalsIgnoreCase("FREE")) {
+        if (Constants.FS_4_STATUS.equalsIgnoreCase("FREE")) {
 
             //Set "Tap here to select hose" message
             if (RestHoseinUse_FS4) {
@@ -6578,15 +6604,15 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 btnGo.setVisibility(View.VISIBLE);
             }
 
-            if (AppConstants.IsTransactionFailed4) {
-                AppConstants.IsTransactionFailed4 = false;
-                if (!CommonUtils.isHotspotEnabled(WelcomeActivity.this) && !BTConstants.CurrentTransactionIsBT4) {
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "BS_FS4: " + getResources().getString(R.string.HotspotOffMessage));
+            if (AppConstants.IS_TRANSACTION_FAILED_4) {
+                AppConstants.IS_TRANSACTION_FAILED_4 = false;
+                if (!CommonUtils.isHotspotEnabled(WelcomeActivity.this) && !BTConstants.CURRENT_TRANSACTION_IS_BT_4) {
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "BS_FS4: " + getResources().getString(R.string.HotspotOffMessage));
                     CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.HotspotOffMessage));
                 } else {
                     String logType = "", logPrefix = "";
-                    if (BTConstants.CurrentTransactionIsBT4) {
+                    if (BTConstants.CURRENT_TRANSACTION_IS_BT_4) {
                         logType = AppConstants.LOG_TXTN_BT;
                         logPrefix = "BTLink_4: ";
                     } else {
@@ -6594,14 +6620,14 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         logPrefix = "BS_FS4: ";
                     }
 
-                    if (AppConstants.TxnFailedCount4 == 1) {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(logType + "-" + TAG + logPrefix + getResources().getString(R.string.HoseUnavailableMessage));
+                    if (AppConstants.TRANSACTION_FAILED_COUNT_4 == 1) {
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(logType + "-" + TAG + logPrefix + getResources().getString(R.string.HoseUnavailableMessage));
                         CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.HoseUnavailableMessage));
                     } else {
-                        AppConstants.TxnFailedCount4 = 0;
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(logType + "-" + TAG + logPrefix + getResources().getString(R.string.UnableToConnectToHoseMessage));
+                        AppConstants.TRANSACTION_FAILED_COUNT_4 = 0;
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(logType + "-" + TAG + logPrefix + getResources().getString(R.string.UnableToConnectToHoseMessage));
                         CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.UnableToConnectToHoseMessage));
                     }
                 }
@@ -6610,15 +6636,15 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             tvFs4_beginFuel.setText(R.string.BeforeStartFueling);
             Fs4_beginFuel.setVisibility(View.GONE); //Disable begin fueling message
             fs4Cnt5Sec = 0;
-            CountBeforeReconnectRelay4 = 0;
+            countBeforeReconnectRelay4 = 0;
 
-            tv_fs4_Qty.setText(AppConstants.spanishNumberSystem(Constants.FS_4Gallons));
-            tv_fs4_Pulse.setText(Constants.FS_4Pulse);
+            tv_fs4_Qty.setText(AppConstants.spanishNumberSystem(Constants.FS_4_GALLONS));
+            tv_fs4_Pulse.setText(Constants.FS_4_PULSE);
             tv_fs4_stop.setClickable(false);
             FS4_Stpflag = true;
 
-            Constants.FS_4Gallons = String.valueOf("0.00");
-            Constants.FS_4Pulse = "00";
+            Constants.FS_4_GALLONS = String.valueOf("0.00");
+            Constants.FS_4_PULSE = "00";
             tv_fs4_Qty.setText("");
             tv_fs4_Pulse.setText("");
             linear_fs_4.setBackgroundResource(R.color.Dashboard_background);
@@ -6633,18 +6659,18 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             tv_fs4_stop.setClickable(false);
 
             //}
-            if (AppConstants.isHTTPTxnRunningFS4) {
-                AppConstants.isHTTPTxnRunningFS4 = false;
+            if (AppConstants.IS_HTTP_TXN_RUNNING_FS4) {
+                AppConstants.IS_HTTP_TXN_RUNNING_FS4 = false;
             }
 
         } else {
 
-            if ((fs4Cnt5Sec >= 5 || Integer.parseInt(Constants.FS_4Pulse) >= 1) && AppConstants.isRelayON_fs4) {
+            if ((fs4Cnt5Sec >= 5 || Integer.parseInt(Constants.FS_4_PULSE) >= 1) && AppConstants.IS_RELAY_ON_FS4) {
                 tvFs4_beginFuel.setText(R.string.BeforeStartFueling);
                 Fs4_beginFuel.setVisibility(View.GONE);
                 linear_fs_4.setVisibility(View.VISIBLE);
             } else {
-                if (AppConstants.isInfoCommandSuccess_fs4) {
+                if (AppConstants.IS_FIRST_COMMAND_SUCCESS_FS4) {
                     tvFs4_beginFuel.setGravity(Gravity.CENTER);
                     waitCounter4 = 0;
                     strWait4 = "";
@@ -6669,22 +6695,22 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
             String BTLinkCommType4 = serverSSIDList.get(3).get("BTLinkCommType");
             // BT Link reconnection attempt for interrupted transaction
-            if (BTConstants.CurrentTransactionIsBT4 && (!BTConstants.BTLinkFourStatus && !BT_BLE_Constants.BTBLELinkFourStatus) && AppConstants.isRelayON_fs4) { // && !BTConstants.SwitchedBTToUDP4
+            if (BTConstants.CURRENT_TRANSACTION_IS_BT_4 && (!BTConstants.BT_LINK_FOUR_STATUS && !BT_BLE_Constants.BT_BLE_LINK_FOUR_STATUS) && AppConstants.IS_RELAY_ON_FS4) { // && !BTConstants.SwitchedBTToUDP4
                 if (BTLinkCommType4 != null && BTLinkCommType4.equalsIgnoreCase("SPP")) {
-                    if (CountBeforeReconnectRelay4 >= 1) {
-                        if (BTConstants.BTStatusStrFour.equalsIgnoreCase("Disconnect")) {
-                            SaveLastQtyInSharedPref(4, Constants.FS_4Pulse);
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_4: Retrying to Connect");
-                            BTConstants.isRelayOnAfterReconnect4 = false;
+                    if (countBeforeReconnectRelay4 >= 1) {
+                        if (BTConstants.BT_STATUS_STR_FOUR.equalsIgnoreCase("Disconnect")) {
+                            saveLastQtyInSharedPref(4, Constants.FS_4_PULSE);
+                            if (AppConstants.GENERATE_LOGS)
+                                AppConstants.writeInFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_4: Retrying to Connect");
+                            BTConstants.IS_RELAY_ON_AFTER_RECONNECT_4 = false;
                             //Retrying to connect to link
                             BTSPPMain btspp = new BTSPPMain();
                             btspp.activity = WelcomeActivity.this;
                             btspp.connect4();
-                            BTConstants.isReconnectCalled4 = true;
+                            BTConstants.IS_RECONNECT_CALLED_4 = true;
                         }
                     } else {
-                        CountBeforeReconnectRelay4++;
+                        countBeforeReconnectRelay4++;
                     }
                 }
             }
@@ -6693,8 +6719,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             if (BTLinkCommType4 != null && BTLinkCommType4.equalsIgnoreCase("SPP")) {
                 if (BTConstants.isPTypeCommandExecuted4) {
                     BTConstants.isPTypeCommandExecuted4 = false;
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_4: Retrying to Connect");
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_4: Retrying to Connect");
                     //Retrying to connect to link
                     BTSPPMain btspp = new BTSPPMain();
                     btspp.activity = WelcomeActivity.this;
@@ -6703,10 +6729,10 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             }*/
             // BT Link reconnection attempt after info command failed
             if (BTLinkCommType4 != null && BTLinkCommType4.equalsIgnoreCase("SPP")) {
-                if (BTConstants.retryConnForInfoCommand4) {
-                    BTConstants.retryConnForInfoCommand4 = false;
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_4: Retrying to Connect");
+                if (BTConstants.RETRY_CONN_FOR_INFO_COMMAND4) {
+                    BTConstants.RETRY_CONN_FOR_INFO_COMMAND4 = false;
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_4: Retrying to Connect");
                     //Retrying to connect to link
                     BTSPPMain btspp = new BTSPPMain();
                     btspp.activity = WelcomeActivity.this;
@@ -6714,8 +6740,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 }
             }
 
-            tv_fs4_Qty.setText(AppConstants.spanishNumberSystem(Constants.FS_4Gallons));
-            tv_fs4_Pulse.setText(Constants.FS_4Pulse);
+            tv_fs4_Qty.setText(AppConstants.spanishNumberSystem(Constants.FS_4_GALLONS));
+            tv_fs4_Pulse.setText(Constants.FS_4_PULSE);
             linear_fs_4.setBackgroundResource(R.color.colorPrimary);
             tv_fs4_stop.setBackgroundResource(R.drawable.selector_button);
             tv_NFS4.setTextColor(getResources().getColor(R.color.white));
@@ -6733,7 +6759,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         }
 
         ///////
-        if (Constants.FS_5STATUS.equalsIgnoreCase("FREE")) {
+        if (Constants.FS_5_STATUS.equalsIgnoreCase("FREE")) {
 
             //Set "Tap here to select hose" message
             if (RestHoseinUse_FS5) {
@@ -6743,15 +6769,15 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 btnGo.setVisibility(View.VISIBLE);
             }
 
-            if (AppConstants.IsTransactionFailed5) {
-                AppConstants.IsTransactionFailed5 = false;
-                if (!CommonUtils.isHotspotEnabled(WelcomeActivity.this) && !BTConstants.CurrentTransactionIsBT5) {
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "BS_FS5: " + getResources().getString(R.string.HotspotOffMessage));
+            if (AppConstants.IS_TRANSACTION_FAILED_5) {
+                AppConstants.IS_TRANSACTION_FAILED_5 = false;
+                if (!CommonUtils.isHotspotEnabled(WelcomeActivity.this) && !BTConstants.CURRENT_TRANSACTION_IS_BT_5) {
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "BS_FS5: " + getResources().getString(R.string.HotspotOffMessage));
                     CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.HotspotOffMessage));
                 } else {
                     String logType = "", logPrefix = "";
-                    if (BTConstants.CurrentTransactionIsBT5) {
+                    if (BTConstants.CURRENT_TRANSACTION_IS_BT_5) {
                         logType = AppConstants.LOG_TXTN_BT;
                         logPrefix = "BTLink_5: ";
                     } else {
@@ -6759,14 +6785,14 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         logPrefix = "BS_FS5: ";
                     }
 
-                    if (AppConstants.TxnFailedCount5 == 1) {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(logType + "-" + TAG + logPrefix + getResources().getString(R.string.HoseUnavailableMessage));
+                    if (AppConstants.TRANSACTION_FAILED_COUNT_5 == 1) {
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(logType + "-" + TAG + logPrefix + getResources().getString(R.string.HoseUnavailableMessage));
                         CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.HoseUnavailableMessage));
                     } else {
-                        AppConstants.TxnFailedCount5 = 0;
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(logType + "-" + TAG + logPrefix + getResources().getString(R.string.UnableToConnectToHoseMessage));
+                        AppConstants.TRANSACTION_FAILED_COUNT_5 = 0;
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(logType + "-" + TAG + logPrefix + getResources().getString(R.string.UnableToConnectToHoseMessage));
                         CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.UnableToConnectToHoseMessage));
                     }
                 }
@@ -6775,15 +6801,15 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             tvFs5_beginFuel.setText(R.string.BeforeStartFueling);
             Fs5_beginFuel.setVisibility(View.GONE); //Disable begin fueling message
             fs5Cnt5Sec = 0;
-            CountBeforeReconnectRelay5 = 0;
+            countBeforeReconnectRelay5 = 0;
 
-            tv_fs5_Qty.setText(AppConstants.spanishNumberSystem(Constants.FS_5Gallons));
-            tv_fs5_Pulse.setText(Constants.FS_5Pulse);
+            tv_fs5_Qty.setText(AppConstants.spanishNumberSystem(Constants.FS_5_GALLONS));
+            tv_fs5_Pulse.setText(Constants.FS_5_PULSE);
             tv_fs5_stop.setClickable(false);
             FS5_Stpflag = true;
 
-            Constants.FS_5Gallons = String.valueOf("0.00");
-            Constants.FS_5Pulse = "00";
+            Constants.FS_5_GALLONS = String.valueOf("0.00");
+            Constants.FS_5_PULSE = "00";
             tv_fs5_Qty.setText("");
             tv_fs5_Pulse.setText("");
             linear_fs_5.setBackgroundResource(R.color.Dashboard_background);
@@ -6798,18 +6824,18 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             tv_fs5_stop.setClickable(false);
 
             //}
-            if (AppConstants.isHTTPTxnRunningFS5) {
-                AppConstants.isHTTPTxnRunningFS5 = false;
+            if (AppConstants.IS_HTTP_TXN_RUNNING_FS5) {
+                AppConstants.IS_HTTP_TXN_RUNNING_FS5 = false;
             }
 
         } else {
 
-            if ((fs5Cnt5Sec >= 5 || Integer.parseInt(Constants.FS_5Pulse) >= 1) && AppConstants.isRelayON_fs5) {
+            if ((fs5Cnt5Sec >= 5 || Integer.parseInt(Constants.FS_5_PULSE) >= 1) && AppConstants.IS_RELAY_ON_FS5) {
                 tvFs5_beginFuel.setText(R.string.BeforeStartFueling);
                 Fs5_beginFuel.setVisibility(View.GONE);
                 linear_fs_5.setVisibility(View.VISIBLE);
             } else {
-                if (AppConstants.isInfoCommandSuccess_fs5) {
+                if (AppConstants.IS_FIRST_COMMAND_SUCCESS_FS5) {
                     tvFs5_beginFuel.setGravity(Gravity.CENTER);
                     waitCounter5 = 0;
                     strWait5 = "";
@@ -6834,22 +6860,22 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
             String BTLinkCommType5 = serverSSIDList.get(4).get("BTLinkCommType");
             // BT Link reconnection attempt for interrupted transaction
-            if (BTConstants.CurrentTransactionIsBT5 && (!BTConstants.BTLinkFiveStatus && !BT_BLE_Constants.BTBLELinkFiveStatus) && AppConstants.isRelayON_fs5) { // && !BTConstants.SwitchedBTToUDP5
+            if (BTConstants.CURRENT_TRANSACTION_IS_BT_5 && (!BTConstants.BT_LINK_FIVE_STATUS && !BT_BLE_Constants.BT_BLE_LINK_FIVE_STATUS) && AppConstants.IS_RELAY_ON_FS5) { // && !BTConstants.SwitchedBTToUDP5
                 if (BTLinkCommType5 != null && BTLinkCommType5.equalsIgnoreCase("SPP")) {
-                    if (CountBeforeReconnectRelay5 >= 1) {
-                        if (BTConstants.BTStatusStrFive.equalsIgnoreCase("Disconnect")) {
-                            SaveLastQtyInSharedPref(5, Constants.FS_5Pulse);
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_5: Retrying to Connect");
-                            BTConstants.isRelayOnAfterReconnect5 = false;
+                    if (countBeforeReconnectRelay5 >= 1) {
+                        if (BTConstants.BT_STATUS_STR_FIVE.equalsIgnoreCase("Disconnect")) {
+                            saveLastQtyInSharedPref(5, Constants.FS_5_PULSE);
+                            if (AppConstants.GENERATE_LOGS)
+                                AppConstants.writeInFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_5: Retrying to Connect");
+                            BTConstants.IS_RELAY_ON_AFTER_RECONNECT_5 = false;
                             //Retrying to connect to link
                             BTSPPMain btspp = new BTSPPMain();
                             btspp.activity = WelcomeActivity.this;
                             btspp.connect5();
-                            BTConstants.isReconnectCalled5 = true;
+                            BTConstants.IS_RECONNECT_CALLED_5 = true;
                         }
                     } else {
-                        CountBeforeReconnectRelay5++;
+                        countBeforeReconnectRelay5++;
                     }
                 }
             }
@@ -6858,8 +6884,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             if (BTLinkCommType5 != null && BTLinkCommType5.equalsIgnoreCase("SPP")) {
                 if (BTConstants.isPTypeCommandExecuted5) {
                     BTConstants.isPTypeCommandExecuted5 = false;
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_5: Retrying to Connect");
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_5: Retrying to Connect");
                     //Retrying to connect to link
                     BTSPPMain btspp = new BTSPPMain();
                     btspp.activity = WelcomeActivity.this;
@@ -6868,10 +6894,10 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             }*/
             // BT Link reconnection attempt after info command failed
             if (BTLinkCommType5 != null && BTLinkCommType5.equalsIgnoreCase("SPP")) {
-                if (BTConstants.retryConnForInfoCommand5) {
-                    BTConstants.retryConnForInfoCommand5 = false;
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_5: Retrying to Connect");
+                if (BTConstants.RETRY_CONN_FOR_INFO_COMMAND5) {
+                    BTConstants.RETRY_CONN_FOR_INFO_COMMAND5 = false;
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_5: Retrying to Connect");
                     //Retrying to connect to link
                     BTSPPMain btspp = new BTSPPMain();
                     btspp.activity = WelcomeActivity.this;
@@ -6879,8 +6905,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 }
             }
 
-            tv_fs5_Qty.setText(AppConstants.spanishNumberSystem(Constants.FS_5Gallons));
-            tv_fs5_Pulse.setText(Constants.FS_5Pulse);
+            tv_fs5_Qty.setText(AppConstants.spanishNumberSystem(Constants.FS_5_GALLONS));
+            tv_fs5_Pulse.setText(Constants.FS_5_PULSE);
             linear_fs_5.setBackgroundResource(R.color.colorPrimary);
             tv_fs5_stop.setBackgroundResource(R.drawable.selector_button);
             tv_NFS5.setTextColor(getResources().getColor(R.color.white));
@@ -6897,7 +6923,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             }
         }
 
-        if (Constants.FS_6STATUS.equalsIgnoreCase("FREE")) {
+        if (Constants.FS_6_STATUS.equalsIgnoreCase("FREE")) {
 
             //Set "Tap here to select hose" message
             if (RestHoseinUse_FS6) {
@@ -6907,15 +6933,15 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 btnGo.setVisibility(View.VISIBLE);
             }
 
-            if (AppConstants.IsTransactionFailed6) {
-                AppConstants.IsTransactionFailed6 = false;
-                if (!CommonUtils.isHotspotEnabled(WelcomeActivity.this) && !BTConstants.CurrentTransactionIsBT6) {
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "BS_FS6: " + getResources().getString(R.string.HotspotOffMessage));
+            if (AppConstants.IS_TRANSACTION_FAILED_6) {
+                AppConstants.IS_TRANSACTION_FAILED_6 = false;
+                if (!CommonUtils.isHotspotEnabled(WelcomeActivity.this) && !BTConstants.CURRENT_TRANSACTION_IS_BT_6) {
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(AppConstants.LOG_TXTN_HTTP + "-" + TAG + "BS_FS6: " + getResources().getString(R.string.HotspotOffMessage));
                     CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.HotspotOffMessage));
                 } else {
                     String logType = "", logPrefix = "";
-                    if (BTConstants.CurrentTransactionIsBT6) {
+                    if (BTConstants.CURRENT_TRANSACTION_IS_BT_6) {
                         logType = AppConstants.LOG_TXTN_BT;
                         logPrefix = "BTLink_6: ";
                     } else {
@@ -6923,14 +6949,14 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         logPrefix = "BS_FS6: ";
                     }
 
-                    if (AppConstants.TxnFailedCount6 == 1) {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(logType + "-" + TAG + logPrefix + getResources().getString(R.string.HoseUnavailableMessage));
+                    if (AppConstants.TRANSACTION_FAILED_COUNT_6 == 1) {
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(logType + "-" + TAG + logPrefix + getResources().getString(R.string.HoseUnavailableMessage));
                         CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.HoseUnavailableMessage));
                     } else {
-                        AppConstants.TxnFailedCount6 = 0;
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(logType + "-" + TAG + logPrefix + getResources().getString(R.string.UnableToConnectToHoseMessage));
+                        AppConstants.TRANSACTION_FAILED_COUNT_6 = 0;
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(logType + "-" + TAG + logPrefix + getResources().getString(R.string.UnableToConnectToHoseMessage));
                         CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.UnableToConnectToHoseMessage));
                     }
                 }
@@ -6939,15 +6965,15 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             tvFs6_beginFuel.setText(R.string.BeforeStartFueling);
             Fs6_beginFuel.setVisibility(View.GONE); //Disable begin fueling message
             fs6Cnt5Sec = 0;
-            CountBeforeReconnectRelay6 = 0;
+            countBeforeReconnectRelay6 = 0;
 
-            tv_fs6_Qty.setText(AppConstants.spanishNumberSystem(Constants.FS_6Gallons));
-            tv_fs6_Pulse.setText(Constants.FS_6Pulse);
+            tv_fs6_Qty.setText(AppConstants.spanishNumberSystem(Constants.FS_6_GALLONS));
+            tv_fs6_Pulse.setText(Constants.FS_6_PULSE);
             tv_fs6_stop.setClickable(false);
             FS6_Stpflag = true;
 
-            Constants.FS_6Gallons = String.valueOf("0.00");
-            Constants.FS_6Pulse = "00";
+            Constants.FS_6_GALLONS = String.valueOf("0.00");
+            Constants.FS_6_PULSE = "00";
             tv_fs6_Qty.setText("");
             tv_fs6_Pulse.setText("");
             linear_fs_6.setBackgroundResource(R.color.Dashboard_background);
@@ -6962,18 +6988,18 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             tv_fs6_stop.setClickable(false);
 
             //}
-            if (AppConstants.isHTTPTxnRunningFS6) {
-                AppConstants.isHTTPTxnRunningFS6 = false;
+            if (AppConstants.IS_HTTP_TXN_RUNNING_FS6) {
+                AppConstants.IS_HTTP_TXN_RUNNING_FS6 = false;
             }
 
         } else {
 
-            if ((fs6Cnt5Sec >= 5 || Integer.parseInt(Constants.FS_6Pulse) >= 1) && AppConstants.isRelayON_fs6) {
+            if ((fs6Cnt5Sec >= 5 || Integer.parseInt(Constants.FS_6_PULSE) >= 1) && AppConstants.IS_RELAY_ON_FS6) {
                 tvFs6_beginFuel.setText(R.string.BeforeStartFueling);
                 Fs6_beginFuel.setVisibility(View.GONE);
                 linear_fs_6.setVisibility(View.VISIBLE);
             } else {
-                if (AppConstants.isInfoCommandSuccess_fs6) {
+                if (AppConstants.IS_FIRST_COMMAND_SUCCESS_FS6) {
                     tvFs6_beginFuel.setGravity(Gravity.CENTER);
                     waitCounter6 = 0;
                     strWait6 = "";
@@ -6998,22 +7024,22 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
             String BTLinkCommType6 = serverSSIDList.get(5).get("BTLinkCommType");
             // BT Link reconnection attempt for interrupted transaction
-            if (BTConstants.CurrentTransactionIsBT6 && (!BTConstants.BTLinkSixStatus && !BT_BLE_Constants.BTBLELinkSixStatus) && AppConstants.isRelayON_fs6) { // && !BTConstants.SwitchedBTToUDP6
+            if (BTConstants.CURRENT_TRANSACTION_IS_BT_6 && (!BTConstants.BT_LINK_SIX_STATUS && !BT_BLE_Constants.BT_BLE_LINK_SIX_STATUS) && AppConstants.IS_RELAY_ON_FS6) { // && !BTConstants.SwitchedBTToUDP6
                 if (BTLinkCommType6 != null && BTLinkCommType6.equalsIgnoreCase("SPP")) {
-                    if (CountBeforeReconnectRelay6 >= 1) {
-                        if (BTConstants.BTStatusStrSix.equalsIgnoreCase("Disconnect")) {
-                            SaveLastQtyInSharedPref(6, Constants.FS_6Pulse);
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_6: Retrying to Connect");
-                            BTConstants.isRelayOnAfterReconnect6 = false;
+                    if (countBeforeReconnectRelay6 >= 1) {
+                        if (BTConstants.BT_STATUS_STR_SIX.equalsIgnoreCase("Disconnect")) {
+                            saveLastQtyInSharedPref(6, Constants.FS_6_PULSE);
+                            if (AppConstants.GENERATE_LOGS)
+                                AppConstants.writeInFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_6: Retrying to Connect");
+                            BTConstants.IS_RELAY_ON_AFTER_RECONNECT_6 = false;
                             //Retrying to connect to link
                             BTSPPMain btspp = new BTSPPMain();
                             btspp.activity = WelcomeActivity.this;
                             btspp.connect6();
-                            BTConstants.isReconnectCalled6 = true;
+                            BTConstants.IS_RECONNECT_CALLED_6 = true;
                         }
                     } else {
-                        CountBeforeReconnectRelay6++;
+                        countBeforeReconnectRelay6++;
                     }
                 }
             }
@@ -7022,8 +7048,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             if (BTLinkCommType6 != null && BTLinkCommType6.equalsIgnoreCase("SPP")) {
                 if (BTConstants.isPTypeCommandExecuted6) {
                     BTConstants.isPTypeCommandExecuted6 = false;
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_6: Retrying to Connect");
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_6: Retrying to Connect");
                     //Retrying to connect to link
                     BTSPPMain btspp = new BTSPPMain();
                     btspp.activity = WelcomeActivity.this;
@@ -7032,10 +7058,10 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             }*/
             // BT Link reconnection attempt after info command failed
             if (BTLinkCommType6 != null && BTLinkCommType6.equalsIgnoreCase("SPP")) {
-                if (BTConstants.retryConnForInfoCommand6) {
-                    BTConstants.retryConnForInfoCommand6 = false;
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_6: Retrying to Connect");
+                if (BTConstants.RETRY_CONN_FOR_INFO_COMMAND6) {
+                    BTConstants.RETRY_CONN_FOR_INFO_COMMAND6 = false;
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_6: Retrying to Connect");
                     //Retrying to connect to link
                     BTSPPMain btspp = new BTSPPMain();
                     btspp.activity = WelcomeActivity.this;
@@ -7043,8 +7069,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 }
             }
 
-            tv_fs6_Qty.setText(AppConstants.spanishNumberSystem(Constants.FS_6Gallons));
-            tv_fs6_Pulse.setText(Constants.FS_6Pulse);
+            tv_fs6_Qty.setText(AppConstants.spanishNumberSystem(Constants.FS_6_GALLONS));
+            tv_fs6_Pulse.setText(Constants.FS_6_PULSE);
             linear_fs_6.setBackgroundResource(R.color.colorPrimary);
             tv_fs6_stop.setBackgroundResource(R.drawable.selector_button);
             tv_NFS6.setTextColor(getResources().getColor(R.color.white));
@@ -7063,7 +7089,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         ///////
     }
 
-    public void SaveLastQtyInSharedPref(int position, String Pulses) {
+    public void saveLastQtyInSharedPref(int position, String Pulses) {
 
         switch (position) {
             case 1:
@@ -7122,7 +7148,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(WelcomeActivity.this) + ":" + userEmail + ":" + "UpgradeIsBusyStatus" + AppConstants.LANG_PARAM);
 
             RenameHose rhose = new RenameHose();
-            rhose.SiteId = AppConstants.CURRENT_SELECTED_SITEID;
+            rhose.SiteId = AppConstants.CURRENT_SELECTED_SITE_ID;
 
 
             Gson gson = new Gson();
@@ -7135,7 +7161,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
                 RequestBody body = RequestBody.create(TEXT, jsonData);
                 Request request = new Request.Builder()
-                        .url(AppConstants.webURL)
+                        .url(AppConstants.WEB_URL)
                         .post(body)
                         .addHeader("Authorization", authString)
                         .build();
@@ -7203,7 +7229,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(WelcomeActivity.this) + ":" + userEmail + ":" + "UpgradeIsBusyStatus" + AppConstants.LANG_PARAM);
 
             RenameHose rhose = new RenameHose();
-            rhose.SiteId = AppConstants.CURRENT_SELECTED_SITEID;
+            rhose.SiteId = AppConstants.CURRENT_SELECTED_SITE_ID;
 
             Gson gson = new Gson();
             String jsonData = gson.toJson(rhose);
@@ -7214,7 +7240,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
                 RequestBody body = RequestBody.create(TEXT, jsonData);
                 Request request = new Request.Builder()
-                        .url(AppConstants.webURL)
+                        .url(AppConstants.WEB_URL)
                         .post(body)
                         .addHeader("Authorization", authString)
                         .build();
@@ -7267,8 +7293,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                             txtnTypeForLog = AppConstants.LOG_TXTN_HTTP;
                         }
 
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(txtnTypeForLog + "-" + TAG + getResources().getString(R.string.HoseInUse)); //HoseInUseRetry
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(txtnTypeForLog + "-" + TAG + getResources().getString(R.string.HoseInUse)); //HoseInUseRetry
                     } else {
                         new handleGetAndroidSSID().execute(AppConstants.LAST_CONNECTED_SSID, LinkCommType);//AppConstants.LAST_CONNECTED_SSID = selectedSSID
                         //startWelcomeActivity();
@@ -7291,9 +7317,9 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
         HTTP_URL = "http://192.168.4.1/";
         String URL_WIFI = HTTP_URL + "config?command=wifi";
-        jsonRename = "{\"Request\":{\"Softap\":{\"Connect_Softap\":{\"authmode\":\"WPAPSK/WPA2PSK\",\"channel\":6,\"ssid\":\"" + AppConstants.REPLACEBLE_WIFI_NAME_FS_ON_UPDATE_MAC + "\",\"password\":\"123456789\"}}}}";
+        jsonRename = "{\"Request\":{\"Softap\":{\"Connect_Softap\":{\"authmode\":\"WPAPSK/WPA2PSK\",\"channel\":6,\"ssid\":\"" + AppConstants.REPLACEABLE_WIFI_NAME_FS_ON_UPDATE_MAC + "\",\"password\":\"123456789\"}}}}";
 
-        if (AppConstants.NeedToRenameFS_ON_UPDATE_MAC) {
+        if (AppConstants.NEED_TO_RENAME_FS_ON_UPDATE_MAC) {
 
             consoleString += "RENAME:\n" + jsonRename;
 
@@ -7324,7 +7350,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
                 RequestBody body = RequestBody.create(TEXT, param[0]);
                 Request request = new Request.Builder()
-                        .url(AppConstants.webURL)
+                        .url(AppConstants.WEB_URL)
                         .post(body)
                         .addHeader("Authorization", param[1])
                         .build();
@@ -7360,9 +7386,9 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
     public void OnHoseSelected_OnClick(String position) {
 
-        AppConstants.serverAuthCallCompleted = false;
-        AppConstants.serverCallInProgressForPin = false;
-        AppConstants.serverCallInProgressForVehicle = false;
+        AppConstants.SERVER_AUTH_CALL_COMPLETED = false;
+        AppConstants.SERVER_CALL_IN_PROGRESS_FOR_PIN = false;
+        AppConstants.SERVER_CALL_IN_PROGRESS_FOR_VEHICLE = false;
         String IpAddress = "";
         SelectedItemPos = Integer.parseInt(position);
         String ReconfigureLink = serverSSIDList.get(SelectedItemPos).get("ReconfigureLink");
@@ -7373,14 +7399,14 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         String hoseID = serverSSIDList.get(SelectedItemPos).get("HoseId");
         AppConstants.CURRENT_SELECTED_SSID = selSSID;
         AppConstants.CURRENT_HOSE_SSID = hoseID;
-        AppConstants.CURRENT_SELECTED_SITEID = selSiteId;
-        AppConstants.SELECTED_MACADDRESS = selMacAddress;
+        AppConstants.CURRENT_SELECTED_SITE_ID = selSiteId;
+        AppConstants.SELECTED_MAC_ADDRESS = selMacAddress;
         String IsHoseNameReplaced = serverSSIDList.get(SelectedItemPos).get("IsHoseNameReplaced");
         String ReplaceableHoseName = serverSSIDList.get(SelectedItemPos).get("ReplaceableHoseName");
         String IsLinkFlagged = serverSSIDList.get(SelectedItemPos).get("IsLinkFlagged");
         String LinkFlaggedMessage = serverSSIDList.get(SelectedItemPos).get("LinkFlaggedMessage");
         String LinkCommunicationType = serverSSIDList.get(SelectedItemPos).get("LinkCommunicationType");
-        AppConstants.UP_FilePath = serverSSIDList.get(SelectedItemPos).get("UPFilePath");
+        AppConstants.UP_FILE_PATH = serverSSIDList.get(SelectedItemPos).get("UPFilePath");
         String PulserTimingAdjust = serverSSIDList.get(SelectedItemPos).get("PulserTimingAdjust");
         String IsResetSwitchTimeBounce = serverSSIDList.get(SelectedItemPos).get("IsResetSwitchTimeBounce");
         String IsBypassPumpReset = serverSSIDList.get(SelectedItemPos).get("IsBypassPumpReset");
@@ -7399,22 +7425,22 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         }
         //Rename SSID while mac address updation
         if (IsHoseNameReplaced.equalsIgnoreCase("Y")) {
-            AppConstants.NeedToRenameFS_ON_UPDATE_MAC = false;
-            AppConstants.REPLACEBLE_WIFI_NAME_FS_ON_UPDATE_MAC = "";
+            AppConstants.NEED_TO_RENAME_FS_ON_UPDATE_MAC = false;
+            AppConstants.REPLACEABLE_WIFI_NAME_FS_ON_UPDATE_MAC = "";
         } else {
-            AppConstants.NeedToRenameFS_ON_UPDATE_MAC = true;
-            AppConstants.REPLACEBLE_WIFI_NAME_FS_ON_UPDATE_MAC = ReplaceableHoseName;
+            AppConstants.NEED_TO_RENAME_FS_ON_UPDATE_MAC = true;
+            AppConstants.REPLACEABLE_WIFI_NAME_FS_ON_UPDATE_MAC = ReplaceableHoseName;
         }
 
         if (ReconfigureLink != null && ReconfigureLink.equalsIgnoreCase("true")) {
 
-            if (Constants.FS_1STATUS.equalsIgnoreCase("FREE") && Constants.FS_2STATUS.equalsIgnoreCase("FREE") && Constants.FS_3STATUS.equalsIgnoreCase("FREE") && Constants.FS_4STATUS.equalsIgnoreCase("FREE") && Constants.FS_5STATUS.equalsIgnoreCase("FREE") && Constants.FS_6STATUS.equalsIgnoreCase("FREE")) {
+            if (Constants.FS_1_STATUS.equalsIgnoreCase("FREE") && Constants.FS_2_STATUS.equalsIgnoreCase("FREE") && Constants.FS_3_STATUS.equalsIgnoreCase("FREE") && Constants.FS_4_STATUS.equalsIgnoreCase("FREE") && Constants.FS_5_STATUS.equalsIgnoreCase("FREE") && Constants.FS_6_STATUS.equalsIgnoreCase("FREE")) {
 
                 //RemoveWifiNetworks();
 
                 //Link Reconfigure process start
                 ReconfigureCountdown();
-                Constants.hotspotstayOn = false;//hotspot enable/disable flag
+                Constants.HOTSPOT_STAY_ON = false;//hotspot enable/disable flag
                 skipOnResume = true;
                 wifiApManager.setWifiApEnabled(null, false);  //Disabled Hotspot
 
@@ -7433,15 +7459,15 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
 
             } else {
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "Can't update mac address,Hose is busy please retry later.");
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(TAG + "Can't update mac address,Hose is busy please retry later.");
                 AppConstants.colorToastBigFont(WelcomeActivity.this, getResources().getString(R.string.CannotUpdateMac), Color.BLUE);
                 btnGo.setVisibility(View.GONE);
             }
 
         } else if (IsLinkFlagged != null && IsLinkFlagged.equalsIgnoreCase("True")) {
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "Flagged Link: " + LinkFlaggedMessage);
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + "Flagged Link: " + LinkFlaggedMessage);
             CommonUtils.AlertDialogAutoClose(WelcomeActivity.this, "", LinkFlaggedMessage);
             RestrictHoseSelection(getResources().getString(R.string.TryAgainLater), false);
 
@@ -7449,26 +7475,26 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             /*if (!LinkCommunicationType.equalsIgnoreCase("BT")) {
                 try {
                     IpAddress = "";
-                    if (AppConstants.DetailsListOfConnectedDevices != null) {
-                        for (int i = 0; i < AppConstants.DetailsListOfConnectedDevices.size(); i++) {
-                            String MA_ConnectedDevices = AppConstants.DetailsListOfConnectedDevices.get(i).get("macAddress");
+                    if (AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES != null) {
+                        for (int i = 0; i < AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.size(); i++) {
+                            String MA_ConnectedDevices = AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.get(i).get("macAddress");
 
                             if (selMacAddress.equalsIgnoreCase(MA_ConnectedDevices)) {
-                                IpAddress = AppConstants.DetailsListOfConnectedDevices.get(i).get("ipAddress");
+                                IpAddress = AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.get(i).get("ipAddress");
                                 break;
                             }
                         }
                     }
 
                     *//*boolean isMacConnected = false;
-                    if (AppConstants.DetailsListOfConnectedDevices != null) {
-                        for (int i = 0; i < AppConstants.DetailsListOfConnectedDevices.size(); i++) {
-                            String MA_ConnectedDevices = AppConstants.DetailsListOfConnectedDevices.get(i).get("macAddress");
+                    if (AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES != null) {
+                        for (int i = 0; i < AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.size(); i++) {
+                            String MA_ConnectedDevices = AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.get(i).get("macAddress");
 
                             if (selMacAddress.equalsIgnoreCase(MA_ConnectedDevices)) {
-                                if (AppConstants.GenerateLogs)
-                                    AppConstants.WriteinFile(TAG + "Selected LINK (" + selSSID + " <==> " + selMacAddress + ") is connected to hotspot.");
-                                IpAddress = AppConstants.DetailsListOfConnectedDevices.get(i).get("ipAddress");
+                                if (AppConstants.GENERATE_LOGS)
+                                    AppConstants.writeInFile(TAG + "Selected LINK (" + selSSID + " <==> " + selMacAddress + ") is connected to hotspot.");
+                                IpAddress = AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.get(i).get("ipAddress");
                                 isMacConnected = true;
                                 break;
                             }
@@ -7476,23 +7502,23 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     }
 
                     if (!isMacConnected) {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "Selected LINK (" + selSSID + " <==> " + selMacAddress + ") is not found in connected devices. " + AppConstants.DetailsListOfConnectedDevices);
-                        for (int i = 0; i < AppConstants.DetailsListOfConnectedDevices.size(); i++) {
-                            String MA_ConnectedDevices = AppConstants.DetailsListOfConnectedDevices.get(i).get("macAddress");
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(TAG + "Checking Mac Address using info command: (" + MA_ConnectedDevices + ")");
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(TAG + "Selected LINK (" + selSSID + " <==> " + selMacAddress + ") is not found in connected devices. " + AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES);
+                        for (int i = 0; i < AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.size(); i++) {
+                            String MA_ConnectedDevices = AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.get(i).get("macAddress");
+                            if (AppConstants.GENERATE_LOGS)
+                                AppConstants.writeInFile(TAG + "Checking Mac Address using info command: (" + MA_ConnectedDevices + ")");
 
-                            String connectedIp = AppConstants.DetailsListOfConnectedDevices.get(i).get("ipAddress");
+                            String connectedIp = AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.get(i).get("ipAddress");
 
                             IpAddress = GetAndCheckMacAddressFromInfoCommand(connectedIp, selMacAddress, MA_ConnectedDevices);
                             if (!IpAddress.trim().isEmpty()) {
-                                if (AppConstants.GenerateLogs)
-                                    AppConstants.WriteinFile("===================================================================");
+                                if (AppConstants.GENERATE_LOGS)
+                                    AppConstants.writeInFile("===================================================================");
                                 break;
                             }
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile("===================================================================");
+                            if (AppConstants.GENERATE_LOGS)
+                                AppConstants.writeInFile("===================================================================");
                         }
                     }*//*
                 } catch (Exception e) {
@@ -7501,80 +7527,80 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             }*/
 
             //Selected position
-            AppConstants.FS_selected = String.valueOf(position);
+            AppConstants.FS_SELECTED = String.valueOf(position);
             if (String.valueOf(position).equalsIgnoreCase("0")) {
 
-                if (Constants.FS_1STATUS.equalsIgnoreCase("FREE") && IsBusy.equalsIgnoreCase("N")) {
+                if (Constants.FS_1_STATUS.equalsIgnoreCase("FREE") && IsBusy.equalsIgnoreCase("N")) {
                     // linear_fs_1.setBackgroundColor(getResources().getColor(android.R.color.holo_red_light));
 
                     //Rename SSID from cloud
                     if (IsHoseNameReplaced.equalsIgnoreCase("Y")) {
-                        AppConstants.NeedToRenameFS1 = false;
-                        AppConstants.REPLACEBLE_WIFI_NAME_FS1 = "";
+                        AppConstants.NEED_TO_RENAME_FS1 = false;
+                        AppConstants.REPLACEABLE_WIFI_NAME_FS1 = "";
                     } else {
-                        AppConstants.NeedToRenameFS1 = true;
-                        AppConstants.REPLACEBLE_WIFI_NAME_FS1 = ReplaceableHoseName;
+                        AppConstants.NEED_TO_RENAME_FS1 = true;
+                        AppConstants.REPLACEABLE_WIFI_NAME_FS1 = ReplaceableHoseName;
                     }
 
-                    Constants.AccPersonnelPIN = "";
+                    Constants.PERSONNEL_PIN_FS2 = "";
                     tvSSIDName.setText(selSSID);
                     AppConstants.FS1_CONNECTED_SSID = selSSID;
-                    Constants.CurrentSelectedHose = "FS1";
+                    Constants.CURRENT_SELECTED_HOSE = "FS1";
                     btnGo.setVisibility(View.VISIBLE);
                     //goButtonAction(null);
                 } else {
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(TAG + getResources().getString(R.string.HoseInUse));
                     RestrictHoseSelection(getResources().getString(R.string.HoseInUse), false);
 
                 }
             } else if (String.valueOf(position).equalsIgnoreCase("1")) {
-                if (Constants.FS_2STATUS.equalsIgnoreCase("FREE") && IsBusy.equalsIgnoreCase("N")) {
+                if (Constants.FS_2_STATUS.equalsIgnoreCase("FREE") && IsBusy.equalsIgnoreCase("N")) {
                     // linear_fs_1.setBackgroundColor(getResources().getColor(android.R.color.holo_red_light));
 
                     //Rename SSID from cloud
                     if (IsHoseNameReplaced.equalsIgnoreCase("Y")) {
-                        AppConstants.NeedToRenameFS2 = false;
-                        AppConstants.REPLACEBLE_WIFI_NAME_FS2 = "";
+                        AppConstants.NEED_TO_RENAME_FS2 = false;
+                        AppConstants.REPLACEABLE_WIFI_NAME_FS2 = "";
                     } else {
-                        AppConstants.NeedToRenameFS2 = true;
-                        AppConstants.REPLACEBLE_WIFI_NAME_FS2 = ReplaceableHoseName;
+                        AppConstants.NEED_TO_RENAME_FS2 = true;
+                        AppConstants.REPLACEABLE_WIFI_NAME_FS2 = ReplaceableHoseName;
                     }
 
-                    Constants.AccPersonnelPIN = "";
+                    Constants.PERSONNEL_PIN_FS2 = "";
                     tvSSIDName.setText(selSSID);
                     AppConstants.FS2_CONNECTED_SSID = selSSID;
-                    Constants.CurrentSelectedHose = "FS2";
+                    Constants.CURRENT_SELECTED_HOSE = "FS2";
                     btnGo.setVisibility(View.VISIBLE);
                 } else {
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(TAG + getResources().getString(R.string.HoseInUse));
                     RestrictHoseSelection(getResources().getString(R.string.HoseInUse), false);
                 }
 
             } else if (String.valueOf(position).equalsIgnoreCase("2")) {
 
 
-                if (Constants.FS_3STATUS.equalsIgnoreCase("FREE") && IsBusy.equalsIgnoreCase("N")) {
+                if (Constants.FS_3_STATUS.equalsIgnoreCase("FREE") && IsBusy.equalsIgnoreCase("N")) {
                     // linear_fs_1.setBackgroundColor(getResources().getColor(android.R.color.holo_red_light));
 
                     //Rename SSID from cloud
                     if (IsHoseNameReplaced.equalsIgnoreCase("Y")) {
-                        AppConstants.NeedToRenameFS3 = false;
-                        AppConstants.REPLACEBLE_WIFI_NAME_FS3 = "";
+                        AppConstants.NEED_TO_RENAME_FS3 = false;
+                        AppConstants.REPLACEABLE_WIFI_NAME_FS3 = "";
                     } else {
-                        AppConstants.NeedToRenameFS3 = true;
-                        AppConstants.REPLACEBLE_WIFI_NAME_FS3 = ReplaceableHoseName;
+                        AppConstants.NEED_TO_RENAME_FS3 = true;
+                        AppConstants.REPLACEABLE_WIFI_NAME_FS3 = ReplaceableHoseName;
                     }
 
-                    Constants.AccPersonnelPIN = "";
+                    Constants.PERSONNEL_PIN_FS2 = "";
                     tvSSIDName.setText(selSSID);
                     AppConstants.FS3_CONNECTED_SSID = selSSID;
-                    Constants.CurrentSelectedHose = "FS3";
+                    Constants.CURRENT_SELECTED_HOSE = "FS3";
                     btnGo.setVisibility(View.VISIBLE);
                 } else {
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(TAG + getResources().getString(R.string.HoseInUse));
                     RestrictHoseSelection(getResources().getString(R.string.HoseInUse), false);
                 }
 
@@ -7582,71 +7608,71 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             } else if (String.valueOf(position).equalsIgnoreCase("3")) {
 
 
-                if (Constants.FS_4STATUS.equalsIgnoreCase("FREE") && IsBusy.equalsIgnoreCase("N")) {
+                if (Constants.FS_4_STATUS.equalsIgnoreCase("FREE") && IsBusy.equalsIgnoreCase("N")) {
                     // linear_fs_1.setBackgroundColor(getResources().getColor(android.R.color.holo_red_light));
                     //Rename SSID from cloud
                     if (IsHoseNameReplaced.equalsIgnoreCase("Y")) {
-                        AppConstants.NeedToRenameFS4 = false;
-                        AppConstants.REPLACEBLE_WIFI_NAME_FS4 = "";
+                        AppConstants.NEED_TO_RENAME_FS4 = false;
+                        AppConstants.REPLACEABLE_WIFI_NAME_FS4 = "";
                     } else {
-                        AppConstants.NeedToRenameFS4 = true;
-                        AppConstants.REPLACEBLE_WIFI_NAME_FS4 = ReplaceableHoseName;
+                        AppConstants.NEED_TO_RENAME_FS4 = true;
+                        AppConstants.REPLACEABLE_WIFI_NAME_FS4 = ReplaceableHoseName;
                     }
 
-                    Constants.AccPersonnelPIN = "";
+                    Constants.PERSONNEL_PIN_FS2 = "";
                     tvSSIDName.setText(selSSID);
                     AppConstants.FS4_CONNECTED_SSID = selSSID;
-                    Constants.CurrentSelectedHose = "FS4";
+                    Constants.CURRENT_SELECTED_HOSE = "FS4";
                     btnGo.setVisibility(View.VISIBLE);
                 } else {
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(TAG + getResources().getString(R.string.HoseInUse));
                     RestrictHoseSelection(getResources().getString(R.string.HoseInUse), false);
                 }
             } else if (String.valueOf(position).equalsIgnoreCase("4")) {
 
 
-                if (Constants.FS_5STATUS.equalsIgnoreCase("FREE") && IsBusy.equalsIgnoreCase("N")) {
+                if (Constants.FS_5_STATUS.equalsIgnoreCase("FREE") && IsBusy.equalsIgnoreCase("N")) {
 
                     if (IsHoseNameReplaced.equalsIgnoreCase("Y")) {
-                        AppConstants.NeedToRenameFS5 = false;
-                        AppConstants.REPLACEBLE_WIFI_NAME_FS5 = "";
+                        AppConstants.NEED_TO_RENAME_FS5 = false;
+                        AppConstants.REPLACEABLE_WIFI_NAME_FS5 = "";
                     } else {
-                        AppConstants.NeedToRenameFS5 = true;
-                        AppConstants.REPLACEBLE_WIFI_NAME_FS5 = ReplaceableHoseName;
+                        AppConstants.NEED_TO_RENAME_FS5 = true;
+                        AppConstants.REPLACEABLE_WIFI_NAME_FS5 = ReplaceableHoseName;
                     }
 
-                    Constants.AccPersonnelPIN = "";
+                    Constants.PERSONNEL_PIN_FS2 = "";
                     tvSSIDName.setText(selSSID);
                     AppConstants.FS5_CONNECTED_SSID = selSSID;
-                    Constants.CurrentSelectedHose = "FS5";
+                    Constants.CURRENT_SELECTED_HOSE = "FS5";
                     btnGo.setVisibility(View.VISIBLE);
                 } else {
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(TAG + getResources().getString(R.string.HoseInUse));
                     RestrictHoseSelection(getResources().getString(R.string.HoseInUse), false);
                 }
             } else if (String.valueOf(position).equalsIgnoreCase("5")) {
 
 
-                if (Constants.FS_6STATUS.equalsIgnoreCase("FREE") && IsBusy.equalsIgnoreCase("N")) {
+                if (Constants.FS_6_STATUS.equalsIgnoreCase("FREE") && IsBusy.equalsIgnoreCase("N")) {
 
                     if (IsHoseNameReplaced.equalsIgnoreCase("Y")) {
-                        AppConstants.NeedToRenameFS6 = false;
-                        AppConstants.REPLACEBLE_WIFI_NAME_FS6 = "";
+                        AppConstants.NEED_TO_RENAME_FS6 = false;
+                        AppConstants.REPLACEABLE_WIFI_NAME_FS6 = "";
                     } else {
-                        AppConstants.NeedToRenameFS6 = true;
-                        AppConstants.REPLACEBLE_WIFI_NAME_FS6 = ReplaceableHoseName;
+                        AppConstants.NEED_TO_RENAME_FS6 = true;
+                        AppConstants.REPLACEABLE_WIFI_NAME_FS6 = ReplaceableHoseName;
                     }
 
-                    Constants.AccPersonnelPIN = "";
+                    Constants.PERSONNEL_PIN_FS2 = "";
                     tvSSIDName.setText(selSSID);
                     AppConstants.FS6_CONNECTED_SSID = selSSID;
-                    Constants.CurrentSelectedHose = "FS6";
+                    Constants.CURRENT_SELECTED_HOSE = "FS6";
                     btnGo.setVisibility(View.VISIBLE);
                 } else {
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(TAG + getResources().getString(R.string.HoseInUse));
                     RestrictHoseSelection(getResources().getString(R.string.HoseInUse), false);
                 }
             } else {
@@ -7661,7 +7687,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
     private void SaveCalibrationDetailsInSharedPref(int selectedLinkPos, String PulserTimingAdjust, String IsResetSwitchTimeBounce,
                                                     String IsBypassPumpReset, String GetPulserTypeFromLINK) {
         try {
-            SharedPreferences calibrationPref = this.getSharedPreferences(Constants.PREF_CalibrationDetails, Context.MODE_PRIVATE);
+            SharedPreferences calibrationPref = this.getSharedPreferences(Constants.PREF_CALIBRATION_DETAILS, Context.MODE_PRIVATE);
             switch (selectedLinkPos) {
                 case 0:
                     SharedPreferences.Editor editor1 = calibrationPref.edit();
@@ -7719,7 +7745,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
     private void SaveMOStatusDetailsInSharedPref(int selectedLinkPos, String MOStatusCheckFlag, String IsCheckMOStatus, String IsResetMOCheckFlag) {
         try {
-            SharedPreferences moStatusPref = this.getSharedPreferences(Constants.PREF_MOStatusDetails, Context.MODE_PRIVATE);
+            SharedPreferences moStatusPref = this.getSharedPreferences(Constants.PREF_MO_STATUS_DETAILS, Context.MODE_PRIVATE);
             switch (selectedLinkPos) {
                 case 0:
                     SharedPreferences.Editor editor1 = moStatusPref.edit();
@@ -8073,9 +8099,9 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                             public void run() {
 
                                 EmailReaderNotConnected = false;
-                                AppConstants.NoSleepRespTime = CommonUtils.getTodaysDateTemp();//Date Two (d2)
-                                if (AppConstants.GenerateLogs)
-                                    AppConstants.WriteinFile(TAG + "Escape cmd recived BT reader.");
+                                AppConstants.NO_SLEEP_RESP_TIME = CommonUtils.getTodaysDateTemp();//Date Two (d2)
+                                if (AppConstants.GENERATE_LOGS)
+                                    AppConstants.writeInFile(TAG + "Escape cmd recived BT reader.");
                                 Log.i(TAG, "Escape cmd recived BT reader." + getResponseString(response, errorCode));
                                 mTxtEscapeResponse.setText(getResponseString(response, errorCode));
                             }
@@ -8100,16 +8126,16 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                             WelcomeActivity.this,
                                             "The device is unable to set notification!",
                                             Toast.LENGTH_SHORT).show();
-                                    if (AppConstants.GenerateLogs)
-                                        AppConstants.WriteinFile(TAG + "The device is unable to set notification!");
+                                    if (AppConstants.GENERATE_LOGS)
+                                        AppConstants.writeInFile(TAG + "The device is unable to set notification!");
                                 } else {
 
                                     String text = "The device is ready to use!";
                                     SpannableStringBuilder biggerText = new SpannableStringBuilder(text);
                                     biggerText.setSpan(new RelativeSizeSpan(2.00f), 0, text.length(), 0);
                                     Toast.makeText(WelcomeActivity.this, biggerText, Toast.LENGTH_LONG).show();
-                                    if (AppConstants.GenerateLogs)
-                                        AppConstants.WriteinFile(TAG + text);
+                                    if (AppConstants.GENERATE_LOGS)
+                                        AppConstants.writeInFile(TAG + text);
                                 }
                             }
                         });
@@ -8302,79 +8328,79 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 startActivity(intent);
 
             case R.id.mrestartapp:
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "<Restart app.>");
-                if (AppConstants.IsAllHosesAreFree()) {
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(TAG + "<Restart app.>");
+                if (AppConstants.isAllHosesAreFree()) {
                     Intent i = new Intent(WelcomeActivity.this, SplashActivity.class);
                     i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                     startActivity(i);
                 } else {
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + getResources().getString(R.string.OneOfTheHoseIsBusy));
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(TAG + getResources().getString(R.string.OneOfTheHoseIsBusy));
                     Toast.makeText(getApplicationContext(), getResources().getString(R.string.OneOfTheHoseIsBusy), Toast.LENGTH_SHORT).show();
                 }
                 break;
 
             case R.id.madd_link:
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "<Add Link option selected.>");
-                if (AppConstants.IsAllHosesAreFree()) {
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(TAG + "<Add Link option selected.>");
+                if (AppConstants.isAllHosesAreFree()) {
                     AddNewLinkScreen();
                 } else {
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + getResources().getString(R.string.OneOfTheHoseIsBusy));
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(TAG + getResources().getString(R.string.OneOfTheHoseIsBusy));
                     Toast.makeText(getApplicationContext(), getResources().getString(R.string.OneOfTheHoseIsBusy), Toast.LENGTH_SHORT).show();
                 }
                 break;
 
             case R.id.btLinkScope:
-                if (AppConstants.IsAllHosesAreFree()) {
+                if (AppConstants.isAllHosesAreFree()) {
                     OscilloscopeLinkSelection();
                 } else {
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + getResources().getString(R.string.OneOfTheHoseIsBusy));
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(TAG + getResources().getString(R.string.OneOfTheHoseIsBusy));
                     Toast.makeText(getApplicationContext(), getResources().getString(R.string.OneOfTheHoseIsBusy), Toast.LENGTH_SHORT).show();
                 }
                 break;
 
             case R.id.menuSpanish:
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "<Spanish language selected.>");
-                if (AppConstants.IsAllHosesAreFree()) {
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(TAG + "<Spanish language selected.>");
+                if (AppConstants.isAllHosesAreFree()) {
                     StoreLanguageSettings("es", true);
                 } else {
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + getResources().getString(R.string.OneOfTheHoseIsBusy));
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(TAG + getResources().getString(R.string.OneOfTheHoseIsBusy));
                     Toast.makeText(getApplicationContext(), getResources().getString(R.string.OneOfTheHoseIsBusy), Toast.LENGTH_SHORT).show();
                 }
                 break;
 
             case R.id.menuEnglish:
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "<English language selected.>");
-                if (AppConstants.IsAllHosesAreFree()) {
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(TAG + "<English language selected.>");
+                if (AppConstants.isAllHosesAreFree()) {
                     StoreLanguageSettings("en", true);
                 } else {
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + getResources().getString(R.string.OneOfTheHoseIsBusy));
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(TAG + getResources().getString(R.string.OneOfTheHoseIsBusy));
                     Toast.makeText(getApplicationContext(), getResources().getString(R.string.OneOfTheHoseIsBusy), Toast.LENGTH_SHORT).show();
                 }
                 break;
 
             case R.id.testTransaction:
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "<Test Transaction option selected.>");
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(TAG + "<Test Transaction option selected.>");
                 LinkSelectionForTestTransaction();
                 break;
 
             case R.id.forceOfflineList:
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "<Force Offline List option selected.>");
-                if (AppConstants.IsAllHosesAreFree()) {
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(TAG + "<Force Offline List option selected.>");
+                if (AppConstants.isAllHosesAreFree()) {
                     ForceDownloadOfflineData();
                 } else {
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + getResources().getString(R.string.OneOfTheHoseIsBusy));
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(TAG + getResources().getString(R.string.OneOfTheHoseIsBusy));
                     Toast.makeText(getApplicationContext(), getResources().getString(R.string.OneOfTheHoseIsBusy), Toast.LENGTH_SHORT).show();
                 }
                 break;
@@ -8384,12 +8410,12 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     private void ForceDownloadOfflineData() {
-        if (!AppConstants.isOfflineDownloadStarted) {
-            AppConstants.forceDownloadOfflineData = true;
+        if (!AppConstants.IS_OFFLINE_DOWNLOAD_STARTED) {
+            AppConstants.FORCE_DOWNLOAD_OFFLINE_DATA = true;
             startService(new Intent(WelcomeActivity.this, OffBackgroundService.class));
         } else {
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "<Offline data download has already started>");
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + "<Offline data download has already started>");
         }
     }
 
@@ -8420,15 +8446,15 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
             if (isRecreate) {
                 //recreate();
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "<Restarting the activity.>");
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(TAG + "<Restarting the activity.>");
                 Intent i = new Intent(WelcomeActivity.this, WelcomeActivity.class);
                 i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 this.startActivity(i);
             }
         } catch (Exception e) {
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "Exception occurred in StoreLanguageSettings: " + e.getMessage());
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + "Exception occurred in StoreLanguageSettings: " + e.getMessage());
         }
     }
 
@@ -8559,8 +8585,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
             if (device == null) {
                 Log.w(TAG, "Device not found. Unable to connect.");
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "Device not found. Unable to connect.");
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(TAG + "Device not found. Unable to connect.");
                 Toast.makeText(WelcomeActivity.this, "Device not found. Unable to connect.", Toast.LENGTH_SHORT).show();
                 return false;
             }
@@ -8570,8 +8596,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             mBluetoothGatt = device.connectGatt(this, false, mGattCallback);
         } catch (Exception e) {
             Log.i(TAG, "ACS reader Exception:" + e.toString());
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "ACS reader Exception:" + e.toString());
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + "ACS reader Exception:" + e.toString());
             e.printStackTrace();
             return false;
         }
@@ -8597,7 +8623,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         if (connectState == BluetoothReader.STATE_CONNECTING) {
             mTxtConnectionState.setText(R.string.connecting);
         } else if (connectState == BluetoothReader.STATE_CONNECTED) {
-            //   if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " HF BT reader connected");
+            //   if (AppConstants.GENERATE_LOGS)AppConstants.writeInFile(TAG + " HF BT reader connected");
             mTxtConnectionState.setText(R.string.connected);
         } else if (connectState == BluetoothReader.STATE_DISCONNECTING) {
             mTxtConnectionState.setText(R.string.disconnecting);
@@ -8786,11 +8812,11 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         if (success) {
             // Do something on success
         } else {
-            AppConstants.AlertDialogBox(WelcomeActivity.this, "Please check File is present in FSBin Folder in Internal(Device) Storage");
+            AppConstants.alertDialogBox(WelcomeActivity.this, "Please check File is present in FSBin Folder in Internal(Device) Storage");
         }
 
-        if (AppConstants.UP_FilePath != null)
-            new DownloadFileFromURL().execute(String.valueOf(getApplicationContext().getExternalFilesDir(AppConstants.FOLDER_BIN)), AppConstants.UP_Upgrade_File_name);
+        if (AppConstants.UP_FILE_PATH != null)
+            new DownloadFileFromURL().execute(String.valueOf(getApplicationContext().getExternalFilesDir(AppConstants.FOLDER_BIN)), AppConstants.UP_UPGRADE_FILE_NAME);
 
     }*/
 
@@ -8890,8 +8916,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     new NoSleepAsyncTask().execute();
                 } else {
                     Log.i(TAG, "NoSleepAsyncTask skip Check DeviceName & DeviceAddress\n ACS Reader Status" + AppConstants.ACS_READER);
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + "NoSleepAsyncTask skip Check DeviceName & DeviceAddress\n ACS Reader Status" + AppConstants.ACS_READER);
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(TAG + "NoSleepAsyncTask skip Check DeviceName & DeviceAddress\n ACS Reader Status" + AppConstants.ACS_READER);
                 }
             }
         };
@@ -8905,11 +8931,11 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
     public void checkEachFSNPDateTime() {
 
 
-        if (AppConstants.DetailsServerSSIDList != null & AppConstants.DetailsServerSSIDList.size() > 0) {
+        if (AppConstants.DETAILS_SERVER_SSID_LIST != null & AppConstants.DETAILS_SERVER_SSID_LIST.size() > 0) {
 
-            for (int p = 0; p < AppConstants.DetailsServerSSIDList.size(); p++) {
+            for (int p = 0; p < AppConstants.DETAILS_SERVER_SSID_LIST.size(); p++) {
 
-                String commaFsnpLink = AppConstants.DetailsServerSSIDList.get(p).get("FSNPMacAddress");
+                String commaFsnpLink = AppConstants.DETAILS_SERVER_SSID_LIST.get(p).get("FSNPMacAddress");
 
                 commaFsnpLink = commaFsnpLink.trim().toUpperCase();
 
@@ -8968,7 +8994,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
                     switch (linkIndex) {
                         case 0:
-                            if (Constants.FS_1STATUS.equalsIgnoreCase("BUSY")) {
+                            if (Constants.FS_1_STATUS.equalsIgnoreCase("BUSY")) {
 
                                 runOnUiThread(new Runnable() {
                                     @Override
@@ -8981,7 +9007,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                             break;
 
                         case 1:
-                            if (Constants.FS_2STATUS.equalsIgnoreCase("BUSY")) {
+                            if (Constants.FS_2_STATUS.equalsIgnoreCase("BUSY")) {
 
                                 runOnUiThread(new Runnable() {
                                     @Override
@@ -8993,7 +9019,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                             break;
 
                         case 2:
-                            if (Constants.FS_3STATUS.equalsIgnoreCase("BUSY")) {
+                            if (Constants.FS_3_STATUS.equalsIgnoreCase("BUSY")) {
 
                                 runOnUiThread(new Runnable() {
                                     @Override
@@ -9005,7 +9031,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                             break;
 
                         case 3:
-                            if (Constants.FS_4STATUS.equalsIgnoreCase("BUSY")) {
+                            if (Constants.FS_4_STATUS.equalsIgnoreCase("BUSY")) {
 
                                 runOnUiThread(new Runnable() {
                                     @Override
@@ -9017,7 +9043,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                             break;
 
                         case 4:
-                            if (Constants.FS_5STATUS.equalsIgnoreCase("BUSY")) {
+                            if (Constants.FS_5_STATUS.equalsIgnoreCase("BUSY")) {
 
                                 runOnUiThread(new Runnable() {
                                     @Override
@@ -9029,7 +9055,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                             break;
 
                         case 5:
-                            if (Constants.FS_6STATUS.equalsIgnoreCase("BUSY")) {
+                            if (Constants.FS_6_STATUS.equalsIgnoreCase("BUSY")) {
 
                                 runOnUiThread(new Runnable() {
                                     @Override
@@ -9089,7 +9115,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     flagGoBtn = true;
                     try {
 
-                        if (serverSSIDList != null && serverSSIDList.size() == 1 && IsGateHub.equalsIgnoreCase("True") && Constants.FS_1STATUS.equalsIgnoreCase("FREE") && Constants.FS_2STATUS.equalsIgnoreCase("FREE") && Constants.FS_3STATUS.equalsIgnoreCase("FREE") && Constants.FS_4STATUS.equalsIgnoreCase("FREE")) {
+                        if (serverSSIDList != null && serverSSIDList.size() == 1 && IsGateHub.equalsIgnoreCase("True") && Constants.FS_1_STATUS.equalsIgnoreCase("FREE") && Constants.FS_2_STATUS.equalsIgnoreCase("FREE") && Constants.FS_3_STATUS.equalsIgnoreCase("FREE") && Constants.FS_4_STATUS.equalsIgnoreCase("FREE")) {
 
                             String LinkCommunicationType = serverSSIDList.get(0).get("LinkCommunicationType");
 
@@ -9101,14 +9127,14 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                 String IpAddress = "";
 
                                 boolean isMacConnected = false;
-                                if (AppConstants.DetailsListOfConnectedDevices != null) {
-                                    for (int i = 0; i < AppConstants.DetailsListOfConnectedDevices.size(); i++) {
-                                        String MA_ConnectedDevices = AppConstants.DetailsListOfConnectedDevices.get(i).get("macAddress");
+                                if (AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES != null) {
+                                    for (int i = 0; i < AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.size(); i++) {
+                                        String MA_ConnectedDevices = AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.get(i).get("macAddress");
 
                                         if (selMacAddress.equalsIgnoreCase(MA_ConnectedDevices)) {
-                                            if (AppConstants.GenerateLogs)
-                                                AppConstants.WriteinFile(TAG + "Selected LINK (" + selSSID + " <==> " + selMacAddress + ") is connected to hotspot.");
-                                            IpAddress = AppConstants.DetailsListOfConnectedDevices.get(i).get("ipAddress");
+                                            if (AppConstants.GENERATE_LOGS)
+                                                AppConstants.writeInFile(TAG + "Selected LINK (" + selSSID + " <==> " + selMacAddress + ") is connected to hotspot.");
+                                            IpAddress = AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.get(i).get("ipAddress");
                                             isMacConnected = true;
                                             break;
                                         }
@@ -9116,23 +9142,23 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                 }
 
                                 if (!isMacConnected) {
-                                    if (AppConstants.GenerateLogs)
-                                        AppConstants.WriteinFile(TAG + "Selected LINK (" + selSSID + " <==> " + selMacAddress + ") is not found in connected devices. " + AppConstants.DetailsListOfConnectedDevices);
-                                    for (int i = 0; i < AppConstants.DetailsListOfConnectedDevices.size(); i++) {
-                                        String MA_ConnectedDevices = AppConstants.DetailsListOfConnectedDevices.get(i).get("macAddress");
-                                        if (AppConstants.GenerateLogs)
-                                            AppConstants.WriteinFile(TAG + "Checking Mac Address using info command: (" + MA_ConnectedDevices + ")");
+                                    if (AppConstants.GENERATE_LOGS)
+                                        AppConstants.writeInFile(TAG + "Selected LINK (" + selSSID + " <==> " + selMacAddress + ") is not found in connected devices. " + AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES);
+                                    for (int i = 0; i < AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.size(); i++) {
+                                        String MA_ConnectedDevices = AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.get(i).get("macAddress");
+                                        if (AppConstants.GENERATE_LOGS)
+                                            AppConstants.writeInFile(TAG + "Checking Mac Address using info command: (" + MA_ConnectedDevices + ")");
 
-                                        String connectedIp = AppConstants.DetailsListOfConnectedDevices.get(i).get("ipAddress");
+                                        String connectedIp = AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.get(i).get("ipAddress");
 
                                         IpAddress = GetAndCheckMacAddressFromInfoCommand(connectedIp, selMacAddress, MA_ConnectedDevices);
                                         if (!IpAddress.trim().isEmpty()) {
-                                            if (AppConstants.GenerateLogs)
-                                                AppConstants.WriteinFile("===================================================================");
+                                            if (AppConstants.GENERATE_LOGS)
+                                                AppConstants.writeInFile("===================================================================");
                                             break;
                                         }
-                                        if (AppConstants.GenerateLogs)
-                                            AppConstants.WriteinFile("===================================================================");
+                                        if (AppConstants.GENERATE_LOGS)
+                                            AppConstants.writeInFile("===================================================================");
                                     }
                                 }
 
@@ -9154,15 +9180,15 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
                     } catch (Exception e) {
                         System.out.println(e);
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "AutoSelect if single hose --Exception: " + e.getMessage());
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(TAG + "AutoSelect if single hose --Exception: " + e.getMessage());
                     }
 
-                } else if (serverSSIDList != null && serverSSIDList.size() == 1 && Constants.FS_1STATUS.equalsIgnoreCase("FREE")) {
+                } else if (serverSSIDList != null && serverSSIDList.size() == 1 && Constants.FS_1_STATUS.equalsIgnoreCase("FREE")) {
 
                     cancelThinDownloadManager();
                     try {
-                        AppConstants.IsSingleLink = true;
+                        AppConstants.IS_SINGLE_LINK = true;
                         String SSID_mac = serverSSIDList.get(0).get("MacAddress");
                         String ReconfigureLink = serverSSIDList.get(0).get("ReconfigureLink");
                         AppConstants.SITE_ID = serverSSIDList.get(0).get("SiteId");
@@ -9180,23 +9206,23 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
                         } else {
                             String Chk_ip = "";
-                            if (AppConstants.DetailsListOfConnectedDevices != null && AppConstants.DetailsListOfConnectedDevices.size() > 0) {
-                                Chk_ip = AppConstants.DetailsListOfConnectedDevices.get(0).get("ipAddress");
+                            if (AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES != null && AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.size() > 0) {
+                                Chk_ip = AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.get(0).get("ipAddress");
                             } else {
-                                getipOverOSVersion();
+                                getIpOverOSVersion();
                             }
 
                             if (Chk_ip != null && Chk_ip.length() > 3 && !ReconfigureLink.equalsIgnoreCase("true")) {
 
                                 boolean isMacConnected = false;
-                                if (AppConstants.DetailsListOfConnectedDevices != null) {
-                                    for (int i = 0; i < AppConstants.DetailsListOfConnectedDevices.size(); i++) {
-                                        String Chk_mac = AppConstants.DetailsListOfConnectedDevices.get(i).get("macAddress");
+                                if (AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES != null) {
+                                    for (int i = 0; i < AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.size(); i++) {
+                                        String Chk_mac = AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.get(i).get("macAddress");
 
                                         if (SSID_mac.equalsIgnoreCase(Chk_mac)) {
-                                            if (AppConstants.GenerateLogs)
-                                                AppConstants.WriteinFile(TAG + "Selected LINK (" + selSSID + " <==> " + SSID_mac + ") is connected to hotspot.");
-                                            IpAddress = AppConstants.DetailsListOfConnectedDevices.get(i).get("ipAddress");
+                                            if (AppConstants.GENERATE_LOGS)
+                                                AppConstants.writeInFile(TAG + "Selected LINK (" + selSSID + " <==> " + SSID_mac + ") is connected to hotspot.");
+                                            IpAddress = AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.get(i).get("ipAddress");
                                             isMacConnected = true;
                                             break;
                                         }
@@ -9204,24 +9230,24 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                 }
 
                                 if (!isMacConnected) {
-                                    if (AppConstants.GenerateLogs)
-                                        AppConstants.WriteinFile(TAG + "Selected LINK (" + selSSID + " <==> " + SSID_mac + ") is not found in connected devices. " + AppConstants.DetailsListOfConnectedDevices);
+                                    if (AppConstants.GENERATE_LOGS)
+                                        AppConstants.writeInFile(TAG + "Selected LINK (" + selSSID + " <==> " + SSID_mac + ") is not found in connected devices. " + AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES);
 
-                                    for (int i = 0; i < AppConstants.DetailsListOfConnectedDevices.size(); i++) {
-                                        String Chk_mac = AppConstants.DetailsListOfConnectedDevices.get(i).get("macAddress");
-                                        if (AppConstants.GenerateLogs)
-                                            AppConstants.WriteinFile(TAG + "Checking Mac Address using info command: (" + Chk_mac + ")");
+                                    for (int i = 0; i < AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.size(); i++) {
+                                        String Chk_mac = AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.get(i).get("macAddress");
+                                        if (AppConstants.GENERATE_LOGS)
+                                            AppConstants.writeInFile(TAG + "Checking Mac Address using info command: (" + Chk_mac + ")");
 
-                                        String connectedIp = AppConstants.DetailsListOfConnectedDevices.get(i).get("ipAddress");
+                                        String connectedIp = AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.get(i).get("ipAddress");
 
                                         IpAddress = GetAndCheckMacAddressFromInfoCommand(connectedIp, SSID_mac, Chk_mac);
                                         if (!IpAddress.trim().isEmpty()) {
-                                            if (AppConstants.GenerateLogs)
-                                                AppConstants.WriteinFile("===================================================================");
+                                            if (AppConstants.GENERATE_LOGS)
+                                                AppConstants.writeInFile("===================================================================");
                                             break;
                                         }
-                                        if (AppConstants.GenerateLogs)
-                                            AppConstants.WriteinFile("===================================================================");
+                                        if (AppConstants.GENERATE_LOGS)
+                                            AppConstants.writeInFile("===================================================================");
                                     }
                                 }
 
@@ -9232,8 +9258,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                 }
                             } else {
                                 Toast.makeText(getApplicationContext(), "Auto select fail", Toast.LENGTH_SHORT).show();
-                                if (AppConstants.GenerateLogs)
-                                    AppConstants.WriteinFile(TAG + "Auto select fail");
+                                if (AppConstants.GENERATE_LOGS)
+                                    AppConstants.writeInFile(TAG + "Auto select fail");
                             }
                         }
                     } catch (Exception e) {
@@ -9270,7 +9296,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
         try {
 
-            if (Constants.FS_1STATUS.equalsIgnoreCase("FREE") && Constants.FS_2STATUS.equalsIgnoreCase("FREE") && Constants.FS_3STATUS.equalsIgnoreCase("FREE") && Constants.FS_4STATUS.equalsIgnoreCase("FREE")) {
+            if (Constants.FS_1_STATUS.equalsIgnoreCase("FREE") && Constants.FS_2_STATUS.equalsIgnoreCase("FREE") && Constants.FS_3_STATUS.equalsIgnoreCase("FREE") && Constants.FS_4_STATUS.equalsIgnoreCase("FREE")) {
 
                 transmitEscapeCommend();//No Sleep command
 
@@ -9278,14 +9304,14 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     @Override
                     public void run() {
 
-                        AppConstants.NoSleepCurrentTime = CommonUtils.getTodaysDateTemp();
+                        AppConstants.NO_SLEEP_CURRENT_TIME = CommonUtils.getTodaysDateTemp();
 
-                        if (AppConstants.NoSleepRespTime.equalsIgnoreCase("")) {
+                        if (AppConstants.NO_SLEEP_RESP_TIME.equalsIgnoreCase("")) {
                             Log.i(TAG, "Please check if HF reader is connected");
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(TAG + "Please check if HF reader is connected");
+                            if (AppConstants.GENERATE_LOGS)
+                                AppConstants.writeInFile(TAG + "Please check if HF reader is connected");
 
-                            if (Constants.FS_1STATUS.equalsIgnoreCase("FREE") && Constants.FS_2STATUS.equalsIgnoreCase("FREE") && Constants.FS_3STATUS.equalsIgnoreCase("FREE") && Constants.FS_4STATUS.equalsIgnoreCase("FREE") && Constants.FS_5STATUS.equalsIgnoreCase("FREE") && Constants.FS_6STATUS.equalsIgnoreCase("FREE")) {
+                            if (Constants.FS_1_STATUS.equalsIgnoreCase("FREE") && Constants.FS_2_STATUS.equalsIgnoreCase("FREE") && Constants.FS_3_STATUS.equalsIgnoreCase("FREE") && Constants.FS_4_STATUS.equalsIgnoreCase("FREE") && Constants.FS_5_STATUS.equalsIgnoreCase("FREE") && Constants.FS_6_STATUS.equalsIgnoreCase("FREE")) {
 
                                 if (mDeviceName != null && mDeviceAddress.contains(":")) {
 
@@ -9294,8 +9320,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                     final BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
                                     mBluetoothAdapter.disable();
                                     Log.i(TAG, "BT OFF");
-                                    if (AppConstants.GenerateLogs)
-                                        AppConstants.WriteinFile(TAG + "BT OFF");
+                                    if (AppConstants.GENERATE_LOGS)
+                                        AppConstants.writeInFile(TAG + "BT OFF");
                                     disconnectReader();
 
                                     new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
@@ -9304,8 +9330,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                             //Enable BT------------
                                             mBluetoothAdapter.enable();
                                             Log.i(TAG, "BT ON");
-                                            if (AppConstants.GenerateLogs)
-                                                AppConstants.WriteinFile(TAG + "BT ON");
+                                            if (AppConstants.GENERATE_LOGS)
+                                                AppConstants.writeInFile(TAG + "BT ON");
                                         }
                                     }, 4000);
 
@@ -9315,8 +9341,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
                                             //-------------------
                                             Log.i(TAG, "recreate called first case");
-                                            if (AppConstants.GenerateLogs)
-                                                AppConstants.WriteinFile(TAG + "recreate called first case");
+                                            if (AppConstants.GENERATE_LOGS)
+                                                AppConstants.writeInFile(TAG + "recreate called first case");
 
                                             recreate();
                                         }
@@ -9325,14 +9351,14 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
                                 } else {
                                     Log.i(TAG, "Please check DeviceName & DeviceAddress");
-                                    if (AppConstants.GenerateLogs)
-                                        AppConstants.WriteinFile(TAG + "Please check DeviceName & DeviceAddress");
+                                    if (AppConstants.GENERATE_LOGS)
+                                        AppConstants.writeInFile(TAG + "Please check DeviceName & DeviceAddress");
                                 }
 
                             } else {
                                 Log.i(TAG, "Hose busy..can not recreate");
-                                if (AppConstants.GenerateLogs)
-                                    AppConstants.WriteinFile(TAG + "Hose busy..can not recreate");
+                                if (AppConstants.GENERATE_LOGS)
+                                    AppConstants.writeInFile(TAG + "Hose busy..can not recreate");
                             }
 
                             /*if (mDeviceName != null && mDeviceAddress.contains(":")) {
@@ -9340,7 +9366,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                 final BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
                                 mBluetoothAdapter.disable();
                                 Log.i(TAG, "BT OFF");
-                                //   if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " BT OFF");
+                                //   if (AppConstants.GENERATE_LOGS)AppConstants.writeInFile(TAG + " BT OFF");
                                 disconnectReader();
 
                                 new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
@@ -9349,7 +9375,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                         //Enable BT------------
                                         mBluetoothAdapter.enable();
                                         Log.i(TAG, "BT ON");
-                                        // if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " BT ON");
+                                        // if (AppConstants.GENERATE_LOGS)AppConstants.writeInFile(TAG + " BT ON");
                                     }
                                 }, 4000);
 
@@ -9365,14 +9391,14 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                             } else {
 
                                 Log.i(TAG, "Please check DeviceName & DeviceAddress");
-                                if (AppConstants.GenerateLogs)
-                                    AppConstants.WriteinFile(TAG + " Please check DeviceName & DeviceAddress");
+                                if (AppConstants.GENERATE_LOGS)
+                                    AppConstants.writeInFile(TAG + " Please check DeviceName & DeviceAddress");
 
                             }*/
 
                         } else {
 
-                            int diff = getDate(AppConstants.NoSleepCurrentTime);
+                            int diff = getDate(AppConstants.NO_SLEEP_CURRENT_TIME);
                             if (diff >= 5) {//10
                                 //Grater than 15 min no response from HF reader
                                 //Send Email
@@ -9395,7 +9421,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                 //Recreate main activity
                                 Log.i(TAG, "HF reader response time diff is: " + diff);
 
-                                if (Constants.FS_1STATUS.equalsIgnoreCase("FREE") && Constants.FS_2STATUS.equalsIgnoreCase("FREE") && Constants.FS_3STATUS.equalsIgnoreCase("FREE") && Constants.FS_4STATUS.equalsIgnoreCase("FREE") && Constants.FS_5STATUS.equalsIgnoreCase("FREE") && Constants.FS_6STATUS.equalsIgnoreCase("FREE")) {
+                                if (Constants.FS_1_STATUS.equalsIgnoreCase("FREE") && Constants.FS_2_STATUS.equalsIgnoreCase("FREE") && Constants.FS_3_STATUS.equalsIgnoreCase("FREE") && Constants.FS_4_STATUS.equalsIgnoreCase("FREE") && Constants.FS_5_STATUS.equalsIgnoreCase("FREE") && Constants.FS_6_STATUS.equalsIgnoreCase("FREE")) {
 
                                     if (mDeviceName != null && mDeviceAddress.contains(":")) {
 
@@ -9404,8 +9430,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                         final BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
                                         mBluetoothAdapter.disable();
                                         Log.i(TAG, "BT OFF");
-                                        if (AppConstants.GenerateLogs)
-                                            AppConstants.WriteinFile(TAG + "BT OFF");
+                                        if (AppConstants.GENERATE_LOGS)
+                                            AppConstants.writeInFile(TAG + "BT OFF");
                                         disconnectReader();
 
                                         new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
@@ -9414,8 +9440,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                                 //Enable BT------------
                                                 mBluetoothAdapter.enable();
                                                 Log.i(TAG, "BT ON");
-                                                if (AppConstants.GenerateLogs)
-                                                    AppConstants.WriteinFile(TAG + "BT ON");
+                                                if (AppConstants.GENERATE_LOGS)
+                                                    AppConstants.writeInFile(TAG + "BT ON");
                                             }
                                         }, 4000);
 
@@ -9425,8 +9451,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
                                                 //-------------------
                                                 Log.i(TAG, "recreate called second case");
-                                                if (AppConstants.GenerateLogs)
-                                                    AppConstants.WriteinFile(TAG + "recreate called second case");
+                                                if (AppConstants.GENERATE_LOGS)
+                                                    AppConstants.writeInFile(TAG + "recreate called second case");
 
                                                 recreate();
                                             }
@@ -9434,30 +9460,30 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
                                     } else {
                                         Log.i(TAG, "Please check DeviceName & DeviceAddress");
-                                        if (AppConstants.GenerateLogs)
-                                            AppConstants.WriteinFile(TAG + "Please check DeviceName & DeviceAddress");
+                                        if (AppConstants.GENERATE_LOGS)
+                                            AppConstants.writeInFile(TAG + "Please check DeviceName & DeviceAddress");
                                     }
 
                                 } else {
                                     Log.i(TAG, "Hose busy..can not recreate");
-                                    if (AppConstants.GenerateLogs)
-                                        AppConstants.WriteinFile(TAG + "Hose busy..can not recreate");
+                                    if (AppConstants.GENERATE_LOGS)
+                                        AppConstants.writeInFile(TAG + "Hose busy..can not recreate");
                                 }
 
 
 
 
-                                /*if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " Retry attempt 2 reader connect");
+                                /*if (AppConstants.GENERATE_LOGS)AppConstants.writeInFile(TAG + " Retry attempt 2 reader connect");
                                 //Disable BT
                                 final BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
                                 mBluetoothAdapter.disable();
                                 Log.i(TAG, "BT OFF");
-                                if (AppConstants.GenerateLogs)
-                                    AppConstants.WriteinFile(TAG + " BT OFF");
-                                //   if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " BT OFF");
+                                if (AppConstants.GENERATE_LOGS)
+                                    AppConstants.writeInFile(TAG + " BT OFF");
+                                //   if (AppConstants.GENERATE_LOGS)AppConstants.writeInFile(TAG + " BT OFF");
                                 disconnectReader();
-                                if (AppConstants.GenerateLogs)
-                                    AppConstants.WriteinFile(TAG + " disconnectReader()");
+                                if (AppConstants.GENERATE_LOGS)
+                                    AppConstants.writeInFile(TAG + " disconnectReader()");
 
                                 new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                     @Override
@@ -9465,9 +9491,9 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                         //Enable BT
                                         mBluetoothAdapter.enable();
                                         Log.i(TAG, "BT ON");
-                                        if (AppConstants.GenerateLogs)
-                                            AppConstants.WriteinFile(TAG + " BT ON");
-                                        //      if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " BT ON");
+                                        if (AppConstants.GENERATE_LOGS)
+                                            AppConstants.writeInFile(TAG + " BT ON");
+                                        //      if (AppConstants.GENERATE_LOGS)AppConstants.writeInFile(TAG + " BT ON");
                                     }
                                 }, 4000);
 
@@ -9477,8 +9503,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
                                         //Connect Reader
                                         connectReader();
-                                        if (AppConstants.GenerateLogs)
-                                            AppConstants.WriteinFile(TAG + " connectReader()");
+                                        if (AppConstants.GENERATE_LOGS)
+                                            AppConstants.writeInFile(TAG + " connectReader()");
                                     }
                                 }, 6000);*/
 
@@ -9493,12 +9519,12 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                 final BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
                                 mBluetoothAdapter.disable();
                                 Log.i(TAG, "BT OFF");
-                                if (AppConstants.GenerateLogs)
-                                    AppConstants.WriteinFile(TAG + "BT OFF");
+                                if (AppConstants.GENERATE_LOGS)
+                                    AppConstants.writeInFile(TAG + "BT OFF");
                                 disconnectReader();
                                 Log.i(TAG, "disconnectReader()");
-                                if (AppConstants.GenerateLogs)
-                                    AppConstants.WriteinFile(TAG + "disconnectReader()");
+                                if (AppConstants.GENERATE_LOGS)
+                                    AppConstants.writeInFile(TAG + "disconnectReader()");
 
                                 new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                     @Override
@@ -9506,8 +9532,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                         //Enable BT
                                         mBluetoothAdapter.enable();
                                         Log.i(TAG, "BT ON");
-                                        if (AppConstants.GenerateLogs)
-                                            AppConstants.WriteinFile(TAG + "BT ON");
+                                        if (AppConstants.GENERATE_LOGS)
+                                            AppConstants.writeInFile(TAG + "BT ON");
                                     }
                                 }, 2000);
 
@@ -9520,16 +9546,16 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                             connectReader();
                                         }
                                         Log.i(TAG, "connectReader()");
-                                        if (AppConstants.GenerateLogs)
-                                            AppConstants.WriteinFile(TAG + "connectReader()");
+                                        if (AppConstants.GENERATE_LOGS)
+                                            AppConstants.writeInFile(TAG + "connectReader()");
                                     }
                                 }, 4000);
 
 
                             } else {
                                 Log.i(TAG, "HF reader is working fine");
-                                if (AppConstants.GenerateLogs)
-                                    AppConstants.WriteinFile(TAG + "HF reader is working fine");
+                                if (AppConstants.GENERATE_LOGS)
+                                    AppConstants.writeInFile(TAG + "HF reader is working fine");
                             }
                         }
 
@@ -9540,8 +9566,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
         } catch (Exception e) {
             e.printStackTrace();
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "NoSleepEscapeCommand Exception: " + e.getMessage());
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + "NoSleepEscapeCommand Exception: " + e.getMessage());
         }
 
 
@@ -9554,7 +9580,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             date1 = sdf.parse(CurrentTime);
-            date2 = sdf.parse(AppConstants.NoSleepRespTime);
+            date2 = sdf.parse(AppConstants.NO_SLEEP_RESP_TIME);
 
             long diff = date1.getTime() - date2.getTime();
             long seconds = diff / 1000;
@@ -9596,7 +9622,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         RequestBody body = RequestBody.create(TEXT, parm2);
         OkHttpClient httpClient = new OkHttpClient();
         Request request = new Request.Builder()
-                .url(AppConstants.webURL)
+                .url(AppConstants.WEB_URL)
                 .post(body)
                 .addHeader("Authorization", authString)
                 .build();
@@ -9619,8 +9645,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
                     String result = responseBody.string();
                     System.out.println("Result" + result);
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + "SendEmailReaderNotConnectedAsyncCall ~Result\n" + result);
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(TAG + "SendEmailReaderNotConnectedAsyncCall ~Result\n" + result);
 
                     try {
 
@@ -9630,7 +9656,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         String ResponseMessageSite = jsonObjectSite.getString(AppConstants.RES_MESSAGE);
 
                         if (ResponseMessageSite.equalsIgnoreCase("success")) {
-                            //     if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + " SendEmailReaderNotConnectedAsyncCall ~success");
+                            //     if (AppConstants.GENERATE_LOGS)AppConstants.writeInFile(TAG + " SendEmailReaderNotConnectedAsyncCall ~success");
                             EmailReaderNotConnected = true;
                         }
 
@@ -9651,9 +9677,9 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         }
         Fa_log.setText(AppConstants.LOG_FluidSecure_Auto);*/
 
-        tv_Display_msg.setText(AppConstants.Server_mesage);
-        tv_request.setText(AppConstants.Header_data + "\n\n" + AppConstants.Server_Request);
-        tv_response.setText(AppConstants.Server_Response);
+        tv_Display_msg.setText(AppConstants.SERVER_MESSAGE);
+        tv_request.setText(AppConstants.HEADER_DATA + "\n\n" + AppConstants.SERVER_REQUEST);
+        tv_response.setText(AppConstants.SERVER_RESPONSE);
 
 
     }
@@ -9687,9 +9713,9 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         String appLink = sharedPref.getString("appLink", "");
         if (appLink.trim().contains("http")) {
 
-            AppConstants.webIP = appLink.trim();
-            AppConstants.webURL = AppConstants.webIP + "HandlerTrak.ashx";
-            AppConstants.LoginURL = AppConstants.webIP + "LoginHandler.ashx";
+            AppConstants.SERVER_BASE_URL = appLink.trim();
+            AppConstants.WEB_URL = AppConstants.SERVER_BASE_URL + "HandlerTrak.ashx";
+            AppConstants.LOGIN_URL = AppConstants.SERVER_BASE_URL + "LoginHandler.ashx";
 
         }
     }
@@ -9744,18 +9770,18 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
     public void IsLogRequiredAndBranding() {
 
-        SharedPreferences sharedPref = this.getSharedPreferences(Constants.PREF_Log_Data, Context.MODE_PRIVATE);
-        AppConstants.GenerateLogs = Boolean.parseBoolean(sharedPref.getString(AppConstants.LogRequiredFlag, "True"));
-        String CompanyBrandName = sharedPref.getString(AppConstants.CompanyBrandName, "FluidSecure");
-        String CompanyBrandLogoLink = sharedPref.getString(AppConstants.CompanyBrandLogoLink, "");
-        String SupportEmail = sharedPref.getString(AppConstants.SupportEmail, "");
-        String SupportPhonenumber = sharedPref.getString(AppConstants.SupportPhonenumber, "");
+        SharedPreferences sharedPref = this.getSharedPreferences(Constants.PREF_LOG_DATA, Context.MODE_PRIVATE);
+        AppConstants.GENERATE_LOGS = Boolean.parseBoolean(sharedPref.getString(AppConstants.LOG_REQUIRED_FLAG, "True"));
+        String CompanyBrandName = sharedPref.getString(AppConstants.COMPANY_BRAND_NAME, "FluidSecure");
+        String CompanyBrandLogoLink = sharedPref.getString(AppConstants.COMPANY_BRAND_LOGO_LINK, "");
+        String SupportEmail = sharedPref.getString(AppConstants.SUPPORT_EMAIL, "");
+        String SupportPhonenumber = sharedPref.getString(AppConstants.SUPPORT_PHONE_NUMBER, "");
 
-        AppConstants.BrandName = CompanyBrandName;
+        AppConstants.BRAND_NAME = CompanyBrandName;
         support_email.setText(SupportEmail);
         support_phone.setText(SupportPhonenumber);
 
-        getSupportActionBar().setTitle(AppConstants.BrandName);
+        getSupportActionBar().setTitle(AppConstants.BRAND_NAME);
         getSupportActionBar().setIcon(R.drawable.fuel_secure_lock);
 
         if (!CompanyBrandLogoLink.equalsIgnoreCase("")) {
@@ -9766,17 +9792,17 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
     public void IsFARequired() {
 
-        AppConstants.DownloadFileHttpServer = "";
+        AppConstants.DOWNLOAD_FILE_HTTP_SERVER = "";
 
-        SharedPreferences sharedPref = this.getSharedPreferences(Constants.PREF_FA_Data, Context.MODE_PRIVATE);
-        AppConstants.EnableFA = sharedPref.getBoolean(AppConstants.FAData, false);
-        AppConstants.EnableServerForTLD = sharedPref.getBoolean(AppConstants.IsEnableServerForTLD, false);
+        SharedPreferences sharedPref = this.getSharedPreferences(Constants.PREF_FA_DATA, Context.MODE_PRIVATE);
+        AppConstants.ENABLE_FA = sharedPref.getBoolean(AppConstants.FA_DATA, false);
+        AppConstants.Enable_Server_For_TLD = sharedPref.getBoolean(AppConstants.IS_ENABLE_SERVER_FOR_TLD, false);
 
-        if (AppConstants.EnableFA) {
+        if (AppConstants.ENABLE_FA) {
 
-            //if (AppConstants.GenerateLogs) AppConstants.WriteinFile(TAG + " FA Enabled");
+            //if (AppConstants.GENERATE_LOGS) AppConstants.writeInFile(TAG + " FA Enabled");
             Log.e(TAG, " FA Enabled");
-            AppConstants.EnableFA = true;
+            AppConstants.ENABLE_FA = true;
 
 
             //TODO EddystoneScannerService
@@ -9788,13 +9814,13 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
             } else {
 
-                //if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "Failed to start EddystoneScannerService Scanning");
+                //if (AppConstants.GENERATE_LOGS)AppConstants.writeInFile(TAG + "Failed to start EddystoneScannerService Scanning");
                 Log.e(TAG, " Failed to start EddystoneScannerService Scanning");
 
             }
 
             //TODO MyServer FSVM
-            //if (AppConstants.Server_mesage.equalsIgnoreCase("Server Not Connected..!!!")){}
+            //if (AppConstants.SERVER_MESSAGE.equalsIgnoreCase("Server Not Connected..!!!")){}
 
             try {
 
@@ -9804,15 +9830,15 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
             } catch (Exception e) {
                 e.printStackTrace();
-                //if (AppConstants.GenerateLogs) AppConstants.WriteinFile(TAG + " MyServer Ex-" + e);
+                //if (AppConstants.GENERATE_LOGS) AppConstants.writeInFile(TAG + " MyServer Ex-" + e);
             }
 
 
-        } else if (AppConstants.EnableServerForTLD) {
+        } else if (AppConstants.Enable_Server_For_TLD) {
 
 
             //TODO MyServer FSVM
-            //if (AppConstants.Server_mesage.equalsIgnoreCase("Server Not Connected..!!!")){}
+            //if (AppConstants.SERVER_MESSAGE.equalsIgnoreCase("Server Not Connected..!!!")){}
             ctx = WelcomeActivity.this;
             try {
 
@@ -9822,14 +9848,14 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
             } catch (Exception e) {
                 e.printStackTrace();
-                //if (AppConstants.GenerateLogs) AppConstants.WriteinFile(TAG + " MyServer Ex-" + e);
+                //if (AppConstants.GENERATE_LOGS) AppConstants.writeInFile(TAG + " MyServer Ex-" + e);
             }
 
 
         } else {
 
 
-            AppConstants.EnableFA = false;
+            AppConstants.ENABLE_FA = false;
         }
 
     }
@@ -9868,13 +9894,13 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     //Store Hose ID and Firmware version in sharedpreferance
                     SharedPreferences sharedPref = WelcomeActivity.this.getSharedPreferences(Constants.PREF_FS_UPGRADE, Context.MODE_PRIVATE);
                     SharedPreferences.Editor editor = sharedPref.edit();
-                    editor.putString("hoseid_fs1", AppConstants.UP_HoseId_fs1);
+                    editor.putString("hoseid_fs1", AppConstants.UP_HOSE_ID_FS1);
                     editor.putString("fsversion_fs1", iot_version);
                     editor.commit();
 
                     //IF upgrade firmware true check below
-                    if (AppConstants.UP_Upgrade) {
-                        CheckForUpdateFirmware(AppConstants.UP_HoseId_fs1, iot_version, AppConstants.FS_selected);
+                    if (AppConstants.UP_UPGRADE) {
+                        CheckForUpdateFirmware(AppConstants.UP_HOSE_ID_FS1, iot_version, AppConstants.FS_SELECTED);
                     }
 
                 } catch (JSONException e) {
@@ -9883,8 +9909,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
             } else {
                 //Info command else commented
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "GateHubStartTransaction: info command response is empty.");
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(TAG + "GateHubStartTransaction: info command response is empty.");
             }
 
         } catch (Exception e) {
@@ -9897,7 +9923,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                        final String FS_selected) {
 
         SharedPreferences sharedPrefODO = this.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE);
-        String HubId = sharedPrefODO.getString(AppConstants.HubId, "");// HubId equals to personId
+        String HubId = sharedPrefODO.getString(AppConstants.HUBID, "");// HubId equals to personId
 
         //First call which will Update Fs firmware to Server--
         final UpgradeVersionEntity objEntityClass = new UpgradeVersionEntity();
@@ -9965,7 +9991,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 System.out.println("authString--" + authString);
 
 
-                response = serverHandler.PostTextData(WelcomeActivity.this, AppConstants.webURL, jsonData, authString);
+                response = serverHandler.PostTextData(WelcomeActivity.this, AppConstants.WEB_URL, jsonData, authString);
 
                 System.out.println("Id..." + jsonData);
 
@@ -9993,44 +10019,44 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     if (FS_selected.equalsIgnoreCase("0")) {
 
                         if (ResponceText.trim().equalsIgnoreCase("Y"))
-                            AppConstants.UP_Upgrade_fs1 = true;
+                            AppConstants.UP_UPGRADE_FS1 = true;
                         else
-                            AppConstants.UP_Upgrade_fs1 = false;
+                            AppConstants.UP_UPGRADE_FS1 = false;
 
                     } else if (FS_selected.equalsIgnoreCase("1")) {
 
                         if (ResponceText.trim().equalsIgnoreCase("Y"))
-                            AppConstants.UP_Upgrade_fs2 = true;
+                            AppConstants.UP_UPGRADE_FS2 = true;
                         else
-                            AppConstants.UP_Upgrade_fs2 = false;
+                            AppConstants.UP_UPGRADE_FS2 = false;
 
                     } else if (FS_selected.equalsIgnoreCase("2")) {
 
                         if (ResponceText.trim().equalsIgnoreCase("Y"))
-                            AppConstants.UP_Upgrade_fs3 = true;
+                            AppConstants.UP_UPGRADE_FS3 = true;
                         else
-                            AppConstants.UP_Upgrade_fs3 = false;
+                            AppConstants.UP_UPGRADE_FS3 = false;
 
                     } else if (FS_selected.equalsIgnoreCase("3")) {
 
                         if (ResponceText.trim().equalsIgnoreCase("Y"))
-                            AppConstants.UP_Upgrade_fs4 = true;
+                            AppConstants.UP_UPGRADE_FS4 = true;
                         else
-                            AppConstants.UP_Upgrade_fs4 = false;
+                            AppConstants.UP_UPGRADE_FS4 = false;
 
                     } else if (FS_selected.equalsIgnoreCase("4")) {
 
                         if (ResponceText.trim().equalsIgnoreCase("Y"))
-                            AppConstants.UP_Upgrade_fs5 = true;
+                            AppConstants.UP_UPGRADE_FS5 = true;
                         else
-                            AppConstants.UP_Upgrade_fs5 = false;
+                            AppConstants.UP_UPGRADE_FS5 = false;
 
                     } else if (FS_selected.equalsIgnoreCase("5")) {
 
                         if (ResponceText.trim().equalsIgnoreCase("Y"))
-                            AppConstants.UP_Upgrade_fs6 = true;
+                            AppConstants.UP_UPGRADE_FS6 = true;
                         else
-                            AppConstants.UP_Upgrade_fs6 = false;
+                            AppConstants.UP_UPGRADE_FS6 = false;
 
                     }
                     //--------------------------------------------
@@ -10070,7 +10096,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
                 //----------------------------------------------------------------------------------
                 String authString = "Basic " + AppConstants.convertStingToBase64(objupgrade.IMEIUDID + ":" + objupgrade.Email + ":" + "UpgradeCurrentVersionWithUgradableVersion" + AppConstants.LANG_PARAM);
-                response = serverHandler.PostTextData(WelcomeActivity.this, AppConstants.webURL, jsonData, authString);
+                response = serverHandler.PostTextData(WelcomeActivity.this, AppConstants.WEB_URL, jsonData, authString);
                 //----------------------------------------------------------------------------------
 
             } catch (Exception ex) {
@@ -10130,7 +10156,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
          */
         if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
             Toast.makeText(this, "No LE Support.", Toast.LENGTH_SHORT).show();
-            if (AppConstants.GenerateLogs) AppConstants.WriteinFile(TAG + "No LE Support.");
+            if (AppConstants.GENERATE_LOGS) AppConstants.writeInFile(TAG + "No LE Support.");
             finish();
             return false;
         }
@@ -10177,7 +10203,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 ServerHandler serverHandler = new ServerHandler();
                 //----------------------------------------------------------------------------------
                 String parm1 = AppConstants.getIMEI(WelcomeActivity.this) + ":" + userInfoEntity.PersonEmail + ":" + "Other" + AppConstants.LANG_PARAM;
-                String parm2 = "Authenticate:I:" + Constants.Latitude + "," + Constants.Longitude;
+                String parm2 = "Authenticate:I:" + Constants.LATITUDE + "," + Constants.LONGITUDE;
 
 
                 System.out.println("parm1----" + parm1);
@@ -10185,7 +10211,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
                 String authString = "Basic " + AppConstants.convertStingToBase64(parm1);
 
-                //resp = serverHandler.PostTextData(WelcomeActivity.this, AppConstants.webURL, parm2, authString);
+                //resp = serverHandler.PostTextData(WelcomeActivity.this, AppConstants.WEB_URL, parm2, authString);
                 //----------------------------------------------------------------------------------
 
                 OkHttpClient client = new OkHttpClient();
@@ -10197,7 +10223,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
                 RequestBody body = RequestBody.create(TEXT, parm2);
                 Request request = new Request.Builder()
-                        .url(AppConstants.webURL)
+                        .url(AppConstants.WEB_URL)
                         .post(body)
                         .addHeader("Authorization", authString)
                         .build();
@@ -10209,8 +10235,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
             } catch (Exception e) {
                 System.out.println("Ex" + e.getMessage());
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "GetSSIDUsingLocationOnResume InBackground --Exception " + e);
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(TAG + "GetSSIDUsingLocationOnResume InBackground --Exception " + e);
                 if (OfflineConstants.isOfflineAccess(WelcomeActivity.this)) {
                     AppConstants.NETWORK_STRENGTH = false;
                 }
@@ -10226,14 +10252,14 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         alertDialog.dismiss();
                     }
                 }
-                //tvLatLng.setText("Current Location :" + Constants.Latitude + "," + Constants.Longitude); // #2005
+                //tvLatLng.setText("Current Location :" + Constants.LATITUDE + "," + Constants.LONGITUDE); // #2005
                 tvLatLng.setText(getResources().getString(R.string.HoseListIsNotAvailable));
 
                 System.out.println("GetSSIDUsingLocationOnResume...." + result);
-                AppConstants.isAllLinksAreBTLinks = true;
+                AppConstants.IS_ALL_LINKS_ARE_BT_LINKS = true;
                 serverSSIDList.clear();
                 // BackgroundServiceKeepDataTransferAlive.SSIDList.clear();//clear SSIDList
-                //AppConstants.DetailsServerSSIDList.clear();
+                //AppConstants.DETAILS_SERVER_SSID_LIST.clear();
 
                 String errMsg = "";
                 if (result != null && !result.isEmpty()) {
@@ -10273,7 +10299,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         String ScreenNameForHours = jsonObject.getString("ScreenNameForHours");
                         String ScreenNameForDepartment = jsonObject.getString("ScreenNameForDepartment");
 
-                        SharedPreferences prefkb = WelcomeActivity.this.getSharedPreferences(AppConstants.sharedPref_KeyboardType, Context.MODE_PRIVATE);
+                        SharedPreferences prefkb = WelcomeActivity.this.getSharedPreferences(AppConstants.PREF_KEYBOARD_TYPE, Context.MODE_PRIVATE);
                         SharedPreferences.Editor editorkb = prefkb.edit();
                         editorkb.putString("ScreenNameForVehicle", ScreenNameForVehicle);
                         editorkb.putString("ScreenNameForPersonnel", ScreenNameForPersonnel);
@@ -10325,7 +10351,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                 String LinkCommunicationType = c.getString("HubLinkCommunication");
                                 String BTLinkCommType = c.getString("BTLinkCommType");
                                 if (!LinkCommunicationType.equalsIgnoreCase("BT")) {
-                                    AppConstants.isAllLinksAreBTLinks = false;
+                                    AppConstants.IS_ALL_LINKS_ARE_BT_LINKS = false;
                                 }
                                 String IsTankEmpty = c.getString("IsTankEmpty");
                                 String IsLinkFlagged = c.getString("IsLinkFlagged");
@@ -10357,9 +10383,9 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                 }
 
                                 //Enable Nano Http server if Ble reader update required
-                                if (!AppConstants.DownloadFileHttpServer.equalsIgnoreCase("Started")) {
+                                if (!AppConstants.DOWNLOAD_FILE_HTTP_SERVER.equalsIgnoreCase("Started")) {
 
-                                    AppConstants.DownloadFileHttpServer = "Started";
+                                    AppConstants.DOWNLOAD_FILE_HTTP_SERVER = "Started";
                                     if (IsHFUpdate.equalsIgnoreCase("Y") || IsLFUpdate.equalsIgnoreCase("Y")) {
                                         ctx = WelcomeActivity.this;
                                         try {
@@ -10370,10 +10396,10 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
                                         } catch (Exception e) {
                                             e.printStackTrace();
-                                            //if (AppConstants.GenerateLogs) AppConstants.WriteinFile(TAG + " MyServer Ex-" + e);
+                                            //if (AppConstants.GENERATE_LOGS) AppConstants.writeInFile(TAG + " MyServer Ex-" + e);
                                         }
 
-                                        Log.i(TAG, "DownloadFileHttpServer status" + AppConstants.DownloadFileHttpServer);
+                                        Log.i(TAG, "DOWNLOAD_FILE_HTTP_SERVER status" + AppConstants.DOWNLOAD_FILE_HTTP_SERVER);
                                     }
                                 }
 
@@ -10398,12 +10424,12 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                 editor1.commit();
 
 
-                                AppConstants.UP_FilePath = FilePath;
+                                AppConstants.UP_FILE_PATH = FilePath;
 
                                 AppConstants.BT_READER_NAME = BluetoothCardReaderHF;
 
                                 //Current Fs wifi password
-                                Constants.CurrFsPass = Password;
+                                Constants.CURRENT_FS_PASSWORD = Password;
 
 
                                 //For schedule reboot
@@ -10455,7 +10481,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                 if (ResponceMessage.equalsIgnoreCase("success")) {
                                     if (isNotNULL(SiteId) && isNotNULL(HoseId) && isNotNULL(WifiSSId)) {
                                         serverSSIDList.add(map);
-                                        AppConstants.DetailsServerSSIDList = serverSSIDList;
+                                        AppConstants.DETAILS_SERVER_SSID_LIST = serverSSIDList;
                                         BackgroundServiceKeepDataTransferAlive.SSIDList = serverSSIDList;
                                         BackgroundServiceKeepAliveBT.SSIDList = serverSSIDList;
 
@@ -10489,7 +10515,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                                 editor.putInt("day", currentDay);
                                                 editor.commit();
                                                 //Code that runs once in a day
-                                                if (AppConstants.DisableAllRebootOptions.equalsIgnoreCase("N")) {
+                                                if (AppConstants.DISABLE_ALL_REBOOT_OPTIONS.equalsIgnoreCase("N")) {
                                                     scheduleReboot(rebootHours, rebootMinutes, rebootDay);
                                                 }
                                             }
@@ -10499,7 +10525,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                                 editor.putInt("day", currentDay);
                                                 editor.commit();
                                                 //Code that runs once in a day
-                                                if (AppConstants.DisableAllRebootOptions.equalsIgnoreCase("N")) {
+                                                if (AppConstants.DISABLE_ALL_REBOOT_OPTIONS.equalsIgnoreCase("N")) {
                                                     scheduleReboot(rebootHours, rebootMinutes, rebootDay);
                                                 }
                                             }
@@ -10507,20 +10533,20 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                     }
                                 } else {
                                     errMsg = ResponceText;
-                                    if (AppConstants.GenerateLogs)
-                                        AppConstants.WriteinFile(TAG + "GetSSIDUsingLocationOnResume: " + ResponceText);
+                                    if (AppConstants.GENERATE_LOGS)
+                                        AppConstants.writeInFile(TAG + "GetSSIDUsingLocationOnResume: " + ResponceText);
                                     if (ResponceText.contains(getResources().getString(R.string.NoLinksAssignedServerMessage))) {
                                         CustomMessageWithYesOrNo(WelcomeActivity.this, getResources().getString(R.string.NoLinksAssignedAppMessage));
                                     } else {
-                                        AppConstants.AlertDialogFinish(WelcomeActivity.this, ResponceText);
+                                        AppConstants.alertDialogFinish(WelcomeActivity.this, ResponceText);
                                     }
                                 }
                             }
-                            AppConstants.temp_serverSSIDList = serverSSIDList;
+                            AppConstants.TEMP_SERVER_SSID_LIST = serverSSIDList;
                         }
                         try {
                             HideAddLinkMenu();
-                            if (serverSSIDList != null && serverSSIDList.size() == 1 && IsGateHub.equalsIgnoreCase("True") && Constants.FS_1STATUS.equalsIgnoreCase("FREE")) {
+                            if (serverSSIDList != null && serverSSIDList.size() == 1 && IsGateHub.equalsIgnoreCase("True") && Constants.FS_1_STATUS.equalsIgnoreCase("FREE")) {
                                 cancelThinDownloadManager();
                                 try {
                                     String SSID_mac = serverSSIDList.get(0).get("MacAddress");
@@ -10536,22 +10562,22 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
                                     if (LinkCommunicationType.equalsIgnoreCase("HTTP")) {
                                         String Chk_ip = "";
-                                        if (AppConstants.DetailsListOfConnectedDevices != null && AppConstants.DetailsListOfConnectedDevices.size() > 0)
-                                            Chk_ip = AppConstants.DetailsListOfConnectedDevices.get(0).get("ipAddress");
+                                        if (AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES != null && AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.size() > 0)
+                                            Chk_ip = AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.get(0).get("ipAddress");
                                         else {
-                                            getipOverOSVersion();
+                                            getIpOverOSVersion();
                                         }
 
                                         if (Chk_ip != null && Chk_ip.length() > 3 && !ReconfigureLink.equalsIgnoreCase("true")) {
                                             boolean isMacConnected = false;
-                                            if (AppConstants.DetailsListOfConnectedDevices != null) {
-                                                for (int i = 0; i < AppConstants.DetailsListOfConnectedDevices.size(); i++) {
-                                                    String Chk_mac = AppConstants.DetailsListOfConnectedDevices.get(i).get("macAddress");
+                                            if (AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES != null) {
+                                                for (int i = 0; i < AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.size(); i++) {
+                                                    String Chk_mac = AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.get(i).get("macAddress");
 
                                                     if (SSID_mac.equalsIgnoreCase(Chk_mac)) {
-                                                        if (AppConstants.GenerateLogs)
-                                                            AppConstants.WriteinFile(TAG + "Selected LINK (" + selSSID + " <==> " + SSID_mac + ") is connected to hotspot.");
-                                                        IpAddress = AppConstants.DetailsListOfConnectedDevices.get(i).get("ipAddress");
+                                                        if (AppConstants.GENERATE_LOGS)
+                                                            AppConstants.writeInFile(TAG + "Selected LINK (" + selSSID + " <==> " + SSID_mac + ") is connected to hotspot.");
+                                                        IpAddress = AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.get(i).get("ipAddress");
                                                         isMacConnected = true;
                                                         break;
                                                     }
@@ -10559,24 +10585,24 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                             }
 
                                             if (!isMacConnected) {
-                                                if (AppConstants.GenerateLogs)
-                                                    AppConstants.WriteinFile(TAG + "Selected LINK (" + selSSID + " <==> " + SSID_mac + ") is not found in connected devices. " + AppConstants.DetailsListOfConnectedDevices);
+                                                if (AppConstants.GENERATE_LOGS)
+                                                    AppConstants.writeInFile(TAG + "Selected LINK (" + selSSID + " <==> " + SSID_mac + ") is not found in connected devices. " + AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES);
 
-                                                for (int i = 0; i < AppConstants.DetailsListOfConnectedDevices.size(); i++) {
-                                                    String Chk_mac = AppConstants.DetailsListOfConnectedDevices.get(i).get("macAddress");
-                                                    if (AppConstants.GenerateLogs)
-                                                        AppConstants.WriteinFile(TAG + "Checking Mac Address using info command: (" + Chk_mac + ")");
+                                                for (int i = 0; i < AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.size(); i++) {
+                                                    String Chk_mac = AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.get(i).get("macAddress");
+                                                    if (AppConstants.GENERATE_LOGS)
+                                                        AppConstants.writeInFile(TAG + "Checking Mac Address using info command: (" + Chk_mac + ")");
 
-                                                    String connectedIp = AppConstants.DetailsListOfConnectedDevices.get(i).get("ipAddress");
+                                                    String connectedIp = AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.get(i).get("ipAddress");
 
                                                     IpAddress = GetAndCheckMacAddressFromInfoCommand(connectedIp, SSID_mac, Chk_mac);
                                                     if (!IpAddress.trim().isEmpty()) {
-                                                        if (AppConstants.GenerateLogs)
-                                                            AppConstants.WriteinFile("===================================================================");
+                                                        if (AppConstants.GENERATE_LOGS)
+                                                            AppConstants.writeInFile("===================================================================");
                                                         break;
                                                     }
-                                                    if (AppConstants.GenerateLogs)
-                                                        AppConstants.WriteinFile("===================================================================");
+                                                    if (AppConstants.GENERATE_LOGS)
+                                                        AppConstants.writeInFile("===================================================================");
                                                 }
                                             }
 
@@ -10588,8 +10614,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                             }
                                         } else {
                                             Toast.makeText(getApplicationContext(), "Auto select fail", Toast.LENGTH_SHORT).show();
-                                            if (AppConstants.GenerateLogs)
-                                                AppConstants.WriteinFile(TAG + "Auto select fail");
+                                            if (AppConstants.GENERATE_LOGS)
+                                                AppConstants.writeInFile(TAG + "Auto select fail");
                                         }
                                     } else if (LinkCommunicationType.equalsIgnoreCase("BT")) {
                                         SelectedItemPos = 0;
@@ -10602,11 +10628,11 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                     e.printStackTrace();
                                 }
 
-                            } else if (serverSSIDList != null && serverSSIDList.size() == 1 && Constants.FS_1STATUS.equalsIgnoreCase("FREE")) {
+                            } else if (serverSSIDList != null && serverSSIDList.size() == 1 && Constants.FS_1_STATUS.equalsIgnoreCase("FREE")) {
 
                                 cancelThinDownloadManager();
                                 try {
-                                    AppConstants.IsSingleLink = true;
+                                    AppConstants.IS_SINGLE_LINK = true;
                                     String SSID_mac = serverSSIDList.get(0).get("MacAddress");
                                     String ReconfigureLink = serverSSIDList.get(0).get("ReconfigureLink");
                                     AppConstants.SITE_ID = serverSSIDList.get(0).get("SiteId");
@@ -10626,23 +10652,23 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
                                     } else {
                                         String Chk_ip = "";
-                                        if (AppConstants.DetailsListOfConnectedDevices != null && AppConstants.DetailsListOfConnectedDevices.size() > 0) {
-                                            Chk_ip = AppConstants.DetailsListOfConnectedDevices.get(0).get("ipAddress");
+                                        if (AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES != null && AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.size() > 0) {
+                                            Chk_ip = AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.get(0).get("ipAddress");
                                         } else {
-                                            getipOverOSVersion();
+                                            getIpOverOSVersion();
                                         }
 
                                         if (Chk_ip != null && Chk_ip.length() > 3 && !ReconfigureLink.equalsIgnoreCase("true")) {
 
                                             boolean isMacConnected = false;
-                                            if (AppConstants.DetailsListOfConnectedDevices != null) {
-                                                for (int i = 0; i < AppConstants.DetailsListOfConnectedDevices.size(); i++) {
-                                                    String Chk_mac = AppConstants.DetailsListOfConnectedDevices.get(i).get("macAddress");
+                                            if (AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES != null) {
+                                                for (int i = 0; i < AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.size(); i++) {
+                                                    String Chk_mac = AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.get(i).get("macAddress");
 
                                                     if (SSID_mac.equalsIgnoreCase(Chk_mac)) {
-                                                        if (AppConstants.GenerateLogs)
-                                                            AppConstants.WriteinFile(TAG + "Selected LINK (" + selSSID + " <==> " + SSID_mac + ") is connected to hotspot.");
-                                                        IpAddress = AppConstants.DetailsListOfConnectedDevices.get(i).get("ipAddress");
+                                                        if (AppConstants.GENERATE_LOGS)
+                                                            AppConstants.writeInFile(TAG + "Selected LINK (" + selSSID + " <==> " + SSID_mac + ") is connected to hotspot.");
+                                                        IpAddress = AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.get(i).get("ipAddress");
                                                         isMacConnected = true;
                                                         break;
                                                     }
@@ -10650,24 +10676,24 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                             }
 
                                             if (!isMacConnected) {
-                                                if (AppConstants.GenerateLogs)
-                                                    AppConstants.WriteinFile(TAG + "Selected LINK (" + selSSID + " <==> " + SSID_mac + ") is not found in connected devices. " + AppConstants.DetailsListOfConnectedDevices);
+                                                if (AppConstants.GENERATE_LOGS)
+                                                    AppConstants.writeInFile(TAG + "Selected LINK (" + selSSID + " <==> " + SSID_mac + ") is not found in connected devices. " + AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES);
 
-                                                for (int i = 0; i < AppConstants.DetailsListOfConnectedDevices.size(); i++) {
-                                                    String Chk_mac = AppConstants.DetailsListOfConnectedDevices.get(i).get("macAddress");
-                                                    if (AppConstants.GenerateLogs)
-                                                        AppConstants.WriteinFile(TAG + "Checking Mac Address using info command: (" + Chk_mac + ")");
+                                                for (int i = 0; i < AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.size(); i++) {
+                                                    String Chk_mac = AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.get(i).get("macAddress");
+                                                    if (AppConstants.GENERATE_LOGS)
+                                                        AppConstants.writeInFile(TAG + "Checking Mac Address using info command: (" + Chk_mac + ")");
 
-                                                    String connectedIp = AppConstants.DetailsListOfConnectedDevices.get(i).get("ipAddress");
+                                                    String connectedIp = AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.get(i).get("ipAddress");
 
                                                     IpAddress = GetAndCheckMacAddressFromInfoCommand(connectedIp, SSID_mac, Chk_mac);
                                                     if (!IpAddress.trim().isEmpty()) {
-                                                        if (AppConstants.GenerateLogs)
-                                                            AppConstants.WriteinFile("===================================================================");
+                                                        if (AppConstants.GENERATE_LOGS)
+                                                            AppConstants.writeInFile("===================================================================");
                                                         break;
                                                     }
-                                                    if (AppConstants.GenerateLogs)
-                                                        AppConstants.WriteinFile("===================================================================");
+                                                    if (AppConstants.GENERATE_LOGS)
+                                                        AppConstants.writeInFile("===================================================================");
                                                 }
                                             }
 
@@ -10678,29 +10704,29 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                             }
                                         } else {
                                             Toast.makeText(getApplicationContext(), "Auto select fail", Toast.LENGTH_SHORT).show();
-                                            if (AppConstants.GenerateLogs)
-                                                AppConstants.WriteinFile(TAG + "Auto select fail");
+                                            if (AppConstants.GENERATE_LOGS)
+                                                AppConstants.writeInFile(TAG + "Auto select fail");
                                         }
                                     }
                                 } catch (Exception e) {
                                     e.printStackTrace();
                                 }
 
-                            } /*else if (serverSSIDList != null && AppConstants.LastSelectedHose != null && Constants.FS_1STATUS.equalsIgnoreCase("FREE") && Constants.FS_2STATUS.equalsIgnoreCase("FREE") && Constants.FS_3STATUS.equalsIgnoreCase("FREE") && Constants.FS_4STATUS.equalsIgnoreCase("FREE")) {
+                            } /*else if (serverSSIDList != null && AppConstants.LastSelectedHose != null && Constants.FS_1_STATUS.equalsIgnoreCase("FREE") && Constants.FS_2_STATUS.equalsIgnoreCase("FREE") && Constants.FS_3_STATUS.equalsIgnoreCase("FREE") && Constants.FS_4_STATUS.equalsIgnoreCase("FREE")) {
 
                                 //Thread.sleep(1000);
                                 try {
                                     int num = Integer.parseInt(AppConstants.LastSelectedHose);
                                     String SSID_mac = serverSSIDList.get(num).get("MacAddress");
                                     String ReconfigureLink = serverSSIDList.get(num).get("ReconfigureLink");
-                                    String Chk_ip = AppConstants.DetailsListOfConnectedDevices.get(num).get("ipAddress");
+                                    String Chk_ip = AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.get(num).get("ipAddress");
 
 
                                     if (Chk_ip != null && Chk_ip.length() > 3 && !ReconfigureLink.equalsIgnoreCase("true")) {
 
-                                        for (int i = 0; i < AppConstants.DetailsListOfConnectedDevices.size(); i++) {
+                                        for (int i = 0; i < AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.size(); i++) {
 
-                                            String Chk_mac = AppConstants.DetailsListOfConnectedDevices.get(i).get("macAddress");
+                                            String Chk_mac = AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.get(i).get("macAddress");
                                             if (SSID_mac.equalsIgnoreCase(Chk_mac)) {
 
                                                 tvSSIDName.setText(serverSSIDList.get(num).get("WifiSSId"));
@@ -10719,22 +10745,22 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
                         } catch (Exception e) {
                             System.out.println(e);
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(TAG + "GetSSIDUsingLocationOnResume if only one hose autoselect --Exception: " + e.getMessage());
+                            if (AppConstants.GENERATE_LOGS)
+                                AppConstants.writeInFile(TAG + "GetSSIDUsingLocationOnResume if only one hose autoselect --Exception: " + e.getMessage());
                         }
 
                     } else if (ResponseMessageSite.equalsIgnoreCase("fail")) {
                         String ResponseTextSite = jsonObjectSite.getString(AppConstants.RES_TEXT);
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "GetSSIDUsingLocationOnResume SSIDData response fail. Error: " + ResponseTextSite);
-                        AppConstants.AlertDialogBox(WelcomeActivity.this, ResponseTextSite);
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(TAG + "GetSSIDUsingLocationOnResume SSIDData response fail. Error: " + ResponseTextSite);
+                        AppConstants.alertDialogBox(WelcomeActivity.this, ResponseTextSite);
 
                     }
                 } else {
                     if (OfflineConstants.isOfflineAccess(WelcomeActivity.this)) {
                         AppConstants.NETWORK_STRENGTH = false;
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "Temporary loss of cell service ~Switching to offline mode!!");
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(TAG + "Temporary loss of cell service ~Switching to offline mode!!");
                     }
                     new GetOfflineSSIDUsingLocation().execute();
                 }
@@ -10747,8 +10773,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     }
                 }
                 CommonUtils.LogMessage(TAG, " GetSSIDUsingLocationOnResume :" + result, e);
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "GetSSIDUsingLocationOnResume onPostExecute --Exception: " + e.getMessage());
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(TAG + "GetSSIDUsingLocationOnResume onPostExecute --Exception: " + e.getMessage());
                 if (OfflineConstants.isOfflineAccess(WelcomeActivity.this)) {
                     AppConstants.NETWORK_STRENGTH = false;
                 }
@@ -10761,7 +10787,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
         System.out.println("MJ- connectWiFiLibrary" + asd);
 
-        Constants.hotspotstayOn = false; //hotspot enable/disable flag
+        Constants.HOTSPOT_STAY_ON = false; //hotspot enable/disable flag
 
 
         WifiManager wifiManagerMM = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
@@ -10777,10 +10803,10 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             ReconfigSSID = "FS-" + AppConstants.CURRENT_SELECTED_SSID;
         }*/
 
-        AppConstants.SELECTED_SSID_FOR_MANUALL = AppConstants.CURRENT_SELECTED_SSID;//ReconfigSSID;
+        AppConstants.SELECTED_SSID_FOR_MANUAL = AppConstants.CURRENT_SELECTED_SSID;//ReconfigSSID;
 
-        String ote = AppConstants.SELECTED_SSID_FOR_MANUALL;
-        String otePass = Constants.CurrFsPass;
+        String ote = AppConstants.SELECTED_SSID_FOR_MANUAL;
+        String otePass = Constants.CURRENT_FS_PASSWORD;
 
         WifiUtils.withContext(WelcomeActivity.this)
                 .connectWith(ote, otePass)
@@ -10794,7 +10820,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
         System.out.println("MJ- connectWiFiLibrary" + asd);
 
-        Constants.hotspotstayOn = false; //hotspot enable/disable flag
+        Constants.HOTSPOT_STAY_ON = false; //hotspot enable/disable flag
         skipOnResume = true;
         wifiApManager.setWifiApEnabled(null, false);
 
@@ -10821,10 +10847,10 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             ReconfigSSID = "FS-" + AppConstants.CURRENT_SELECTED_SSID;
         }*/
 
-        AppConstants.SELECTED_SSID_FOR_MANUALL = AppConstants.CURRENT_SELECTED_SSID;
+        AppConstants.SELECTED_SSID_FOR_MANUAL = AppConstants.CURRENT_SELECTED_SSID;
 
-        String ote = AppConstants.SELECTED_SSID_FOR_MANUALL;
-        String otePass = Constants.CurrFsPass;
+        String ote = AppConstants.SELECTED_SSID_FOR_MANUAL;
+        String otePass = Constants.CURRENT_FS_PASSWORD;
 
         WifiUtils.withContext(WelcomeActivity.this)
                 .connectWith(ote, otePass)
@@ -10846,7 +10872,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         loading.setProgressStyle(ProgressDialog.STYLE_SPINNER);
         loading.show();
 
-        Constants.hotspotstayOn = false; //hotspot enable/disable flag
+        Constants.HOTSPOT_STAY_ON = false; //hotspot enable/disable flag
         if (CommonUtils.isHotspotEnabled(this)) {
             skipOnResume = true;
             wifiApManager.setWifiApEnabled(null, false);
@@ -10863,7 +10889,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             ReconfigSSID = "FS-" + AppConstants.CURRENT_SELECTED_SSID;
         }*/
 
-        AppConstants.SELECTED_SSID_FOR_MANUALL = AppConstants.CURRENT_SELECTED_SSID;//ReconfigSSID;
+        AppConstants.SELECTED_SSID_FOR_MANUAL = AppConstants.CURRENT_SELECTED_SSID;//ReconfigSSID;
 
         if (countDownTimerForReconfigure == null) {
             countDownTimerForReconfigure = new CountDownTimer(30000, 6000) {
@@ -10879,9 +10905,9 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
                     ssid = ssid.replace("\"", "");
 
-                    System.out.println("countDownTimerFForReconfigure-" + ssid + " : " + AppConstants.SELECTED_SSID_FOR_MANUALL);
+                    System.out.println("countDownTimerFForReconfigure-" + ssid + " : " + AppConstants.SELECTED_SSID_FOR_MANUAL);
 
-                    if (ssid.contains(AppConstants.SELECTED_SSID_FOR_MANUALL) || AppConstants.SELECTED_SSID_FOR_MANUALL.contains(ssid)) {
+                    if (ssid.contains(AppConstants.SELECTED_SSID_FOR_MANUAL) || AppConstants.SELECTED_SSID_FOR_MANUAL.contains(ssid)) {
 
                         //connecting for 30 sec then on finish check connected or not
 
@@ -10916,17 +10942,17 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
                     ssid = ssid.replace("\"", "");
 
-                    System.out.println("countDownTimerFForReconfigure-" + ssid + " : " + AppConstants.SELECTED_SSID_FOR_MANUALL);
+                    System.out.println("countDownTimerFForReconfigure-" + ssid + " : " + AppConstants.SELECTED_SSID_FOR_MANUAL);
 
-                    if (ssid.contains(AppConstants.CURRENT_SELECTED_SSID) || ssid.contains(AppConstants.SELECTED_SSID_FOR_MANUALL) || AppConstants.SELECTED_SSID_FOR_MANUALL.contains(ssid)) {
+                    if (ssid.contains(AppConstants.CURRENT_SELECTED_SSID) || ssid.contains(AppConstants.SELECTED_SSID_FOR_MANUAL) || AppConstants.SELECTED_SSID_FOR_MANUAL.contains(ssid)) {
 
                         new WiFiConnectTask().execute();//onfinish
 
                     } else {
-                        Constants.hotspotstayOn = false;
-                        AppConstants.ManuallReconfigure = true;
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Unable to auto connect to " + AppConstants.CURRENT_SELECTED_SSID +". Started manual process..");
+                        Constants.HOTSPOT_STAY_ON = false;
+                        AppConstants.MANUAL_RECONFIGURE = true;
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Unable to auto connect to " + AppConstants.CURRENT_SELECTED_SSID +". Started manual process..");
                         AppConstants.colorToastBigFont(WelcomeActivity.this, getResources().getString(R.string.UnableToAutoConnect) + " " + AppConstants.CURRENT_SELECTED_SSID + ". " + getResources().getString(R.string.StartedManualProcess), Color.BLUE);
                         LinkReConfigurationProcessStep1();//onfinish
 
@@ -10946,8 +10972,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         if (isSuccess) {
 
 
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "WIFI CONNECTED " + AppConstants.CURRENT_SELECTED_SSID);
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + "WIFI CONNECTED " + AppConstants.CURRENT_SELECTED_SSID);
             AppConstants.colorToastBigFont(WelcomeActivity.this, getResources().getString(R.string.ConnectedToWifi) + " " + AppConstants.CURRENT_SELECTED_SSID, Color.BLUE);
 
             WifiManager wifiManager = (WifiManager) WelcomeActivity.this.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
@@ -10955,21 +10981,21 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             int NetID = wifiInfo.getNetworkId();
             String ssid = wifiInfo.getSSID();
 
-            if (ssid.contains(AppConstants.SELECTED_SSID_FOR_MANUALL)) {
+            if (ssid.contains(AppConstants.SELECTED_SSID_FOR_MANUAL)) {
 
                 //new WiFiConnectTask().execute();
 
             } else {
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "Connected to wrong Wifi Please try again..");
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(TAG + "Connected to wrong Wifi Please try again..");
                 AppConstants.colorToastBigFont(WelcomeActivity.this, "Connected to wrong Wifi Please try again..", Color.BLUE);
 
             }
 
         } else {
-            AppConstants.ManuallReconfigure = false;
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "Connecting to " + AppConstants.CURRENT_SELECTED_SSID + " Attempt " + 2);
+            AppConstants.MANUAL_RECONFIGURE = false;
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + "Connecting to " + AppConstants.CURRENT_SELECTED_SSID + " Attempt " + 2);
             AppConstants.colorToastBigFont(WelcomeActivity.this, "Connecting to " + AppConstants.CURRENT_SELECTED_SSID + " Attempt " + 2, Color.BLUE);
             connectWiFiLibrary2Attempt();
 
@@ -10978,7 +11004,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
     public void connectWiFiLibrary2Attempt() {
 
-        Constants.hotspotstayOn = false; //hotspot enable/disable flag
+        Constants.HOTSPOT_STAY_ON = false; //hotspot enable/disable flag
         skipOnResume = true;
         wifiApManager.setWifiApEnabled(null, false);
 
@@ -11004,10 +11030,10 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             ReconfigSSID = "FS-" + AppConstants.CURRENT_SELECTED_SSID;
         }*/
 
-        AppConstants.SELECTED_SSID_FOR_MANUALL = AppConstants.CURRENT_SELECTED_SSID;//ReconfigSSID;
+        AppConstants.SELECTED_SSID_FOR_MANUAL = AppConstants.CURRENT_SELECTED_SSID;//ReconfigSSID;
 
-        String ote = AppConstants.SELECTED_SSID_FOR_MANUALL;
-        String otePass = Constants.CurrFsPass;
+        String ote = AppConstants.SELECTED_SSID_FOR_MANUAL;
+        String otePass = Constants.CURRENT_FS_PASSWORD;
 
         WifiUtils.withContext(WelcomeActivity.this)
                 .connectWith(ote, otePass)
@@ -11029,8 +11055,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         if (isSuccess) {
 
 
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "WIFI CONNECTED " + AppConstants.CURRENT_SELECTED_SSID);
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + "WIFI CONNECTED " + AppConstants.CURRENT_SELECTED_SSID);
             AppConstants.colorToastBigFont(WelcomeActivity.this, getResources().getString(R.string.ConnectedToWifi) + " " + AppConstants.CURRENT_SELECTED_SSID, Color.BLUE);
 
             WifiManager wifiManager = (WifiManager) WelcomeActivity.this.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
@@ -11038,21 +11064,21 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             int NetID = wifiInfo.getNetworkId();
             String ssid = wifiInfo.getSSID();
 
-            if (ssid.contains(AppConstants.SELECTED_SSID_FOR_MANUALL)) {
+            if (ssid.contains(AppConstants.SELECTED_SSID_FOR_MANUAL)) {
 
                 //new WiFiConnectTask().execute();
 
             } else {
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "Connected to wrong Wifi Please try again..");
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(TAG + "Connected to wrong Wifi Please try again..");
                 AppConstants.colorToastBigFont(WelcomeActivity.this, "Connected to wrong Wifi Please try again..", Color.BLUE);
 
             }
 
         } else {
-            AppConstants.ManuallReconfigure = false;
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "Connecting to " + AppConstants.CURRENT_SELECTED_SSID + " Attempt 3");
+            AppConstants.MANUAL_RECONFIGURE = false;
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + "Connecting to " + AppConstants.CURRENT_SELECTED_SSID + " Attempt 3");
             AppConstants.colorToastBigFont(WelcomeActivity.this, "Connecting to " + AppConstants.CURRENT_SELECTED_SSID + " Attempt 3", Color.BLUE);
             connectWiFiLibrary3Attempt();
 
@@ -11062,7 +11088,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
     public void connectWiFiLibrary3Attempt() {
 
-        Constants.hotspotstayOn = false; //hotspot enable/disable flag
+        Constants.HOTSPOT_STAY_ON = false; //hotspot enable/disable flag
         skipOnResume = true;
         wifiApManager.setWifiApEnabled(null, false);
 
@@ -11088,10 +11114,10 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             ReconfigSSID = "FS-" + AppConstants.CURRENT_SELECTED_SSID;
         }*/
 
-        AppConstants.SELECTED_SSID_FOR_MANUALL = AppConstants.CURRENT_SELECTED_SSID;
+        AppConstants.SELECTED_SSID_FOR_MANUAL = AppConstants.CURRENT_SELECTED_SSID;
 
-        String ote = AppConstants.SELECTED_SSID_FOR_MANUALL;
-        String otePass = Constants.CurrFsPass;
+        String ote = AppConstants.SELECTED_SSID_FOR_MANUAL;
+        String otePass = Constants.CURRENT_FS_PASSWORD;
 
         WifiUtils.withContext(WelcomeActivity.this)
                 .connectWith(ote, otePass)
@@ -11113,8 +11139,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         if (isSuccess) {
 
 
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "WIFI CONNECTED " + AppConstants.CURRENT_SELECTED_SSID);
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + "WIFI CONNECTED " + AppConstants.CURRENT_SELECTED_SSID);
             AppConstants.colorToastBigFont(WelcomeActivity.this, "CONNECTED TO:- " + AppConstants.CURRENT_SELECTED_SSID, Color.BLUE);
 
             WifiManager wifiManager = (WifiManager) WelcomeActivity.this.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
@@ -11122,13 +11148,13 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             int NetID = wifiInfo.getNetworkId();
             String ssid = wifiInfo.getSSID();
 
-            if (ssid.contains(AppConstants.SELECTED_SSID_FOR_MANUALL)) {
+            if (ssid.contains(AppConstants.SELECTED_SSID_FOR_MANUAL)) {
 
                 //new WiFiConnectTask().execute();
 
             } else {
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "Connected to wrong Wifi Please try again..");
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(TAG + "Connected to wrong Wifi Please try again..");
                 AppConstants.colorToastBigFont(WelcomeActivity.this, "Connected to wrong Wifi Please try again..", Color.BLUE);
 
             }
@@ -11136,12 +11162,12 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         } else {
 
 
-            Constants.hotspotstayOn = false;
-            AppConstants.ManuallReconfigure = true;
+            Constants.HOTSPOT_STAY_ON = false;
+            AppConstants.MANUAL_RECONFIGURE = true;
 
             AppConstants.colorToastBigFont(WelcomeActivity.this, "Connect manually to: " + AppConstants.CURRENT_SELECTED_SSID, Color.BLUE);
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "Connect manually to: " + AppConstants.CURRENT_SELECTED_SSID + " and try..!! ");
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + "Connect manually to: " + AppConstants.CURRENT_SELECTED_SSID + " and try..!! ");
 
 
             AlertSettings(WelcomeActivity.this, "Unable to connect " + AppConstants.CURRENT_SELECTED_SSID + "!\n\nPlease connect to " + AppConstants.CURRENT_SELECTED_SSID + " manually using the 'WIFI settings' screen.\nThen hit back and click on the 'START' button to continue.");
@@ -11210,7 +11236,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 ServerHandler serverHandler = new ServerHandler();
                 //----------------------------------------------------------------------------------
                 String parm1 = AppConstants.getIMEI(WelcomeActivity.this) + ":" + userInfoEntity.PersonEmail + ":" + "Other" + AppConstants.LANG_PARAM;
-                String parm2 = "Authenticate:I:" + Constants.Latitude + "," + Constants.Longitude;
+                String parm2 = "Authenticate:I:" + Constants.LATITUDE + "," + Constants.LONGITUDE;
 
 
                 System.out.println("parm1----" + parm1);
@@ -11218,7 +11244,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
                 String authString = "Basic " + AppConstants.convertStingToBase64(parm1);
 
-                //resp = serverHandler.PostTextData(WelcomeActivity.this, AppConstants.webURL, parm2, authString);
+                //resp = serverHandler.PostTextData(WelcomeActivity.this, AppConstants.WEB_URL, parm2, authString);
                 //----------------------------------------------------------------------------------
 
                 OkHttpClient client = new OkHttpClient();
@@ -11228,7 +11254,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
                 RequestBody body = RequestBody.create(ServerHandler.TEXT, parm2);
                 Request request = new Request.Builder()
-                        .url(AppConstants.webURL)
+                        .url(AppConstants.WEB_URL)
                         .post(body)
                         .addHeader("Authorization", authString)
                         .build();
@@ -11241,8 +11267,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             } catch (Exception e) {
 
                 System.out.println("Ex" + e.getMessage());
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "GetSSIDUsingLocationGateHub onPostExecute --Exception: " + e.getMessage());
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(TAG + "GetSSIDUsingLocationGateHub onPostExecute --Exception: " + e.getMessage());
                 if (OfflineConstants.isOfflineAccess(WelcomeActivity.this)) {
                     AppConstants.NETWORK_STRENGTH = false;
                 }
@@ -11258,9 +11284,9 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
                 serverSSIDList.clear();
                 // BackgroundServiceKeepDataTransferAlive.SSIDList.clear();//clear SSIDList
-                //AppConstants.DetailsServerSSIDList.clear();
+                //AppConstants.DETAILS_SERVER_SSID_LIST.clear();
 
-                AppConstants.isAllLinksAreBTLinks = true;
+                AppConstants.IS_ALL_LINKS_ARE_BT_LINKS = true;
                 String errMsg = "";
 
                 if (result != null && !result.isEmpty()) {
@@ -11318,7 +11344,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         String ScreenNameForHours = jsonObject.getString("ScreenNameForHours");
                         String ScreenNameForDepartment = jsonObject.getString("ScreenNameForDepartment");
 
-                        SharedPreferences prefkb = WelcomeActivity.this.getSharedPreferences(AppConstants.sharedPref_KeyboardType, Context.MODE_PRIVATE);
+                        SharedPreferences prefkb = WelcomeActivity.this.getSharedPreferences(AppConstants.PREF_KEYBOARD_TYPE, Context.MODE_PRIVATE);
                         SharedPreferences.Editor editorkb = prefkb.edit();
                         editorkb.putString("ScreenNameForVehicle", ScreenNameForVehicle);
                         editorkb.putString("ScreenNameForPersonnel", ScreenNameForPersonnel);
@@ -11370,7 +11396,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                 String LinkCommunicationType = c.getString("HubLinkCommunication");
                                 String BTLinkCommType = c.getString("BTLinkCommType");
                                 if (!LinkCommunicationType.equalsIgnoreCase("BT")) {
-                                    AppConstants.isAllLinksAreBTLinks = false;
+                                    AppConstants.IS_ALL_LINKS_ARE_BT_LINKS = false;
                                 }
                                 String IsTankEmpty = c.getString("IsTankEmpty");
                                 String IsLinkFlagged = c.getString("IsLinkFlagged");
@@ -11383,7 +11409,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                 String IsCheckMOStatus = c.getString("IsCheckMOStatus");
                                 String IsResetMOCheckFlag = c.getString("IsResetMOCheckFlag");
 
-                                AppConstants.UP_FilePath = FilePath;
+                                AppConstants.UP_FILE_PATH = FilePath;
 
                                 AppConstants.BT_READER_NAME = BluetoothCardReaderHF;
 
@@ -11395,7 +11421,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                 }*/
 
                                 //Current Fs wifi password
-                                Constants.CurrFsPass = Password;
+                                Constants.CURRENT_FS_PASSWORD = Password;
 
                                 HashMap<String, String> map = new HashMap<>();
                                 map.put("SiteId", SiteId);
@@ -11436,19 +11462,19 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
                                     if (isNotNULL(SiteId) && isNotNULL(HoseId) && isNotNULL(WifiSSId)) {
                                         serverSSIDList.add(map);
-                                        AppConstants.DetailsServerSSIDList = serverSSIDList;
+                                        AppConstants.DETAILS_SERVER_SSID_LIST = serverSSIDList;
                                         BackgroundServiceKeepDataTransferAlive.SSIDList = serverSSIDList;
                                         BackgroundServiceKeepAliveBT.SSIDList = serverSSIDList;
 
                                     }
                                 } else {
                                     errMsg = ResponceText;
-                                    if (AppConstants.GenerateLogs)
-                                        AppConstants.WriteinFile(TAG + "GetSSIDUsingLocationGateHub: " + ResponceText);
+                                    if (AppConstants.GENERATE_LOGS)
+                                        AppConstants.writeInFile(TAG + "GetSSIDUsingLocationGateHub: " + ResponceText);
                                     if (ResponceText.contains(getResources().getString(R.string.NoLinksAssignedServerMessage))) {
                                         CustomMessageWithYesOrNo(WelcomeActivity.this, getResources().getString(R.string.NoLinksAssignedAppMessage));
                                     } else {
-                                        AppConstants.AlertDialogFinish(WelcomeActivity.this, ResponceText);
+                                        AppConstants.alertDialogFinish(WelcomeActivity.this, ResponceText);
                                     }
                                 }
                             }
@@ -11456,7 +11482,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         }
                         try {
                             HideAddLinkMenu();
-                            if (serverSSIDList != null && serverSSIDList.size() == 1 && IsGateHub.equalsIgnoreCase("True") && Constants.FS_1STATUS.equalsIgnoreCase("FREE")) {
+                            if (serverSSIDList != null && serverSSIDList.size() == 1 && IsGateHub.equalsIgnoreCase("True") && Constants.FS_1_STATUS.equalsIgnoreCase("FREE")) {
 
                                 //Thread.sleep(1000);
                                 try {
@@ -11473,23 +11499,23 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                     if (LinkCommunicationType.equalsIgnoreCase("HTTP")) {
 
                                         String Chk_ip = "";
-                                        if (AppConstants.DetailsListOfConnectedDevices != null && AppConstants.DetailsListOfConnectedDevices.size() > 0)
-                                            Chk_ip = AppConstants.DetailsListOfConnectedDevices.get(0).get("ipAddress");
+                                        if (AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES != null && AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.size() > 0)
+                                            Chk_ip = AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.get(0).get("ipAddress");
                                         else {
-                                            getipOverOSVersion();
+                                            getIpOverOSVersion();
                                         }
 
                                         if (Chk_ip != null && Chk_ip.length() > 3 && !ReconfigureLink.equalsIgnoreCase("true")) {
 
                                             boolean isMacConnected = false;
-                                            if (AppConstants.DetailsListOfConnectedDevices != null) {
-                                                for (int i = 0; i < AppConstants.DetailsListOfConnectedDevices.size(); i++) {
-                                                    String Chk_mac = AppConstants.DetailsListOfConnectedDevices.get(i).get("macAddress");
+                                            if (AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES != null) {
+                                                for (int i = 0; i < AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.size(); i++) {
+                                                    String Chk_mac = AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.get(i).get("macAddress");
 
                                                     if (SSID_mac.equalsIgnoreCase(Chk_mac)) {
-                                                        if (AppConstants.GenerateLogs)
-                                                            AppConstants.WriteinFile(TAG + "Selected LINK (" + selSSID + " <==> " + SSID_mac + ") is connected to hotspot.");
-                                                        IpAddress = AppConstants.DetailsListOfConnectedDevices.get(i).get("ipAddress");
+                                                        if (AppConstants.GENERATE_LOGS)
+                                                            AppConstants.writeInFile(TAG + "Selected LINK (" + selSSID + " <==> " + SSID_mac + ") is connected to hotspot.");
+                                                        IpAddress = AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.get(i).get("ipAddress");
                                                         isMacConnected = true;
                                                         break;
                                                     }
@@ -11497,24 +11523,24 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                             }
 
                                             if (!isMacConnected) {
-                                                if (AppConstants.GenerateLogs)
-                                                    AppConstants.WriteinFile(TAG + "Selected LINK (" + selSSID + " <==> " + SSID_mac + ") is not found in connected devices. " + AppConstants.DetailsListOfConnectedDevices);
+                                                if (AppConstants.GENERATE_LOGS)
+                                                    AppConstants.writeInFile(TAG + "Selected LINK (" + selSSID + " <==> " + SSID_mac + ") is not found in connected devices. " + AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES);
 
-                                                for (int i = 0; i < AppConstants.DetailsListOfConnectedDevices.size(); i++) {
-                                                    String Chk_mac = AppConstants.DetailsListOfConnectedDevices.get(i).get("macAddress");
-                                                    if (AppConstants.GenerateLogs)
-                                                        AppConstants.WriteinFile(TAG + "Checking Mac Address using info command: (" + Chk_mac + ")");
+                                                for (int i = 0; i < AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.size(); i++) {
+                                                    String Chk_mac = AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.get(i).get("macAddress");
+                                                    if (AppConstants.GENERATE_LOGS)
+                                                        AppConstants.writeInFile(TAG + "Checking Mac Address using info command: (" + Chk_mac + ")");
 
-                                                    String connectedIp = AppConstants.DetailsListOfConnectedDevices.get(i).get("ipAddress");
+                                                    String connectedIp = AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.get(i).get("ipAddress");
 
                                                     IpAddress = GetAndCheckMacAddressFromInfoCommand(connectedIp, SSID_mac, Chk_mac);
                                                     if (!IpAddress.trim().isEmpty()) {
-                                                        if (AppConstants.GenerateLogs)
-                                                            AppConstants.WriteinFile("===================================================================");
+                                                        if (AppConstants.GENERATE_LOGS)
+                                                            AppConstants.writeInFile("===================================================================");
                                                         break;
                                                     }
-                                                    if (AppConstants.GenerateLogs)
-                                                        AppConstants.WriteinFile("===================================================================");
+                                                    if (AppConstants.GENERATE_LOGS)
+                                                        AppConstants.writeInFile("===================================================================");
                                                 }
                                             }
                                             if (!IpAddress.trim().isEmpty()) {
@@ -11525,8 +11551,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                             }
                                         } else {
                                             Toast.makeText(getApplicationContext(), "Auto select fail", Toast.LENGTH_SHORT).show();
-                                            if (AppConstants.GenerateLogs)
-                                                AppConstants.WriteinFile(TAG + "Auto select fail");
+                                            if (AppConstants.GENERATE_LOGS)
+                                                AppConstants.writeInFile(TAG + "Auto select fail");
                                         }
                                     } else if (LinkCommunicationType.equalsIgnoreCase("BT")) {
                                         SelectedItemPos = 0;
@@ -11539,10 +11565,10 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                     e.printStackTrace();
                                 }
 
-                            } else if (serverSSIDList != null && serverSSIDList.size() == 1 && Constants.FS_1STATUS.equalsIgnoreCase("FREE")) {
+                            } else if (serverSSIDList != null && serverSSIDList.size() == 1 && Constants.FS_1_STATUS.equalsIgnoreCase("FREE")) {
 
                                 try {
-                                    AppConstants.IsSingleLink = true;
+                                    AppConstants.IS_SINGLE_LINK = true;
                                     String SSID_mac = serverSSIDList.get(0).get("MacAddress");
                                     String ReconfigureLink = serverSSIDList.get(0).get("ReconfigureLink");
                                     AppConstants.SITE_ID = serverSSIDList.get(0).get("SiteId");
@@ -11560,23 +11586,23 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
                                     } else {
                                         String Chk_ip = "";
-                                        if (AppConstants.DetailsListOfConnectedDevices != null && AppConstants.DetailsListOfConnectedDevices.size() > 0) {
-                                            Chk_ip = AppConstants.DetailsListOfConnectedDevices.get(0).get("ipAddress");
+                                        if (AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES != null && AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.size() > 0) {
+                                            Chk_ip = AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.get(0).get("ipAddress");
                                         } else {
-                                            getipOverOSVersion();
+                                            getIpOverOSVersion();
                                         }
 
                                         if (Chk_ip != null && Chk_ip.length() > 3 && !ReconfigureLink.equalsIgnoreCase("true")) {
 
                                             boolean isMacConnected = false;
-                                            if (AppConstants.DetailsListOfConnectedDevices != null) {
-                                                for (int i = 0; i < AppConstants.DetailsListOfConnectedDevices.size(); i++) {
-                                                    String Chk_mac = AppConstants.DetailsListOfConnectedDevices.get(i).get("macAddress");
+                                            if (AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES != null) {
+                                                for (int i = 0; i < AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.size(); i++) {
+                                                    String Chk_mac = AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.get(i).get("macAddress");
 
                                                     if (SSID_mac.equalsIgnoreCase(Chk_mac)) {
-                                                        if (AppConstants.GenerateLogs)
-                                                            AppConstants.WriteinFile(TAG + "Selected LINK (" + selSSID + " <==> " + SSID_mac + ") is connected to hotspot.");
-                                                        IpAddress = AppConstants.DetailsListOfConnectedDevices.get(i).get("ipAddress");
+                                                        if (AppConstants.GENERATE_LOGS)
+                                                            AppConstants.writeInFile(TAG + "Selected LINK (" + selSSID + " <==> " + SSID_mac + ") is connected to hotspot.");
+                                                        IpAddress = AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.get(i).get("ipAddress");
                                                         isMacConnected = true;
                                                         break;
                                                     }
@@ -11584,24 +11610,24 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                             }
 
                                             if (!isMacConnected) {
-                                                if (AppConstants.GenerateLogs)
-                                                    AppConstants.WriteinFile(TAG + "Selected LINK (" + selSSID + " <==> " + SSID_mac + ") is not found in connected devices. " + AppConstants.DetailsListOfConnectedDevices);
+                                                if (AppConstants.GENERATE_LOGS)
+                                                    AppConstants.writeInFile(TAG + "Selected LINK (" + selSSID + " <==> " + SSID_mac + ") is not found in connected devices. " + AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES);
 
-                                                for (int i = 0; i < AppConstants.DetailsListOfConnectedDevices.size(); i++) {
-                                                    String Chk_mac = AppConstants.DetailsListOfConnectedDevices.get(i).get("macAddress");
-                                                    if (AppConstants.GenerateLogs)
-                                                        AppConstants.WriteinFile(TAG + "Checking Mac Address using info command: (" + Chk_mac + ")");
+                                                for (int i = 0; i < AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.size(); i++) {
+                                                    String Chk_mac = AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.get(i).get("macAddress");
+                                                    if (AppConstants.GENERATE_LOGS)
+                                                        AppConstants.writeInFile(TAG + "Checking Mac Address using info command: (" + Chk_mac + ")");
 
-                                                    String connectedIp = AppConstants.DetailsListOfConnectedDevices.get(i).get("ipAddress");
+                                                    String connectedIp = AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.get(i).get("ipAddress");
 
                                                     IpAddress = GetAndCheckMacAddressFromInfoCommand(connectedIp, SSID_mac, Chk_mac);
                                                     if (!IpAddress.trim().isEmpty()) {
-                                                        if (AppConstants.GenerateLogs)
-                                                            AppConstants.WriteinFile("===================================================================");
+                                                        if (AppConstants.GENERATE_LOGS)
+                                                            AppConstants.writeInFile("===================================================================");
                                                         break;
                                                     }
-                                                    if (AppConstants.GenerateLogs)
-                                                        AppConstants.WriteinFile("===================================================================");
+                                                    if (AppConstants.GENERATE_LOGS)
+                                                        AppConstants.writeInFile("===================================================================");
                                                 }
                                             }
 
@@ -11612,8 +11638,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                             }
                                         } else {
                                             Toast.makeText(getApplicationContext(), "Auto select fail", Toast.LENGTH_SHORT).show();
-                                            if (AppConstants.GenerateLogs)
-                                                AppConstants.WriteinFile(TAG + "Auto select fail");
+                                            if (AppConstants.GENERATE_LOGS)
+                                                AppConstants.writeInFile(TAG + "Auto select fail");
                                         }
                                     }
 
@@ -11624,24 +11650,24 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
                         } catch (Exception e) {
                             System.out.println(e);
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(TAG + "GetSSIDUsingLocationGateHub if only one hose autoselect   --Exception " + e);
+                            if (AppConstants.GENERATE_LOGS)
+                                AppConstants.writeInFile(TAG + "GetSSIDUsingLocationGateHub if only one hose autoselect   --Exception " + e);
                         }
 
 
                     } else if (ResponseMessageSite.equalsIgnoreCase("fail")) {
                         String ResponseTextSite = jsonObjectSite.getString(AppConstants.RES_TEXT);
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "GetSSIDUsingLocationGateHub SSIDData response fail. Error: " + ResponseTextSite);
-                        AppConstants.AlertDialogBox(WelcomeActivity.this, ResponseTextSite);
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(TAG + "GetSSIDUsingLocationGateHub SSIDData response fail. Error: " + ResponseTextSite);
+                        AppConstants.alertDialogBox(WelcomeActivity.this, ResponseTextSite);
 
                     }
                 } else {
 
                     if (OfflineConstants.isOfflineAccess(WelcomeActivity.this)) {
                         AppConstants.NETWORK_STRENGTH = false;
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "Temporary loss of cell service ~Switching to offline mode 2"); // today**
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(TAG + "Temporary loss of cell service ~Switching to offline mode 2"); // today**
                     }
 
                     new GetOfflineSSIDUsingLocation().execute();
@@ -11651,8 +11677,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             } catch (Exception e) {
 
                 CommonUtils.LogMessage(TAG, "GetSSIDUsingLocationGateHub :" + result, e);
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "GetSSIDUsingLocationGateHub --Exception " + e);
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(TAG + "GetSSIDUsingLocationGateHub --Exception " + e);
                 if (OfflineConstants.isOfflineAccess(WelcomeActivity.this)) {
                     AppConstants.NETWORK_STRENGTH = false;
                 }
@@ -11664,13 +11690,13 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
     public void SyncSqliteData() {
 
-        if (WelcomeActivity.OnWelcomeActivity && Constants.FS_1STATUS.equalsIgnoreCase("FREE") && Constants.FS_2STATUS.equalsIgnoreCase("FREE") && Constants.FS_3STATUS.equalsIgnoreCase("FREE") && Constants.FS_4STATUS.equalsIgnoreCase("FREE") && Constants.FS_5STATUS.equalsIgnoreCase("FREE") && Constants.FS_6STATUS.equalsIgnoreCase("FREE")) {
+        if (WelcomeActivity.OnWelcomeActivity && Constants.FS_1_STATUS.equalsIgnoreCase("FREE") && Constants.FS_2_STATUS.equalsIgnoreCase("FREE") && Constants.FS_3_STATUS.equalsIgnoreCase("FREE") && Constants.FS_4_STATUS.equalsIgnoreCase("FREE") && Constants.FS_5_STATUS.equalsIgnoreCase("FREE") && Constants.FS_6_STATUS.equalsIgnoreCase("FREE")) {
 
             if (cd.isConnecting() && AppConstants.NETWORK_STRENGTH) {
 
                 try {
                     //sync offline transactions
-                    String off_json = offcontroller.getAllOfflineTransactionJSON(WelcomeActivity.this);
+                    String off_json = offController.getAllOfflineTransactionJSON(WelcomeActivity.this);
                     JSONObject jobj = new JSONObject(off_json);
                     String offtransactionArray = jobj.getString("TransactionsModelsObj");
                     JSONArray jarrsy = new JSONArray(offtransactionArray);
@@ -11750,9 +11776,9 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
             try {
 
-                serverSSIDList = offcontroller.getAllLinks();
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "Offline Link data size: " + serverSSIDList.size());
+                serverSSIDList = offController.getAllLinks();
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(TAG + "Offline Link data size: " + serverSSIDList.size());
 
             } catch (Exception e) {
                 hoseClicked = false;
@@ -11762,8 +11788,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     }
                 }
                 System.out.println("Ex" + e.getMessage());
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "GetOfflineSSIDUsingLocation --Exception: " + e.getMessage());
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(TAG + "GetOfflineSSIDUsingLocation --Exception: " + e.getMessage());
             }
             return resp;
         }
@@ -11785,32 +11811,32 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     //HoseList Alert
                     alertSelectHoseList(tvLatLng.getText().toString() + "\n" + "");
                 } else {
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + "Offline SSIDData is Empty. Error: " + getResources().getString(R.string.HoseListIsNotAvailable));
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(TAG + "Offline SSIDData is Empty. Error: " + getResources().getString(R.string.HoseListIsNotAvailable));
                     CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.HoseListIsNotAvailable));
                 }
 
-                AppConstants.DetailsServerSSIDList = serverSSIDList;
+                AppConstants.DETAILS_SERVER_SSID_LIST = serverSSIDList;
                 BackgroundServiceKeepDataTransferAlive.SSIDList = serverSSIDList;
-                AppConstants.temp_serverSSIDList = serverSSIDList;
+                AppConstants.TEMP_SERVER_SSID_LIST = serverSSIDList;
                 BackgroundServiceKeepAliveBT.SSIDList = serverSSIDList;
             } catch (Exception e) {
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "GetSSIDUsingLocation offline onPostExecute --Exception: " + e.getMessage());
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(TAG + "GetSSIDUsingLocation offline onPostExecute --Exception: " + e.getMessage());
             }
         }
     }
 
     public void oo_post_getssid(String result) {
         linearHose.setClickable(true);//Enable hose Selection
-        //tvLatLng.setText("Current Location :" + Constants.Latitude + "," + Constants.Longitude); // #2005
+        //tvLatLng.setText("Current Location :" + Constants.LATITUDE + "," + Constants.LONGITUDE); // #2005
         tvLatLng.setText(getResources().getString(R.string.HoseListIsNotAvailable));
         System.out.println("GetSSIDUsingLocation...." + result);
 
         try {
             serverSSIDList.clear();
-            //AppConstants.DetailsServerSSIDList.clear();
-            AppConstants.isAllLinksAreBTLinks = true;
+            //AppConstants.DETAILS_SERVER_SSID_LIST.clear();
+            AppConstants.IS_ALL_LINKS_ARE_BT_LINKS = true;
             String errMsg = "";
             if (result != null && !result.isEmpty()) {
                 if (cd.isConnectingToInternet()) {
@@ -11844,7 +11870,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     String ScreenNameForHours = jsonObject.getString("ScreenNameForHours");
                     String ScreenNameForDepartment = jsonObject.getString("ScreenNameForDepartment");
 
-                    SharedPreferences prefkb = WelcomeActivity.this.getSharedPreferences(AppConstants.sharedPref_KeyboardType, Context.MODE_PRIVATE);
+                    SharedPreferences prefkb = WelcomeActivity.this.getSharedPreferences(AppConstants.PREF_KEYBOARD_TYPE, Context.MODE_PRIVATE);
                     SharedPreferences.Editor editorkb = prefkb.edit();
                     editorkb.putString("ScreenNameForVehicle", ScreenNameForVehicle);
                     editorkb.putString("ScreenNameForPersonnel", ScreenNameForPersonnel);
@@ -11890,7 +11916,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                             String LinkCommunicationType = c.getString("HubLinkCommunication");
                             String BTLinkCommType = c.getString("BTLinkCommType");
                             if (!LinkCommunicationType.equalsIgnoreCase("BT")) {
-                                AppConstants.isAllLinksAreBTLinks = false;
+                                AppConstants.IS_ALL_LINKS_ARE_BT_LINKS = false;
                             }
                             String IsTankEmpty = c.getString("IsTankEmpty");
                             String IsLinkFlagged = c.getString("IsLinkFlagged");
@@ -11918,10 +11944,10 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                             SetBTLinksMacAddress(i, BTMacAddress);
 
                             String FilePath = c.getString("FilePath");
-                            AppConstants.UP_FilePath = FilePath;
+                            AppConstants.UP_FILE_PATH = FilePath;
 
                             //Current Fs wifi password
-                            Constants.CurrFsPass = Password;
+                            Constants.CURRENT_FS_PASSWORD = Password;
 
                             HashMap<String, String> map = new HashMap<>();
                             map.put("SiteId", SiteId);
@@ -11966,16 +11992,16 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                             if (ResponceMessage.equalsIgnoreCase("success")) {
                                 if (isNotNULL(SiteId) && isNotNULL(HoseId) && isNotNULL(WifiSSId)) {
                                     serverSSIDList.add(map);
-                                    AppConstants.DetailsServerSSIDList = serverSSIDList;
+                                    AppConstants.DETAILS_SERVER_SSID_LIST = serverSSIDList;
                                 }
                             } else {
                                 errMsg = ResponceText;
-                                if (AppConstants.GenerateLogs)
-                                    AppConstants.WriteinFile(TAG + "GetSSIDUsingLocation: " + ResponceText);
+                                if (AppConstants.GENERATE_LOGS)
+                                    AppConstants.writeInFile(TAG + "GetSSIDUsingLocation: " + ResponceText);
                                 if (ResponceText.contains(getResources().getString(R.string.NoLinksAssignedServerMessage))) {
                                     CustomMessageWithYesOrNo(WelcomeActivity.this, getResources().getString(R.string.NoLinksAssignedAppMessage));
                                 } else {
-                                    AppConstants.AlertDialogFinish(WelcomeActivity.this, ResponceText);
+                                    AppConstants.alertDialogFinish(WelcomeActivity.this, ResponceText);
                                 }
                             }
                         }
@@ -11983,33 +12009,33 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         //HoseList Alert
                         alertSelectHoseList(tvLatLng.getText().toString() + "\n" + errMsg);
                     } else {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "SSIDData is Empty. Error: " + getResources().getString(R.string.conn_error));
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(TAG + "SSIDData is Empty. Error: " + getResources().getString(R.string.conn_error));
                         CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.conn_error));
                     }
 
-                    AppConstants.temp_serverSSIDList = serverSSIDList;
+                    AppConstants.TEMP_SERVER_SSID_LIST = serverSSIDList;
                     HideAddLinkMenu();
 
                 } else if (ResponseMessageSite.equalsIgnoreCase("fail")) {
                     String ResponseTextSite = jsonObjectSite.getString(AppConstants.RES_TEXT);
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + "SSIDData response fail. Error: " + ResponseTextSite);
-                    AppConstants.AlertDialogBox(WelcomeActivity.this, ResponseTextSite);
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(TAG + "SSIDData response fail. Error: " + ResponseTextSite);
+                    AppConstants.alertDialogBox(WelcomeActivity.this, ResponseTextSite);
                 }
             } else {
                 if (OfflineConstants.isOfflineAccess(WelcomeActivity.this)) {
                     AppConstants.NETWORK_STRENGTH = false;
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + "Temporary loss of cell service ~Switching to offline mode 3"); //today***
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(TAG + "Temporary loss of cell service ~Switching to offline mode 3"); //today***
 
                     new GetOfflineSSIDUsingLocation().execute();
                 }
             }
         } catch (Exception e) {
             CommonUtils.LogMessage(TAG, "GetSSIDUsingLocation :" + result, e);
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "GetSSIDUsingLocation onPostExecute --Exception " + e);
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + "GetSSIDUsingLocation onPostExecute --Exception " + e);
         }
     }
 
@@ -12017,7 +12043,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
         boolean inTime = false;
 
-        ArrayList<HashMap<String, String>> timings = offcontroller.getFuelTimingsBySiteId(SiteId);
+        ArrayList<HashMap<String, String>> timings = offController.getFuelTimingsBySiteId(SiteId);
 
         if (timings != null && timings.size() > 0) {
             for (int i = 0; i < timings.size(); i++) {
@@ -12121,9 +12147,9 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         protected String doInBackground(Void... arg0) {
 
             try {
-                serverSSIDList = offcontroller.getAllLinks();
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "Offline Link data size (in OnResume): " + serverSSIDList.size());
+                serverSSIDList = offController.getAllLinks();
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(TAG + "Offline Link data size (in OnResume): " + serverSSIDList.size());
 
             } catch (Exception e) {
                 if (alertDialog != null) {
@@ -12148,9 +12174,9 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
             try {
 
-                AppConstants.DetailsServerSSIDList = serverSSIDList;
+                AppConstants.DETAILS_SERVER_SSID_LIST = serverSSIDList;
                 BackgroundServiceKeepDataTransferAlive.SSIDList = serverSSIDList;
-                AppConstants.temp_serverSSIDList = serverSSIDList;
+                AppConstants.TEMP_SERVER_SSID_LIST = serverSSIDList;
                 BackgroundServiceKeepAliveBT.SSIDList = serverSSIDList;
 
                 /*if (serverSSIDList != null && serverSSIDList.size() == 1) {
@@ -12158,8 +12184,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 }*/
 
             } catch (Exception e) {
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "GetOfflineSSIDUsingLocationOnResume --Exception: " + e.getMessage());
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(TAG + "GetOfflineSSIDUsingLocationOnResume --Exception: " + e.getMessage());
 
             }
         }
@@ -12167,7 +12193,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
     private void ConfigureTld() {
 
-        SharedPreferences sharedPref = this.getSharedPreferences(Constants.PREF_TldDetails, Context.MODE_PRIVATE);
+        SharedPreferences sharedPref = this.getSharedPreferences(Constants.PREF_TLD_DETAILS, Context.MODE_PRIVATE);
         String LinkMacAddress = sharedPref.getString("selMacAddress", "");
 
         if (!LinkMacAddress.isEmpty()) {
@@ -12177,8 +12203,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
         } else {
             AppConstants.colorToastBigFont(WelcomeActivity.this, "Please select link and try..", Color.BLUE);
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "ConfigureTld Please select link and try..");
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + "ConfigureTld Please select link and try..");
         }
 
     }
@@ -12228,7 +12254,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         try {
 
                             System.out.println("Enable flag........!!");
-                            Constants.hotspotstayOn = true;
+                            Constants.HOTSPOT_STAY_ON = true;
                             time_cd.cancel();
 
                         } catch (Exception e) {
@@ -12275,22 +12301,22 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
     private void ReconfigureManually() {
 
-        if (AppConstants.ManuallReconfigure && Constants.FS_1STATUS.equalsIgnoreCase("FREE") && Constants.FS_2STATUS.equalsIgnoreCase("FREE") && Constants.FS_3STATUS.equalsIgnoreCase("FREE") && Constants.FS_4STATUS.equalsIgnoreCase("FREE")) {
+        if (AppConstants.MANUAL_RECONFIGURE && Constants.FS_1_STATUS.equalsIgnoreCase("FREE") && Constants.FS_2_STATUS.equalsIgnoreCase("FREE") && Constants.FS_3_STATUS.equalsIgnoreCase("FREE") && Constants.FS_4_STATUS.equalsIgnoreCase("FREE")) {
 
             WifiManager wifiManager = (WifiManager) WelcomeActivity.this.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
             WifiInfo wifiInfo = wifiManager.getConnectionInfo();
             int NetID = wifiInfo.getNetworkId();
             String ssid = wifiInfo.getSSID();
 
-            if (ssid.contains(AppConstants.SELECTED_SSID_FOR_MANUALL)) {
+            if (ssid.contains(AppConstants.SELECTED_SSID_FOR_MANUAL)) {
 
                 AppConstants.colorToastBigFont(WelcomeActivity.this, "Manually connected ssid match", Color.BLUE);
                 //new WiFiConnectTask().execute();
 
             } else {
 
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "Manually connected ssid did not match " + AppConstants.CURRENT_SELECTED_SSID + " and try..!! ");
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(TAG + "Manually connected ssid did not match " + AppConstants.CURRENT_SELECTED_SSID + " and try..!! ");
 
             }
         }
@@ -12298,7 +12324,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
 
     /*public void saveLinkMacAddressForReconfigure(String jsonData) {
-        SharedPreferences sharedPref = WelcomeActivity.this.getSharedPreferences(Constants.MAC_ADDR_RECONFIGURE, Context.MODE_PRIVATE);
+        SharedPreferences sharedPref = WelcomeActivity.this.getSharedPreferences(Constants.MAC_ADDRESS_RECONFIGURE, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPref.edit();
         editor.putString("jsonData", jsonData);
         editor.commit();
@@ -12306,7 +12332,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
     }*/
 
     public void clearMacAddressSharedPref() {
-        SharedPreferences preferences = getSharedPreferences(Constants.MAC_ADDR_RECONFIGURE, Context.MODE_PRIVATE);
+        SharedPreferences preferences = getSharedPreferences(Constants.MAC_ADDRESS_RECONFIGURE, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = preferences.edit();
         editor.clear();
         editor.commit();
@@ -12405,7 +12431,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     wifiApManager.setWifiApEnabled(null, true);
                 }
                 ChangeWifiState(false);
-                getipOverOSVersion();
+                getIpOverOSVersion();
                 loading.dismiss();
             }
         }, 5000);
@@ -12425,7 +12451,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
                 wifiApManager.setWifiApEnabled(null, true);
                 ChangeWifiState(false);
-                getipOverOSVersion();
+                getIpOverOSVersion();
             }
         }, 2000);
 
@@ -12443,7 +12469,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
                 wifiApManager.setWifiApEnabled(null, true);
                 ChangeWifiState(false);
-                getipOverOSVersion();
+                getIpOverOSVersion();
             }
         }, 4000);
 
@@ -12461,7 +12487,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 loading.dismiss();
                 wifiApManager.setWifiApEnabled(null, true);
                 ChangeWifiState(false);
-                getipOverOSVersion();
+                getIpOverOSVersion();
             }
         }, 6000);*/
 
@@ -12488,7 +12514,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
                 String code = edt_code.getText().toString().trim();
 
-                if (code != null && !code.isEmpty() && code.equals(AppConstants.AccessCode)) {
+                if (code != null && !code.isEmpty() && code.equals(AppConstants.ACCESS_CODE)) {
                     if (FA_DebugWindow) {
                         FA_DebugWindow = false;
                     } else {
@@ -12497,7 +12523,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         onResume();
                     }
                 } else {
-                    if (!code.equals(AppConstants.AccessCode)) {
+                    if (!code.equals(AppConstants.ACCESS_CODE)) {
                         Toast.makeText(WelcomeActivity.this, "Code did not match. Please try again", Toast.LENGTH_SHORT).show();
                     }
                     dialogBus.dismiss();
@@ -12544,7 +12570,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
             String StopPressedStatus = "5";
             String TransactionId_US = null;
-            SharedPreferences sharedPref = WelcomeActivity.this.getSharedPreferences(Constants.PREF_VehiFuel, Context.MODE_PRIVATE);
+            SharedPreferences sharedPref = WelcomeActivity.this.getSharedPreferences(Constants.PREF_VEHI_FUEL, Context.MODE_PRIVATE);
             if (stopButtonSequence.equalsIgnoreCase("0")) {
                 TransactionId_US = sharedPref.getString("TransactionId_FS1", "");
             } else if (stopButtonSequence.equalsIgnoreCase("1")) {
@@ -12565,13 +12591,13 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             if (TransactionId_US != null && !TransactionId_US.isEmpty() && cd.isConnectingToInternet()) {
                 Log.i(TAG, "UpdateDiffStatusMessages sent: " + StopPressedStatus + " TransactionId:" + TransactionId_US);
                 if (cd.isConnectingToInternet() && AppConstants.NETWORK_STRENGTH)
-                    CommonUtils.UpgradeTransactionStatusToSqlite(TransactionId_US, StopPressedStatus, this);
+                    CommonUtils.upgradeTransactionStatusToSqlite(TransactionId_US, StopPressedStatus, this);
             }
 
         } catch (Exception e) {
             e.printStackTrace();
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "UpdateDiffStatusMessages Ex:" + e.toString());
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + "UpdateDiffStatusMessages Ex:" + e.toString());
 
         }
 
@@ -12598,11 +12624,11 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
                 String code = edt_code.getText().toString().trim();
 
-                if (code != null && !code.isEmpty() && code.equals(AppConstants.AccessCode)) {
+                if (code != null && !code.isEmpty() && code.equals(AppConstants.ACCESS_CODE)) {
                     dialogBus.dismiss();
                     finish();
                 } else {
-                    if (!code.equals(AppConstants.AccessCode)) {
+                    if (!code.equals(AppConstants.ACCESS_CODE)) {
                         Toast.makeText(WelcomeActivity.this, "Code did not match. Please try again", Toast.LENGTH_SHORT).show();
                     }
                     dialogBus.dismiss();
@@ -12645,12 +12671,12 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
     private void reconfigureProcessBelowAndroid10() {
 
-        if (Constants.FS_1STATUS.equalsIgnoreCase("FREE") && Constants.FS_2STATUS.equalsIgnoreCase("FREE") && Constants.FS_3STATUS.equalsIgnoreCase("FREE") && Constants.FS_4STATUS.equalsIgnoreCase("FREE")) {
+        if (Constants.FS_1_STATUS.equalsIgnoreCase("FREE") && Constants.FS_2_STATUS.equalsIgnoreCase("FREE") && Constants.FS_3_STATUS.equalsIgnoreCase("FREE") && Constants.FS_4_STATUS.equalsIgnoreCase("FREE")) {
 
             try {
 
-                AppConstants.enableHotspotManuallyWindow = false;
-                Constants.hotspotstayOn = false; //hotspot enable/disable flag
+                AppConstants.ENABLE_HOTSPOT_MANUALLY_WINDOW = false;
+                Constants.HOTSPOT_STAY_ON = false; //hotspot enable/disable flag
                 ReconfigureCountdown();
                 if (CommonUtils.isHotspotEnabled(WelcomeActivity.this)) {
                     skipOnResume = true;
@@ -12671,24 +12697,22 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 }, 3000);
 
             } catch (Exception e) {
-                Constants.hotspotstayOn = true;
+                Constants.HOTSPOT_STAY_ON = true;
                 Log.i(TAG, "Link ReConfiguration process -Step 1 Exception" + e);
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Link ReConfiguration process -Step 1 Exception: " + e.getMessage());
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Link ReConfiguration process -Step 1 Exception: " + e.getMessage());
             }
 
         } else {
             AppConstants.colorToastBigFont(WelcomeActivity.this, getResources().getString(R.string.CannotUpdateMac), Color.BLUE);
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Can't update mac address, Hose is busy please retry later.");
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Can't update mac address, Hose is busy please retry later.");
             btnGo.setVisibility(View.GONE);
         }
     }
 
-
     private void ChangeWifiState(boolean enable) {
-
-        skipOnResume = true;
+        //skipOnResume = true;
         WifiManager wifiManagerMM = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
         if (enable) {
             //Enable wifi
@@ -12696,20 +12720,18 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         } else {
             //Disable wifi
             wifiManagerMM.setWifiEnabled(false);
-
         }
-
     }
 
     //Link Reconfigure code below
     private void LinkReConfigurationProcessStep1() {
 
-        if (Constants.FS_1STATUS.equalsIgnoreCase("FREE") && Constants.FS_2STATUS.equalsIgnoreCase("FREE") && Constants.FS_3STATUS.equalsIgnoreCase("FREE") && Constants.FS_4STATUS.equalsIgnoreCase("FREE")) {
+        if (Constants.FS_1_STATUS.equalsIgnoreCase("FREE") && Constants.FS_2_STATUS.equalsIgnoreCase("FREE") && Constants.FS_3_STATUS.equalsIgnoreCase("FREE") && Constants.FS_4_STATUS.equalsIgnoreCase("FREE")) {
 
             try {
 
-                AppConstants.enableHotspotManuallyWindow = false;
-                Constants.hotspotstayOn = false; //hotspot enable/disable flag
+                AppConstants.ENABLE_HOTSPOT_MANUALLY_WINDOW = false;
+                Constants.HOTSPOT_STAY_ON = false; //hotspot enable/disable flag
 
                 //Enable wifi
                 ChangeWifiState(true);
@@ -12723,11 +12745,11 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     public void run() {
 
                         Log.i(TAG, "Step1 Link ReConfiguration enable wifi manually.");
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Step1 Link ReConfiguration enable wifi manually.");
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Step1 Link ReConfiguration enable wifi manually.");
 
-                        AppConstants.SELECTED_SSID_FOR_MANUALL = AppConstants.CURRENT_SELECTED_SSID; //ReconfigSSID;
-                        AppConstants.colorToastBigFont(WelcomeActivity.this, getResources().getString(R.string.EnableWifiManually) + " " + AppConstants.SELECTED_SSID_FOR_MANUALL + " " + getResources().getString(R.string.UsingWifiList), Color.BLUE);
+                        AppConstants.SELECTED_SSID_FOR_MANUAL = AppConstants.CURRENT_SELECTED_SSID; //ReconfigSSID;
+                        AppConstants.colorToastBigFont(WelcomeActivity.this, getResources().getString(R.string.EnableWifiManually) + " " + AppConstants.SELECTED_SSID_FOR_MANUAL + " " + getResources().getString(R.string.UsingWifiList), Color.BLUE);
                         startActivity(new Intent(Settings.ACTION_WIFI_SETTINGS));
                         ConfigurationStep1IsInProgress = true;
                         //mjconf
@@ -12746,8 +12768,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                 /*ConnectivityManager connManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
                                 NetworkInfo mWifi = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);*/
 
-                                if (AppConstants.GenerateLogs)
-                                    AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Selected SSID: " + AppConstants.SELECTED_SSID_FOR_MANUALL +"; Connected to: " + ssid); //+" IsWifi Connected: "+mWifi.isConnected()
+                                if (AppConstants.GENERATE_LOGS)
+                                    AppConstants.writeInFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Selected SSID: " + AppConstants.SELECTED_SSID_FOR_MANUAL +"; Connected to: " + ssid); //+" IsWifi Connected: "+mWifi.isConnected()
 
                             }
 
@@ -12763,13 +12785,13 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                     ssid = wifiInfo.getSSID().trim().replace("\"", "");
                                 }
 
-                                if (ssid.equalsIgnoreCase(AppConstants.SELECTED_SSID_FOR_MANUALL)) {
+                                if (ssid.equalsIgnoreCase(AppConstants.SELECTED_SSID_FOR_MANUAL)) {
 
                                     /*//proced to reconfigure process
-                                    AppConstants.colorToastBigFont(WelcomeActivity.this, "Connected to wifi " + AppConstants.SELECTED_SSID_FOR_MANUALL, Color.BLUE);
-                                    Log.i(TAG, "Step1 Connected to wifi " + AppConstants.SELECTED_SSID_FOR_MANUALL);
-                                    if (AppConstants.GenerateLogs)
-                                        AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Step1 Connected to wifi " + AppConstants.SELECTED_SSID_FOR_MANUALL);
+                                    AppConstants.colorToastBigFont(WelcomeActivity.this, "Connected to wifi " + AppConstants.SELECTED_SSID_FOR_MANUAL, Color.BLUE);
+                                    Log.i(TAG, "Step1 Connected to wifi " + AppConstants.SELECTED_SSID_FOR_MANUAL);
+                                    if (AppConstants.GENERATE_LOGS)
+                                        AppConstants.writeInFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Step1 Connected to wifi " + AppConstants.SELECTED_SSID_FOR_MANUAL);
 
                                     setGlobalWifiConnection();
                                     new Handler().postDelayed(new Runnable() {
@@ -12782,8 +12804,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                     new WiFiConnectTask().execute();
                                 } else {
                                     proceedAfterManualWifiConnect = true;
-                                    if (AppConstants.GenerateLogs)
-                                        AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Step1 => Selected SSID: " + AppConstants.SELECTED_SSID_FOR_MANUALL +"; Connected SSID: " + ssid);
+                                    if (AppConstants.GENERATE_LOGS)
+                                        AppConstants.writeInFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Step1 => Selected SSID: " + AppConstants.SELECTED_SSID_FOR_MANUAL +"; Connected SSID: " + ssid);
                                 }
                             }
 
@@ -12794,17 +12816,17 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
             } catch (Exception e) {
                 ChangeWifiState(false);//turn wifi off
-                Constants.hotspotstayOn = true;
+                Constants.HOTSPOT_STAY_ON = true;
                 ConfigurationStep1IsInProgress = false;
                 Log.i(TAG, "Link ReConfiguration process -Step 1 Exception" + e);
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "Link ReConfiguration process -Step 1 Exception" + e.getMessage());
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(TAG + "Link ReConfiguration process -Step 1 Exception" + e.getMessage());
             }
         } else {
             ConfigurationStep1IsInProgress = false;
             AppConstants.colorToastBigFont(WelcomeActivity.this, getResources().getString(R.string.CannotUpdateMac), Color.BLUE);
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "Can't update mac address,Hose is busy please retry later.");
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + "Can't update mac address,Hose is busy please retry later.");
             btnGo.setVisibility(View.GONE);
         }
     }
@@ -12816,14 +12838,14 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             URL_INFO = HTTP_URL + "client?command=info";
 
             setGlobalWifiConnection();
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Step2: Sending INFO command to Link: " + AppConstants.SELECTED_SSID_FOR_MANUALL);
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Step2: Sending INFO command to Link: " + AppConstants.SELECTED_SSID_FOR_MANUAL);
             String result = new CommandsGET_INFO().execute(URL_INFO).get();
             String mac_address = "";
 
             Log.i(TAG, "Step2 Link ReConfiguration INFO_Command result:" + result);
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Step2 INFO_Command result >> " + result);
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Step2 INFO_Command result >> " + result);
 
             if (result.contains("Version")) {
                 JSONObject jsonObject = new JSONObject(result);
@@ -12831,16 +12853,16 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 String sdk_version = joPulsarStat.getString("sdk_version");
                 String iot_version = joPulsarStat.getString("iot_version");
                 mac_address = joPulsarStat.getString("mac_address");//station_mac_address
-                AppConstants.UPDATE_MACADDRESS = mac_address;
+                AppConstants.UPDATE_MAC_ADDRESS = mac_address;
 
                 if (mac_address.equals("")) {
 
                     AppConstants.colorToastBigFont(WelcomeActivity.this, getResources().getString(R.string.ReconfigurationFailed), Color.BLUE);
                     Log.i(TAG, "Step2 Reconfiguration process fail.. Could not get mac address Info command result:" + result);
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Step2 Reconfiguration process fail.. Could not get mac address. InfoCommand result >> " + result);
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Step2 Reconfiguration process fail.. Could not get mac address. InfoCommand result >> " + result);
 
-                    Constants.hotspotstayOn = true;//Enable hotspot flag
+                    Constants.HOTSPOT_STAY_ON = true;//Enable hotspot flag
                     //Disable wifi connection
                     WifiManager wifiManagerMM = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
                     wifiManagerMM.setWifiEnabled(false);
@@ -12853,8 +12875,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
                     AppConstants.colorToastBigFont(WelcomeActivity.this, getResources().getString(R.string.SettingSSIDAndPASS), Color.BLUE);
                     Log.i(TAG, "Step2 Setting SSID and PASS to Link");
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Step2 Setting SSID and PASS to Link");
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Step2 Setting SSID and PASS to Link");
 
                     HTTP_URL = "http://192.168.4.1:80/";
                     URL_UPDATE_FS_INFO = HTTP_URL + "config?command=wifi";
@@ -12863,7 +12885,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     String HotSpotSSID = sharedPref.getString("HotSpotSSID", "");
                     String HotSpotPassword = sharedPref.getString("HotSpotPassword", "");
 
-                    //String jsonChangeUsernamePass = "{\"Request\":{\"Station\":{\"Connect_Station\":{\"ssid\":\"" + AppConstants.HubName + "\",\"password\":\"" + AppConstants.HubGeneratedpassword + "\" ,\"sta_connect\":1 }}}}";
+                    //String jsonChangeUsernamePass = "{\"Request\":{\"Station\":{\"Connect_Station\":{\"ssid\":\"" + AppConstants.HUB_NAME + "\",\"password\":\"" + AppConstants.HUB_GENERATED_PASSWORD + "\" ,\"sta_connect\":1 }}}}";
                     String jsonChangeUsernamePass = "{\"Request\":{\"Station\":{\"Connect_Station\":{\"ssid\":\"" + HotSpotSSID + "\",\"password\":\"" + HotSpotPassword + "\" ,\"sta_connect\":1 }}}}";
 
                     new aboveAndroid9_ChangeHotspotSettings().execute(URL_UPDATE_FS_INFO, jsonChangeUsernamePass);
@@ -12875,8 +12897,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 LinkReConfigurationProcessStep1();
                 AppConstants.colorToastBigFont(WelcomeActivity.this, "Step2 Failed to get Info Command ", Color.BLUE);
                 Log.i(TAG, "Step2 Failed to get Info Command ");
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Step2 Failed to get Info Command");
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Step2 Failed to get Info Command");
 
                 //BackTo Welcome Activity temp comment
                 Intent i = new Intent(WelcomeActivity.this, WelcomeActivity.class);
@@ -12887,8 +12909,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         } catch (Exception e) {
             ChangeWifiState(false);//turn wifi off
             e.printStackTrace();
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "LinkReConfigurationProcessStep2 --Exception: " + e.getMessage());
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(AppConstants.LOG_RECONFIG + "-" + TAG + "LinkReConfigurationProcessStep2 --Exception: " + e.getMessage());
         }
     }
 
@@ -12916,8 +12938,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             context.startActivity(i);
         } else {
             Log.i(TAG, "Step3 Hotspot is not turned on.");
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Step3 Hotspot is not turned on.");
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Step3 Hotspot is not turned on.");
             // New code as per #1894 (Eva) Spare Parts Kit 7/19/22
             new CountDownTimer(6000, 2000) {
 
@@ -12934,12 +12956,12 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                             context.startActivity(i);
                         } else {
                             Log.i(TAG, "Step3 Hotspot enabled, But No Internet detected");
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Step3 Hotspot enabled, But No Internet detected");
+                            if (AppConstants.GENERATE_LOGS)
+                                AppConstants.writeInFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Step3 Hotspot enabled, But No Internet detected");
                         }
                     } else {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Step3 Waiting for enable hotspot");
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Step3 Waiting for enable hotspot");
                     }
                 }
 
@@ -12952,13 +12974,13 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                             LinkReConfigurationProcessStep4();
                         } else {
                             Log.i(TAG, "Step3 Hotspot enabled, But No Internet detected");
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Step3 Hotspot enabled, But No Internet detected");
+                            if (AppConstants.GENERATE_LOGS)
+                                AppConstants.writeInFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Step3 Hotspot enabled, But No Internet detected");
                         }
                     } else {
                         Log.i(TAG, "Step3 Failed to enable hotspot");
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Step3 Failed to enable hotspot");
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Step3 Failed to enable hotspot");
                     }
 
                     //BackTo Welcome Activity
@@ -12971,8 +12993,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
             // Removed below code as per #1894 (Eva) Spare Parts Kit 7/19/22
             /*Log.i(TAG, "Step3 Enable hotspot manually");
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "Step3 Enable hotspot manually");
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + "Step3 Enable hotspot manually");
             //AppConstants.colorToastHotspotOn(context, "Enable Mobile Hotspot Manually..", Color.BLUE);
             Intent tetherSettings = new Intent();//com.smartcom
             tetherSettings.setClassName("com.android.settings", "com.android.settings.TetherSettings");
@@ -12994,8 +13016,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                             context.startActivity(i);
                         } else {
                             Log.i(TAG, "Step3 Hotspot enabled, But No Internet detected");
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(TAG + "Step3 Hotspot enabled, But No Internet detected");
+                            if (AppConstants.GENERATE_LOGS)
+                                AppConstants.writeInFile(TAG + "Step3 Hotspot enabled, But No Internet detected");
                         }
 
                     } else {
@@ -13014,13 +13036,13 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                             LinkReConfigurationProcessStep4();
                         } else {
                             Log.i(TAG, "Step3- Hotspot enabled, But No Internet detected");
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(TAG + "Step3- Hotspot enabled, But No Internet detected");
+                            if (AppConstants.GENERATE_LOGS)
+                                AppConstants.writeInFile(TAG + "Step3- Hotspot enabled, But No Internet detected");
                         }
                     } else {
                         Log.i(TAG, "Step3 Failed to enable hotspot");
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "Step3 Failed to enable hotspot");
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(TAG + "Step3 Failed to enable hotspot");
                     }
 
                     //BackTo Welcome Activity
@@ -13036,19 +13058,19 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
     private void LinkReConfigurationProcessStep4() {
 
-        AppConstants.colorToastBigFont(WelcomeActivity.this, getResources().getString(R.string.MacAddressHeading) + " " + AppConstants.UPDATE_MACADDRESS, Color.BLUE);
-        Log.i(TAG, "Step4 Mac address " + AppConstants.UPDATE_MACADDRESS);
-        if (AppConstants.GenerateLogs)
-            AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Step4 Mac address " + AppConstants.UPDATE_MACADDRESS);
+        AppConstants.colorToastBigFont(WelcomeActivity.this, getResources().getString(R.string.MacAddressHeading) + " " + AppConstants.UPDATE_MAC_ADDRESS, Color.BLUE);
+        Log.i(TAG, "Step4 Mac address " + AppConstants.UPDATE_MAC_ADDRESS);
+        if (AppConstants.GENERATE_LOGS)
+            AppConstants.writeInFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Step4 Mac address " + AppConstants.UPDATE_MAC_ADDRESS);
 
         //Update mac address to server and mac address status
         try {
 
             UpdateMacAddressClass authEntityClass1 = new UpdateMacAddressClass();
-            authEntityClass1.SiteId = Integer.parseInt(AppConstants.CURRENT_SELECTED_SITEID);
-            authEntityClass1.MACAddress = AppConstants.UPDATE_MACADDRESS;
+            authEntityClass1.SiteId = Integer.parseInt(AppConstants.CURRENT_SELECTED_SITE_ID);
+            authEntityClass1.MACAddress = AppConstants.UPDATE_MAC_ADDRESS;
             authEntityClass1.RequestFrom = "AP";
-            authEntityClass1.HubName = AppConstants.HubName;
+            authEntityClass1.HubName = AppConstants.HUB_NAME;
 
             Gson gson = new Gson();
             final String jsonData = gson.toJson(authEntityClass1);
@@ -13065,18 +13087,18 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 }
 
             } else {
-                Constants.hotspotstayOn = true;
+                Constants.HOTSPOT_STAY_ON = true;
                 AppConstants.colorToastBigFont(WelcomeActivity.this, "No Internet while updating MacAddress to server. Please retry again.", Color.BLUE);
                 Log.i(TAG, "Step4 No Internet while updating MacAddress to server. Please retry again.");
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Step4 No Internet while updating MacAddress to server. Please retry again.");
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Step4 No Internet while updating MacAddress to server. Please retry again.");
             }
 
         } catch (Exception e) {
-            Constants.hotspotstayOn = true;
+            Constants.HOTSPOT_STAY_ON = true;
             System.out.println(e);
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "LinkReConfigurationProcessStep4 UpdateMacAddressClass --Exception: " + e.getMessage());
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(AppConstants.LOG_RECONFIG + "-" + TAG + "LinkReConfigurationProcessStep4 UpdateMacAddressClass --Exception: " + e.getMessage());
         }
 
     }
@@ -13109,8 +13131,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 resp = "exception";
 
                 e.printStackTrace();
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Set SSID and PASS to Link (Link reset) InBackground -Exception: " + e.getMessage());
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Set SSID and PASS to Link (Link reset) InBackground -Exception: " + e.getMessage());
             }
             return resp;
         }
@@ -13124,8 +13146,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     ChangeWifiState(false);//turn wifi off
                     AppConstants.colorToastBigFont(WelcomeActivity.this, "Step2 Failed while changing Hotspot Settings Please try again..", Color.BLUE);
                     Log.i(TAG, "Step2 Failed while changing Hotspot Settings Please try again.. exception:" + result);
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Step2 Failed while changing Hotspot Settings aboveAndroid9.");
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Step2 Failed while changing Hotspot Settings aboveAndroid9.");
 
                     //mj
                     Intent intent = new Intent(WelcomeActivity.this, WelcomeActivity.class);
@@ -13134,7 +13156,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
                 } else {
 
-                    //Constants.hotspotstayOn = true;//Enable hotspot flag temp prakash
+                    //Constants.HOTSPOT_STAY_ON = true;//Enable hotspot flag temp prakash
                     //ChangeWifiState(false);//turn wifi off
 
                     LinkReConfigurationProcessStep3(WelcomeActivity.this);
@@ -13142,14 +13164,14 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
                 System.out.println(result);
                 Log.i(TAG, " Set SSID and PASS to Link (Result" + result);
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Step2 Set SSID and PASS to Link Result >> " + result);
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Step2 Set SSID and PASS to Link Result >> " + result);
 
             } catch (Exception e) {
                 ChangeWifiState(false);//turn wifi off
                 e.printStackTrace();
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Set SSID and PASS to Link (Link reset) onPostExecute -Exception: " + e.getMessage());
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Set SSID and PASS to Link (Link reset) onPostExecute -Exception: " + e.getMessage());
             }
 
         }
@@ -13169,14 +13191,14 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
                 //----------------------------------------------------------------------------------
                 String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(WelcomeActivity.this) + ":" + userEmail + ":" + "UpdateMACAddress" + AppConstants.LANG_PARAM);
-                response = serverHandler.PostTextData(WelcomeActivity.this, AppConstants.webURL, jsonData, authString);
+                response = serverHandler.PostTextData(WelcomeActivity.this, AppConstants.WEB_URL, jsonData, authString);
                 //----------------------------------------------------------------------------------
 
             } catch (Exception ex) {
-                Constants.hotspotstayOn = true;
+                Constants.HOTSPOT_STAY_ON = true;
                 CommonUtils.LogMessage("", "UpdateMACAddress ", ex);
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "UpdateMacAsyncTask InBackground--Exception: " + ex.getMessage());
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(AppConstants.LOG_RECONFIG + "-" + TAG + "UpdateMacAsyncTask InBackground--Exception: " + ex.getMessage());
                 response = "err";
             }
             return response;
@@ -13189,20 +13211,20 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 if (serverRes.equalsIgnoreCase("err")) {
                     AppConstants.alertBigFinishActivity(WelcomeActivity.this, getResources().getString(R.string.PartiallyCompleted));
                     Log.i(TAG, "Step4 Link Re-configuration is partially completed.");
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Step4 Link Re-configuration is partially completed.");
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Step4 Link Re-configuration is partially completed.");
                 } else if (serverRes != null) {
 
                     JSONObject jsonObject1 = new JSONObject(serverRes);
                     String ResponceMessage = jsonObject1.getString("ResponceMessage");
                     if (ResponceMessage.equalsIgnoreCase("success")) {
 
-                        AppConstants.clearSharedPrefByName(WelcomeActivity.this, Constants.MAC_ADDR_RECONFIGURE);
-                        Constants.hotspotstayOn = true;
+                        AppConstants.clearSharedPrefByName(WelcomeActivity.this, Constants.MAC_ADDRESS_RECONFIGURE);
+                        Constants.HOTSPOT_STAY_ON = true;
                         AppConstants.colorToastBigFont(WelcomeActivity.this, getResources().getString(R.string.MacAddressUpdated), Color.parseColor("#4CAF50"));
                         Log.i(TAG, "Step4 Mac Address Updated");
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Step4 Mac Address Updated");
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Step4 Mac Address Updated");
                         skipOnResume = true;
                         wifiApManager.setWifiApEnabled(null, true);
                         ChangeWifiState(false);
@@ -13210,11 +13232,11 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
                     } else if (ResponceMessage.equalsIgnoreCase("fail")) {
 
-                        Constants.hotspotstayOn = true;
+                        Constants.HOTSPOT_STAY_ON = true;
                         AppConstants.colorToastBigFont(WelcomeActivity.this, getResources().getString(R.string.MacAddressNotUpdated), Color.BLUE);
                         Log.i(TAG, "Step4 MAC address could not be updated");
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Step4 MAC address could not be updated");
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Step4 MAC address could not be updated");
                         skipOnResume = true;
                         wifiApManager.setWifiApEnabled(null, true);
                         ChangeWifiState(false);
@@ -13222,13 +13244,13 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
                 } else {
                     Log.i(TAG, "Step4 UpdateMacAsynTask Server Response Empty!");
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Step4 UpdateMacAsynTask Server Response Empty!");
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(AppConstants.LOG_RECONFIG + "-" + TAG + "Step4 UpdateMacAsynTask Server Response Empty!");
                     //CommonUtils.showNoInternetDialog(WelcomeActivity.this);
                 }
             } catch (Exception e) {
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(AppConstants.LOG_RECONFIG + "-" + TAG + "UpdateMacAsyncTask onPostExecute --Exception: " + e.getMessage());
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(AppConstants.LOG_RECONFIG + "-" + TAG + "UpdateMacAsyncTask onPostExecute --Exception: " + e.getMessage());
             }
         }
     }
@@ -13236,11 +13258,11 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
     /*//UDP Link Reconfigure code below
     private void UDPLinkReConfigurationProcessStep1() {
-        if (Constants.FS_1STATUS.equalsIgnoreCase("FREE") && Constants.FS_2STATUS.equalsIgnoreCase("FREE") && Constants.FS_3STATUS.equalsIgnoreCase("FREE") && Constants.FS_4STATUS.equalsIgnoreCase("FREE")) {
+        if (Constants.FS_1_STATUS.equalsIgnoreCase("FREE") && Constants.FS_2_STATUS.equalsIgnoreCase("FREE") && Constants.FS_3_STATUS.equalsIgnoreCase("FREE") && Constants.FS_4_STATUS.equalsIgnoreCase("FREE")) {
 
             try {
-                AppConstants.enableHotspotManuallyWindow = false;
-                Constants.hotspotstayOn = false; //hotspot enable/disable flag
+                AppConstants.ENABLE_HOTSPOT_MANUALLY_WINDOW = false;
+                Constants.HOTSPOT_STAY_ON = false; //hotspot enable/disable flag
 
                 //Enable wifi
                 ChangeWifiState(true);
@@ -13250,11 +13272,11 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     public void run() {
 
                         Log.i(TAG, "Step1 UDP Link ReConfiguration enable wifi manually.");
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "Step1 UDP Link ReConfiguration enable wifi manually.");
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(TAG + "Step1 UDP Link ReConfiguration enable wifi manually.");
 
-                        AppConstants.SELECTED_SSID_FOR_MANUALL = AppConstants.CURRENT_SELECTED_SSID;//ReconfigSSID;
-                        AppConstants.colorToastBigFont(WelcomeActivity.this, getResources().getString(R.string.EnableWifiManually) + " " + AppConstants.SELECTED_SSID_FOR_MANUALL + " " + getResources().getString(R.string.UsingWifiList), Color.BLUE);
+                        AppConstants.SELECTED_SSID_FOR_MANUAL = AppConstants.CURRENT_SELECTED_SSID;//ReconfigSSID;
+                        AppConstants.colorToastBigFont(WelcomeActivity.this, getResources().getString(R.string.EnableWifiManually) + " " + AppConstants.SELECTED_SSID_FOR_MANUAL + " " + getResources().getString(R.string.UsingWifiList), Color.BLUE);
                         startActivity(new Intent(Settings.ACTION_WIFI_SETTINGS));
 
                         new CountDownTimer(180000, 2000) {
@@ -13272,18 +13294,18 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                 *//*ConnectivityManager connManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
                                 NetworkInfo mWifi = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);*//*
 
-                                if (AppConstants.GenerateLogs)
-                                    AppConstants.WriteinFile(TAG + ssid + " === " + AppConstants.SELECTED_SSID_FOR_MANUALL); //+" IsWifi Connected: "+mWifi.isConnected()
+                                if (AppConstants.GENERATE_LOGS)
+                                    AppConstants.writeInFile(TAG + ssid + " === " + AppConstants.SELECTED_SSID_FOR_MANUAL); //+" IsWifi Connected: "+mWifi.isConnected()
 
-                                if (ssid.equalsIgnoreCase(AppConstants.SELECTED_SSID_FOR_MANUALL)) { //mWifi.isConnected() &&
+                                if (ssid.equalsIgnoreCase(AppConstants.SELECTED_SSID_FOR_MANUAL)) { //mWifi.isConnected() &&
 
                                     //proced to reconfigure process
                                     cancel();
                                     Log.i(TAG, "Step1 UDP onTick ssid connected" + ssid);
-                                    AppConstants.colorToastBigFont(WelcomeActivity.this, getResources().getString(R.string.ConnectedToWifi) + " " + AppConstants.SELECTED_SSID_FOR_MANUALL, Color.BLUE);
-                                    Log.i(TAG, "Step1 UDP Connected to wifi " + AppConstants.SELECTED_SSID_FOR_MANUALL);
-                                    if (AppConstants.GenerateLogs)
-                                        AppConstants.WriteinFile(TAG + "Step1 UDP Connected to wifi " + AppConstants.SELECTED_SSID_FOR_MANUALL);
+                                    AppConstants.colorToastBigFont(WelcomeActivity.this, getResources().getString(R.string.ConnectedToWifi) + " " + AppConstants.SELECTED_SSID_FOR_MANUAL, Color.BLUE);
+                                    Log.i(TAG, "Step1 UDP Connected to wifi " + AppConstants.SELECTED_SSID_FOR_MANUAL);
+                                    if (AppConstants.GENERATE_LOGS)
+                                        AppConstants.writeInFile(TAG + "Step1 UDP Connected to wifi " + AppConstants.SELECTED_SSID_FOR_MANUAL);
 
                                     setGlobalWifiConnection();
                                     new Handler().postDelayed(new Runnable() {
@@ -13302,10 +13324,10 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
                                 ChangeWifiState(false);
                                 Log.i(TAG, "Step1 onFinish ssid Not connected. Please try again..");
-                                AppConstants.colorToastBigFont(WelcomeActivity.this, "Failed to connect to " + AppConstants.SELECTED_SSID_FOR_MANUALL + " Please try again..", Color.BLUE);
-                                Log.i(TAG, "Step1 Failed to connect to " + AppConstants.SELECTED_SSID_FOR_MANUALL + " Please try again..");
-                                if (AppConstants.GenerateLogs)
-                                    AppConstants.WriteinFile(TAG + "Step1 Failed to connect to " + AppConstants.SELECTED_SSID_FOR_MANUALL + " Please try again..");
+                                AppConstants.colorToastBigFont(WelcomeActivity.this, "Failed to connect to " + AppConstants.SELECTED_SSID_FOR_MANUAL + " Please try again..", Color.BLUE);
+                                Log.i(TAG, "Step1 Failed to connect to " + AppConstants.SELECTED_SSID_FOR_MANUAL + " Please try again..");
+                                if (AppConstants.GENERATE_LOGS)
+                                    AppConstants.writeInFile(TAG + "Step1 Failed to connect to " + AppConstants.SELECTED_SSID_FOR_MANUAL + " Please try again..");
 
                                 //Back to welcome activity
                                 Intent i = new Intent(WelcomeActivity.this, WelcomeActivity.class);
@@ -13320,15 +13342,15 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
             } catch (Exception e) {
                 ChangeWifiState(false);//turn wifi off
-                Constants.hotspotstayOn = true;
+                Constants.HOTSPOT_STAY_ON = true;
                 Log.i(TAG, "Link ReConfiguration process -Step 1 Exception" + e);
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "Link ReConfiguration process -Step 1 Exception" + e);
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(TAG + "Link ReConfiguration process -Step 1 Exception" + e);
             }
         } else {
             AppConstants.colorToastBigFont(WelcomeActivity.this, getResources().getString(R.string.CannotUpdateMac), Color.BLUE);
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "Can't update mac address,Hose is busy please retry later.");
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + "Can't update mac address,Hose is busy please retry later.");
             btnGo.setVisibility(View.GONE);
         }
     }*/
@@ -13337,28 +13359,28 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         try {
             String SERVER_IP = "192.168.4.1";
             String mac_address = "";
-            String info_result = new UDPClientTask().execute(BTConstants.info_cmd, SERVER_IP).get();
+            String info_result = new UDPClientTask().execute(BTConstants.INFO_COMMAND, SERVER_IP).get();
             Log.i(TAG, "BTLink_1: UDPInfoResult>>" + info_result);
 
             if (info_result.contains("STAMAC:")) {
                 String[] split = info_result.split("STAMAC:");
                 mac_address = split[1].replaceAll("\"", "").trim();
-                AppConstants.UPDATE_MACADDRESS = mac_address;
+                AppConstants.UPDATE_MAC_ADDRESS = mac_address;
 
                 Log.i(TAG, "BTLink_1: UDPInfoResult>>" + info_result);
 
                 Log.i(TAG, "Step2 Link UDP ReConfiguration INFO_Command result:" + info_result);
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "Step2 Link UDP ReConfiguration INFO_Command result:" + info_result);
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(TAG + "Step2 Link UDP ReConfiguration INFO_Command result:" + info_result);
 
                 if (mac_address.equals("")) {
 
                     AppConstants.colorToastBigFont(WelcomeActivity.this, getResources().getString(R.string.ReconfigurationFailed), Color.BLUE);
                     Log.i(TAG, "Step2 UDP Reconfiguration process fail.. Could not get mac address Info command result:" + info_result);
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + "Step2 UDP Reconfiguration process fail.. Could not get mac address Info command result:" + info_result);
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(TAG + "Step2 UDP Reconfiguration process fail.. Could not get mac address Info command result:" + info_result);
 
-                    Constants.hotspotstayOn = true;//Enable hotspot flag
+                    Constants.HOTSPOT_STAY_ON = true;//Enable hotspot flag
                     //Disable wifi connection
                     WifiManager wifiManagerMM = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
                     wifiManagerMM.setWifiEnabled(false);
@@ -13370,8 +13392,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     //Set HUB usernam and password to link
                     AppConstants.colorToastBigFont(WelcomeActivity.this, getResources().getString(R.string.SettingSSIDAndPASS), Color.BLUE);
                     Log.i(TAG, "Step2 Setting SSID and PASS to Link");
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + "Step2 UDP Setting SSID and PASS to Link");
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(TAG + "Step2 UDP Setting SSID and PASS to Link");
 
                     SharedPreferences sharedPref = WelcomeActivity.this.getSharedPreferences("HotSpotDetails", Context.MODE_PRIVATE);
                     String HotSpotSSID = sharedPref.getString("HotSpotSSID", "");
@@ -13379,15 +13401,15 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
                     HTTP_URL = "http://192.168.4.1:80/";
                     URL_UPDATE_FS_INFO = HTTP_URL + "config?command=wifi";
-                    //String linkStationCmd = BTConstants.linkstation_cmd + AppConstants.HubName + ";" + AppConstants.HubGeneratedpassword;
-                    String linkStationCmd = BTConstants.linkstation_cmd + HotSpotSSID + ";" + HotSpotPassword;
+                    //String linkStationCmd = BTConstants.LINK_STATION_COMMAND + AppConstants.HUB_NAME + ";" + AppConstants.HUB_GENERATED_PASSWORD;
+                    String linkStationCmd = BTConstants.LINK_STATION_COMMAND + HotSpotSSID + ";" + HotSpotPassword;
 
                     String linkstation_response = new UDPClientTask().execute(linkStationCmd, SERVER_IP).get();
 
-                    //if (linkstation_response.contains(AppConstants.HubGeneratedpassword)) {
+                    //if (linkstation_response.contains(AppConstants.HUB_GENERATED_PASSWORD)) {
                     if (linkstation_response.contains(HotSpotPassword)) {
 
-                        Constants.hotspotstayOn = true;//Enable hotspot flag
+                        Constants.HOTSPOT_STAY_ON = true;//Enable hotspot flag
                         ChangeWifiState(false);//turn wifi off
 
                         new Handler().postDelayed(new Runnable() {
@@ -13399,15 +13421,15 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
                         System.out.println(linkstation_response);
                         Log.i(TAG, " Set SSID and PASS to Link (Result" + linkstation_response);
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "Set SSID and PASS to Link Result >> " + linkstation_response);
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(TAG + "Set SSID and PASS to Link Result >> " + linkstation_response);
 
                     } else {
                         ChangeWifiState(false);//turn wifi off
                         AppConstants.colorToastBigFont(WelcomeActivity.this, "Step2 Failed while changing Hotspot Settings Please try again..", Color.BLUE);
                         Log.i(TAG, "Step2 Failed while changing Hotspot Settings Please try again.. exception:" + linkstation_response);
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "Step2 Failed while changing Hotspot Settings UDPLink. exception: " + linkstation_response);
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(TAG + "Step2 Failed while changing Hotspot Settings UDPLink. exception: " + linkstation_response);
 
                         //mj
                         Intent intent = new Intent(WelcomeActivity.this, WelcomeActivity.class);
@@ -13420,8 +13442,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 UDPLinkReConfigurationProcessStep1();
                 AppConstants.colorToastBigFont(WelcomeActivity.this, "Step2 Failed to get Info Command ", Color.BLUE);
                 Log.i(TAG, "Step2 Failed to get Info Command ");
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "Step2 Failed to get Info Command ");
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(TAG + "Step2 Failed to get Info Command ");
 
                 //BackTo Welcome Activity temp comment
                 Intent i = new Intent(WelcomeActivity.this, WelcomeActivity.class);
@@ -13431,8 +13453,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         } catch (Exception e) {
             ChangeWifiState(false);//turn wifi off
             e.printStackTrace();
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "WiFiConnectTask OnPostExecution --Exception: " + e.getMessage());
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + "WiFiConnectTask OnPostExecution --Exception: " + e.getMessage());
         }
     }*/
 
@@ -13517,64 +13539,64 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         try {
             switch (position) {
                 case 1:
-                    if (BTConstants.BTStatusStrOne.equalsIgnoreCase("Connected")) {
+                    if (BTConstants.BT_STATUS_STR_ONE.equalsIgnoreCase("Connected")) {
                         isConnected = true;
                     }
                     if (isConnected) {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_1: Link is connected.");
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_1: Link is connected.");
                     }
                     break;
                 case 2:
-                    if (BTConstants.BTStatusStrTwo.equalsIgnoreCase("Connected")) {
+                    if (BTConstants.BT_STATUS_STR_TWO.equalsIgnoreCase("Connected")) {
                         isConnected = true;
                     }
                     if (isConnected) {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_2: Link is connected.");
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_2: Link is connected.");
                     }
                     break;
                 case 3:
-                    if (BTConstants.BTStatusStrThree.equalsIgnoreCase("Connected")) {
+                    if (BTConstants.BT_STATUS_STR_THREE.equalsIgnoreCase("Connected")) {
                         isConnected = true;
                     }
                     if (isConnected) {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_3: Link is connected.");
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_3: Link is connected.");
                     }
                     break;
                 case 4:
-                    if (BTConstants.BTStatusStrFour.equalsIgnoreCase("Connected")) {
+                    if (BTConstants.BT_STATUS_STR_FOUR.equalsIgnoreCase("Connected")) {
                         isConnected = true;
                     }
                     if (isConnected) {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_4: Link is connected.");
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_4: Link is connected.");
                     }
                     break;
                 case 5:
-                    if (BTConstants.BTStatusStrFive.equalsIgnoreCase("Connected")) {
+                    if (BTConstants.BT_STATUS_STR_FIVE.equalsIgnoreCase("Connected")) {
                         isConnected = true;
                     }
                     if (isConnected) {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_5: Link is connected.");
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_5: Link is connected.");
                     }
                     break;
                 case 6:
-                    if (BTConstants.BTStatusStrSix.equalsIgnoreCase("Connected")) {
+                    if (BTConstants.BT_STATUS_STR_SIX.equalsIgnoreCase("Connected")) {
                         isConnected = true;
                     }
                     if (isConnected) {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_6: Link is connected.");
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_6: Link is connected.");
                     }
                     break;
             }
 
         } catch (Exception e) {
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink " + position + ": checkBTLinkStatus Exception:>>" + e.getMessage());
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink " + position + ": checkBTLinkStatus Exception:>>" + e.getMessage());
         }
         return isConnected;
     }
@@ -13583,76 +13605,76 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         try {
             switch (position) {
                 case 1:
-                    if (BTConstants.BTStatusStrOne.equalsIgnoreCase("Disconnect")) {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_1: Retrying to Connect");
+                    if (BTConstants.BT_STATUS_STR_ONE.equalsIgnoreCase("Disconnect")) {
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_1: Retrying to Connect");
                         //Retrying to connect to link
                         BTSPPMain btspp = new BTSPPMain();
                         btspp.activity = WelcomeActivity.this;
                         btspp.connect1();
-                        BTConstants.CurrentTransactionIsBT1 = false;
+                        BTConstants.CURRENT_TRANSACTION_IS_BT_1 = false;
                     }
                     break;
                 case 2:
-                    if (BTConstants.BTStatusStrTwo.equalsIgnoreCase("Disconnect")) {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_2: Retrying to Connect");
+                    if (BTConstants.BT_STATUS_STR_TWO.equalsIgnoreCase("Disconnect")) {
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_2: Retrying to Connect");
                         //Retrying to connect to link
                         BTSPPMain btspp = new BTSPPMain();
                         btspp.activity = WelcomeActivity.this;
                         btspp.connect2();
-                        BTConstants.CurrentTransactionIsBT2 = false;
+                        BTConstants.CURRENT_TRANSACTION_IS_BT_2 = false;
                     }
                     break;
                 case 3:
-                    if (BTConstants.BTStatusStrThree.equalsIgnoreCase("Disconnect")) {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_3: Retrying to Connect");
+                    if (BTConstants.BT_STATUS_STR_THREE.equalsIgnoreCase("Disconnect")) {
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_3: Retrying to Connect");
                         //Retrying to connect to link
                         BTSPPMain btspp = new BTSPPMain();
                         btspp.activity = WelcomeActivity.this;
                         btspp.connect3();
-                        BTConstants.CurrentTransactionIsBT3 = false;
+                        BTConstants.CURRENT_TRANSACTION_IS_BT_3 = false;
                     }
                     break;
                 case 4:
-                    if (BTConstants.BTStatusStrFour.equalsIgnoreCase("Disconnect")) {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_4: Retrying to Connect");
+                    if (BTConstants.BT_STATUS_STR_FOUR.equalsIgnoreCase("Disconnect")) {
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_4: Retrying to Connect");
                         //Retrying to connect to link
                         BTSPPMain btspp = new BTSPPMain();
                         btspp.activity = WelcomeActivity.this;
                         btspp.connect4();
-                        BTConstants.CurrentTransactionIsBT4 = false;
+                        BTConstants.CURRENT_TRANSACTION_IS_BT_4 = false;
                     }
                     break;
                 case 5:
-                    if (BTConstants.BTStatusStrFive.equalsIgnoreCase("Disconnect")) {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_5: Retrying to Connect");
+                    if (BTConstants.BT_STATUS_STR_FIVE.equalsIgnoreCase("Disconnect")) {
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_5: Retrying to Connect");
                         //Retrying to connect to link
                         BTSPPMain btspp = new BTSPPMain();
                         btspp.activity = WelcomeActivity.this;
                         btspp.connect5();
-                        BTConstants.CurrentTransactionIsBT5 = false;
+                        BTConstants.CURRENT_TRANSACTION_IS_BT_5 = false;
                     }
                     break;
                 case 6:
-                    if (BTConstants.BTStatusStrSix.equalsIgnoreCase("Disconnect")) {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_6: Retrying to Connect");
+                    if (BTConstants.BT_STATUS_STR_SIX.equalsIgnoreCase("Disconnect")) {
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink_6: Retrying to Connect");
                         //Retrying to connect to link
                         BTSPPMain btspp = new BTSPPMain();
                         btspp.activity = WelcomeActivity.this;
                         btspp.connect6();
-                        BTConstants.CurrentTransactionIsBT6 = false;
+                        BTConstants.CURRENT_TRANSACTION_IS_BT_6 = false;
                     }
                     break;
             }
 
         } catch (Exception e) {
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink " + position + ": retryConnect Exception:>>" + e.getMessage());
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(AppConstants.LOG_TXTN_BT + "-" + TAG + "BTLink " + position + ": retryConnect Exception:>>" + e.getMessage());
         }
     }
 
@@ -13660,23 +13682,23 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         switch (selectedItemPos) {
             case 0:
                 //Link one
-                if (BTConstants.BTLinkOneStatus) {
-                    if (Constants.FS_1STATUS.equalsIgnoreCase("FREE")) {
-                        AppConstants.FS_selected = String.valueOf(selectedItemPos);
+                if (BTConstants.BT_LINK_ONE_STATUS) {
+                    if (Constants.FS_1_STATUS.equalsIgnoreCase("FREE")) {
+                        AppConstants.FS_SELECTED = String.valueOf(selectedItemPos);
                         RedirectBtLinkOneToNextScreen(selSSID);
                     } else {
                         BTL1State = 0;
-                        BTConstants.CurrentSelectedLinkBT = 0;
-                        BTConstants.CurrentTransactionIsBT1 = true;
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
+                        BTConstants.CURRENT_SELECTED_BT_LINK_POSITION = 0;
+                        BTConstants.CURRENT_TRANSACTION_IS_BT_1 = true;
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(TAG + getResources().getString(R.string.HoseInUse));
                         RestrictHoseSelection(getResources().getString(R.string.HoseInUse), false);
                     }
                 } else {
-                    if (!BTConstants.deviceAddress1.isEmpty()) {
-                        NearByBTDevices.clear();
+                    if (!BTConstants.DEVICE_ADDRESS_1.isEmpty()) {
+                        nearbyBTDevices.clear();
                         mBluetoothAdapter.startDiscovery();
-                        if (Constants.FS_1STATUS.equalsIgnoreCase("FREE")) {
+                        if (Constants.FS_1_STATUS.equalsIgnoreCase("FREE")) {
                             RestrictHoseSelection(getResources().getString(R.string.ConnectingStatus), true);
                         }
 
@@ -13690,45 +13712,45 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                 if (BTConnectionHandler != null) {
                                     BTConnectionHandler.removeCallbacksAndMessages(null);
                                 }
-                                if (Constants.FS_1STATUS.equalsIgnoreCase("FREE")) {
-                                    AppConstants.FS_selected = String.valueOf(selectedItemPos);
+                                if (Constants.FS_1_STATUS.equalsIgnoreCase("FREE")) {
+                                    AppConstants.FS_SELECTED = String.valueOf(selectedItemPos);
                                     RedirectBtLinkOneToNextScreen(selSSID);
                                 } else {
                                     BTL1State = 0;
-                                    BTConstants.CurrentSelectedLinkBT = 0;
-                                    BTConstants.CurrentTransactionIsBT1 = true;
-                                    if (AppConstants.GenerateLogs)
-                                        AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
+                                    BTConstants.CURRENT_SELECTED_BT_LINK_POSITION = 0;
+                                    BTConstants.CURRENT_TRANSACTION_IS_BT_1 = true;
+                                    if (AppConstants.GENERATE_LOGS)
+                                        AppConstants.writeInFile(TAG + getResources().getString(R.string.HoseInUse));
                                     RestrictHoseSelection(getResources().getString(R.string.HoseInUse), false);
                                 }
                             }
                         }, delay);
                     } else {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + getResources().getString(R.string.MakeSureBTMacIsSet));
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(TAG + getResources().getString(R.string.MakeSureBTMacIsSet));
                         //AppConstants.colorToast(WelcomeActivity.this, getResources().getString(R.string.MakeSureBTMacIsSet), Color.BLUE);
                     }
                 }
                 break;
             case 1:
                 //Link Two
-                if (BTConstants.BTLinkTwoStatus) {
-                    if (Constants.FS_2STATUS.equalsIgnoreCase("FREE")) {
-                        AppConstants.FS_selected = String.valueOf(selectedItemPos);
+                if (BTConstants.BT_LINK_TWO_STATUS) {
+                    if (Constants.FS_2_STATUS.equalsIgnoreCase("FREE")) {
+                        AppConstants.FS_SELECTED = String.valueOf(selectedItemPos);
                         RedirectBtLinkTwoToNextScreen(selSSID);
                     } else {
                         BTL2State = 0;
-                        BTConstants.CurrentSelectedLinkBT = 0;
-                        BTConstants.CurrentTransactionIsBT2 = true;
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
+                        BTConstants.CURRENT_SELECTED_BT_LINK_POSITION = 0;
+                        BTConstants.CURRENT_TRANSACTION_IS_BT_2 = true;
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(TAG + getResources().getString(R.string.HoseInUse));
                         RestrictHoseSelection(getResources().getString(R.string.HoseInUse), false);
                     }
                 } else {
-                    if (!BTConstants.deviceAddress2.isEmpty()) {
-                        NearByBTDevices.clear();
+                    if (!BTConstants.DEVICE_ADDRESS_2.isEmpty()) {
+                        nearbyBTDevices.clear();
                         mBluetoothAdapter.startDiscovery();
-                        if (Constants.FS_2STATUS.equalsIgnoreCase("FREE")) {
+                        if (Constants.FS_2_STATUS.equalsIgnoreCase("FREE")) {
                             RestrictHoseSelection(getResources().getString(R.string.ConnectingStatus), true);
                         }
 
@@ -13742,45 +13764,45 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                 if (BTConnectionHandler != null) {
                                     BTConnectionHandler.removeCallbacksAndMessages(null);
                                 }
-                                if (Constants.FS_2STATUS.equalsIgnoreCase("FREE")) {
-                                    AppConstants.FS_selected = String.valueOf(selectedItemPos);
+                                if (Constants.FS_2_STATUS.equalsIgnoreCase("FREE")) {
+                                    AppConstants.FS_SELECTED = String.valueOf(selectedItemPos);
                                     RedirectBtLinkTwoToNextScreen(selSSID);
                                 } else {
                                     BTL2State = 0;
-                                    BTConstants.CurrentSelectedLinkBT = 0;
-                                    BTConstants.CurrentTransactionIsBT2 = true;
-                                    if (AppConstants.GenerateLogs)
-                                        AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
+                                    BTConstants.CURRENT_SELECTED_BT_LINK_POSITION = 0;
+                                    BTConstants.CURRENT_TRANSACTION_IS_BT_2 = true;
+                                    if (AppConstants.GENERATE_LOGS)
+                                        AppConstants.writeInFile(TAG + getResources().getString(R.string.HoseInUse));
                                     RestrictHoseSelection(getResources().getString(R.string.HoseInUse), false);
                                 }
                             }
                         }, delay);
                     } else {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + getResources().getString(R.string.MakeSureBTMacIsSet));
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(TAG + getResources().getString(R.string.MakeSureBTMacIsSet));
                         //AppConstants.colorToast(WelcomeActivity.this, getResources().getString(R.string.MakeSureBTMacIsSet), Color.BLUE);
                     }
                 }
                 break;
             case 2:
                 //Link Three
-                if (BTConstants.BTLinkThreeStatus) {
-                    if (Constants.FS_3STATUS.equalsIgnoreCase("FREE")) {
-                        AppConstants.FS_selected = String.valueOf(selectedItemPos);
+                if (BTConstants.BT_LINK_THREE_STATUS) {
+                    if (Constants.FS_3_STATUS.equalsIgnoreCase("FREE")) {
+                        AppConstants.FS_SELECTED = String.valueOf(selectedItemPos);
                         RedirectBtLinkThreeToNextScreen(selSSID);
                     } else {
                         BTL3State = 0;
-                        BTConstants.CurrentSelectedLinkBT = 0;
-                        BTConstants.CurrentTransactionIsBT3 = true;
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
+                        BTConstants.CURRENT_SELECTED_BT_LINK_POSITION = 0;
+                        BTConstants.CURRENT_TRANSACTION_IS_BT_3 = true;
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(TAG + getResources().getString(R.string.HoseInUse));
                         RestrictHoseSelection(getResources().getString(R.string.HoseInUse), false);
                     }
                 } else {
-                    if (!BTConstants.deviceAddress3.isEmpty()) {
-                        NearByBTDevices.clear();
+                    if (!BTConstants.DEVICE_ADDRESS_3.isEmpty()) {
+                        nearbyBTDevices.clear();
                         mBluetoothAdapter.startDiscovery();
-                        if (Constants.FS_3STATUS.equalsIgnoreCase("FREE")) {
+                        if (Constants.FS_3_STATUS.equalsIgnoreCase("FREE")) {
                             RestrictHoseSelection(getResources().getString(R.string.ConnectingStatus), true);
                         }
 
@@ -13794,44 +13816,44 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                 if (BTConnectionHandler != null) {
                                     BTConnectionHandler.removeCallbacksAndMessages(null);
                                 }
-                                if (Constants.FS_3STATUS.equalsIgnoreCase("FREE")) {
-                                    AppConstants.FS_selected = String.valueOf(selectedItemPos);
+                                if (Constants.FS_3_STATUS.equalsIgnoreCase("FREE")) {
+                                    AppConstants.FS_SELECTED = String.valueOf(selectedItemPos);
                                     RedirectBtLinkThreeToNextScreen(selSSID);
                                 } else {
                                     BTL3State = 0;
-                                    BTConstants.CurrentSelectedLinkBT = 0;
-                                    BTConstants.CurrentTransactionIsBT3 = true;
-                                    if (AppConstants.GenerateLogs)
-                                        AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
+                                    BTConstants.CURRENT_SELECTED_BT_LINK_POSITION = 0;
+                                    BTConstants.CURRENT_TRANSACTION_IS_BT_3 = true;
+                                    if (AppConstants.GENERATE_LOGS)
+                                        AppConstants.writeInFile(TAG + getResources().getString(R.string.HoseInUse));
                                     RestrictHoseSelection(getResources().getString(R.string.HoseInUse), false);
                                 }
                             }
                         }, delay);
                     } else {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + getResources().getString(R.string.MakeSureBTMacIsSet));
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(TAG + getResources().getString(R.string.MakeSureBTMacIsSet));
                         //AppConstants.colorToast(WelcomeActivity.this, getResources().getString(R.string.MakeSureBTMacIsSet), Color.BLUE);
                     }
                 }
                 break;
             case 3://Link Four
-                if (BTConstants.BTLinkFourStatus) {
-                    if (Constants.FS_4STATUS.equalsIgnoreCase("FREE")) {
-                        AppConstants.FS_selected = String.valueOf(selectedItemPos);
+                if (BTConstants.BT_LINK_FOUR_STATUS) {
+                    if (Constants.FS_4_STATUS.equalsIgnoreCase("FREE")) {
+                        AppConstants.FS_SELECTED = String.valueOf(selectedItemPos);
                         RedirectBtLinkFourToNextScreen(selSSID);
                     } else {
                         BTL4State = 0;
-                        BTConstants.CurrentSelectedLinkBT = 0;
-                        BTConstants.CurrentTransactionIsBT4 = true;
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
+                        BTConstants.CURRENT_SELECTED_BT_LINK_POSITION = 0;
+                        BTConstants.CURRENT_TRANSACTION_IS_BT_4 = true;
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(TAG + getResources().getString(R.string.HoseInUse));
                         RestrictHoseSelection(getResources().getString(R.string.HoseInUse), false);
                     }
                 } else {
-                    if (!BTConstants.deviceAddress4.isEmpty()) {
-                        NearByBTDevices.clear();
+                    if (!BTConstants.DEVICE_ADDRESS_4.isEmpty()) {
+                        nearbyBTDevices.clear();
                         mBluetoothAdapter.startDiscovery();
-                        if (Constants.FS_4STATUS.equalsIgnoreCase("FREE")) {
+                        if (Constants.FS_4_STATUS.equalsIgnoreCase("FREE")) {
                             RestrictHoseSelection(getResources().getString(R.string.ConnectingStatus), true);
                         }
 
@@ -13845,44 +13867,44 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                 if (BTConnectionHandler != null) {
                                     BTConnectionHandler.removeCallbacksAndMessages(null);
                                 }
-                                if (Constants.FS_4STATUS.equalsIgnoreCase("FREE")) {
-                                    AppConstants.FS_selected = String.valueOf(selectedItemPos);
+                                if (Constants.FS_4_STATUS.equalsIgnoreCase("FREE")) {
+                                    AppConstants.FS_SELECTED = String.valueOf(selectedItemPos);
                                     RedirectBtLinkFourToNextScreen(selSSID);
                                 } else {
                                     BTL4State = 0;
-                                    BTConstants.CurrentSelectedLinkBT = 0;
-                                    BTConstants.CurrentTransactionIsBT4 = true;
-                                    if (AppConstants.GenerateLogs)
-                                        AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
+                                    BTConstants.CURRENT_SELECTED_BT_LINK_POSITION = 0;
+                                    BTConstants.CURRENT_TRANSACTION_IS_BT_4 = true;
+                                    if (AppConstants.GENERATE_LOGS)
+                                        AppConstants.writeInFile(TAG + getResources().getString(R.string.HoseInUse));
                                     RestrictHoseSelection(getResources().getString(R.string.HoseInUse), false);
                                 }
                             }
                         }, delay);
                     } else {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + getResources().getString(R.string.MakeSureBTMacIsSet));
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(TAG + getResources().getString(R.string.MakeSureBTMacIsSet));
                         //AppConstants.colorToast(WelcomeActivity.this, getResources().getString(R.string.MakeSureBTMacIsSet), Color.BLUE);
                     }
                 }
                 break;
             case 4://Link Five
-                if (BTConstants.BTLinkFiveStatus) {
-                    if (Constants.FS_5STATUS.equalsIgnoreCase("FREE")) {
-                        AppConstants.FS_selected = String.valueOf(selectedItemPos);
+                if (BTConstants.BT_LINK_FIVE_STATUS) {
+                    if (Constants.FS_5_STATUS.equalsIgnoreCase("FREE")) {
+                        AppConstants.FS_SELECTED = String.valueOf(selectedItemPos);
                         RedirectBtLinkFiveToNextScreen(selSSID);
                     } else {
                         BTL5State = 0;
-                        BTConstants.CurrentSelectedLinkBT = 0;
-                        BTConstants.CurrentTransactionIsBT5 = true;
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
+                        BTConstants.CURRENT_SELECTED_BT_LINK_POSITION = 0;
+                        BTConstants.CURRENT_TRANSACTION_IS_BT_5 = true;
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(TAG + getResources().getString(R.string.HoseInUse));
                         RestrictHoseSelection(getResources().getString(R.string.HoseInUse), false);
                     }
                 } else {
-                    if (!BTConstants.deviceAddress5.isEmpty()) {
-                        NearByBTDevices.clear();
+                    if (!BTConstants.DEVICE_ADDRESS_5.isEmpty()) {
+                        nearbyBTDevices.clear();
                         mBluetoothAdapter.startDiscovery();
-                        if (Constants.FS_5STATUS.equalsIgnoreCase("FREE")) {
+                        if (Constants.FS_5_STATUS.equalsIgnoreCase("FREE")) {
                             RestrictHoseSelection(getResources().getString(R.string.ConnectingStatus), true);
                         }
 
@@ -13896,44 +13918,44 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                 if (BTConnectionHandler != null) {
                                     BTConnectionHandler.removeCallbacksAndMessages(null);
                                 }
-                                if (Constants.FS_5STATUS.equalsIgnoreCase("FREE")) {
-                                    AppConstants.FS_selected = String.valueOf(selectedItemPos);
+                                if (Constants.FS_5_STATUS.equalsIgnoreCase("FREE")) {
+                                    AppConstants.FS_SELECTED = String.valueOf(selectedItemPos);
                                     RedirectBtLinkFiveToNextScreen(selSSID);
                                 } else {
                                     BTL5State = 0;
-                                    BTConstants.CurrentSelectedLinkBT = 0;
-                                    BTConstants.CurrentTransactionIsBT5 = true;
-                                    if (AppConstants.GenerateLogs)
-                                        AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
+                                    BTConstants.CURRENT_SELECTED_BT_LINK_POSITION = 0;
+                                    BTConstants.CURRENT_TRANSACTION_IS_BT_5 = true;
+                                    if (AppConstants.GENERATE_LOGS)
+                                        AppConstants.writeInFile(TAG + getResources().getString(R.string.HoseInUse));
                                     RestrictHoseSelection(getResources().getString(R.string.HoseInUse), false);
                                 }
                             }
                         }, delay);
                     } else {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + getResources().getString(R.string.MakeSureBTMacIsSet));
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(TAG + getResources().getString(R.string.MakeSureBTMacIsSet));
                         //AppConstants.colorToast(WelcomeActivity.this, getResources().getString(R.string.MakeSureBTMacIsSet), Color.BLUE);
                     }
                 }
                 break;
             case 5://Link Six
-                if (BTConstants.BTLinkSixStatus) {
-                    if (Constants.FS_6STATUS.equalsIgnoreCase("FREE")) {
-                        AppConstants.FS_selected = String.valueOf(selectedItemPos);
+                if (BTConstants.BT_LINK_SIX_STATUS) {
+                    if (Constants.FS_6_STATUS.equalsIgnoreCase("FREE")) {
+                        AppConstants.FS_SELECTED = String.valueOf(selectedItemPos);
                         RedirectBtLinkSixToNextScreen(selSSID);
                     } else {
                         BTL6State = 0;
-                        BTConstants.CurrentSelectedLinkBT = 0;
-                        BTConstants.CurrentTransactionIsBT6 = true;
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
+                        BTConstants.CURRENT_SELECTED_BT_LINK_POSITION = 0;
+                        BTConstants.CURRENT_TRANSACTION_IS_BT_6 = true;
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(TAG + getResources().getString(R.string.HoseInUse));
                         RestrictHoseSelection(getResources().getString(R.string.HoseInUse), false);
                     }
                 } else {
-                    if (!BTConstants.deviceAddress6.isEmpty()) {
-                        NearByBTDevices.clear();
+                    if (!BTConstants.DEVICE_ADDRESS_6.isEmpty()) {
+                        nearbyBTDevices.clear();
                         mBluetoothAdapter.startDiscovery();
-                        if (Constants.FS_6STATUS.equalsIgnoreCase("FREE")) {
+                        if (Constants.FS_6_STATUS.equalsIgnoreCase("FREE")) {
                             RestrictHoseSelection(getResources().getString(R.string.ConnectingStatus), true);
                         }
 
@@ -13947,22 +13969,22 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                 if (BTConnectionHandler != null) {
                                     BTConnectionHandler.removeCallbacksAndMessages(null);
                                 }
-                                if (Constants.FS_6STATUS.equalsIgnoreCase("FREE")) {
-                                    AppConstants.FS_selected = String.valueOf(selectedItemPos);
+                                if (Constants.FS_6_STATUS.equalsIgnoreCase("FREE")) {
+                                    AppConstants.FS_SELECTED = String.valueOf(selectedItemPos);
                                     RedirectBtLinkSixToNextScreen(selSSID);
                                 } else {
                                     BTL6State = 0;
-                                    BTConstants.CurrentSelectedLinkBT = 0;
-                                    BTConstants.CurrentTransactionIsBT6 = true;
-                                    if (AppConstants.GenerateLogs)
-                                        AppConstants.WriteinFile(TAG + getResources().getString(R.string.HoseInUse));
+                                    BTConstants.CURRENT_SELECTED_BT_LINK_POSITION = 0;
+                                    BTConstants.CURRENT_TRANSACTION_IS_BT_6 = true;
+                                    if (AppConstants.GENERATE_LOGS)
+                                        AppConstants.writeInFile(TAG + getResources().getString(R.string.HoseInUse));
                                     RestrictHoseSelection(getResources().getString(R.string.HoseInUse), false);
                                 }
                             }
                         }, delay);
                     } else {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + getResources().getString(R.string.MakeSureBTMacIsSet));
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(TAG + getResources().getString(R.string.MakeSureBTMacIsSet));
                         //AppConstants.colorToast(WelcomeActivity.this, getResources().getString(R.string.MakeSureBTMacIsSet), Color.BLUE);
                     }
                 }
@@ -14035,60 +14057,60 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         if (BTLinkCommType != null && BTLinkCommType.equalsIgnoreCase("SPP")) {
                             switch (i) {
                                 case 0:
-                                    if (BTMacAddress != null && !BTMacAddress.isEmpty() && !BTConstants.BTLinkOneStatus && !BTConstants.BTStatusStrOne.equalsIgnoreCase("Connecting...")) { // && CommonFunctions.CheckIfPresentInPairedDeviceList(BTMacAddress)
+                                    if (BTMacAddress != null && !BTMacAddress.isEmpty() && !BTConstants.BT_LINK_ONE_STATUS && !BTConstants.BT_STATUS_STR_ONE.equalsIgnoreCase("Connecting...")) { // && CommonFunctions.CheckIfPresentInPairedDeviceList(BTMacAddress)
                                         //Connect to Link one
-                                        if (AppConstants.GenerateLogs)
-                                            AppConstants.WriteinFile(TAG + "<BTLink_1: Trying to connect.>");
+                                        if (AppConstants.GENERATE_LOGS)
+                                            AppConstants.writeInFile(TAG + "<BTLink_1: Trying to connect.>");
                                         BTSPPMain btspp1 = new BTSPPMain();
                                         btspp1.activity = WelcomeActivity.this;
                                         btspp1.connect1();
                                     }
                                     break;
                                 case 1://Link Two
-                                    if (BTMacAddress != null && !BTMacAddress.isEmpty() && !BTConstants.BTLinkTwoStatus && !BTConstants.BTStatusStrTwo.equalsIgnoreCase("Connecting...")) { // && CommonFunctions.CheckIfPresentInPairedDeviceList(BTMacAddress)
+                                    if (BTMacAddress != null && !BTMacAddress.isEmpty() && !BTConstants.BT_LINK_TWO_STATUS && !BTConstants.BT_STATUS_STR_TWO.equalsIgnoreCase("Connecting...")) { // && CommonFunctions.CheckIfPresentInPairedDeviceList(BTMacAddress)
                                         //Connect to Link two
-                                        if (AppConstants.GenerateLogs)
-                                            AppConstants.WriteinFile(TAG + "<BTLink_2: Trying to connect.>");
+                                        if (AppConstants.GENERATE_LOGS)
+                                            AppConstants.writeInFile(TAG + "<BTLink_2: Trying to connect.>");
                                         BTSPPMain btspp2 = new BTSPPMain();
                                         btspp2.activity = WelcomeActivity.this;
                                         btspp2.connect2();
                                     }
                                     break;
                                 case 2://Link Three
-                                    if (BTMacAddress != null && !BTMacAddress.isEmpty() && !BTConstants.BTLinkThreeStatus && !BTConstants.BTStatusStrThree.equalsIgnoreCase("Connecting...")) { // && CommonFunctions.CheckIfPresentInPairedDeviceList(BTMacAddress)
+                                    if (BTMacAddress != null && !BTMacAddress.isEmpty() && !BTConstants.BT_LINK_THREE_STATUS && !BTConstants.BT_STATUS_STR_THREE.equalsIgnoreCase("Connecting...")) { // && CommonFunctions.CheckIfPresentInPairedDeviceList(BTMacAddress)
                                         //Connect to Link three
-                                        if (AppConstants.GenerateLogs)
-                                            AppConstants.WriteinFile(TAG + "<BTLink_3: Trying to connect.>");
+                                        if (AppConstants.GENERATE_LOGS)
+                                            AppConstants.writeInFile(TAG + "<BTLink_3: Trying to connect.>");
                                         BTSPPMain btspp3 = new BTSPPMain();
                                         btspp3.activity = WelcomeActivity.this;
                                         btspp3.connect3();
                                     }
                                     break;
                                 case 3://Link Four
-                                    if (BTMacAddress != null && !BTMacAddress.isEmpty() && !BTConstants.BTLinkFourStatus && !BTConstants.BTStatusStrFour.equalsIgnoreCase("Connecting...")) { // && CommonFunctions.CheckIfPresentInPairedDeviceList(BTMacAddress)
+                                    if (BTMacAddress != null && !BTMacAddress.isEmpty() && !BTConstants.BT_LINK_FOUR_STATUS && !BTConstants.BT_STATUS_STR_FOUR.equalsIgnoreCase("Connecting...")) { // && CommonFunctions.CheckIfPresentInPairedDeviceList(BTMacAddress)
                                         //Connect to Link Four
-                                        if (AppConstants.GenerateLogs)
-                                            AppConstants.WriteinFile(TAG + "<BTLink_4: Trying to connect.>");
+                                        if (AppConstants.GENERATE_LOGS)
+                                            AppConstants.writeInFile(TAG + "<BTLink_4: Trying to connect.>");
                                         BTSPPMain btspp4 = new BTSPPMain();
                                         btspp4.activity = WelcomeActivity.this;
                                         btspp4.connect4();
                                     }
                                     break;
                                 case 4://Link Five
-                                    if (BTMacAddress != null && !BTMacAddress.isEmpty() && !BTConstants.BTLinkFiveStatus && !BTConstants.BTStatusStrFive.equalsIgnoreCase("Connecting...")) { // && CommonFunctions.CheckIfPresentInPairedDeviceList(BTMacAddress)
+                                    if (BTMacAddress != null && !BTMacAddress.isEmpty() && !BTConstants.BT_LINK_FIVE_STATUS && !BTConstants.BT_STATUS_STR_FIVE.equalsIgnoreCase("Connecting...")) { // && CommonFunctions.CheckIfPresentInPairedDeviceList(BTMacAddress)
                                         //Connect to Link Five
-                                        if (AppConstants.GenerateLogs)
-                                            AppConstants.WriteinFile(TAG + "<BTLink_5: Trying to connect.>");
+                                        if (AppConstants.GENERATE_LOGS)
+                                            AppConstants.writeInFile(TAG + "<BTLink_5: Trying to connect.>");
                                         BTSPPMain btspp5 = new BTSPPMain();
                                         btspp5.activity = WelcomeActivity.this;
                                         btspp5.connect5();
                                     }
                                     break;
                                 case 5://Link Six
-                                    if (BTMacAddress != null && !BTMacAddress.isEmpty() && !BTConstants.BTLinkSixStatus && !BTConstants.BTStatusStrSix.equalsIgnoreCase("Connecting...")) { // && CommonFunctions.CheckIfPresentInPairedDeviceList(BTMacAddress)
+                                    if (BTMacAddress != null && !BTMacAddress.isEmpty() && !BTConstants.BT_LINK_SIX_STATUS && !BTConstants.BT_STATUS_STR_SIX.equalsIgnoreCase("Connecting...")) { // && CommonFunctions.CheckIfPresentInPairedDeviceList(BTMacAddress)
                                         //Connect to Link Six
-                                        if (AppConstants.GenerateLogs)
-                                            AppConstants.WriteinFile(TAG + "<BTLink_6: Trying to connect.>");
+                                        if (AppConstants.GENERATE_LOGS)
+                                            AppConstants.writeInFile(TAG + "<BTLink_6: Trying to connect.>");
                                         BTSPPMain btspp6 = new BTSPPMain();
                                         btspp6.activity = WelcomeActivity.this;
                                         btspp6.connect6();
@@ -14103,8 +14125,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             }
         } catch (Exception e) {
             e.printStackTrace();
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "ConnectAllAvailableBTLinks Exception:" + e.toString());
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + "ConnectAllAvailableBTLinks Exception:" + e.toString());
         }
     }
 
@@ -14112,29 +14134,29 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         try {
             switch (linkPosition) {
                 case 0:
-                    BTConstants.deviceAddress1 = BTMacAddress.toUpperCase();
+                    BTConstants.DEVICE_ADDRESS_1 = BTMacAddress.toUpperCase();
                     break;
                 case 1://Link Two
-                    BTConstants.deviceAddress2 = BTMacAddress.toUpperCase();
+                    BTConstants.DEVICE_ADDRESS_2 = BTMacAddress.toUpperCase();
                     break;
                 case 2://Link Three
-                    BTConstants.deviceAddress3 = BTMacAddress.toUpperCase();
+                    BTConstants.DEVICE_ADDRESS_3 = BTMacAddress.toUpperCase();
                     break;
                 case 3://Link Four
-                    BTConstants.deviceAddress4 = BTMacAddress.toUpperCase();
+                    BTConstants.DEVICE_ADDRESS_4 = BTMacAddress.toUpperCase();
                     break;
                 case 4://Link Five
-                    BTConstants.deviceAddress5 = BTMacAddress.toUpperCase();
+                    BTConstants.DEVICE_ADDRESS_5 = BTMacAddress.toUpperCase();
                     break;
                 case 5://Link Six
-                    BTConstants.deviceAddress6 = BTMacAddress.toUpperCase();
+                    BTConstants.DEVICE_ADDRESS_6 = BTMacAddress.toUpperCase();
                     break;
                 default://Something went wrong in link selection please try again.
                     break;
             }
         } catch (Exception e) {
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "SetBTLinksMacAddress Exception:" + e.getMessage());
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + "SetBTLinksMacAddress Exception:" + e.getMessage());
         }
     }
 
@@ -14143,38 +14165,38 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         try {
             switch (linkPosition) {
                 case 0:
-                    BTMacAddress = BTConstants.deviceAddress1;
+                    BTMacAddress = BTConstants.DEVICE_ADDRESS_1;
                     break;
                 case 1://Link Two
-                    BTMacAddress = BTConstants.deviceAddress2;
+                    BTMacAddress = BTConstants.DEVICE_ADDRESS_2;
                     break;
                 case 2://Link Three
-                    BTMacAddress = BTConstants.deviceAddress3;
+                    BTMacAddress = BTConstants.DEVICE_ADDRESS_3;
                     break;
                 case 3://Link Four
-                    BTMacAddress = BTConstants.deviceAddress4;
+                    BTMacAddress = BTConstants.DEVICE_ADDRESS_4;
                     break;
                 case 4://Link Five
-                    BTMacAddress = BTConstants.deviceAddress5;
+                    BTMacAddress = BTConstants.DEVICE_ADDRESS_5;
                     break;
                 case 5://Link Six
-                    BTMacAddress = BTConstants.deviceAddress6;
+                    BTMacAddress = BTConstants.DEVICE_ADDRESS_6;
                     break;
                 default://Something went wrong in link selection please try again.
                     break;
             }
         } catch (Exception e) {
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "GetBTLinksMacAddress Exception: " + e.getMessage());
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + "GetBTLinksMacAddress Exception: " + e.getMessage());
         }
         return BTMacAddress;
     }
 
     private void SetSSIDIfSingleHose() {
 
-        if (serverSSIDList != null && serverSSIDList.size() == 1 && Constants.FS_1STATUS.equalsIgnoreCase("FREE") && Constants.FS_2STATUS.equalsIgnoreCase("FREE") && Constants.FS_3STATUS.equalsIgnoreCase("FREE") && Constants.FS_4STATUS.equalsIgnoreCase("FREE")) {
+        if (serverSSIDList != null && serverSSIDList.size() == 1 && Constants.FS_1_STATUS.equalsIgnoreCase("FREE") && Constants.FS_2_STATUS.equalsIgnoreCase("FREE") && Constants.FS_3_STATUS.equalsIgnoreCase("FREE") && Constants.FS_4_STATUS.equalsIgnoreCase("FREE")) {
             try {
-                AppConstants.IsSingleLink = true;
+                AppConstants.IS_SINGLE_LINK = true;
                 String ssidFromList = serverSSIDList.get(0).get("WifiSSId");
                 String LinkCommunicationType = serverSSIDList.get(0).get("LinkCommunicationType");
                 String stringText = tvSSIDName.getText().toString().trim();
@@ -14200,23 +14222,23 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     } else {
 
                         String Chk_ip = "";
-                        if (AppConstants.DetailsListOfConnectedDevices != null && AppConstants.DetailsListOfConnectedDevices.size() > 0) {
-                            Chk_ip = AppConstants.DetailsListOfConnectedDevices.get(0).get("ipAddress");
+                        if (AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES != null && AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.size() > 0) {
+                            Chk_ip = AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.get(0).get("ipAddress");
                         } else {
-                            getipOverOSVersion();
+                            getIpOverOSVersion();
                         }
 
                         if (Chk_ip != null && Chk_ip.length() > 3 && !ReconfigureLink.equalsIgnoreCase("true")) {
 
                             boolean isMacConnected = false;
-                            if (AppConstants.DetailsListOfConnectedDevices != null) {
-                                for (int i = 0; i < AppConstants.DetailsListOfConnectedDevices.size(); i++) {
-                                    String Chk_mac = AppConstants.DetailsListOfConnectedDevices.get(i).get("macAddress");
+                            if (AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES != null) {
+                                for (int i = 0; i < AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.size(); i++) {
+                                    String Chk_mac = AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.get(i).get("macAddress");
 
                                     if (SSID_mac.equalsIgnoreCase(Chk_mac)) {
-                                        if (AppConstants.GenerateLogs)
-                                            AppConstants.WriteinFile(TAG + "Selected LINK (" + selSSID + " <==> " + SSID_mac + ") is connected to hotspot.");
-                                        IpAddress = AppConstants.DetailsListOfConnectedDevices.get(i).get("ipAddress");
+                                        if (AppConstants.GENERATE_LOGS)
+                                            AppConstants.writeInFile(TAG + "Selected LINK (" + selSSID + " <==> " + SSID_mac + ") is connected to hotspot.");
+                                        IpAddress = AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.get(i).get("ipAddress");
                                         isMacConnected = true;
                                         break;
                                     }
@@ -14224,24 +14246,24 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                             }
 
                             if (!isMacConnected) {
-                                if (AppConstants.GenerateLogs)
-                                    AppConstants.WriteinFile(TAG + "Selected LINK (" + selSSID + " <==> " + SSID_mac + ") is not found in connected devices. " + AppConstants.DetailsListOfConnectedDevices);
+                                if (AppConstants.GENERATE_LOGS)
+                                    AppConstants.writeInFile(TAG + "Selected LINK (" + selSSID + " <==> " + SSID_mac + ") is not found in connected devices. " + AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES);
 
-                                for (int i = 0; i < AppConstants.DetailsListOfConnectedDevices.size(); i++) {
-                                    String Chk_mac = AppConstants.DetailsListOfConnectedDevices.get(i).get("macAddress");
-                                    if (AppConstants.GenerateLogs)
-                                        AppConstants.WriteinFile(TAG + "Checking Mac Address using info command: (" + Chk_mac + ")");
+                                for (int i = 0; i < AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.size(); i++) {
+                                    String Chk_mac = AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.get(i).get("macAddress");
+                                    if (AppConstants.GENERATE_LOGS)
+                                        AppConstants.writeInFile(TAG + "Checking Mac Address using info command: (" + Chk_mac + ")");
 
-                                    String connectedIp = AppConstants.DetailsListOfConnectedDevices.get(i).get("ipAddress");
+                                    String connectedIp = AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.get(i).get("ipAddress");
 
                                     IpAddress = GetAndCheckMacAddressFromInfoCommand(connectedIp, SSID_mac, Chk_mac);
                                     if (!IpAddress.trim().isEmpty()) {
-                                        if (AppConstants.GenerateLogs)
-                                            AppConstants.WriteinFile("===================================================================");
+                                        if (AppConstants.GENERATE_LOGS)
+                                            AppConstants.writeInFile("===================================================================");
                                         break;
                                     }
-                                    if (AppConstants.GenerateLogs)
-                                        AppConstants.WriteinFile("===================================================================");
+                                    if (AppConstants.GENERATE_LOGS)
+                                        AppConstants.writeInFile("===================================================================");
                                 }
                             }
 
@@ -14252,8 +14274,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                             }
                         } else {
                             //Toast.makeText(getApplicationContext(), "Auto select fail", Toast.LENGTH_SHORT).show();
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(TAG + "Single Hose: Auto select fail");
+                            if (AppConstants.GENERATE_LOGS)
+                                AppConstants.writeInFile(TAG + "Single Hose: Auto select fail");
                         }
                     }
                 }
@@ -14267,7 +14289,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         try {
             if (CommonFunctions.CheckIfPresentInPairedDeviceList(BTselMacAddress)) {
                 AppConstants.CURRENT_SELECTED_SSID = selSSID;
-                AppConstants.SELECTED_MACADDRESS = BTselMacAddress;
+                AppConstants.SELECTED_MAC_ADDRESS = BTselMacAddress;
                 SetBTLinksMacAddress(0, BTselMacAddress);
                 tvSSIDName.setText(selSSID);
                 OnHoseSelected_OnClick(Integer.toString(0));
@@ -14275,8 +14297,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 tvSSIDName.setText(R.string.selectHose);
             }
         } catch (Exception e) {
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "SingleBTLinkSelection Exception >> " + e.getMessage());
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + "SingleBTLinkSelection Exception >> " + e.getMessage());
         }
     }
 
@@ -14299,10 +14321,10 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
     private void qrcodebleServiceOn() {
 
         try {
-            if (QRCodeReaderForBarcode.length() > 0 && !QRCodeBluetoothMacAddressForBarcode.isEmpty() && !Constants.QR_ReaderStatus.equalsIgnoreCase("QR Connected"))
+            if (QRCodeReaderForBarcode.length() > 0 && !QRCodeBluetoothMacAddressForBarcode.isEmpty() && !Constants.QR_READER_STATUS.equalsIgnoreCase("QR Connected"))
                 startService(new Intent(WelcomeActivity.this, ServiceQRCode.class));
 
-            if (mMagCardDeviceName.length() > 0 && !mMagCardDeviceAddress.isEmpty() && mMagCardDeviceName.contains("MAGCARD_READERV2") && !Constants.Mag_ReaderStatus.equalsIgnoreCase("Mag Connected"))
+            if (mMagCardDeviceName.length() > 0 && !mMagCardDeviceAddress.isEmpty() && mMagCardDeviceName.contains("MAGCARD_READERV2") && !Constants.MAG_READER_STATUS.equalsIgnoreCase("Mag Connected"))
                 startService(new Intent(WelcomeActivity.this, ServiceMagV2.class));
 
         } catch (Exception e) {
@@ -14330,8 +14352,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
             if (CommonUtils.isHotspotEnabled(WelcomeActivity.this)) {
                 Log.i(TAG, "ToggleHotspot hotspot ON");
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "ToggleHotspot hotspot Enabled");
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(TAG + "ToggleHotspot hotspot Enabled");
             } else {
                 Log.i(TAG, "ToggleHotspot failed to enable hotspot");
             }
@@ -14341,7 +14363,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
     private void IsUiChangeReq() {
 
-        if (Constants.FS_1STATUS.equalsIgnoreCase("FREE") && Constants.FS_2STATUS.equalsIgnoreCase("FREE") && Constants.FS_3STATUS.equalsIgnoreCase("FREE") && Constants.FS_4STATUS.equalsIgnoreCase("FREE") && Constants.FS_5STATUS.equalsIgnoreCase("FREE") && Constants.FS_6STATUS.equalsIgnoreCase("FREE")) {
+        if (Constants.FS_1_STATUS.equalsIgnoreCase("FREE") && Constants.FS_2_STATUS.equalsIgnoreCase("FREE") && Constants.FS_3_STATUS.equalsIgnoreCase("FREE") && Constants.FS_4_STATUS.equalsIgnoreCase("FREE") && Constants.FS_5_STATUS.equalsIgnoreCase("FREE") && Constants.FS_6_STATUS.equalsIgnoreCase("FREE")) {
             count_uithread++;
         }
 
@@ -14350,10 +14372,10 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
     private void IsSingleHoseRefreshReq() {
         try {
             //Implemented this logic on 1444 (Nic)
-            if (Constants.FS_1STATUS.equalsIgnoreCase("FREE") && Constants.FS_2STATUS.equalsIgnoreCase("FREE") && Constants.FS_3STATUS.equalsIgnoreCase("FREE") && Constants.FS_4STATUS.equalsIgnoreCase("FREE") && Constants.FS_5STATUS.equalsIgnoreCase("FREE") && Constants.FS_6STATUS.equalsIgnoreCase("FREE")) {
+            if (Constants.FS_1_STATUS.equalsIgnoreCase("FREE") && Constants.FS_2_STATUS.equalsIgnoreCase("FREE") && Constants.FS_3_STATUS.equalsIgnoreCase("FREE") && Constants.FS_4_STATUS.equalsIgnoreCase("FREE") && Constants.FS_5_STATUS.equalsIgnoreCase("FREE") && Constants.FS_6_STATUS.equalsIgnoreCase("FREE")) {
 
-                if (AppConstants.RefreshSingleHose) {
-                    AppConstants.RefreshSingleHose = false;
+                if (AppConstants.REFRESH_SINGLE_HOSE) {
+                    AppConstants.REFRESH_SINGLE_HOSE = false;
                     showSingleHoseConnectingStatus = true;
                     showSingleHoseBusyStatus = true;
                     if (BTConnectionHandler != null) {
@@ -14362,9 +14384,9 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     SetSSIDIfSingleHose();
                 }
 
-            } else if (Constants.FS_1STATUS.equalsIgnoreCase("BUSY") && Constants.FS_2STATUS.equalsIgnoreCase("FREE") && Constants.FS_3STATUS.equalsIgnoreCase("FREE") && Constants.FS_4STATUS.equalsIgnoreCase("FREE") && Constants.FS_5STATUS.equalsIgnoreCase("FREE") && Constants.FS_6STATUS.equalsIgnoreCase("FREE")) {
+            } else if (Constants.FS_1_STATUS.equalsIgnoreCase("BUSY") && Constants.FS_2_STATUS.equalsIgnoreCase("FREE") && Constants.FS_3_STATUS.equalsIgnoreCase("FREE") && Constants.FS_4_STATUS.equalsIgnoreCase("FREE") && Constants.FS_5_STATUS.equalsIgnoreCase("FREE") && Constants.FS_6_STATUS.equalsIgnoreCase("FREE")) {
 
-                AppConstants.RefreshSingleHose = true;
+                AppConstants.REFRESH_SINGLE_HOSE = true;
                 //#1508 One Hose System message to show in “Tap Here to Select Hose”.
                 if (serverSSIDList != null && serverSSIDList.size() == 1) {
                     try {
@@ -14376,7 +14398,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         }
                         if (showSingleHoseBusyStatus) {
                             //tvSSIDName.setText(getResources().getString(R.string.HoseInUse));
-                            if (AppConstants.isRelayON_fs1) { //Integer.parseInt(Constants.FS_1Pulse) >= 1
+                            if (AppConstants.IS_RELAY_ON_FS1) { //Integer.parseInt(Constants.FS_1_PULSE) >= 1
                                 tvSSIDName.setText(getResources().getString(R.string.SingleHoseBusyStatus).replace("...", ""));
                                 if (BTConnectionHandler != null) {
                                     BTConnectionHandler.removeCallbacksAndMessages(null);
@@ -14474,8 +14496,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                 String deviceName = device.getName();
                 String deviceHardwareAddress = device.getAddress(); // MAC address
-                if (!NearByBTDevices.contains(deviceHardwareAddress)) {
-                    NearByBTDevices.add(deviceHardwareAddress);
+                if (!nearbyBTDevices.contains(deviceHardwareAddress)) {
+                    nearbyBTDevices.add(deviceHardwareAddress);
                     Log.i(TAG, "BT Scan deviceName:" + deviceName + " MacAddress:" + deviceHardwareAddress);
                 }
             }
@@ -14487,12 +14509,12 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
         BTLinkReGainConnection(0);
         // linear_fs_1.setBackgroundColor(getResources().getColor(android.R.color.holo_red_light));
-        Constants.AccPersonnelPIN = "";
+        Constants.PERSONNEL_PIN_FS2 = "";
         tvSSIDName.setText(selSSID);
         AppConstants.FS1_CONNECTED_SSID = selSSID;
-        Constants.CurrentSelectedHose = "FS1";
-        BTConstants.CurrentTransactionIsBT1 = true;
-        BTConstants.CurrentSelectedLinkBT = 1;
+        Constants.CURRENT_SELECTED_HOSE = "FS1";
+        BTConstants.CURRENT_TRANSACTION_IS_BT_1 = true;
+        BTConstants.CURRENT_SELECTED_BT_LINK_POSITION = 1;
         String ReplaceableHoseName = "";
 
         try {
@@ -14514,13 +14536,13 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         }
 
         if (IsHoseNameReplaced != null && IsHoseNameReplaced.equalsIgnoreCase("Y")) {
-            BTConstants.BT1NeedRename = false;
-            BTConstants.BT1REPLACEBLE_WIFI_NAME = "";
+            BTConstants.BT1_NEED_RENAME = false;
+            BTConstants.BT1_REPLACEABLE_WIFI_NAME = "";
             BTConstants.BT1HOSE_ID = "";
             BTConstants.BT1SITE_ID = SiteId;
         } else {
-            BTConstants.BT1NeedRename = true;
-            BTConstants.BT1REPLACEBLE_WIFI_NAME = ReplaceableHoseName;
+            BTConstants.BT1_NEED_RENAME = true;
+            BTConstants.BT1_REPLACEABLE_WIFI_NAME = ReplaceableHoseName;
             BTConstants.BT1HOSE_ID = HoseId;
             BTConstants.BT1SITE_ID = SiteId;
         }
@@ -14540,12 +14562,12 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
         BTLinkReGainConnection(1);
         // linear_fs_1.setBackgroundColor(getResources().getColor(android.R.color.holo_red_light));
-        Constants.AccPersonnelPIN = "";
+        Constants.PERSONNEL_PIN_FS2 = "";
         tvSSIDName.setText(selSSID);
         AppConstants.FS2_CONNECTED_SSID = selSSID;
-        Constants.CurrentSelectedHose = "FS2";
-        BTConstants.CurrentTransactionIsBT2 = true;
-        BTConstants.CurrentSelectedLinkBT = 2;
+        Constants.CURRENT_SELECTED_HOSE = "FS2";
+        BTConstants.CURRENT_TRANSACTION_IS_BT_2 = true;
+        BTConstants.CURRENT_SELECTED_BT_LINK_POSITION = 2;
         String ReplaceableHoseName = "";
 
         try {
@@ -14567,13 +14589,13 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         }
 
         if (IsHoseNameReplaced != null && IsHoseNameReplaced.equalsIgnoreCase("Y")) {
-            BTConstants.BT2NeedRename = false;
-            BTConstants.BT2REPLACEBLE_WIFI_NAME = "";
+            BTConstants.BT2_NEED_RENAME = false;
+            BTConstants.BT2_REPLACEABLE_WIFI_NAME = "";
             BTConstants.BT2HOSE_ID = "";
             BTConstants.BT2SITE_ID = SiteId;
         } else {
-            BTConstants.BT2NeedRename = true;
-            BTConstants.BT2REPLACEBLE_WIFI_NAME = ReplaceableHoseName;
+            BTConstants.BT2_NEED_RENAME = true;
+            BTConstants.BT2_REPLACEABLE_WIFI_NAME = ReplaceableHoseName;
             BTConstants.BT2HOSE_ID = HoseId;
             BTConstants.BT2SITE_ID = SiteId;
         }
@@ -14592,12 +14614,12 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
         BTLinkReGainConnection(2);
         // linear_fs_1.setBackgroundColor(getResources().getColor(android.R.color.holo_red_light));
-        Constants.AccPersonnelPIN = "";
+        Constants.PERSONNEL_PIN_FS2 = "";
         tvSSIDName.setText(selSSID);
         AppConstants.FS3_CONNECTED_SSID = selSSID;
-        Constants.CurrentSelectedHose = "FS3";
-        BTConstants.CurrentTransactionIsBT3 = true;
-        BTConstants.CurrentSelectedLinkBT = 3;
+        Constants.CURRENT_SELECTED_HOSE = "FS3";
+        BTConstants.CURRENT_TRANSACTION_IS_BT_3 = true;
+        BTConstants.CURRENT_SELECTED_BT_LINK_POSITION = 3;
         String ReplaceableHoseName = "";
 
         try {
@@ -14619,13 +14641,13 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         }
 
         if (IsHoseNameReplaced != null && IsHoseNameReplaced.equalsIgnoreCase("Y")) {
-            BTConstants.BT3NeedRename = false;
-            BTConstants.BT3REPLACEBLE_WIFI_NAME = "";
+            BTConstants.BT3_NEED_RENAME = false;
+            BTConstants.BT3_REPLACEABLE_WIFI_NAME = "";
             BTConstants.BT3HOSE_ID = "";
             BTConstants.BT3SITE_ID = SiteId;
         } else {
-            BTConstants.BT3NeedRename = true;
-            BTConstants.BT3REPLACEBLE_WIFI_NAME = ReplaceableHoseName;
+            BTConstants.BT3_NEED_RENAME = true;
+            BTConstants.BT3_REPLACEABLE_WIFI_NAME = ReplaceableHoseName;
             BTConstants.BT3HOSE_ID = HoseId;
             BTConstants.BT3SITE_ID = SiteId;
         }
@@ -14644,12 +14666,12 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
         BTLinkReGainConnection(3);
         // linear_fs_1.setBackgroundColor(getResources().getColor(android.R.color.holo_red_light));
-        Constants.AccPersonnelPIN = "";
+        Constants.PERSONNEL_PIN_FS2 = "";
         tvSSIDName.setText(selSSID);
         AppConstants.FS4_CONNECTED_SSID = selSSID;
-        Constants.CurrentSelectedHose = "FS4";
-        BTConstants.CurrentTransactionIsBT4 = true;
-        BTConstants.CurrentSelectedLinkBT = 4;
+        Constants.CURRENT_SELECTED_HOSE = "FS4";
+        BTConstants.CURRENT_TRANSACTION_IS_BT_4 = true;
+        BTConstants.CURRENT_SELECTED_BT_LINK_POSITION = 4;
         String ReplaceableHoseName = "";
 
         try {
@@ -14671,13 +14693,13 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         }
 
         if (IsHoseNameReplaced != null && IsHoseNameReplaced.equalsIgnoreCase("Y")) {
-            BTConstants.BT4NeedRename = false;
-            BTConstants.BT4REPLACEBLE_WIFI_NAME = "";
+            BTConstants.BT4_NEED_RENAME = false;
+            BTConstants.BT4_REPLACEABLE_WIFI_NAME = "";
             BTConstants.BT4HOSE_ID = "";
             BTConstants.BT4SITE_ID = SiteId;
         } else {
-            BTConstants.BT4NeedRename = true;
-            BTConstants.BT4REPLACEBLE_WIFI_NAME = ReplaceableHoseName;
+            BTConstants.BT4_NEED_RENAME = true;
+            BTConstants.BT4_REPLACEABLE_WIFI_NAME = ReplaceableHoseName;
             BTConstants.BT4HOSE_ID = HoseId;
             BTConstants.BT4SITE_ID = SiteId;
         }
@@ -14695,12 +14717,12 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
     private void RedirectBtLinkFiveToNextScreen(String selSSID) {
 
         BTLinkReGainConnection(4);
-        Constants.AccPersonnelPIN = "";
+        Constants.PERSONNEL_PIN_FS2 = "";
         tvSSIDName.setText(selSSID);
         AppConstants.FS5_CONNECTED_SSID = selSSID;
-        Constants.CurrentSelectedHose = "FS5";
-        BTConstants.CurrentTransactionIsBT5 = true;
-        BTConstants.CurrentSelectedLinkBT = 5;
+        Constants.CURRENT_SELECTED_HOSE = "FS5";
+        BTConstants.CURRENT_TRANSACTION_IS_BT_5 = true;
+        BTConstants.CURRENT_SELECTED_BT_LINK_POSITION = 5;
         String ReplaceableHoseName = "";
 
         try {
@@ -14722,13 +14744,13 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         }
 
         if (IsHoseNameReplaced != null && IsHoseNameReplaced.equalsIgnoreCase("Y")) {
-            BTConstants.BT5NeedRename = false;
-            BTConstants.BT5REPLACEBLE_WIFI_NAME = "";
+            BTConstants.BT5_NEED_RENAME = false;
+            BTConstants.BT5_REPLACEABLE_WIFI_NAME = "";
             BTConstants.BT5HOSE_ID = "";
             BTConstants.BT5SITE_ID = SiteId;
         } else {
-            BTConstants.BT5NeedRename = true;
-            BTConstants.BT5REPLACEBLE_WIFI_NAME = ReplaceableHoseName;
+            BTConstants.BT5_NEED_RENAME = true;
+            BTConstants.BT5_REPLACEABLE_WIFI_NAME = ReplaceableHoseName;
             BTConstants.BT5HOSE_ID = HoseId;
             BTConstants.BT5SITE_ID = SiteId;
         }
@@ -14746,12 +14768,12 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
     private void RedirectBtLinkSixToNextScreen(String selSSID) {
 
         BTLinkReGainConnection(5);
-        Constants.AccPersonnelPIN = "";
+        Constants.PERSONNEL_PIN_FS2 = "";
         tvSSIDName.setText(selSSID);
         AppConstants.FS6_CONNECTED_SSID = selSSID;
-        Constants.CurrentSelectedHose = "FS6";
-        BTConstants.CurrentTransactionIsBT6 = true;
-        BTConstants.CurrentSelectedLinkBT = 6;
+        Constants.CURRENT_SELECTED_HOSE = "FS6";
+        BTConstants.CURRENT_TRANSACTION_IS_BT_6 = true;
+        BTConstants.CURRENT_SELECTED_BT_LINK_POSITION = 6;
         String ReplaceableHoseName = "";
 
         try {
@@ -14773,13 +14795,13 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         }
 
         if (IsHoseNameReplaced != null && IsHoseNameReplaced.equalsIgnoreCase("Y")) {
-            BTConstants.BT6NeedRename = false;
-            BTConstants.BT6REPLACEBLE_WIFI_NAME = "";
+            BTConstants.BT6_NEED_RENAME = false;
+            BTConstants.BT6_REPLACEABLE_WIFI_NAME = "";
             BTConstants.BT6HOSE_ID = "";
             BTConstants.BT6SITE_ID = SiteId;
         } else {
-            BTConstants.BT6NeedRename = true;
-            BTConstants.BT6REPLACEBLE_WIFI_NAME = ReplaceableHoseName;
+            BTConstants.BT6_NEED_RENAME = true;
+            BTConstants.BT6_REPLACEABLE_WIFI_NAME = ReplaceableHoseName;
             BTConstants.BT6HOSE_ID = HoseId;
             BTConstants.BT6SITE_ID = SiteId;
         }
@@ -14940,7 +14962,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
                 //----------------------------------------------------------------------------------
                 String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(WelcomeActivity.this) + ":" + userEmail + ":" + "LINKReconnectionEmail" + AppConstants.LANG_PARAM);
-                response = serverHandler.PostTextData(WelcomeActivity.this, AppConstants.webURL, jsonData, authString);
+                response = serverHandler.PostTextData(WelcomeActivity.this, AppConstants.WEB_URL, jsonData, authString);
                 //----------------------------------------------------------------------------------
 
             } catch (Exception ex) {
@@ -14963,12 +14985,12 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     String ResponceText = jsonObject1.getString("ResponseText");
 
                     if (ResponceMessage.equalsIgnoreCase("success")) {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "LinkConnectionIssueEmail success");
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(TAG + "LinkConnectionIssueEmail success");
 
                     } else if (ResponceMessage.equalsIgnoreCase("fail")) {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + " " + ResponceText);
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(TAG + " " + ResponceText);
 
                     }
                 }
@@ -15016,7 +15038,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
                 //----------------------------------------------------------------------------------
                 String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(WelcomeActivity.this) + ":" + userEmail + ":" + "LinkConnectionIssueEmail" + AppConstants.LANG_PARAM);
-                response = serverHandler.PostTextData(WelcomeActivity.this, AppConstants.webURL, jsonData, authString);
+                response = serverHandler.PostTextData(WelcomeActivity.this, AppConstants.WEB_URL, jsonData, authString);
                 //----------------------------------------------------------------------------------
 
             } catch (Exception ex) {
@@ -15039,12 +15061,12 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     String ResponceText = jsonObject1.getString("ResponseText");
 
                     if (ResponceMessage.equalsIgnoreCase("success")) {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "LinkConnectionIssueEmail success");
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(TAG + "LinkConnectionIssueEmail success");
 
                     } else if (ResponceMessage.equalsIgnoreCase("fail")) {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + " " + ResponceText);
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(TAG + " " + ResponceText);
 
                     }
                 }
@@ -15061,13 +15083,13 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         @Override
         protected String doInBackground(String... f_url) {
             try {
-                String LocalPath = getApplicationContext().getExternalFilesDir(AppConstants.FOLDER_BIN) + "/" + "user1.2048.new.5.bin";//AppConstants.UP_Upgrade_File_name;
+                String LocalPath = getApplicationContext().getExternalFilesDir(AppConstants.FOLDER_BIN) + "/" + "user1.2048.new.5.bin";//AppConstants.UP_UPGRADE_FILE_NAME;
                 File file = new File(LocalPath);
                 int file_size = Integer.parseInt(String.valueOf(file.length() / 1024));
 
                 BTSPPMain btspp = new BTSPPMain();
                 btspp.activity = WelcomeActivity.this;
-                btspp.send1(BTConstants.linkUpgrade_cmd + file_size);
+                btspp.send1(BTConstants.UPGRADE_COMMAND + file_size);
 
                 Thread.sleep(2000);
 
@@ -15101,12 +15123,12 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
     private void IsHotspotEnabled() {
 
         try {
-            /*if (!CommonUtils.isHotspotEnabled(this) && !AppConstants.IsBTLinkSelectedCurrently && Constants.hotspotstayOn) {
+            /*if (!CommonUtils.isHotspotEnabled(this) && !AppConstants.IS_BT_LINK_SELECTED_CURRENTLY && Constants.HOTSPOT_STAY_ON) {
                 wifiApManager = new com.TrakEngineering.FluidSecureHub.wifihotspot.WifiApManager(this);
                 wifiApManager.setWifiApEnabled(null, true); //one try for auto on
             }*/
 
-            if (!AppConstants.IsBTLinkSelectedCurrently) {
+            if (!AppConstants.IS_BT_LINK_SELECTED_CURRENTLY) {
                 boolean isAllBTLinks = true;
                 if (serverSSIDList != null) {
                     for (int i = 0; i < serverSSIDList.size(); i++) {
@@ -15118,14 +15140,14 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     }
                 }
                 if (isAllBTLinks) {
-                    AppConstants.IsBTLinkSelectedCurrently = true;
+                    AppConstants.IS_BT_LINK_SELECTED_CURRENTLY = true;
                 }
             }
-            /*if (!CommonUtils.isHotspotEnabled(this) && !AppConstants.IsBTLinkSelectedCurrently && Constants.hotspotstayOn) {
+            /*if (!CommonUtils.isHotspotEnabled(this) && !AppConstants.IS_BT_LINK_SELECTED_CURRENTLY && Constants.HOTSPOT_STAY_ON) {
                 HotspotEnableErrorCount++;
-                //AppConstants.WriteinFile(TAG + " Hotspot is Disabled. HotspotEnableErrorCount >> " + HotspotEnableErrorCount);
+                //AppConstants.writeInFile(TAG + " Hotspot is Disabled. HotspotEnableErrorCount >> " + HotspotEnableErrorCount);
                 if (HotspotEnableErrorCount > 9) {
-                    AppConstants.IsProblemWhileEnableHotspot = true;
+                    AppConstants.IS_PROBLEM_WHILE_ENABLE_HOTSPOT = true;
                 }
             }*/
         } catch (Exception e) {
@@ -15135,20 +15157,20 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
     public String getTransactionId() {
 
-        SharedPreferences sharedPref = this.getSharedPreferences(Constants.PREF_VehiFuel, Context.MODE_PRIVATE);
+        SharedPreferences sharedPref = this.getSharedPreferences(Constants.PREF_VEHI_FUEL, Context.MODE_PRIVATE);
         String TransactionId = "";
 
-        if (AppConstants.FS_selected.equalsIgnoreCase("0")) {
+        if (AppConstants.FS_SELECTED.equalsIgnoreCase("0")) {
             TransactionId = sharedPref.getString("TransactionId_FS1", "");
-        } else if (AppConstants.FS_selected.equalsIgnoreCase("1")) {
+        } else if (AppConstants.FS_SELECTED.equalsIgnoreCase("1")) {
             TransactionId = sharedPref.getString("TransactionId", "");
-        } else if (AppConstants.FS_selected.equalsIgnoreCase("2")) {
+        } else if (AppConstants.FS_SELECTED.equalsIgnoreCase("2")) {
             TransactionId = sharedPref.getString("TransactionId_FS3", "");
-        } else if (AppConstants.FS_selected.equalsIgnoreCase("3")) {
+        } else if (AppConstants.FS_SELECTED.equalsIgnoreCase("3")) {
             TransactionId = sharedPref.getString("TransactionId_FS4", "");
-        } else if (AppConstants.FS_selected.equalsIgnoreCase("4")) {
+        } else if (AppConstants.FS_SELECTED.equalsIgnoreCase("4")) {
             TransactionId = sharedPref.getString("TransactionId_FS5", "");
-        } else if (AppConstants.FS_selected.equalsIgnoreCase("5")) {
+        } else if (AppConstants.FS_SELECTED.equalsIgnoreCase("5")) {
             TransactionId = sharedPref.getString("TransactionId_FS6", "");
         } else {
             //Something went wrong in hose selection.
@@ -15174,8 +15196,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             try {
                 result = new Command_GET_INFO().execute(URL_INFO).get();
             } catch (Exception e) {
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "Error occurred while getting mac address from info command. >> " + e.getMessage());
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(TAG + "Error occurred while getting mac address from info command. >> " + e.getMessage());
                 result = "";
                 e.printStackTrace();
             }
@@ -15183,14 +15205,14 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             if (!result.trim().isEmpty()) {
                 validIpAddress = CommonUtils.CheckMacAddressFromInfoCommand(TAG, result, connectedIp, selMacAddress, MA_ConnectedDevices);
             } else {
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "Info command response is empty. (IP: " + connectedIp + "; MAC Address: " + MA_ConnectedDevices + ")");
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(TAG + "Info command response is empty. (IP: " + connectedIp + "; MAC Address: " + MA_ConnectedDevices + ")");
             }
 
         } catch (Exception e) {
             validIpAddress = "";
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "GetAndCheckMacAddressFromInfoCommand Exception >> " + e.getMessage());
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + "GetAndCheckMacAddressFromInfoCommand Exception >> " + e.getMessage());
             Log.d("Ex", e.getMessage());
         }
         return validIpAddress;
@@ -15224,8 +15246,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             try {
                 System.out.println("APFS_PIPE OUTPUT" + result);
             } catch (Exception e) {
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "CommandsGET onPostExecute Exception " + e.getMessage());
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(TAG + "CommandsGET onPostExecute Exception " + e.getMessage());
                 System.out.println(e);
             }
         }
@@ -15234,77 +15256,77 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
     public void SetUpgradeFirmwareDetails(int position, String IsUpgrade, String FirmwareVersion, String FirmwareFileName, String selSiteId, String hoseID) {
         try {
             //Firmware upgrade
-            AppConstants.UP_FirmwareVersion = FirmwareVersion;
-            /*if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "SetUpgradeFirmwareDetails => IsUpgrade: " + IsUpgrade + ";Is BT Link: " + AppConstants.IsBTLinkSelectedCurrently);*/
+            AppConstants.UP_FIRMWARE_VERSION = FirmwareVersion;
+            /*if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + "SetUpgradeFirmwareDetails => IsUpgrade: " + IsUpgrade + ";Is BT Link: " + AppConstants.IS_BT_LINK_SELECTED_CURRENTLY);*/
             if (IsUpgrade.trim().equalsIgnoreCase("Y")) {
-                AppConstants.UP_Upgrade = true;
-                //AppConstants.UP_Upgrade_File_name = "user1.2048.new.5." + FirmwareVersion + ".bin";
+                AppConstants.UP_UPGRADE = true;
+                //AppConstants.UP_UPGRADE_FILE_NAME = "user1.2048.new.5." + FirmwareVersion + ".bin";
                 if (FirmwareFileName.isEmpty()) {
                     FirmwareFileName = FirmwareVersion + ".bin";
                 }
-                AppConstants.UP_Upgrade_File_name = FirmwareFileName;
+                AppConstants.UP_UPGRADE_FILE_NAME = FirmwareFileName;
             } else {
-                AppConstants.UP_Upgrade = false;
+                AppConstants.UP_UPGRADE = false;
             }
 
             if (String.valueOf(position).equalsIgnoreCase("0")) {
 
-                AppConstants.UP_SiteId_fs1 = selSiteId;
-                AppConstants.UP_HoseId_fs1 = hoseID;
+                AppConstants.UP_SITE_ID_FS1 = selSiteId;
+                AppConstants.UP_HOSE_ID_FS1 = hoseID;
                 if (IsUpgrade.trim().equalsIgnoreCase("Y"))
-                    AppConstants.UP_Upgrade_fs1 = true;
+                    AppConstants.UP_UPGRADE_FS1 = true;
                 else
-                    AppConstants.UP_Upgrade_fs1 = false;
+                    AppConstants.UP_UPGRADE_FS1 = false;
 
             } else if (String.valueOf(position).equalsIgnoreCase("1")) {
 
-                AppConstants.UP_SiteId_fs2 = selSiteId;
-                AppConstants.UP_HoseId_fs2 = hoseID;
+                AppConstants.UP_SITE_ID_FS2 = selSiteId;
+                AppConstants.UP_HOSE_ID_FS2 = hoseID;
                 if (IsUpgrade.trim().equalsIgnoreCase("Y"))
-                    AppConstants.UP_Upgrade_fs2 = true;
+                    AppConstants.UP_UPGRADE_FS2 = true;
                 else
-                    AppConstants.UP_Upgrade_fs2 = false;
+                    AppConstants.UP_UPGRADE_FS2 = false;
 
             } else if (String.valueOf(position).equalsIgnoreCase("2")) {
 
-                AppConstants.UP_SiteId_fs3 = selSiteId;
-                AppConstants.UP_HoseId_fs3 = hoseID;
+                AppConstants.UP_SITE_ID_FS3 = selSiteId;
+                AppConstants.UP_HOSE_ID_FS3 = hoseID;
                 if (IsUpgrade.trim().equalsIgnoreCase("Y"))
-                    AppConstants.UP_Upgrade_fs3 = true;
+                    AppConstants.UP_UPGRADE_FS3 = true;
                 else
-                    AppConstants.UP_Upgrade_fs3 = false;
+                    AppConstants.UP_UPGRADE_FS3 = false;
 
             } else if (String.valueOf(position).equalsIgnoreCase("3")) {
 
-                AppConstants.UP_SiteId_fs4 = selSiteId;
-                AppConstants.UP_HoseId_fs4 = hoseID;
+                AppConstants.UP_SITE_ID_FS4 = selSiteId;
+                AppConstants.UP_HOSE_ID_FS4 = hoseID;
                 if (IsUpgrade.trim().equalsIgnoreCase("Y"))
-                    AppConstants.UP_Upgrade_fs4 = true;
+                    AppConstants.UP_UPGRADE_FS4 = true;
                 else
-                    AppConstants.UP_Upgrade_fs4 = false;
+                    AppConstants.UP_UPGRADE_FS4 = false;
 
             } else if (String.valueOf(position).equalsIgnoreCase("4")) {
 
-                AppConstants.UP_SiteId_fs5 = selSiteId;
-                AppConstants.UP_HoseId_fs5 = hoseID;
+                AppConstants.UP_SITE_ID_FS5 = selSiteId;
+                AppConstants.UP_HOSE_ID_FS5 = hoseID;
                 if (IsUpgrade.trim().equalsIgnoreCase("Y"))
-                    AppConstants.UP_Upgrade_fs5 = true;
+                    AppConstants.UP_UPGRADE_FS5 = true;
                 else
-                    AppConstants.UP_Upgrade_fs5 = false;
+                    AppConstants.UP_UPGRADE_FS5 = false;
 
             } else if (String.valueOf(position).equalsIgnoreCase("5")) {
 
-                AppConstants.UP_SiteId_fs6 = selSiteId;
-                AppConstants.UP_HoseId_fs6 = hoseID;
+                AppConstants.UP_SITE_ID_FS6 = selSiteId;
+                AppConstants.UP_HOSE_ID_FS6 = hoseID;
                 if (IsUpgrade.trim().equalsIgnoreCase("Y"))
-                    AppConstants.UP_Upgrade_fs6 = true;
+                    AppConstants.UP_UPGRADE_FS6 = true;
                 else
-                    AppConstants.UP_Upgrade_fs6 = false;
+                    AppConstants.UP_UPGRADE_FS6 = false;
             }
         } catch (Exception ex) {
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "Exception in SetUpgradeFirmwareDetails. " + ex.getMessage() + ";position: " + position);
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + "Exception in SetUpgradeFirmwareDetails. " + ex.getMessage() + ";position: " + position);
             System.out.println(ex);
         }
     }
@@ -15312,21 +15334,21 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
     public void SetHoseIdByLinkPosition(int position, String hoseId) {
         try {
             if (String.valueOf(position).equalsIgnoreCase("0")) {
-                AppConstants.UP_HoseId_fs1 = hoseId;
+                AppConstants.UP_HOSE_ID_FS1 = hoseId;
             } else if (String.valueOf(position).equalsIgnoreCase("1")) {
-                AppConstants.UP_HoseId_fs2 = hoseId;
+                AppConstants.UP_HOSE_ID_FS2 = hoseId;
             } else if (String.valueOf(position).equalsIgnoreCase("2")) {
-                AppConstants.UP_HoseId_fs3 = hoseId;
+                AppConstants.UP_HOSE_ID_FS3 = hoseId;
             } else if (String.valueOf(position).equalsIgnoreCase("3")) {
-                AppConstants.UP_HoseId_fs4 = hoseId;
+                AppConstants.UP_HOSE_ID_FS4 = hoseId;
             } else if (String.valueOf(position).equalsIgnoreCase("4")) {
-                AppConstants.UP_HoseId_fs5 = hoseId;
+                AppConstants.UP_HOSE_ID_FS5 = hoseId;
             } else if (String.valueOf(position).equalsIgnoreCase("5")) {
-                AppConstants.UP_HoseId_fs6 = hoseId;
+                AppConstants.UP_HOSE_ID_FS6 = hoseId;
             }
         } catch (Exception ex) {
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "Exception in SetHoseIdByLinkPosition. " + ex.getMessage() + ";position: " + position);
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + "Exception in SetHoseIdByLinkPosition. " + ex.getMessage() + ";position: " + position);
             System.out.println(ex);
         }
     }
@@ -15334,39 +15356,39 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
     public void SetSiteIdByLinkPosition(int position, String siteId) {
         try {
             if (String.valueOf(position).equalsIgnoreCase("0")) {
-                AppConstants.UP_SiteId_fs1 = siteId;
+                AppConstants.UP_SITE_ID_FS1 = siteId;
             } else if (String.valueOf(position).equalsIgnoreCase("1")) {
-                AppConstants.UP_SiteId_fs2 = siteId;
+                AppConstants.UP_SITE_ID_FS2 = siteId;
             } else if (String.valueOf(position).equalsIgnoreCase("2")) {
-                AppConstants.UP_SiteId_fs3 = siteId;
+                AppConstants.UP_SITE_ID_FS3 = siteId;
             } else if (String.valueOf(position).equalsIgnoreCase("3")) {
-                AppConstants.UP_SiteId_fs4 = siteId;
+                AppConstants.UP_SITE_ID_FS4 = siteId;
             } else if (String.valueOf(position).equalsIgnoreCase("4")) {
-                AppConstants.UP_SiteId_fs5 = siteId;
+                AppConstants.UP_SITE_ID_FS5 = siteId;
             } else if (String.valueOf(position).equalsIgnoreCase("5")) {
-                AppConstants.UP_SiteId_fs6 = siteId;
+                AppConstants.UP_SITE_ID_FS6 = siteId;
             }
         } catch (Exception ex) {
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "Exception in SetSiteIdByLinkPosition. " + ex.getMessage() + ";position: " + position);
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + "Exception in SetSiteIdByLinkPosition. " + ex.getMessage() + ";position: " + position);
             System.out.println(ex);
         }
     }
 
-    public boolean HoseAvailabilityCheckTwoAttempts(ArrayList<String> NearByBTDevices, String deviceAddress) {
+    public boolean HoseAvailabilityCheckTwoAttempts(ArrayList<String> nearbyBTDevices, String deviceAddress) {
         boolean isConnected = false;
         try {
-            if (NearByBTDevices.contains(deviceAddress)) {
+            if (nearbyBTDevices.contains(deviceAddress)) {
                 isConnected = true;
             } else {
                 Thread.sleep(1000);
-                if (NearByBTDevices.contains(deviceAddress)) {
+                if (nearbyBTDevices.contains(deviceAddress)) {
                     isConnected = true;
                 }
             }
         } catch (Exception ex) {
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "Exception in HoseAvailabilityTwoAttempts. " + ex.getMessage());
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + "Exception in HoseAvailabilityTwoAttempts. " + ex.getMessage());
         }
         return isConnected;
     }
@@ -15404,8 +15426,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             }
 
         } catch (Exception ex) {
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "Exception in OscilloscopeLinkSelection. " + ex.getMessage());
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + "Exception in OscilloscopeLinkSelection. " + ex.getMessage());
         }
     }
 
@@ -15442,17 +15464,18 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     String LinkPosition = BTLinkList.get(position).get("LinkPosition");
 
                     SetBTLinksMacAddress(Integer.parseInt(LinkPosition), BTMacAddress);
-                    BTConstants.deviceAddressOscilloscope = BTMacAddress.toUpperCase();
-                    BTConstants.selectedSiteIdForScope = SiteId;
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + "================ Oscilloscope ================");
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + "Selected LINK for Oscilloscope: " + WifiSSId);
+                    BTConstants.DEVICE_ADDRESS_FOR_SCOPE = BTMacAddress.toUpperCase();
+                    BTConstants.SELECTED_SITE_ID_FOR_SCOPE = SiteId;
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(TAG + "================ Oscilloscope ================");
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(TAG + "Selected LINK for Oscilloscope: " + WifiSSId);
 
                     //startBTSppMain(5);
 
-                    BTConstants.forOscilloscope = true;
+                    BTConstants.FOR_OSCILLOSCOPE = true;
 
+                    //RedirectToOscilloscope(WifiSSId, LinkPosition); // Uncomment this and comment below line to check scope (testing)
                     CheckBTConnectionForOscilloscope(LinkPosition, WifiSSId);
 
                 } catch (Exception e) {
@@ -15471,26 +15494,22 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         startActivity(i);
     }
 
-    private void BTServiceSelectionFunction(String linkPosition) {
+    /*private void BTServiceSelectionFunction(String linkPosition) {
         long sqlite_id = 0;
         switch (linkPosition) {
             case "0"://Link 1
-
                 Log.i(TAG, "BTServiceSelected One>>");
                 Intent serviceIntent1 = new Intent(WelcomeActivity.this, BackgroundService_BTOne.class);
                 serviceIntent1.putExtra("SERVER_IP", "");
                 serviceIntent1.putExtra("sqlite_id", sqlite_id);
                 startService(serviceIntent1);
-
                 break;
             case "1"://Link 2
-
                 Log.i(TAG, "BTServiceSelected Two>>");
                 Intent serviceIntent2 = new Intent(WelcomeActivity.this, BackgroundService_BTTwo.class);
                 serviceIntent2.putExtra("SERVER_IP", "");
                 serviceIntent2.putExtra("sqlite_id", sqlite_id);
                 startService(serviceIntent2);
-
                 break;
             case "2"://Link 3
                 Log.i(TAG, "BTServiceSelected Three>>");
@@ -15498,7 +15517,6 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 serviceIntent3.putExtra("SERVER_IP", "");
                 serviceIntent3.putExtra("sqlite_id", sqlite_id);
                 startService(serviceIntent3);
-
                 break;
             case "3"://Link 4
                 Log.i(TAG, "BTServiceSelected Four>>");
@@ -15506,7 +15524,6 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 serviceIntent4.putExtra("SERVER_IP", "");
                 serviceIntent4.putExtra("sqlite_id", sqlite_id);
                 startService(serviceIntent4);
-
                 break;
             case "4"://Link 5
                 Log.i(TAG, "BTServiceSelected Five>>");
@@ -15514,7 +15531,6 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 serviceIntent5.putExtra("SERVER_IP", "");
                 serviceIntent5.putExtra("sqlite_id", sqlite_id);
                 startService(serviceIntent5);
-
                 break;
             case "5"://Link 6
                 Log.i(TAG, "BTServiceSelected Six>>");
@@ -15522,12 +15538,11 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 serviceIntent6.putExtra("SERVER_IP", "");
                 serviceIntent6.putExtra("sqlite_id", sqlite_id);
                 startService(serviceIntent6);
-
                 break;
             default://Something went wrong in link selection please try again.
                 break;
         }
-    }
+    }*/
 
     public class RedirectToOscilloscope extends AsyncTask<String, String, String> {
 
@@ -15569,22 +15584,22 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         String BTStatus = "";
                         switch (LinkPosition) {
                             case "0"://Link 1
-                                BTStatus = BTConstants.BTStatusStrOne;
+                                BTStatus = BTConstants.BT_STATUS_STR_ONE;
                                 break;
                             case "1"://Link 2
-                                BTStatus = BTConstants.BTStatusStrTwo;
+                                BTStatus = BTConstants.BT_STATUS_STR_TWO;
                                 break;
                             case "2"://Link 3
-                                BTStatus = BTConstants.BTStatusStrThree;
+                                BTStatus = BTConstants.BT_STATUS_STR_THREE;
                                 break;
                             case "3"://Link 4
-                                BTStatus = BTConstants.BTStatusStrFour;
+                                BTStatus = BTConstants.BT_STATUS_STR_FOUR;
                                 break;
                             case "4"://Link 5
-                                BTStatus = BTConstants.BTStatusStrFive;
+                                BTStatus = BTConstants.BT_STATUS_STR_FIVE;
                                 break;
                             case "5"://Link 6
-                                BTStatus = BTConstants.BTStatusStrSix;
+                                BTStatus = BTConstants.BT_STATUS_STR_SIX;
                                 break;
                             default://Something went wrong in link selection please try again.
                                 break;
@@ -15600,8 +15615,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         }
                     } else {
                         pd.dismiss();
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "BT LINK not connected.");
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(TAG + "BT LINK not connected.");
                         CommonUtils.showCustomMessageDilaog(WelcomeActivity.this, "", getResources().getString(R.string.UnableToConnectToHoseMessage));
                     }
                 }
@@ -15615,15 +15630,15 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
             case "0":
                 //Link one
-                if (BTConstants.BTLinkOneStatus) {
-                    if (Constants.FS_1STATUS.equalsIgnoreCase("FREE")) {
+                if (BTConstants.BT_LINK_ONE_STATUS) {
+                    if (Constants.FS_1_STATUS.equalsIgnoreCase("FREE")) {
                         new RedirectToOscilloscope().execute(WifiSSId, LinkPosition);
                     } else {
                         BTL1State = 0;
                     }
                 } else {
-                    if (!BTConstants.deviceAddress1.isEmpty()) {
-                        NearByBTDevices.clear();
+                    if (!BTConstants.DEVICE_ADDRESS_1.isEmpty()) {
+                        nearbyBTDevices.clear();
                         mBluetoothAdapter.startDiscovery();
 
                         Handler handler = new Handler();
@@ -15639,23 +15654,23 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         }, delay);
 
                     } else {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + getResources().getString(R.string.MakeSureBTMacIsSet));
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(TAG + getResources().getString(R.string.MakeSureBTMacIsSet));
                         //AppConstants.colorToast(WelcomeActivity.this, getResources().getString(R.string.MakeSureBTMacIsSet), Color.BLUE);
                     }
                 }
                 break;
             case "1":
                 //Link Two
-                if (BTConstants.BTLinkTwoStatus) {
-                    if (Constants.FS_2STATUS.equalsIgnoreCase("FREE")) {
+                if (BTConstants.BT_LINK_TWO_STATUS) {
+                    if (Constants.FS_2_STATUS.equalsIgnoreCase("FREE")) {
                         new RedirectToOscilloscope().execute(WifiSSId, LinkPosition);
                     } else {
                         BTL2State = 0;
                     }
                 } else {
-                    if (!BTConstants.deviceAddress2.isEmpty()) {
-                        NearByBTDevices.clear();
+                    if (!BTConstants.DEVICE_ADDRESS_2.isEmpty()) {
+                        nearbyBTDevices.clear();
                         mBluetoothAdapter.startDiscovery();
 
                         Handler handler = new Handler();
@@ -15671,8 +15686,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         }, delay);
 
                     } else {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + getResources().getString(R.string.MakeSureBTMacIsSet));
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(TAG + getResources().getString(R.string.MakeSureBTMacIsSet));
                         //AppConstants.colorToast(WelcomeActivity.this, getResources().getString(R.string.MakeSureBTMacIsSet), Color.BLUE);
                     }
                 }
@@ -15680,15 +15695,15 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             case "2":
 
                 //Link Three
-                if (BTConstants.BTLinkThreeStatus) {
-                    if (Constants.FS_3STATUS.equalsIgnoreCase("FREE")) {
+                if (BTConstants.BT_LINK_THREE_STATUS) {
+                    if (Constants.FS_3_STATUS.equalsIgnoreCase("FREE")) {
                         new RedirectToOscilloscope().execute(WifiSSId, LinkPosition);
                     } else {
                         BTL3State = 0;
                     }
                 } else {
-                    if (!BTConstants.deviceAddress3.isEmpty()) {
-                        NearByBTDevices.clear();
+                    if (!BTConstants.DEVICE_ADDRESS_3.isEmpty()) {
+                        nearbyBTDevices.clear();
                         mBluetoothAdapter.startDiscovery();
 
                         Handler handler = new Handler();
@@ -15704,23 +15719,23 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         }, delay);
 
                     } else {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + getResources().getString(R.string.MakeSureBTMacIsSet));
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(TAG + getResources().getString(R.string.MakeSureBTMacIsSet));
                         //AppConstants.colorToast(WelcomeActivity.this, getResources().getString(R.string.MakeSureBTMacIsSet), Color.BLUE);
                     }
                 }
                 break;
             case "3"://Link Four
 
-                if (BTConstants.BTLinkFourStatus) {
-                    if (Constants.FS_4STATUS.equalsIgnoreCase("FREE")) {
+                if (BTConstants.BT_LINK_FOUR_STATUS) {
+                    if (Constants.FS_4_STATUS.equalsIgnoreCase("FREE")) {
                         new RedirectToOscilloscope().execute(WifiSSId, LinkPosition);
                     } else {
                         BTL4State = 0;
                     }
                 } else {
-                    if (!BTConstants.deviceAddress4.isEmpty()) {
-                        NearByBTDevices.clear();
+                    if (!BTConstants.DEVICE_ADDRESS_4.isEmpty()) {
+                        nearbyBTDevices.clear();
                         mBluetoothAdapter.startDiscovery();
 
                         Handler handler = new Handler();
@@ -15736,23 +15751,23 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         }, delay);
 
                     } else {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + getResources().getString(R.string.MakeSureBTMacIsSet));
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(TAG + getResources().getString(R.string.MakeSureBTMacIsSet));
                         //AppConstants.colorToast(WelcomeActivity.this, getResources().getString(R.string.MakeSureBTMacIsSet), Color.BLUE);
                     }
                 }
                 break;
             case "4"://Link Five
 
-                if (BTConstants.BTLinkFiveStatus) {
-                    if (Constants.FS_5STATUS.equalsIgnoreCase("FREE")) {
+                if (BTConstants.BT_LINK_FIVE_STATUS) {
+                    if (Constants.FS_5_STATUS.equalsIgnoreCase("FREE")) {
                         new RedirectToOscilloscope().execute(WifiSSId, LinkPosition);
                     } else {
                         BTL5State = 0;
                     }
                 } else {
-                    if (!BTConstants.deviceAddress5.isEmpty()) {
-                        NearByBTDevices.clear();
+                    if (!BTConstants.DEVICE_ADDRESS_5.isEmpty()) {
+                        nearbyBTDevices.clear();
                         mBluetoothAdapter.startDiscovery();
 
                         Handler handler = new Handler();
@@ -15768,23 +15783,23 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         }, delay);
 
                     } else {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + getResources().getString(R.string.MakeSureBTMacIsSet));
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(TAG + getResources().getString(R.string.MakeSureBTMacIsSet));
                         //AppConstants.colorToast(WelcomeActivity.this, getResources().getString(R.string.MakeSureBTMacIsSet), Color.BLUE);
                     }
                 }
                 break;
             case "5"://Link Six
 
-                if (BTConstants.BTLinkSixStatus) {
-                    if (Constants.FS_6STATUS.equalsIgnoreCase("FREE")) {
+                if (BTConstants.BT_LINK_SIX_STATUS) {
+                    if (Constants.FS_6_STATUS.equalsIgnoreCase("FREE")) {
                         new RedirectToOscilloscope().execute(WifiSSId, LinkPosition);
                     } else {
                         BTL6State = 0;
                     }
                 } else {
-                    if (!BTConstants.deviceAddress6.isEmpty()) {
-                        NearByBTDevices.clear();
+                    if (!BTConstants.DEVICE_ADDRESS_6.isEmpty()) {
+                        nearbyBTDevices.clear();
                         mBluetoothAdapter.startDiscovery();
 
                         Handler handler = new Handler();
@@ -15800,8 +15815,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         }, delay);
 
                     } else {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + getResources().getString(R.string.MakeSureBTMacIsSet));
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(TAG + getResources().getString(R.string.MakeSureBTMacIsSet));
                         //AppConstants.colorToast(WelcomeActivity.this, getResources().getString(R.string.MakeSureBTMacIsSet), Color.BLUE);
                     }
                 }
@@ -15867,17 +15882,17 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     public void AddNewLinkScreen() {
-        AppConstants.newlyAddedLinks.clear();
+        AppConstants.NEWLY_ADDED_LINKS.clear();
         Intent in = new Intent(WelcomeActivity.this, AddNewLinkToCloud.class);
         startActivity(in);
     }
 
     public void LinkUpgradeFunctionality(String linkType, int linkPosition, String btLinkCommType) {
         try {
-            if (AppConstants.UP_Upgrade && !AppConstants.isTestTransaction) {
+            if (AppConstants.UP_UPGRADE && !AppConstants.IS_TEST_TRANSACTION) {
                 btnGo.setClickable(false);
                 if (linkType.equalsIgnoreCase("BT")) {
-                    AppConstants.isBTLinkUpgradeInProgress = true;
+                    AppConstants.IS_BT_LINK_UPGRADE_IN_PROGRESS = true;
                 }
                 new FirmwareFileCheckAndDownload().execute(linkType, String.valueOf(linkPosition), btLinkCommType);
             } else {
@@ -15890,7 +15905,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     private void ContinueToTheTransaction() {
-        AppConstants.isBTLinkUpgradeInProgress = false;
+        AppConstants.IS_BT_LINK_UPGRADE_IN_PROGRESS = false;
         if (isBroadcastReceiverRegistered) {
             isBroadcastReceiverRegistered = false;
             UnregisterReceiver();
@@ -15942,13 +15957,13 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     success = folder.mkdirs();
                 }
 
-                String LocalPath = binFolderPath + "/" + AppConstants.UP_Upgrade_File_name;
+                String LocalPath = binFolderPath + "/" + AppConstants.UP_UPGRADE_FILE_NAME;
 
                 File f = new File(LocalPath);
 
                 if (f.exists()) {
-                    if (AppConstants.UP_FilePath != null) {
-                        URL url = new URL(AppConstants.UP_FilePath);
+                    if (AppConstants.UP_FILE_PATH != null) {
+                        URL url = new URL(AppConstants.UP_FILE_PATH);
                         URLConnection connection = url.openConnection();
                         connection.connect();
                         long fileSizeFromServer = connection.getContentLength();
@@ -15979,8 +15994,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 }
                 btnGo.setClickable(true);
                 if (isFileExist) {
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(logUpgrade + "-" + TAG + "Link upgrade firmware file (" + AppConstants.UP_Upgrade_File_name + ") already exist. Skip download.");
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(logUpgrade + "-" + TAG + "Link upgrade firmware file (" + AppConstants.UP_UPGRADE_FILE_NAME + ") already exist. Skip download.");
                     // Continue to upgrade
                     if (linkType.equalsIgnoreCase("BT")) {
                         if (btLinkCommType.equalsIgnoreCase("BLE")) {
@@ -15997,22 +16012,22 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         CheckHTTPLinkStatusForUpgrade(linkPosition);
                     }
                 } else {
-                    if (AppConstants.UP_FilePath != null) {
+                    if (AppConstants.UP_FILE_PATH != null) {
                         String binFolderPath = String.valueOf(getApplicationContext().getExternalFilesDir(AppConstants.FOLDER_BIN));
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(logUpgrade + "-" + TAG + "Downloading link upgrade firmware file (" + AppConstants.UP_Upgrade_File_name + ")");
-                        //new DownloadFileFromURL().execute(AppConstants.UP_FilePath, binFolderPath, AppConstants.UP_Upgrade_File_name, linkType, String.valueOf(linkPosition), btLinkCommType);
-                        DownloadFileFromURL(AppConstants.UP_FilePath, binFolderPath, AppConstants.UP_Upgrade_File_name, linkType, linkPosition, btLinkCommType);
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(logUpgrade + "-" + TAG + "Downloading link upgrade firmware file (" + AppConstants.UP_UPGRADE_FILE_NAME + ")");
+                        //new DownloadFileFromURL().execute(AppConstants.UP_FILE_PATH, binFolderPath, AppConstants.UP_UPGRADE_FILE_NAME, linkType, String.valueOf(linkPosition), btLinkCommType);
+                        DownloadFileFromURL(AppConstants.UP_FILE_PATH, binFolderPath, AppConstants.UP_UPGRADE_FILE_NAME, linkType, linkPosition, btLinkCommType);
                     } else {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(logUpgrade + "-" + TAG + "Link upgrade File path null. Upgrade process skipped.");
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(logUpgrade + "-" + TAG + "Link upgrade File path null. Upgrade process skipped.");
                         ContinueToTheTransaction();
                     }
                 }
             } catch (Exception ex) {
                 ex.printStackTrace();
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(logUpgrade + "-" + TAG + "FirmwareFileCheckAndDownload Exception:>>" + ex.getMessage() + "; Upgrade process skipped.");
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(logUpgrade + "-" + TAG + "FirmwareFileCheckAndDownload Exception:>>" + ex.getMessage() + "; Upgrade process skipped.");
                 ContinueToTheTransaction();
             }
         }
@@ -16050,11 +16065,11 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
                         // getting file length
                         lengthOfFile = connection.getContentLength();
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "<Size of the file to be downloaded: " + lengthOfFile + ">");
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(TAG + "<Size of the file to be downloaded: " + lengthOfFile + ">");
                     } catch (Exception e) {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "Error occurred while getting size of the file. Exception is: " + e.getMessage());
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(TAG + "Error occurred while getting size of the file. Exception is: " + e.getMessage());
                     }
 
                     ThinDownloadManager downloadManager = new ThinDownloadManager();
@@ -16067,8 +16082,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                             .setStatusListener(new DownloadStatusListenerV1() {
                                 @Override
                                 public void onDownloadComplete(DownloadRequest downloadRequest) {
-                                    if (AppConstants.GenerateLogs)
-                                        AppConstants.WriteinFile(TAG + "<Download Complete. Size of the downloaded file: " + downloadedFileLength + ">");
+                                    if (AppConstants.GENERATE_LOGS)
+                                        AppConstants.writeInFile(TAG + "<Download Complete. Size of the downloaded file: " + downloadedFileLength + ">");
                                     runOnUiThread(new Runnable() {
                                         @Override
                                         public void run() {
@@ -16079,8 +16094,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
                                 @Override
                                 public void onDownloadFailed(DownloadRequest downloadRequest, int errorCode, String errorMessage) {
-                                    if (AppConstants.GenerateLogs)
-                                        AppConstants.WriteinFile(TAG + "<Download Failed. Size of the downloaded file: " + downloadedFileLength + "; Error: " + errorMessage + ">");
+                                    if (AppConstants.GENERATE_LOGS)
+                                        AppConstants.writeInFile(TAG + "<Download Failed. Size of the downloaded file: " + downloadedFileLength + "; Error: " + errorMessage + ">");
                                     runOnUiThread(new Runnable() {
                                         @Override
                                         public void run() {
@@ -16108,8 +16123,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     int downloadId = downloadManager.add(downloadRequest);
                 } catch (Exception e) {
                     Log.e("Error: ", e.getMessage());
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + "DownloadFileFromURL Exception: " + e.getMessage() + " (Progress: " + String.valueOf(downloadedFileProgress) + "%)");
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(TAG + "DownloadFileFromURL Exception: " + e.getMessage() + " (Progress: " + String.valueOf(downloadedFileProgress) + "%)");
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -16154,8 +16169,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             }
         } catch (Exception e) {
             Log.e("Error: ", e.getMessage());
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "ProceedAfterDownload Exception: " + e.getMessage());
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + "ProceedAfterDownload Exception: " + e.getMessage());
         }
     }
 
@@ -16200,8 +16215,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 connection.connect();
                 // getting file length
                 lengthOfFile = connection.getContentLength();
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "<Size of the file to be downloaded: " + lengthOfFile + ">");
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(TAG + "<Size of the file to be downloaded: " + lengthOfFile + ">");
 
                 // input stream to read file - with 8k buffer
                 InputStream input = new BufferedInputStream(connection.getInputStream(), 65536); //url.openStream()//8192
@@ -16231,11 +16246,11 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
             } catch (Exception e) {
                 Log.e("Error: ", e.getMessage());
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "DownloadFileFromURL InBackground Exception: " + e.getMessage() + " (Progress: " + String.valueOf(progress) + "%)");
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(TAG + "DownloadFileFromURL InBackground Exception: " + e.getMessage() + " (Progress: " + String.valueOf(progress) + "%)");
             }
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "<Size of the downloaded file: " + downloadedFileLength + ">");
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + "<Size of the downloaded file: " + downloadedFileLength + ">");
             return null;
         }
 
@@ -16283,12 +16298,12 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             if (fd.exists()) {
                 fd.delete();
             }
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "The complete file was not downloaded. Upgrade process skipped.");
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + "The complete file was not downloaded. Upgrade process skipped.");
             ContinueToTheTransaction();
         } catch (Exception e) {
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "DeleteDownloadedFileAndContinueToTxn Exception:>>" + e.getMessage());
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + "DeleteDownloadedFileAndContinueToTxn Exception:>>" + e.getMessage());
         }
     }
 
@@ -16305,14 +16320,14 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             }
             String ipAddress = "";
             boolean isMacConnected = false;
-            if (AppConstants.DetailsListOfConnectedDevices != null) {
-                for (int i = 0; i < AppConstants.DetailsListOfConnectedDevices.size(); i++) {
-                    String MA_ConnectedDevices = AppConstants.DetailsListOfConnectedDevices.get(i).get("macAddress");
+            if (AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES != null) {
+                for (int i = 0; i < AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.size(); i++) {
+                    String MA_ConnectedDevices = AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.get(i).get("macAddress");
 
                     if (selMacAddress.equalsIgnoreCase(MA_ConnectedDevices)) {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_HTTP + "-" + TAG + "Selected LINK (" + LinkName + " <==> " + selMacAddress + ") is connected to hotspot.");
-                        ipAddress = AppConstants.DetailsListOfConnectedDevices.get(i).get("ipAddress");
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(AppConstants.LOG_UPGRADE_HTTP + "-" + TAG + "Selected LINK (" + LinkName + " <==> " + selMacAddress + ") is connected to hotspot.");
+                        ipAddress = AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.get(i).get("ipAddress");
                         isMacConnected = true;
                         break;
                     }
@@ -16320,25 +16335,25 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             }
 
             if (!isMacConnected) {
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_HTTP + "-" + TAG + "Selected LINK (" + LinkName + " <==> " + selMacAddress + ") is not found in connected devices. " + AppConstants.DetailsListOfConnectedDevices);
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(AppConstants.LOG_UPGRADE_HTTP + "-" + TAG + "Selected LINK (" + LinkName + " <==> " + selMacAddress + ") is not found in connected devices. " + AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES);
 
-                if (AppConstants.DetailsListOfConnectedDevices != null) {
-                    for (int i = 0; i < AppConstants.DetailsListOfConnectedDevices.size(); i++) {
-                        String MA_ConnectedDevices = AppConstants.DetailsListOfConnectedDevices.get(i).get("macAddress");
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_HTTP + "-" + TAG + "Checking Mac Address using info command: (" + MA_ConnectedDevices + ")");
+                if (AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES != null) {
+                    for (int i = 0; i < AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.size(); i++) {
+                        String MA_ConnectedDevices = AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.get(i).get("macAddress");
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(AppConstants.LOG_UPGRADE_HTTP + "-" + TAG + "Checking Mac Address using info command: (" + MA_ConnectedDevices + ")");
 
-                        String connectedIp = AppConstants.DetailsListOfConnectedDevices.get(i).get("ipAddress");
+                        String connectedIp = AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.get(i).get("ipAddress");
 
                         ipAddress = GetAndCheckMacAddressFromInfoCommand(connectedIp, selMacAddress, MA_ConnectedDevices);
                         if (!ipAddress.trim().isEmpty()) {
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_HTTP + "-" + TAG + "===================================================================");
+                            if (AppConstants.GENERATE_LOGS)
+                                AppConstants.writeInFile(AppConstants.LOG_UPGRADE_HTTP + "-" + TAG + "===================================================================");
                             break;
                         }
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_HTTP + "-" + TAG + "===================================================================");
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(AppConstants.LOG_UPGRADE_HTTP + "-" + TAG + "===================================================================");
                     }
                 }
             }
@@ -16347,8 +16362,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 linkPositionForUpgrade = linkPosition;
                 HTTPLinkUpgradeFunctionality(LinkName, ipAddress);
             } else {
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "Upgrade process skipped.");
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(TAG + "Upgrade process skipped.");
                 ContinueToTheTransaction();
             }
 
@@ -16358,8 +16373,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     pdUpgradeProcess.dismiss();
                 }
             }
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_HTTP + "-" + TAG + "CheckHTTPLinkStatusForUpgrade Exception:>>" + e.getMessage());
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(AppConstants.LOG_UPGRADE_HTTP + "-" + TAG + "CheckHTTPLinkStatusForUpgrade Exception:>>" + e.getMessage());
         }
     }
 
@@ -16377,20 +16392,20 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         }
                     }
                     //upgrade bin
-                    String LocalPath = getApplicationContext().getExternalFilesDir(AppConstants.FOLDER_BIN) + "/" + AppConstants.UP_Upgrade_File_name;
+                    String LocalPath = getApplicationContext().getExternalFilesDir(AppConstants.FOLDER_BIN) + "/" + AppConstants.UP_UPGRADE_FILE_NAME;
 
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_HTTP + "-" + TAG + "Sending UPGRADE START command to Link: " + LinkName);
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(AppConstants.LOG_UPGRADE_HTTP + "-" + TAG + "Sending UPGRADE START command to Link: " + LinkName);
                     new CommandsPOST().execute(URL_UPGRADE_START, "", "");
 
                     new OkHttpFileUpload().execute(LocalPath, "application/binary", ipAddress, LinkName);
                 }
             }, 1000);
         } catch (Exception ex) {
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_HTTP + "-" + TAG + "HTTPLinkUpgradeFunctionality Exception: " + ex.getMessage());
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "Upgrade process skipped.");
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(AppConstants.LOG_UPGRADE_HTTP + "-" + TAG + "HTTPLinkUpgradeFunctionality Exception: " + ex.getMessage());
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + "Upgrade process skipped.");
             ContinueToTheTransaction();
         }
     }
@@ -16437,8 +16452,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
             } catch (Exception e) {
                 Log.d("Ex", e.getMessage());
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_HTTP + "-" + TAG + "OkHttpFileUpload InBackground Exception: " + e.getMessage());
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(AppConstants.LOG_UPGRADE_HTTP + "-" + TAG + "OkHttpFileUpload InBackground Exception: " + e.getMessage());
             }
             return resp;
         }
@@ -16450,8 +16465,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_HTTP + "-" + TAG + "Sending RESET command to Link: " + LinkName);
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(AppConstants.LOG_UPGRADE_HTTP + "-" + TAG + "Sending RESET command to Link: " + LinkName);
                         new CommandsPOST().execute(URL_RESET, "", URL_INFO_AFTER_RESET);
                     }
                 }, 5000);
@@ -16470,8 +16485,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 if (pd != null && pd.isShowing()) {
                     pd.dismiss();
                 }
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_HTTP + "-" + TAG + "OkHttpFileUpload onPostExecute Exception: " + e.getMessage());
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(AppConstants.LOG_UPGRADE_HTTP + "-" + TAG + "OkHttpFileUpload onPostExecute Exception: " + e.getMessage());
             }
         }
     }
@@ -16511,28 +16526,28 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         try {
             switch (linkPosition) {
                 case 0://Link 1
-                    BTStatusStr = BTConstants.BTStatusStrOne;
+                    BTStatusStr = BTConstants.BT_STATUS_STR_ONE;
                     break;
                 case 1://Link 2
-                    BTStatusStr = BTConstants.BTStatusStrTwo;
+                    BTStatusStr = BTConstants.BT_STATUS_STR_TWO;
                     break;
                 case 2://Link 3
-                    BTStatusStr = BTConstants.BTStatusStrThree;
+                    BTStatusStr = BTConstants.BT_STATUS_STR_THREE;
                     break;
                 case 3://Link 4
-                    BTStatusStr = BTConstants.BTStatusStrFour;
+                    BTStatusStr = BTConstants.BT_STATUS_STR_FOUR;
                     break;
                 case 4://Link 5
-                    BTStatusStr = BTConstants.BTStatusStrFive;
+                    BTStatusStr = BTConstants.BT_STATUS_STR_FIVE;
                     break;
                 case 5://Link 6
-                    BTStatusStr = BTConstants.BTStatusStrSix;
+                    BTStatusStr = BTConstants.BT_STATUS_STR_SIX;
                     break;
             }
         } catch (Exception e) {
             BTStatusStr = "";
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " getBTStatusStr Exception:>>" + e.getMessage());
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " getBTStatusStr Exception:>>" + e.getMessage());
         }
         return BTStatusStr;
     }
@@ -16587,8 +16602,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             ss2.setSpan(new ForegroundColorSpan(Color.BLACK), 0, ss2.length(), 0);
             return ss2;
         } catch (Exception ex) {
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "Exception in GetSpinnerMessage. " + ex.getMessage());
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + "Exception in GetSpinnerMessage. " + ex.getMessage());
             return message;
         }
     }
@@ -16603,12 +16618,12 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             }
             switch (linkPosition) {
                 case 0: // Link 1
-                    if (!BTConstants.BTStatusStrOne.equalsIgnoreCase("Connected")) {
-                        if (!calledFromUpgrade && BTConstants.BTConnFailedCountLink1 < 4) {
-                            BTConstants.BTConnFailedCountLink1++;
+                    if (!BTConstants.BT_STATUS_STR_ONE.equalsIgnoreCase("Connected")) {
+                        if (!calledFromUpgrade && BTConstants.BT_CONN_FAILED_COUNT_LINK1 < 4) {
+                            BTConstants.BT_CONN_FAILED_COUNT_LINK1++;
                         }
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(logPrefix + TAG + "BTLink_1: Link not connected. Retrying to connect.");
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(logPrefix + TAG + "BTLink_1: Link not connected. Retrying to connect.");
                         //Retrying to connect to link
                         BTSPPMain btspp = new BTSPPMain();
                         btspp.activity = WelcomeActivity.this;
@@ -16616,12 +16631,12 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     }
                     break;
                 case 1: // Link 2
-                    if (!BTConstants.BTStatusStrTwo.equalsIgnoreCase("Connected")) {
-                        if (!calledFromUpgrade && BTConstants.BTConnFailedCountLink2 < 4) {
-                            BTConstants.BTConnFailedCountLink2++;
+                    if (!BTConstants.BT_STATUS_STR_TWO.equalsIgnoreCase("Connected")) {
+                        if (!calledFromUpgrade && BTConstants.BT_CONN_FAILED_COUNT_LINK2 < 4) {
+                            BTConstants.BT_CONN_FAILED_COUNT_LINK2++;
                         }
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(logPrefix + TAG + "BTLink_2: Link not connected. Retrying to connect.");
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(logPrefix + TAG + "BTLink_2: Link not connected. Retrying to connect.");
                         //Retrying to connect to link
                         BTSPPMain btspp = new BTSPPMain();
                         btspp.activity = WelcomeActivity.this;
@@ -16629,12 +16644,12 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     }
                     break;
                 case 2: // Link 3
-                    if (!BTConstants.BTStatusStrThree.equalsIgnoreCase("Connected")) {
-                        if (!calledFromUpgrade && BTConstants.BTConnFailedCountLink3 < 4) {
-                            BTConstants.BTConnFailedCountLink3++;
+                    if (!BTConstants.BT_STATUS_STR_THREE.equalsIgnoreCase("Connected")) {
+                        if (!calledFromUpgrade && BTConstants.BT_CONN_FAILED_COUNT_LINK3 < 4) {
+                            BTConstants.BT_CONN_FAILED_COUNT_LINK3++;
                         }
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(logPrefix + TAG + "BTLink_3: Link not connected. Retrying to connect.");
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(logPrefix + TAG + "BTLink_3: Link not connected. Retrying to connect.");
                         //Retrying to connect to link
                         BTSPPMain btspp = new BTSPPMain();
                         btspp.activity = WelcomeActivity.this;
@@ -16642,12 +16657,12 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     }
                     break;
                 case 3: // Link 4
-                    if (!BTConstants.BTStatusStrFour.equalsIgnoreCase("Connected")) {
-                        if (!calledFromUpgrade && BTConstants.BTConnFailedCountLink4 < 4) {
-                            BTConstants.BTConnFailedCountLink4++;
+                    if (!BTConstants.BT_STATUS_STR_FOUR.equalsIgnoreCase("Connected")) {
+                        if (!calledFromUpgrade && BTConstants.BT_CONN_FAILED_COUNT_LINK4 < 4) {
+                            BTConstants.BT_CONN_FAILED_COUNT_LINK4++;
                         }
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(logPrefix + TAG + "BTLink_4: Link not connected. Retrying to connect.");
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(logPrefix + TAG + "BTLink_4: Link not connected. Retrying to connect.");
                         //Retrying to connect to link
                         BTSPPMain btspp = new BTSPPMain();
                         btspp.activity = WelcomeActivity.this;
@@ -16655,12 +16670,12 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     }
                     break;
                 case 4: // Link 5
-                    if (!BTConstants.BTStatusStrFive.equalsIgnoreCase("Connected")) {
-                        if (!calledFromUpgrade && BTConstants.BTConnFailedCountLink5 < 4) {
-                            BTConstants.BTConnFailedCountLink5++;
+                    if (!BTConstants.BT_STATUS_STR_FIVE.equalsIgnoreCase("Connected")) {
+                        if (!calledFromUpgrade && BTConstants.BT_CONN_FAILED_COUNT_LINK5 < 4) {
+                            BTConstants.BT_CONN_FAILED_COUNT_LINK5++;
                         }
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(logPrefix + TAG + "BTLink_5: Link not connected. Retrying to connect.");
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(logPrefix + TAG + "BTLink_5: Link not connected. Retrying to connect.");
                         //Retrying to connect to link
                         BTSPPMain btspp = new BTSPPMain();
                         btspp.activity = WelcomeActivity.this;
@@ -16668,12 +16683,12 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     }
                     break;
                 case 5: // Link 6
-                    if (!BTConstants.BTStatusStrSix.equalsIgnoreCase("Connected")) {
-                        if (!calledFromUpgrade && BTConstants.BTConnFailedCountLink6 < 4) {
-                            BTConstants.BTConnFailedCountLink6++;
+                    if (!BTConstants.BT_STATUS_STR_SIX.equalsIgnoreCase("Connected")) {
+                        if (!calledFromUpgrade && BTConstants.BT_CONN_FAILED_COUNT_LINK6 < 4) {
+                            BTConstants.BT_CONN_FAILED_COUNT_LINK6++;
                         }
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(logPrefix + TAG + "BTLink_6: Link not connected. Retrying to connect.");
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(logPrefix + TAG + "BTLink_6: Link not connected. Retrying to connect.");
                         //Retrying to connect to link
                         BTSPPMain btspp = new BTSPPMain();
                         btspp.activity = WelcomeActivity.this;
@@ -16695,8 +16710,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             new CountDownTimer(10000, 2000) {
                 public void onTick(long millisUntilFinished) {
                     if (getBTStatusStr(linkPosition).equalsIgnoreCase("Connected")) {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Link is connected.");
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Link is connected.");
                         RegisterBTReceiver(linkPosition);
                         new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                             @Override
@@ -16706,16 +16721,16 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         }, 1000);
                         cancel();
                     } else {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Checking Connection Status...");
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Checking Connection Status...");
                     }
                 }
 
                 public void onFinish() {
 
                     if (getBTStatusStr(linkPosition).equalsIgnoreCase("Connected")) {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Link is connected.");
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Link is connected.");
                         RegisterBTReceiver(linkPosition);
                         new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                             @Override
@@ -16726,13 +16741,13 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     } else {
                         if (connectionAttemptCount > 0) {
                             connectionAttemptCount = 0;
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Link not connected.");
+                            if (AppConstants.GENERATE_LOGS)
+                                AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Link not connected.");
                             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
-                                    if (AppConstants.GenerateLogs)
-                                        AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Upgrade process skipped.");
+                                    if (AppConstants.GENERATE_LOGS)
+                                        AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Upgrade process skipped.");
                                     ContinueToTheTransaction();
                                 }
                             }, 100);
@@ -16751,10 +16766,10 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             }.start();
 
         } catch (Exception e) {
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " CheckBTLinkStatusForUpgrade Exception:>>" + e.getMessage());
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Upgrade process skipped.");
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " CheckBTLinkStatusForUpgrade Exception:>>" + e.getMessage());
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Upgrade process skipped.");
             ContinueToTheTransaction();
         }
     }
@@ -16835,14 +16850,14 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     }
 
                     Log.i(TAG, getBTLinkIndexByPosition(btLinkPosition) + " Response from Link >>" + upResponse.trim());
-                    /*if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(btLinkPosition) + " Response from Link >>" + upResponse.trim());*/
+                    /*if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(btLinkPosition) + " Response from Link >>" + upResponse.trim());*/
 
                 }
             } catch (Exception e) {
                 e.printStackTrace();
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(btLinkPosition) + " onReceive Exception: " + e.getMessage());
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(btLinkPosition) + " onReceive Exception: " + e.getMessage());
             }
         }
     }
@@ -16872,8 +16887,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     break;
             }
         } catch (Exception e) {
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " SendBTCommands Exception:>>" + e.getMessage());
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " SendBTCommands Exception:>>" + e.getMessage());
             //ContinueToTheTransaction();
         }
     }
@@ -16903,8 +16918,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     break;
             }
         } catch (Exception e) {
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " SendBytes Exception:>>" + e.getMessage());
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " SendBytes Exception:>>" + e.getMessage());
             ///ContinueToTheTransaction();
         }
     }
@@ -16913,27 +16928,27 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         try {
             switch (linkPosition) {
                 case 0://Link 1
-                    BTConstants.isNewVersionLinkOne = isNewLink;
+                    BTConstants.IS_NEW_VERSION_LINK_ONE = isNewLink;
                     break;
                 case 1://Link 2
-                    BTConstants.isNewVersionLinkTwo = isNewLink;
+                    BTConstants.IS_NEW_VERSION_LINK_TWO = isNewLink;
                     break;
                 case 2://Link 3
-                    BTConstants.isNewVersionLinkThree = isNewLink;
+                    BTConstants.IS_NEW_VERSION_LINK_THREE = isNewLink;
                     break;
                 case 3://Link 4
-                    BTConstants.isNewVersionLinkFour = isNewLink;
+                    BTConstants.IS_NEW_VERSION_LINK_FOUR = isNewLink;
                     break;
                 case 4://Link 5
-                    BTConstants.isNewVersionLinkFive = isNewLink;
+                    BTConstants.IS_NEW_VERSION_LINK_FIVE = isNewLink;
                     break;
                 case 5://Link 6
-                    BTConstants.isNewVersionLinkSix = isNewLink;
+                    BTConstants.IS_NEW_VERSION_LINK_SIX = isNewLink;
                     break;
             }
         } catch (Exception e) {
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " SetNewVersionFlag Exception:>>" + e.getMessage());
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " SetNewVersionFlag Exception:>>" + e.getMessage());
         }
     }
 
@@ -16942,27 +16957,27 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         try {
             switch (linkPosition) {
                 case 0://Link 1
-                     isNewLink = BTConstants.isNewVersionLinkOne;
+                     isNewLink = BTConstants.IS_NEW_VERSION_LINK_ONE;
                     break;
                 case 1://Link 2
-                    isNewLink = BTConstants.isNewVersionLinkTwo;
+                    isNewLink = BTConstants.IS_NEW_VERSION_LINK_TWO;
                     break;
                 case 2://Link 3
-                    isNewLink = BTConstants.isNewVersionLinkThree;
+                    isNewLink = BTConstants.IS_NEW_VERSION_LINK_THREE;
                     break;
                 case 3://Link 4
-                    isNewLink = BTConstants.isNewVersionLinkFour;
+                    isNewLink = BTConstants.IS_NEW_VERSION_LINK_FOUR;
                     break;
                 case 4://Link 5
-                    isNewLink = BTConstants.isNewVersionLinkFive;
+                    isNewLink = BTConstants.IS_NEW_VERSION_LINK_FIVE;
                     break;
                 case 5://Link 6
-                    isNewLink = BTConstants.isNewVersionLinkSix;
+                    isNewLink = BTConstants.IS_NEW_VERSION_LINK_SIX;
                     break;
             }
         } catch (Exception e) {
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " GetNewVersionFlag Exception:>>" + e.getMessage());
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " GetNewVersionFlag Exception:>>" + e.getMessage());
         }
         return isNewLink;
     }
@@ -16978,26 +16993,26 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             }
             SetNewVersionFlag(linkPosition, false);
 
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Sending Info command (before upgrade) to Link: " + LinkName);
-            SendBTCommands(linkPosition, BTConstants.info_cmd);
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Sending Info command (before upgrade) to Link: " + LinkName);
+            SendBTCommands(linkPosition, BTConstants.INFO_COMMAND);
 
             new CountDownTimer(5000, 1000) {
                 public void onTick(long millisUntilFinished) {
                     long attempt = (5 - (millisUntilFinished / 1000));
                     if (attempt > 0) {
-                        if (upRequest.equalsIgnoreCase(BTConstants.info_cmd) && !upResponse.equalsIgnoreCase("")) {
+                        if (upRequest.equalsIgnoreCase(BTConstants.INFO_COMMAND) && !upResponse.equalsIgnoreCase("")) {
                             boolean proceedToUpgrade = true;
                             //Info command (before upgrade) success.
                             if (upResponse.contains("mac_address")) {
-                                if (AppConstants.GenerateLogs)
-                                    AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Checking Info command response (before upgrade). Response: true");
+                                if (AppConstants.GENERATE_LOGS)
+                                    AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Checking Info command response (before upgrade). Response: true");
                                 SetNewVersionFlag(linkPosition, true);
                                 proceedToUpgrade = getVersionFromLinkResponse(upResponse.trim(), true, linkPosition, "Before");
                                 upResponse = "";
                             } else {
-                                if (AppConstants.GenerateLogs)
-                                    AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Checking Info command response (before upgrade). Response:>>" + upResponse.trim());
+                                if (AppConstants.GENERATE_LOGS)
+                                    AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Checking Info command response (before upgrade). Response:>>" + upResponse.trim());
                                 SetNewVersionFlag(linkPosition, false);
                                 proceedToUpgrade = getVersionFromLinkResponse(upResponse.trim(), false, linkPosition, "Before");
                             }
@@ -17015,38 +17030,38 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                     }
                                 }, 1000);
                             } else {
-                                if (AppConstants.GenerateLogs)
-                                    AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " The version set for upgrade is already on the LINK.");
+                                if (AppConstants.GENERATE_LOGS)
+                                    AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " The version set for upgrade is already on the LINK.");
                                 new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                     @Override
                                     public void run() {
-                                        if (AppConstants.GenerateLogs)
-                                            AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Upgrade process skipped.");
+                                        if (AppConstants.GENERATE_LOGS)
+                                            AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Upgrade process skipped.");
                                         ContinueToTheTransaction();
                                     }
                                 }, 100);
                             }
                             cancel();
                         } else {
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Checking Info command response (before upgrade). Response: false");
+                            if (AppConstants.GENERATE_LOGS)
+                                AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Checking Info command response (before upgrade). Response: false");
                         }
                     }
                 }
 
                 public void onFinish() {
-                    if (upRequest.equalsIgnoreCase(BTConstants.info_cmd) && !upResponse.equalsIgnoreCase("")) {
+                    if (upRequest.equalsIgnoreCase(BTConstants.INFO_COMMAND) && !upResponse.equalsIgnoreCase("")) {
                         boolean proceedToUpgrade = true;
                         //Info command (before upgrade) success.
                         if (upResponse.contains("mac_address")) {
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Checking Info command response (before upgrade). Response: true");
+                            if (AppConstants.GENERATE_LOGS)
+                                AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Checking Info command response (before upgrade). Response: true");
                             SetNewVersionFlag(linkPosition, true);
                             proceedToUpgrade = getVersionFromLinkResponse(upResponse.trim(), true, linkPosition, "Before");
                             upResponse = "";
                         } else {
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Checking Info command response (before upgrade). Response:>>" + upResponse.trim());
+                            if (AppConstants.GENERATE_LOGS)
+                                AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Checking Info command response (before upgrade). Response:>>" + upResponse.trim());
                             SetNewVersionFlag(linkPosition, false);
                             proceedToUpgrade = getVersionFromLinkResponse(upResponse.trim(), false, linkPosition, "Before");
                         }
@@ -17064,25 +17079,25 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                 }
                             }, 1000);
                         } else {
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " The version set for upgrade is already on the LINK.");
+                            if (AppConstants.GENERATE_LOGS)
+                                AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " The version set for upgrade is already on the LINK.");
                             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
-                                    if (AppConstants.GenerateLogs)
-                                        AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Upgrade process skipped.");
+                                    if (AppConstants.GENERATE_LOGS)
+                                        AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Upgrade process skipped.");
                                     ContinueToTheTransaction();
                                 }
                             }, 100);
                         }
                     } else {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Checking Info command response (before upgrade). Response: false.");
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Checking Info command response (before upgrade). Response: false.");
                         new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                             @Override
                             public void run() {
-                                if (AppConstants.GenerateLogs)
-                                    AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Upgrade process skipped.");
+                                if (AppConstants.GENERATE_LOGS)
+                                    AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Upgrade process skipped.");
                                 ContinueToTheTransaction();
                             }
                         }, 100);
@@ -17091,8 +17106,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             }.start();
         } catch (Exception e) {
             e.printStackTrace();
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " infoCommandBeforeUpgrade Exception:>>" + e.getMessage());
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " infoCommandBeforeUpgrade Exception:>>" + e.getMessage());
             ContinueToTheTransaction();
         }
     }
@@ -17123,11 +17138,11 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 }
             }
             if (!versionFromLink.isEmpty()) {
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " LINK Version (" + beforeOrAfter + " Upgrade) >> " + versionFromLink);
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " LINK Version (" + beforeOrAfter + " Upgrade) >> " + versionFromLink);
             }
             if (beforeOrAfter.equalsIgnoreCase("Before")) {
-                if (versionFromLink.trim().equalsIgnoreCase(AppConstants.UP_FirmwareVersion.trim())) {
+                if (versionFromLink.trim().equalsIgnoreCase(AppConstants.UP_FIRMWARE_VERSION.trim())) {
                     returnFlag = false;
                     storeUpgradeFSVersion(WelcomeActivity.this, linkPosition, versionFromLink, "BT");
                 }
@@ -17136,8 +17151,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             }
         } catch (Exception e) {
             e.printStackTrace();
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " getVersionFromLinkResponse (" + beforeOrAfter + " Upgrade) Exception:>>" + e.getMessage());
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " getVersionFromLinkResponse (" + beforeOrAfter + " Upgrade) Exception:>>" + e.getMessage());
         }
         return returnFlag;
     }
@@ -17153,24 +17168,24 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 LinkName = serverSSIDList.get(linkPosition).get("WifiSSId");
             }
 
-            String LocalPath = getApplicationContext().getExternalFilesDir(AppConstants.FOLDER_BIN) + "/" + AppConstants.UP_Upgrade_File_name;
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " BTLinkUpgradeFunctionality file name: " + AppConstants.UP_Upgrade_File_name);
+            String LocalPath = getApplicationContext().getExternalFilesDir(AppConstants.FOLDER_BIN) + "/" + AppConstants.UP_UPGRADE_FILE_NAME;
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " BTLinkUpgradeFunctionality file name: " + AppConstants.UP_UPGRADE_FILE_NAME);
 
             File file = new File(LocalPath);
             long file_size = file.length();
 
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Sending upgrade command to Link: " + LinkName);
-            SendBTCommands(linkPosition, BTConstants.linkUpgrade_cmd + file_size);
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Sending upgrade command to Link: " + LinkName);
+            SendBTCommands(linkPosition, BTConstants.UPGRADE_COMMAND + file_size);
 
             new CountDownTimer(10000, 2000) {
 
                 public void onTick(long millisUntilFinished) {
-                    if (upRequest.contains(BTConstants.linkUpgrade_cmd) && !upResponse.isEmpty()) {
+                    if (upRequest.contains(BTConstants.UPGRADE_COMMAND) && !upResponse.isEmpty()) {
                         //upgrade command success.
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Checking upgrade command response. Response:>>" + upResponse.trim());
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Checking upgrade command response. Response:>>" + upResponse.trim());
                         new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                             @Override
                             public void run() {
@@ -17183,11 +17198,11 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
                 public void onFinish() {
 
-                    if ((upRequest.contains(BTConstants.linkUpgrade_cmd) && !upResponse.isEmpty()) || (!GetNewVersionFlag(linkPosition))) {
+                    if ((upRequest.contains(BTConstants.UPGRADE_COMMAND) && !upResponse.isEmpty()) || (!GetNewVersionFlag(linkPosition))) {
                         //upgrade command success.
                         if (GetNewVersionFlag(linkPosition)) {
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Checking upgrade command response. Response:>>" + upResponse.trim());
+                            if (AppConstants.GENERATE_LOGS)
+                                AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Checking upgrade command response. Response:>>" + upResponse.trim());
                         }
                         new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                             @Override
@@ -17197,8 +17212,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         }, 1000);
                     } else {
                         // Terminating the transaction as per Bolong's comment in #2120 => DO NOT send any command after sending upgrade command.
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Checking upgrade command response. Response: false.");
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Checking upgrade command response. Response: false.");
                         if (pdUpgradeProcess != null) {
                             if (pdUpgradeProcess.isShowing()) {
                                 pdUpgradeProcess.setMessage(GetSpinnerMessage(getResources().getString(R.string.LINKConnectionLost) + "\n" + getResources().getString(R.string.TryAgainLater)));
@@ -17207,8 +17222,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                             @Override
                             public void run() {
-                                if (AppConstants.GenerateLogs)
-                                    AppConstants.WriteinFile(TAG + "Upgrade process skipped.");
+                                if (AppConstants.GENERATE_LOGS)
+                                    AppConstants.writeInFile(TAG + "Upgrade process skipped.");
                                 ContinueToTheTransaction();
                             }
                         }, 2000);
@@ -17217,8 +17232,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             }.start();
 
         } catch (Exception e) {
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " upgradeCommand Exception:>>" + e.getMessage());
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " upgradeCommand Exception:>>" + e.getMessage());
         }
     }
 
@@ -17229,7 +17244,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
         @Override
         protected void onPreExecute() {
-            BTConstants.BTUpgradeStatus = "";
+            BTConstants.BT_UPGRADE_STATUS = "";
         }
 
         @Override
@@ -17241,15 +17256,15 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     LinkName = serverSSIDList.get(linkPosition).get("WifiSSId");
                 }
 
-                String LocalPath = getApplicationContext().getExternalFilesDir(AppConstants.FOLDER_BIN) + "/" + AppConstants.UP_Upgrade_File_name;
+                String LocalPath = getApplicationContext().getExternalFilesDir(AppConstants.FOLDER_BIN) + "/" + AppConstants.UP_UPGRADE_FILE_NAME;
 
                 File file = new File(LocalPath);
 
                 long file_size = file.length();
                 long tempFileSize = file_size;
 
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " <File Size: " + file_size + ">");
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " <File Size: " + file_size + ">");
 
                 InputStream inputStream = new FileInputStream(file);
 
@@ -17260,8 +17275,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     long bytesWritten = 0;
                     int amountOfBytesRead;
 
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Upload (" + AppConstants.UP_Upgrade_File_name + ") started...");
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Upload (" + AppConstants.UP_UPGRADE_FILE_NAME + ") started...");
                     while ((amountOfBytesRead = inputStream.read(bufferBytes)) != -1) {
 
                         bytesWritten += amountOfBytesRead;
@@ -17289,26 +17304,26 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                             try {
                                 Thread.sleep(5);
                             } catch (Exception e) {
-                                if (AppConstants.GenerateLogs)
-                                    AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Thread exception: " + e.getMessage() + " (Progress: " + progressValue + ")");
+                                if (AppConstants.GENERATE_LOGS)
+                                    AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Thread exception: " + e.getMessage() + " (Progress: " + progressValue + ")");
                             }
                         } else {
                             //BTConstants.IsFileUploadCompleted = false;
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " LINK connection lost while uploading the upgrade file. Progress: " + progressValue + " %");
-                            BTConstants.BTUpgradeStatus = "Incomplete";
+                            if (AppConstants.GENERATE_LOGS)
+                                AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " LINK connection lost while uploading the upgrade file. Progress: " + progressValue + " %");
+                            BTConstants.BT_UPGRADE_STATUS = "Incomplete";
                             break;
                         }
                     }
                     inputStream.close();
-                    if (BTConstants.BTUpgradeStatus.isEmpty()) { // || BTConstants.BTUpgradeStatus.equalsIgnoreCase("Started")
-                        BTConstants.BTUpgradeStatus = "Completed";
+                    if (BTConstants.BT_UPGRADE_STATUS.isEmpty()) { // || BTConstants.BT_UPGRADE_STATUS.equalsIgnoreCase("Started")
+                        BTConstants.BT_UPGRADE_STATUS = "Completed";
                     }
                 }
             } catch (Exception e) {
                 Log.e("Error: ", e.getMessage());
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " UpgradeFileUploadFunctionality InBackground Exception: " + e.getMessage());
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " UpgradeFileUploadFunctionality InBackground Exception: " + e.getMessage());
             }
             return null;
         }
@@ -17325,13 +17340,13 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         @Override
         protected void onPostExecute(String file_url) {
             //pd.dismiss();
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " LINK Status: " + getBTStatusStr(linkPosition));
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " LINK Status: " + getBTStatusStr(linkPosition));
 
-            if (BTConstants.BTUpgradeStatus.equalsIgnoreCase("Completed")) {
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Upgrade Completed. Connecting to the LINK: " + LinkName + " (" + GetBTLinksMacAddress(linkPosition) + ")");
-                BTConstants.BTUpgradeStatus = "";
+            if (BTConstants.BT_UPGRADE_STATUS.equalsIgnoreCase("Completed")) {
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Upgrade Completed. Connecting to the LINK: " + LinkName + " (" + GetBTLinksMacAddress(linkPosition) + ")");
+                BTConstants.BT_UPGRADE_STATUS = "";
 
                 if (pdUpgradeProcess != null) {
                     if (pdUpgradeProcess.isShowing()) {
@@ -17340,7 +17355,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 }
 
                 //#2310 => The Cloud WILL NOT update the firmware version until it is successfully completed.
-                //storeUpgradeFSVersion(WelcomeActivity.this, linkPosition, AppConstants.UP_FirmwareVersion, "BT");
+                //storeUpgradeFSVersion(WelcomeActivity.this, linkPosition, AppConstants.UP_FIRMWARE_VERSION, "BT");
 
                 Handler handler = new Handler();
                 int delay = 10000;
@@ -17350,8 +17365,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         if (getBTStatusStr(linkPosition).equalsIgnoreCase("Connected")) {
                             counter = 0;
                             handler.removeCallbacksAndMessages(null);
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Link is connected.");
+                            if (AppConstants.GENERATE_LOGS)
+                                AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Link is connected.");
                             //ContinueToTheTransaction();
                             if (pdUpgradeProcess != null) {
                                 if (pdUpgradeProcess.isShowing()) {
@@ -17363,12 +17378,12 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                             counter++;
                             if (counter < 3) {
                                 retryBTConnection(linkPosition, true);
-                                if (AppConstants.GenerateLogs)
-                                    AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Waiting to reconnect... (Attempt: " + counter + ")");
+                                if (AppConstants.GENERATE_LOGS)
+                                    AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Waiting to reconnect... (Attempt: " + counter + ")");
                                 handler.postDelayed(this, delay);
                             } else {
-                                if (AppConstants.GenerateLogs)
-                                    AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Failed to connect to the link. (Status: " + getBTStatusStr(linkPosition) + ")");
+                                if (AppConstants.GENERATE_LOGS)
+                                    AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Failed to connect to the link. (Status: " + getBTStatusStr(linkPosition) + ")");
                                 if (pdUpgradeProcess != null) {
                                     if (pdUpgradeProcess.isShowing()) {
                                         pdUpgradeProcess.setMessage(GetSpinnerMessage(getResources().getString(R.string.LINKConnectionLost) + "\n" + getResources().getString(R.string.TryAgainLater)));
@@ -17386,9 +17401,9 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     }
                 }, delay);
             } else {
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " LINK connection lost.");
-                BTConstants.BTUpgradeStatus = "";
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " LINK connection lost.");
+                BTConstants.BT_UPGRADE_STATUS = "";
 
                 if (pdUpgradeProcess != null) {
                     if (pdUpgradeProcess.isShowing()) {
@@ -17417,7 +17432,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         strHoseId = "hoseid_fs1";
                         strFsVersion = "fsversion_fs1";
                     }
-                    hoseId = AppConstants.UP_HoseId_fs1;
+                    hoseId = AppConstants.UP_HOSE_ID_FS1;
                     break;
                 case 1://Link 2
                     if (linkType.equalsIgnoreCase("BT")) {
@@ -17427,7 +17442,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         strHoseId = "hoseid_fs2";
                         strFsVersion = "fsversion_fs2";
                     }
-                    hoseId = AppConstants.UP_HoseId_fs2;
+                    hoseId = AppConstants.UP_HOSE_ID_FS2;
                     break;
                 case 2://Link 3
                     if (linkType.equalsIgnoreCase("BT")) {
@@ -17437,7 +17452,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         strHoseId = "hoseid_fs3";
                         strFsVersion = "fsversion_fs3";
                     }
-                    hoseId = AppConstants.UP_HoseId_fs3;
+                    hoseId = AppConstants.UP_HOSE_ID_FS3;
                     break;
                 case 3://Link 4
                     if (linkType.equalsIgnoreCase("BT")) {
@@ -17447,7 +17462,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         strHoseId = "hoseid_fs4";
                         strFsVersion = "fsversion_fs4";
                     }
-                    hoseId = AppConstants.UP_HoseId_fs4;
+                    hoseId = AppConstants.UP_HOSE_ID_FS4;
                     break;
                 case 4://Link 5
                     if (linkType.equalsIgnoreCase("BT")) {
@@ -17457,7 +17472,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         strHoseId = "hoseid_fs5";
                         strFsVersion = "fsversion_fs5";
                     }
-                    hoseId = AppConstants.UP_HoseId_fs5;
+                    hoseId = AppConstants.UP_HOSE_ID_FS5;
                     break;
                 case 5://Link 6
                     if (linkType.equalsIgnoreCase("BT")) {
@@ -17467,7 +17482,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         strHoseId = "hoseid_fs6";
                         strFsVersion = "fsversion_fs6";
                     }
-                    hoseId = AppConstants.UP_HoseId_fs6;
+                    hoseId = AppConstants.UP_HOSE_ID_FS6;
                     break;
             }
 
@@ -17513,12 +17528,12 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
                 //----------------------------------------------------------------------------------
                 String authString = "Basic " + AppConstants.convertStingToBase64(objUpgrade.IMEIUDID + ":" + objUpgrade.Email + ":" + "UpgradeCurrentVersionWithUgradableVersion" + AppConstants.LANG_PARAM);
-                response = serverHandler.PostTextData(WelcomeActivity.this, AppConstants.webURL, jsonData, authString);
+                response = serverHandler.PostTextData(WelcomeActivity.this, AppConstants.WEB_URL, jsonData, authString);
                 //----------------------------------------------------------------------------------
 
             } catch (Exception ex) {
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + getBTLinkIndexByPosition(linkPosition) + " UpgradeCurrentVersionWithUpgradableVersion Exception: " + ex.getMessage());
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(TAG + getBTLinkIndexByPosition(linkPosition) + " UpgradeCurrentVersionWithUpgradableVersion Exception: " + ex.getMessage());
             }
             return response;
         }
@@ -17526,7 +17541,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         @Override
         protected void onPostExecute(String aVoid) {
             try {
-                AppConstants.UP_Upgrade = false;
+                AppConstants.UP_UPGRADE = false;
                 JSONObject jsonObject = new JSONObject(aVoid);
                 String ResponceMessage = jsonObject.getString("ResponceMessage");
                 String ResponceText = jsonObject.getString("ResponceText");
@@ -17535,8 +17550,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     AppConstants.clearSharedPrefByName(WelcomeActivity.this, Constants.PREF_FS_UPGRADE);
                 }
             } catch (Exception e) {
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + getBTLinkIndexByPosition(linkPosition) + " UpgradeCurrentVersionWithUpgradableVersion onPostExecute Exception: " + e.getMessage());
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(TAG + getBTLinkIndexByPosition(linkPosition) + " UpgradeCurrentVersionWithUpgradableVersion onPostExecute Exception: " + e.getMessage());
             }
         }
     }
@@ -17552,26 +17567,26 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             }
             SetNewVersionFlag(linkPosition, false);
 
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Sending Info command (after upgrade) to Link: " + LinkName);
-            SendBTCommands(linkPosition, BTConstants.info_cmd);
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Sending Info command (after upgrade) to Link: " + LinkName);
+            SendBTCommands(linkPosition, BTConstants.INFO_COMMAND);
 
             new CountDownTimer(5000, 1000) {
 
                 public void onTick(long millisUntilFinished) {
                     long attempt = (5 - (millisUntilFinished / 1000));
                     if (attempt > 0) {
-                        if (upRequest.equalsIgnoreCase(BTConstants.info_cmd) && !upResponse.equalsIgnoreCase("")) {
+                        if (upRequest.equalsIgnoreCase(BTConstants.INFO_COMMAND) && !upResponse.equalsIgnoreCase("")) {
                             //Info command (after upgrade) success.
                             if (upResponse.contains("mac_address")) {
-                                if (AppConstants.GenerateLogs)
-                                    AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Checking Info command response (after upgrade). Response: true");
+                                if (AppConstants.GENERATE_LOGS)
+                                    AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Checking Info command response (after upgrade). Response: true");
                                 SetNewVersionFlag(linkPosition, true);
                                 getVersionFromLinkResponse(upResponse.trim(), true, linkPosition, "After");
                                 upResponse = "";
                             } else {
-                                if (AppConstants.GenerateLogs)
-                                    AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Checking Info command response (after upgrade). Response:>>" + upResponse.trim());
+                                if (AppConstants.GENERATE_LOGS)
+                                    AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Checking Info command response (after upgrade). Response:>>" + upResponse.trim());
                                 SetNewVersionFlag(linkPosition, false);
                                 getVersionFromLinkResponse(upResponse.trim(), false, linkPosition, "After");
                             }
@@ -17583,25 +17598,25 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                             }, 1000);
                             cancel();
                         } else {
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Checking Info command response (after upgrade). Response: false");
+                            if (AppConstants.GENERATE_LOGS)
+                                AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Checking Info command response (after upgrade). Response: false");
                         }
                     }
                 }
 
                 public void onFinish() {
 
-                    if (upRequest.equalsIgnoreCase(BTConstants.info_cmd) && !upResponse.equalsIgnoreCase("")) {
+                    if (upRequest.equalsIgnoreCase(BTConstants.INFO_COMMAND) && !upResponse.equalsIgnoreCase("")) {
                         //Info command (after upgrade) success.
                         if (upResponse.contains("mac_address")) {
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Checking Info command response (after upgrade). Response: true");
+                            if (AppConstants.GENERATE_LOGS)
+                                AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Checking Info command response (after upgrade). Response: true");
                             SetNewVersionFlag(linkPosition, true);
                             getVersionFromLinkResponse(upResponse.trim(), true, linkPosition, "After");
                             upResponse = "";
                         } else {
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Checking Info command response (after upgrade). Response:>>" + upResponse.trim());
+                            if (AppConstants.GENERATE_LOGS)
+                                AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Checking Info command response (after upgrade). Response:>>" + upResponse.trim());
                             SetNewVersionFlag(linkPosition, false);
                             getVersionFromLinkResponse(upResponse.trim(), false, linkPosition, "After");
                         }
@@ -17612,13 +17627,13 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                             }
                         }, 1000);
                     } else {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Checking Info command response (after upgrade). Response: false.");
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Checking Info command response (after upgrade). Response: false.");
                         new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                             @Override
                             public void run() {
-                                if (AppConstants.GenerateLogs)
-                                    AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Upgrade process skipped.");
+                                if (AppConstants.GENERATE_LOGS)
+                                    AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Upgrade process skipped.");
                                 ContinueToTheTransaction();
                             }
                         }, 100);
@@ -17627,8 +17642,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             }.start();
         } catch (Exception e) {
             e.printStackTrace();
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " infoCommandAfterUpgrade Exception:>>" + e.getMessage());
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " infoCommandAfterUpgrade Exception:>>" + e.getMessage());
             ContinueToTheTransaction();
         }
     }
@@ -17637,19 +17652,19 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
     //region Test Transaction
     public void LinkSelectionForTestTransaction() {
         try {
-            AppConstants.isTestTransaction = true;
+            AppConstants.IS_TEST_TRANSACTION = true;
             if (serverSSIDList != null && serverSSIDList.size() > 1) {
                 selectHoseAction(null);
             } else {
-                if (Constants.FS_1STATUS.equalsIgnoreCase("FREE")) { // Single LINK Auto Selection
+                if (Constants.FS_1_STATUS.equalsIgnoreCase("FREE")) { // Single LINK Auto Selection
                     btnGo.performClick();
                 } else {
                     Toast.makeText(getApplicationContext(), getResources().getString(R.string.HoseInUse), Toast.LENGTH_SHORT).show();
                 }
             }
         } catch (Exception ex) {
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "Exception in LinkSelectionForTestTransaction. " + ex.getMessage());
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + "Exception in LinkSelectionForTestTransaction. " + ex.getMessage());
         }
     }
 
@@ -17687,27 +17702,27 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         try {
             switch (linkPosition) {
                 case 0://Link 1
-                    isNewLink = BT_BLE_Constants.isNewVersionLinkOne;
+                    isNewLink = BT_BLE_Constants.IS_NEW_VERSION_LINK_ONE;
                     break;
                 case 1://Link 2
-                    isNewLink = BT_BLE_Constants.isNewVersionLinkTwo;
+                    isNewLink = BT_BLE_Constants.IS_NEW_VERSION_LINK_TWO;
                     break;
                 case 2://Link 3
-                    isNewLink = BT_BLE_Constants.isNewVersionLinkThree;
+                    isNewLink = BT_BLE_Constants.IS_NEW_VERSION_LINK_THREE;
                     break;
                 case 3://Link 4
-                    isNewLink = BT_BLE_Constants.isNewVersionLinkFour;
+                    isNewLink = BT_BLE_Constants.IS_NEW_VERSION_LINK_FOUR;
                     break;
                 case 4://Link 5
-                    isNewLink = BT_BLE_Constants.isNewVersionLinkFive;
+                    isNewLink = BT_BLE_Constants.IS_NEW_VERSION_LINK_FIVE;
                     break;
                 case 5://Link 6
-                    isNewLink = BT_BLE_Constants.isNewVersionLinkSix;
+                    isNewLink = BT_BLE_Constants.IS_NEW_VERSION_LINK_SIX;
                     break;
             }
         } catch (Exception e) {
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " GetNewVersionFlagForBLE Exception:>>" + e.getMessage());
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " GetNewVersionFlagForBLE Exception:>>" + e.getMessage());
         }
         return isNewLink;
     }
@@ -17771,78 +17786,78 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             //Link 1
             if (linkPosition == 0) {
                 try {
-                    BT_BLE_Constants.isLinkOneNotifyEnabled = false;
+                    BT_BLE_Constants.IS_LINK_ONE_NOTIFY_ENABLED = false;
                     unbindService(mServiceConnection1);
                     unregisterReceiver(mGattUpdateReceiver1);
                 } catch (Exception e) {
                     e.printStackTrace();
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " <Exception occurred while unregistering receiver: " + e.getMessage() + ">");
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " <Exception occurred while unregistering receiver: " + e.getMessage() + ">");
                 }
             }
 
             //Link 2
             if (linkPosition == 1) {
                 try {
-                    BT_BLE_Constants.isLinkTwoNotifyEnabled = false;
+                    BT_BLE_Constants.IS_LINK_TWO_NOTIFY_ENABLED = false;
                     unbindService(mServiceConnection2);
                     unregisterReceiver(mGattUpdateReceiver2);
                 } catch (Exception e) {
                     e.printStackTrace();
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " <Exception occurred while unregistering receiver: " + e.getMessage() + ">");
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " <Exception occurred while unregistering receiver: " + e.getMessage() + ">");
                 }
             }
 
             //Link 3
             if (linkPosition == 2) {
                 try {
-                    BT_BLE_Constants.isLinkThreeNotifyEnabled = false;
+                    BT_BLE_Constants.IS_LINK_THREE_NOTIFY_ENABLED = false;
                     unbindService(mServiceConnection3);
                     unregisterReceiver(mGattUpdateReceiver3);
                 } catch (Exception e) {
                     e.printStackTrace();
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " <Exception occurred while unregistering receiver: " + e.getMessage() + ">");
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " <Exception occurred while unregistering receiver: " + e.getMessage() + ">");
                 }
             }
 
             //Link 4
             if (linkPosition == 3) {
                 try {
-                    BT_BLE_Constants.isLinkFourNotifyEnabled = false;
+                    BT_BLE_Constants.IS_LINK_FOUR_NOTIFY_ENABLED = false;
                     unbindService(mServiceConnection4);
                     unregisterReceiver(mGattUpdateReceiver4);
                 } catch (Exception e) {
                     e.printStackTrace();
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " <Exception occurred while unregistering receiver: " + e.getMessage() + ">");
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " <Exception occurred while unregistering receiver: " + e.getMessage() + ">");
                 }
             }
 
             //Link 5
             if (linkPosition == 4) {
                 try {
-                    BT_BLE_Constants.isLinkFiveNotifyEnabled = false;
+                    BT_BLE_Constants.IS_LINK_FIVE_NOTIFY_ENABLED = false;
                     unbindService(mServiceConnection5);
                     unregisterReceiver(mGattUpdateReceiver5);
                 } catch (Exception e) {
                     e.printStackTrace();
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " <Exception occurred while unregistering receiver: " + e.getMessage() + ">");
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " <Exception occurred while unregistering receiver: " + e.getMessage() + ">");
                 }
             }
 
             //Link 6
             if (linkPosition == 5) {
                 try {
-                    BT_BLE_Constants.isLinkSixNotifyEnabled = false;
+                    BT_BLE_Constants.IS_LINK_SIX_NOTIFY_ENABLED = false;
                     unbindService(mServiceConnection6);
                     unregisterReceiver(mGattUpdateReceiver6);
                 } catch (Exception e) {
                     e.printStackTrace();
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " <Exception occurred while unregistering receiver: " + e.getMessage() + ">");
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " <Exception occurred while unregistering receiver: " + e.getMessage() + ">");
                 }
             }
         } catch (Exception e) {
@@ -17858,7 +17873,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 Log.e(TAG, "Unable to initialize Bluetooth");
             }
             // Automatically connects to the device upon successful start-up initialization.
-            mBLEService1.connect(BTConstants.deviceAddress1);
+            mBLEService1.connect(BTConstants.DEVICE_ADDRESS_1);
         }
 
         @Override
@@ -17875,7 +17890,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 Log.e(TAG, "Unable to initialize Bluetooth");
             }
             // Automatically connects to the device upon successful start-up initialization.
-            mBLEService2.connect(BTConstants.deviceAddress2);
+            mBLEService2.connect(BTConstants.DEVICE_ADDRESS_2);
         }
 
         @Override
@@ -17892,7 +17907,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 Log.e(TAG, "Unable to initialize Bluetooth");
             }
             // Automatically connects to the device upon successful start-up initialization.
-            mBLEService3.connect(BTConstants.deviceAddress3);
+            mBLEService3.connect(BTConstants.DEVICE_ADDRESS_3);
         }
 
         @Override
@@ -17909,7 +17924,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 Log.e(TAG, "Unable to initialize Bluetooth");
             }
             // Automatically connects to the device upon successful start-up initialization.
-            mBLEService4.connect(BTConstants.deviceAddress4);
+            mBLEService4.connect(BTConstants.DEVICE_ADDRESS_4);
         }
 
         @Override
@@ -17926,7 +17941,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 Log.e(TAG, "Unable to initialize Bluetooth");
             }
             // Automatically connects to the device upon successful start-up initialization.
-            mBLEService5.connect(BTConstants.deviceAddress5);
+            mBLEService5.connect(BTConstants.DEVICE_ADDRESS_5);
         }
 
         @Override
@@ -17943,7 +17958,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 Log.e(TAG, "Unable to initialize Bluetooth");
             }
             // Automatically connects to the device upon successful start-up initialization.
-            mBLEService6.connect(BTConstants.deviceAddress6);
+            mBLEService6.connect(BTConstants.DEVICE_ADDRESS_6);
         }
 
         @Override
@@ -18011,34 +18026,34 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             try {
                 BLE_Response = data;
 
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(position) + " <Callback BT Resp~~  " + BLE_Response.trim() + ">");
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(position) + " <Callback BT Resp~~  " + BLE_Response.trim() + ">");
 
                 switch (position) {
                     case 0://Link 1
-                        BLE_Request = BT_BLE_Constants.CurrentCommand_LinkOne;
+                        BLE_Request = BT_BLE_Constants.CURRENT_COMMAND_LINK_ONE;
                         break;
                     case 1://Link 2
-                        BLE_Request = BT_BLE_Constants.CurrentCommand_LinkTwo;
+                        BLE_Request = BT_BLE_Constants.CURRENT_COMMAND_LINK_TWO;
                         break;
                     case 2://Link 3
-                        BLE_Request = BT_BLE_Constants.CurrentCommand_LinkThree;
+                        BLE_Request = BT_BLE_Constants.CURRENT_COMMAND_LINK_THREE;
                         break;
                     case 3://Link 4
-                        BLE_Request = BT_BLE_Constants.CurrentCommand_LinkFour;
+                        BLE_Request = BT_BLE_Constants.CURRENT_COMMAND_LINK_FOUR;
                         break;
                     case 4://Link 5
-                        BLE_Request = BT_BLE_Constants.CurrentCommand_LinkFive;
+                        BLE_Request = BT_BLE_Constants.CURRENT_COMMAND_LINK_FIVE;
                         break;
                     case 5://Link 6
-                        BLE_Request = BT_BLE_Constants.CurrentCommand_LinkSix;
+                        BLE_Request = BT_BLE_Constants.CURRENT_COMMAND_LINK_SIX;
                         break;
                 }
 
             } catch (Exception ex) {
                 System.out.println(ex.getMessage());
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(position) + " displayData Exception:" + ex.getMessage());
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(position) + " displayData Exception:" + ex.getMessage());
             }
         }
     }
@@ -18056,15 +18071,15 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             res = res.trim();
 
             if (res.toUpperCase().contains(BTLinkResponseFormatOld.toUpperCase())) {
-                BT_BLE_Constants.isLinkOneNotifyEnabled = true;
-                BT_BLE_Constants.isNewVersionLinkOne = false;
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(0) + " <Found BT LINK (OLD)> ");
+                BT_BLE_Constants.IS_LINK_ONE_NOTIFY_ENABLED = true;
+                BT_BLE_Constants.IS_NEW_VERSION_LINK_ONE = false;
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(0) + " <Found BT LINK (OLD)> ");
             } else if (res.toUpperCase().contains(BTLinkResponseFormatNew.toUpperCase())) {
-                BT_BLE_Constants.isLinkOneNotifyEnabled = true;
-                BT_BLE_Constants.isNewVersionLinkOne = true;
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(0) + " <Found BT LINK (New)> ");
+                BT_BLE_Constants.IS_LINK_ONE_NOTIFY_ENABLED = true;
+                BT_BLE_Constants.IS_NEW_VERSION_LINK_ONE = true;
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(0) + " <Found BT LINK (New)> ");
             }
 
             if (BLEServiceCodeOne.ACTION_GATT_CONNECTED.equals(action)) {
@@ -18096,15 +18111,15 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             res = res.trim();
 
             if (res.toUpperCase().contains(BTLinkResponseFormatOld.toUpperCase())) {
-                BT_BLE_Constants.isLinkTwoNotifyEnabled = true;
-                BT_BLE_Constants.isNewVersionLinkTwo = false;
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(1) + " <Found BT LINK (OLD)> ");
+                BT_BLE_Constants.IS_LINK_TWO_NOTIFY_ENABLED = true;
+                BT_BLE_Constants.IS_NEW_VERSION_LINK_TWO = false;
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(1) + " <Found BT LINK (OLD)> ");
             } else if (res.toUpperCase().contains(BTLinkResponseFormatNew.toUpperCase())) {
-                BT_BLE_Constants.isLinkTwoNotifyEnabled = true;
-                BT_BLE_Constants.isNewVersionLinkTwo = true;
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(1) + " <Found BT LINK (New)> ");
+                BT_BLE_Constants.IS_LINK_TWO_NOTIFY_ENABLED = true;
+                BT_BLE_Constants.IS_NEW_VERSION_LINK_TWO = true;
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(1) + " <Found BT LINK (New)> ");
             }
 
             if (BLEServiceCodeTwo.ACTION_GATT_CONNECTED.equals(action)) {
@@ -18136,15 +18151,15 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             res = res.trim();
 
             if (res.toUpperCase().contains(BTLinkResponseFormatOld.toUpperCase())) {
-                BT_BLE_Constants.isLinkThreeNotifyEnabled = true;
-                BT_BLE_Constants.isNewVersionLinkThree = false;
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(2) + " <Found BT LINK (OLD)> ");
+                BT_BLE_Constants.IS_LINK_THREE_NOTIFY_ENABLED = true;
+                BT_BLE_Constants.IS_NEW_VERSION_LINK_THREE = false;
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(2) + " <Found BT LINK (OLD)> ");
             } else if (res.toUpperCase().contains(BTLinkResponseFormatNew.toUpperCase())) {
-                BT_BLE_Constants.isLinkThreeNotifyEnabled = true;
-                BT_BLE_Constants.isNewVersionLinkThree = true;
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(2) + " <Found BT LINK (New)> ");
+                BT_BLE_Constants.IS_LINK_THREE_NOTIFY_ENABLED = true;
+                BT_BLE_Constants.IS_NEW_VERSION_LINK_THREE = true;
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(2) + " <Found BT LINK (New)> ");
             }
 
             if (BLEServiceCodeThree.ACTION_GATT_CONNECTED.equals(action)) {
@@ -18176,15 +18191,15 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             res = res.trim();
 
             if (res.toUpperCase().contains(BTLinkResponseFormatOld.toUpperCase())) {
-                BT_BLE_Constants.isLinkFourNotifyEnabled = true;
-                BT_BLE_Constants.isNewVersionLinkFour = false;
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(3) + " <Found BT LINK (OLD)> ");
+                BT_BLE_Constants.IS_LINK_FOUR_NOTIFY_ENABLED = true;
+                BT_BLE_Constants.IS_NEW_VERSION_LINK_FOUR = false;
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(3) + " <Found BT LINK (OLD)> ");
             } else if (res.toUpperCase().contains(BTLinkResponseFormatNew.toUpperCase())) {
-                BT_BLE_Constants.isLinkFourNotifyEnabled = true;
-                BT_BLE_Constants.isNewVersionLinkFour = true;
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(3) + " <Found BT LINK (New)> ");
+                BT_BLE_Constants.IS_LINK_FOUR_NOTIFY_ENABLED = true;
+                BT_BLE_Constants.IS_NEW_VERSION_LINK_FOUR = true;
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(3) + " <Found BT LINK (New)> ");
             }
 
             if (BLEServiceCodeFour.ACTION_GATT_CONNECTED.equals(action)) {
@@ -18216,15 +18231,15 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             res = res.trim();
 
             if (res.toUpperCase().contains(BTLinkResponseFormatOld.toUpperCase())) {
-                BT_BLE_Constants.isLinkFiveNotifyEnabled = true;
-                BT_BLE_Constants.isNewVersionLinkFive = false;
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(4) + " <Found BT LINK (OLD)> ");
+                BT_BLE_Constants.IS_LINK_FIVE_NOTIFY_ENABLED = true;
+                BT_BLE_Constants.IS_NEW_VERSION_LINK_FIVE = false;
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(4) + " <Found BT LINK (OLD)> ");
             } else if (res.toUpperCase().contains(BTLinkResponseFormatNew.toUpperCase())) {
-                BT_BLE_Constants.isLinkFiveNotifyEnabled = true;
-                BT_BLE_Constants.isNewVersionLinkFive = true;
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(4) + " <Found BT LINK (New)> ");
+                BT_BLE_Constants.IS_LINK_FIVE_NOTIFY_ENABLED = true;
+                BT_BLE_Constants.IS_NEW_VERSION_LINK_FIVE = true;
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(4) + " <Found BT LINK (New)> ");
             }
 
             if (BLEServiceCodeFive.ACTION_GATT_CONNECTED.equals(action)) {
@@ -18256,15 +18271,15 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             res = res.trim();
 
             if (res.toUpperCase().contains(BTLinkResponseFormatOld.toUpperCase())) {
-                BT_BLE_Constants.isLinkSixNotifyEnabled = true;
-                BT_BLE_Constants.isNewVersionLinkSix = false;
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(5) + " <Found BT LINK (OLD)> ");
+                BT_BLE_Constants.IS_LINK_SIX_NOTIFY_ENABLED = true;
+                BT_BLE_Constants.IS_NEW_VERSION_LINK_SIX = false;
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(5) + " <Found BT LINK (OLD)> ");
             } else if (res.toUpperCase().contains(BTLinkResponseFormatNew.toUpperCase())) {
-                BT_BLE_Constants.isLinkSixNotifyEnabled = true;
-                BT_BLE_Constants.isNewVersionLinkSix = true;
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(5) + " <Found BT LINK (New)> ");
+                BT_BLE_Constants.IS_LINK_SIX_NOTIFY_ENABLED = true;
+                BT_BLE_Constants.IS_NEW_VERSION_LINK_SIX = true;
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(5) + " <Found BT LINK (New)> ");
             }
 
             if (BLEServiceCodeSix.ACTION_GATT_CONNECTED.equals(action)) {
@@ -18288,28 +18303,28 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         try {
             switch (linkPosition) {
                 case 0://Link 1
-                    BTStatusStr = BT_BLE_Constants.BTBLEStatusStrOne;
+                    BTStatusStr = BT_BLE_Constants.BT_BLE_STATUS_STR_ONE;
                     break;
                 case 1://Link 2
-                    BTStatusStr = BT_BLE_Constants.BTBLEStatusStrTwo;
+                    BTStatusStr = BT_BLE_Constants.BT_BLE_STATUS_STR_TWO;
                     break;
                 case 2://Link 3
-                    BTStatusStr = BT_BLE_Constants.BTBLEStatusStrThree;
+                    BTStatusStr = BT_BLE_Constants.BT_BLE_STATUS_STR_THREE;
                     break;
                 case 3://Link 4
-                    BTStatusStr = BT_BLE_Constants.BTBLEStatusStrFour;
+                    BTStatusStr = BT_BLE_Constants.BT_BLE_STATUS_STR_FOUR;
                     break;
                 case 4://Link 5
-                    BTStatusStr = BT_BLE_Constants.BTBLEStatusStrFive;
+                    BTStatusStr = BT_BLE_Constants.BT_BLE_STATUS_STR_FIVE;
                     break;
                 case 5://Link 6
-                    BTStatusStr = BT_BLE_Constants.BTBLEStatusStrSix;
+                    BTStatusStr = BT_BLE_Constants.BT_BLE_STATUS_STR_SIX;
                     break;
             }
         } catch (Exception e) {
             BTStatusStr = "";
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " getBTBLELinkStatusStrByPosition Exception:>>" + e.getMessage());
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " getBTBLELinkStatusStrByPosition Exception:>>" + e.getMessage());
         }
         return BTStatusStr;
     }
@@ -18319,28 +18334,28 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         try {
             switch (linkPosition) {
                 case 0://Link 1
-                    isLinkNotifyEnabled = BT_BLE_Constants.isLinkOneNotifyEnabled;
+                    isLinkNotifyEnabled = BT_BLE_Constants.IS_LINK_ONE_NOTIFY_ENABLED;
                     break;
                 case 1://Link 2
-                    isLinkNotifyEnabled = BT_BLE_Constants.isLinkTwoNotifyEnabled;
+                    isLinkNotifyEnabled = BT_BLE_Constants.IS_LINK_TWO_NOTIFY_ENABLED;
                     break;
                 case 2://Link 3
-                    isLinkNotifyEnabled = BT_BLE_Constants.isLinkThreeNotifyEnabled;
+                    isLinkNotifyEnabled = BT_BLE_Constants.IS_LINK_THREE_NOTIFY_ENABLED;
                     break;
                 case 3://Link 4
-                    isLinkNotifyEnabled = BT_BLE_Constants.isLinkFourNotifyEnabled;
+                    isLinkNotifyEnabled = BT_BLE_Constants.IS_LINK_FOUR_NOTIFY_ENABLED;
                     break;
                 case 4://Link 5
-                    isLinkNotifyEnabled = BT_BLE_Constants.isLinkFiveNotifyEnabled;
+                    isLinkNotifyEnabled = BT_BLE_Constants.IS_LINK_FIVE_NOTIFY_ENABLED;
                     break;
                 case 5://Link 6
-                    isLinkNotifyEnabled = BT_BLE_Constants.isLinkSixNotifyEnabled;
+                    isLinkNotifyEnabled = BT_BLE_Constants.IS_LINK_SIX_NOTIFY_ENABLED;
                     break;
             }
         } catch (Exception e) {
             isLinkNotifyEnabled = false;
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " getBTBLELinkNotifyFlagByPosition Exception:>>" + e.getMessage());
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " getBTBLELinkNotifyFlagByPosition Exception:>>" + e.getMessage());
         }
         return isLinkNotifyEnabled;
     }
@@ -18380,8 +18395,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     break;
             }
         } catch (Exception e) {
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " SendBTBLECommandsByPosition Exception:>>" + e.getMessage());
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " SendBTBLECommandsByPosition Exception:>>" + e.getMessage());
         }
     }
 
@@ -18391,8 +18406,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             new CountDownTimer(10000, 2000) {
                 public void onTick(long millisUntilFinished) {
                     if (getBTBLELinkStatusStrByPosition(linkPosition).equalsIgnoreCase("Connected") && getBTBLELinkNotifyFlagByPosition(linkPosition)) {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Link is connected.");
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Link is connected.");
                         new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                             @Override
                             public void run() {
@@ -18401,16 +18416,16 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         }, 1000);
                         cancel();
                     } else {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Checking Connection Status...");
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Checking Connection Status...");
                     }
                 }
 
                 public void onFinish() {
 
                     if (getBTBLELinkStatusStrByPosition(linkPosition).equalsIgnoreCase("Connected")) {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Link is connected.");
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Link is connected.");
                         new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                             @Override
                             public void run() {
@@ -18418,13 +18433,13 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                             }
                         }, 1000);
                     } else {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Link not connected.");
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Link not connected.");
                         new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                             @Override
                             public void run() {
-                                if (AppConstants.GenerateLogs)
-                                    AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Upgrade process skipped.");
+                                if (AppConstants.GENERATE_LOGS)
+                                    AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Upgrade process skipped.");
                                 unbindBTBLEServicesAndUnregisterReceiver(linkPosition);
                                 ContinueToTheTransaction();
                             }
@@ -18433,10 +18448,10 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 }
             }.start();
         } catch (Exception e) {
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " CheckBTBLELinkStatusForUpgrade Exception:>>" + e.getMessage());
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Upgrade process skipped.");
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " CheckBTBLELinkStatusForUpgrade Exception:>>" + e.getMessage());
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Upgrade process skipped.");
             unbindBTBLEServicesAndUnregisterReceiver(linkPosition);
             ContinueToTheTransaction();
         }
@@ -18450,25 +18465,25 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             if (serverSSIDList != null && serverSSIDList.size() > 0) {
                 LinkName = serverSSIDList.get(linkPosition).get("WifiSSId");
             }
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Sending Info command (before upgrade) to Link: " + LinkName);
-            SendBTBLECommandsByPosition(linkPosition, BTConstants.info_cmd);
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Sending Info command (before upgrade) to Link: " + LinkName);
+            SendBTBLECommandsByPosition(linkPosition, BTConstants.INFO_COMMAND);
 
             new CountDownTimer(5000, 1000) {
                 public void onTick(long millisUntilFinished) {
                     long attempt = (5 - (millisUntilFinished / 1000));
                     if (attempt > 0) {
-                        if (BLE_Request.equalsIgnoreCase(BTConstants.info_cmd) && !BLE_Response.equalsIgnoreCase("")) {
+                        if (BLE_Request.equalsIgnoreCase(BTConstants.INFO_COMMAND) && !BLE_Response.equalsIgnoreCase("")) {
                             boolean proceedToUpgrade = true;
                             //Info command (before upgrade) success.
                             if (BLE_Response.contains("mac_address")) {
-                                if (AppConstants.GenerateLogs)
-                                    AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Checking Info command response (before upgrade). Response: true");
+                                if (AppConstants.GENERATE_LOGS)
+                                    AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Checking Info command response (before upgrade). Response: true");
                                 proceedToUpgrade = getVersionFromBLELinkResponse(BLE_Response.trim(), true, linkPosition, "Before");
                                 BLE_Response = "";
                             } else {
-                                if (AppConstants.GenerateLogs)
-                                    AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Checking Info command response (before upgrade). Response:>>" + BLE_Response.trim());
+                                if (AppConstants.GENERATE_LOGS)
+                                    AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Checking Info command response (before upgrade). Response:>>" + BLE_Response.trim());
                                 proceedToUpgrade = getVersionFromBLELinkResponse(BLE_Response.trim(), false, linkPosition, "Before");
                             }
 
@@ -18485,13 +18500,13 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                     }
                                 }, 1000);
                             } else {
-                                if (AppConstants.GenerateLogs)
-                                    AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " The version set for upgrade is already on the LINK.");
+                                if (AppConstants.GENERATE_LOGS)
+                                    AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " The version set for upgrade is already on the LINK.");
                                 new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                     @Override
                                     public void run() {
-                                        if (AppConstants.GenerateLogs)
-                                            AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Upgrade process skipped.");
+                                        if (AppConstants.GENERATE_LOGS)
+                                            AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Upgrade process skipped.");
                                         unbindBTBLEServicesAndUnregisterReceiver(linkPosition);
                                         ContinueToTheTransaction();
                                     }
@@ -18499,24 +18514,24 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                             }
                             cancel();
                         } else {
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Checking Info command response. Response: false");
+                            if (AppConstants.GENERATE_LOGS)
+                                AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Checking Info command response. Response: false");
                         }
                     }
                 }
 
                 public void onFinish() {
-                    if (BLE_Request.equalsIgnoreCase(BTConstants.info_cmd) && !BLE_Response.equalsIgnoreCase("")) {
+                    if (BLE_Request.equalsIgnoreCase(BTConstants.INFO_COMMAND) && !BLE_Response.equalsIgnoreCase("")) {
                         boolean proceedToUpgrade = true;
                         //Info command (before upgrade) success.
                         if (BLE_Response.contains("mac_address")) {
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Checking Info command response (before upgrade). Response: true");
+                            if (AppConstants.GENERATE_LOGS)
+                                AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Checking Info command response (before upgrade). Response: true");
                             proceedToUpgrade = getVersionFromBLELinkResponse(BLE_Response.trim(), true, linkPosition, "Before");
                             BLE_Response = "";
                         } else {
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Checking Info command response (before upgrade). Response:>>" + BLE_Response.trim());
+                            if (AppConstants.GENERATE_LOGS)
+                                AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Checking Info command response (before upgrade). Response:>>" + BLE_Response.trim());
                             proceedToUpgrade = getVersionFromBLELinkResponse(BLE_Response.trim(), false, linkPosition, "Before");
                         }
 
@@ -18533,26 +18548,26 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                 }
                             }, 1000);
                         } else {
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " The version set for upgrade is already on the LINK.");
+                            if (AppConstants.GENERATE_LOGS)
+                                AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " The version set for upgrade is already on the LINK.");
                             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
-                                    if (AppConstants.GenerateLogs)
-                                        AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Upgrade process skipped.");
+                                    if (AppConstants.GENERATE_LOGS)
+                                        AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Upgrade process skipped.");
                                     unbindBTBLEServicesAndUnregisterReceiver(linkPosition);
                                     ContinueToTheTransaction();
                                 }
                             }, 100);
                         }
                     } else {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Checking Info command response (before upgrade). Response: false.");
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Checking Info command response (before upgrade). Response: false.");
                         new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                             @Override
                             public void run() {
-                                if (AppConstants.GenerateLogs)
-                                    AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Upgrade process skipped.");
+                                if (AppConstants.GENERATE_LOGS)
+                                    AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Upgrade process skipped.");
                                 unbindBTBLEServicesAndUnregisterReceiver(linkPosition);
                                 ContinueToTheTransaction();
                             }
@@ -18563,8 +18578,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
         } catch (Exception e) {
             e.printStackTrace();
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " BLEInfoCommandBeforeUpgrade Exception:>>" + e.getMessage());
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " BLEInfoCommandBeforeUpgrade Exception:>>" + e.getMessage());
             unbindBTBLEServicesAndUnregisterReceiver(linkPosition);
             ContinueToTheTransaction();
         }
@@ -18596,11 +18611,11 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 }
             }
             if (!versionFromLink.isEmpty()) {
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " LINK Version (" + beforeOrAfter + " Upgrade) >> " + versionFromLink);
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " LINK Version (" + beforeOrAfter + " Upgrade) >> " + versionFromLink);
             }
             if (beforeOrAfter.equalsIgnoreCase("Before")) {
-                if (versionFromLink.trim().equalsIgnoreCase(AppConstants.UP_FirmwareVersion.trim())) {
+                if (versionFromLink.trim().equalsIgnoreCase(AppConstants.UP_FIRMWARE_VERSION.trim())) {
                     returnFlag = false;
                     storeUpgradeFSVersion(WelcomeActivity.this, linkPosition, versionFromLink, "BT");
                 }
@@ -18609,8 +18624,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             }
         } catch (Exception e) {
             e.printStackTrace();
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " getVersionFromBLELinkResponse (" + beforeOrAfter + " Upgrade) Exception:>>" + e.getMessage());
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " getVersionFromBLELinkResponse (" + beforeOrAfter + " Upgrade) Exception:>>" + e.getMessage());
         }
         return returnFlag;
     }
@@ -18623,24 +18638,24 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 LinkName = serverSSIDList.get(linkPosition).get("WifiSSId");
             }
 
-            String LocalPath = getApplicationContext().getExternalFilesDir(AppConstants.FOLDER_BIN) + "/" + AppConstants.UP_Upgrade_File_name;
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " BTBLELinkUpgradeFunctionality file name: " + AppConstants.UP_Upgrade_File_name);
+            String LocalPath = getApplicationContext().getExternalFilesDir(AppConstants.FOLDER_BIN) + "/" + AppConstants.UP_UPGRADE_FILE_NAME;
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " BTBLELinkUpgradeFunctionality file name: " + AppConstants.UP_UPGRADE_FILE_NAME);
 
             File file = new File(LocalPath);
             long file_size = file.length();
 
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Sending upgrade command to Link: " + LinkName);
-            SendBTBLECommandsByPosition(linkPosition, BTConstants.linkUpgrade_cmd + file_size);
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Sending upgrade command to Link: " + LinkName);
+            SendBTBLECommandsByPosition(linkPosition, BTConstants.UPGRADE_COMMAND + file_size);
 
             new CountDownTimer(10000, 2000) {
 
                 public void onTick(long millisUntilFinished) {
-                    if (BLE_Request.contains(BTConstants.linkUpgrade_cmd) && !BLE_Response.isEmpty()) {
+                    if (BLE_Request.contains(BTConstants.UPGRADE_COMMAND) && !BLE_Response.isEmpty()) {
                         //upgrade command success.
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Checking upgrade command response. Response:>>" + BLE_Response.trim());
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Checking upgrade command response. Response:>>" + BLE_Response.trim());
                         new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                             @Override
                             public void run() {
@@ -18653,11 +18668,11 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
                 public void onFinish() {
 
-                    if ((BLE_Request.contains(BTConstants.linkUpgrade_cmd) && !BLE_Response.isEmpty()) || (!GetNewVersionFlagForBLE(linkPosition))) {
+                    if ((BLE_Request.contains(BTConstants.UPGRADE_COMMAND) && !BLE_Response.isEmpty()) || (!GetNewVersionFlagForBLE(linkPosition))) {
                         //upgrade command success.
                         if (GetNewVersionFlagForBLE(linkPosition)) {
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Checking upgrade command response. Response:>>" + BLE_Response.trim());
+                            if (AppConstants.GENERATE_LOGS)
+                                AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Checking upgrade command response. Response:>>" + BLE_Response.trim());
                         }
                         new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                             @Override
@@ -18667,8 +18682,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         }, 1000);
                     } else {
                         // Terminating the transaction as per Bolong's comment in #2120 => DO NOT send any command after sending upgrade command.
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Checking upgrade command response. Response: false.");
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Checking upgrade command response. Response: false.");
                         if (pdUpgradeProcess != null) {
                             if (pdUpgradeProcess.isShowing()) {
                                 pdUpgradeProcess.setMessage(GetSpinnerMessage(getResources().getString(R.string.LINKConnectionLost) + "\n" + getResources().getString(R.string.TryAgainLater)));
@@ -18677,8 +18692,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                             @Override
                             public void run() {
-                                if (AppConstants.GenerateLogs)
-                                    AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Upgrade process skipped.");
+                                if (AppConstants.GENERATE_LOGS)
+                                    AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Upgrade process skipped.");
                                 unbindBTBLEServicesAndUnregisterReceiver(linkPosition);
                                 ContinueToTheTransaction();
                             }
@@ -18688,8 +18703,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             }.start();
 
         } catch (Exception e) {
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " BTBLEUpgradeCommand Exception:>>" + e.getMessage());
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " BTBLEUpgradeCommand Exception:>>" + e.getMessage());
             unbindBTBLEServicesAndUnregisterReceiver(linkPosition);
             ContinueToTheTransaction();
         }
@@ -18702,7 +18717,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
         @Override
         protected void onPreExecute() {
-            BT_BLE_Constants.BTBLEUpgradeProgressValue = "0";
+            BT_BLE_Constants.BT_BLE_UPGRADE_PROGRESS_VALUE = "0";
         }
 
         @Override
@@ -18720,7 +18735,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                             public void run() {
                                 if (pdUpgradeProcess != null) {
                                     if (pdUpgradeProcess.isShowing()) {
-                                        pdUpgradeProcess.setMessage(GetSpinnerMessage((getResources().getString(R.string.SoftwareUpdateInProgress) + "\n" + getResources().getString(R.string.PleaseWaitSeveralSeconds)) + " " + BT_BLE_Constants.BTBLEUpgradeProgressValue + " %"));
+                                        pdUpgradeProcess.setMessage(GetSpinnerMessage((getResources().getString(R.string.SoftwareUpdateInProgress) + "\n" + getResources().getString(R.string.PleaseWaitSeveralSeconds)) + " " + BT_BLE_Constants.BT_BLE_UPGRADE_PROGRESS_VALUE + " %"));
                                     }
                                 }
                             }
@@ -18762,22 +18777,22 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         break;
                 }
             } catch (Exception e) {
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " BTBLEUpgradeFileUploadFunctionality InBackground Exception: " + e.getMessage());
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " BTBLEUpgradeFileUploadFunctionality InBackground Exception: " + e.getMessage());
             }
             return ((upgradeResult) ? "Y" : "N");
         }
 
         @Override
         protected void onPostExecute(String resp) {
-            //if (AppConstants.GenerateLogs)
-            //    AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " BT-BLE LINK Status: " + getBTBLELinkStatusStrByPosition(linkPosition));
+            //if (AppConstants.GENERATE_LOGS)
+            //    AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " BT-BLE LINK Status: " + getBTBLELinkStatusStrByPosition(linkPosition));
 
             timerForUpgrade.cancel();
             if (resp.equalsIgnoreCase("Y")) {
                 // upgrade success
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Upgrade Completed. Connecting to the LINK: " + LinkName + " (" + GetBTLinksMacAddress(linkPosition) + ")");
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Upgrade Completed. Connecting to the LINK: " + LinkName + " (" + GetBTLinksMacAddress(linkPosition) + ")");
 
                 unbindBTBLEServicesAndUnregisterReceiver(linkPosition);
                 startBTBLEServicesAndRegisterReceiver(linkPosition);
@@ -18796,8 +18811,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         if (getBTBLELinkStatusStrByPosition(linkPosition).equalsIgnoreCase("Connected") && getBTBLELinkNotifyFlagByPosition(linkPosition)) {
                             counter = 0;
                             handler.removeCallbacksAndMessages(null);
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Link is connected.");
+                            if (AppConstants.GENERATE_LOGS)
+                                AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Link is connected.");
                             //ContinueToTheTransaction();
                             if (pdUpgradeProcess != null) {
                                 if (pdUpgradeProcess.isShowing()) {
@@ -18810,12 +18825,12 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                             if (counter < 3) {
                                 unbindBTBLEServicesAndUnregisterReceiver(linkPosition);
                                 startBTBLEServicesAndRegisterReceiver(linkPosition);
-                                if (AppConstants.GenerateLogs)
-                                    AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Waiting to reconnect... (Attempt: " + counter + ")");
+                                if (AppConstants.GENERATE_LOGS)
+                                    AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Waiting to reconnect... (Attempt: " + counter + ")");
                                 handler.postDelayed(this, delay);
                             } else {
-                                if (AppConstants.GenerateLogs)
-                                    AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Failed to connect to the link. (Status: " + getBTBLELinkStatusStrByPosition(linkPosition) + ")");
+                                if (AppConstants.GENERATE_LOGS)
+                                    AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Failed to connect to the link. (Status: " + getBTBLELinkStatusStrByPosition(linkPosition) + ")");
                                 if (pdUpgradeProcess != null) {
                                     if (pdUpgradeProcess.isShowing()) {
                                         pdUpgradeProcess.setMessage(GetSpinnerMessage(getResources().getString(R.string.LINKConnectionLost) + "\n" + getResources().getString(R.string.TryAgainLater)));
@@ -18835,8 +18850,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 }, delay);
 
             } else {
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " LINK connection lost.");
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " LINK connection lost.");
 
                 if (pdUpgradeProcess != null) {
                     if (pdUpgradeProcess.isShowing()) {
@@ -18861,24 +18876,24 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             if (serverSSIDList != null && serverSSIDList.size() > 0) {
                 LinkName = serverSSIDList.get(linkPosition).get("WifiSSId");
             }
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Sending Info command (after upgrade) to Link: " + LinkName);
-            SendBTBLECommandsByPosition(linkPosition, BTConstants.info_cmd);
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Sending Info command (after upgrade) to Link: " + LinkName);
+            SendBTBLECommandsByPosition(linkPosition, BTConstants.INFO_COMMAND);
 
             new CountDownTimer(5000, 1000) {
                 public void onTick(long millisUntilFinished) {
                     long attempt = (5 - (millisUntilFinished / 1000));
                     if (attempt > 0) {
-                        if (BLE_Request.equalsIgnoreCase(BTConstants.info_cmd) && !BLE_Response.equalsIgnoreCase("")) {
+                        if (BLE_Request.equalsIgnoreCase(BTConstants.INFO_COMMAND) && !BLE_Response.equalsIgnoreCase("")) {
                             //Info command (after upgrade) success.
                             if (BLE_Response.contains("mac_address")) {
-                                if (AppConstants.GenerateLogs)
-                                    AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Checking Info command response (after upgrade). Response: true");
+                                if (AppConstants.GENERATE_LOGS)
+                                    AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Checking Info command response (after upgrade). Response: true");
                                 getVersionFromBLELinkResponse(BLE_Response.trim(), true, linkPosition, "After");
                                 BLE_Response = "";
                             } else {
-                                if (AppConstants.GenerateLogs)
-                                    AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Checking Info command response (after upgrade). Response:>>" + BLE_Response.trim());
+                                if (AppConstants.GENERATE_LOGS)
+                                    AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Checking Info command response (after upgrade). Response:>>" + BLE_Response.trim());
                                 getVersionFromBLELinkResponse(BLE_Response.trim(), false, linkPosition, "After");
                             }
                             new Handler().postDelayed(new Runnable() {
@@ -18890,24 +18905,24 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                             }, 1000);
                             cancel();
                         } else {
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Checking Info command response (after upgrade). Response: false");
+                            if (AppConstants.GENERATE_LOGS)
+                                AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Checking Info command response (after upgrade). Response: false");
                         }
                     }
                 }
 
                 public void onFinish() {
 
-                    if (BLE_Request.equalsIgnoreCase(BTConstants.info_cmd) && !BLE_Response.equalsIgnoreCase("")) {
+                    if (BLE_Request.equalsIgnoreCase(BTConstants.INFO_COMMAND) && !BLE_Response.equalsIgnoreCase("")) {
                         //Info command (after upgrade) success.
                         if (BLE_Response.contains("mac_address")) {
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Checking Info command response (after upgrade). Response: true");
+                            if (AppConstants.GENERATE_LOGS)
+                                AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Checking Info command response (after upgrade). Response: true");
                             getVersionFromBLELinkResponse(BLE_Response.trim(), true, linkPosition, "After");
                             BLE_Response = "";
                         } else {
-                            if (AppConstants.GenerateLogs)
-                                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Checking Info command response (after upgrade). Response:>>" + BLE_Response.trim());
+                            if (AppConstants.GENERATE_LOGS)
+                                AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Checking Info command response (after upgrade). Response:>>" + BLE_Response.trim());
                             getVersionFromBLELinkResponse(BLE_Response.trim(), false, linkPosition, "After");
                         }
                         new Handler().postDelayed(new Runnable() {
@@ -18918,13 +18933,13 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                             }
                         }, 1000);
                     } else {
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Checking Info command response (after upgrade). Response: false.");
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Checking Info command response (after upgrade). Response: false.");
                         new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                             @Override
                             public void run() {
-                                if (AppConstants.GenerateLogs)
-                                    AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Upgrade process skipped.");
+                                if (AppConstants.GENERATE_LOGS)
+                                    AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Upgrade process skipped.");
                                 unbindBTBLEServicesAndUnregisterReceiver(linkPosition);
                                 ContinueToTheTransaction();
                             }
@@ -18934,8 +18949,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             }.start();
         } catch (Exception e) {
             e.printStackTrace();
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " BLEInfoCommandAfterUpgrade Exception:>>" + e.getMessage());
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " BLEInfoCommandAfterUpgrade Exception:>>" + e.getMessage());
             unbindBTBLEServicesAndUnregisterReceiver(linkPosition);
             ContinueToTheTransaction();
         }
@@ -18967,7 +18982,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 UserInfoEntity userInfoEntity = CommonUtils.getCustomerDetails(WelcomeActivity.this);
 
                 String parm1 = AppConstants.getIMEI(WelcomeActivity.this) + ":" + userInfoEntity.PersonEmail + ":" + "Other" + AppConstants.LANG_PARAM;
-                String parm2 = "Authenticate:I:" + Constants.Latitude + "," + Constants.Longitude;
+                String parm2 = "Authenticate:I:" + Constants.LATITUDE + "," + Constants.LONGITUDE;
 
                 String authString = "Basic " + AppConstants.convertStingToBase64(parm1);
 
@@ -18980,7 +18995,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
                 RequestBody body = RequestBody.create(TEXT, parm2);
                 Request request = new Request.Builder()
-                        .url(AppConstants.webURL)
+                        .url(AppConstants.WEB_URL)
                         .post(body)
                         .addHeader("Authorization", authString)
                         .build();
@@ -18988,8 +19003,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 Response response = client.newCall(request).execute();
                 resp = response.body().string();
             } catch (Exception e) {
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "GetSSIDDetailsForSingleHose InBackground --Exception " + e);
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(TAG + "GetSSIDDetailsForSingleHose InBackground --Exception " + e);
                 if (OfflineConstants.isOfflineAccess(WelcomeActivity.this)) {
                     AppConstants.NETWORK_STRENGTH = false;
                 }
@@ -19008,7 +19023,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 tvLatLng.setText(getResources().getString(R.string.HoseListIsNotAvailable));
 
                 System.out.println("GetSSIDDetailsForSingleHose...." + result);
-                AppConstants.isAllLinksAreBTLinks = true;
+                AppConstants.IS_ALL_LINKS_ARE_BT_LINKS = true;
 
                 if (result != null && !result.isEmpty()) {
                     if (cd.isConnectingToInternet()) {
@@ -19020,7 +19035,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     JSONObject jsonObject = new JSONObject(userData);
 
                     if (ResponseMessageSite.equalsIgnoreCase("success")) {
-                        AppConstants.temp_serverSSIDList = serverSSIDList;
+                        AppConstants.TEMP_SERVER_SSID_LIST = serverSSIDList;
                         serverSSIDList.clear();
                         IsGateHub = jsonObject.getString("IsGateHub");
                         IsStayOpenGate = jsonObject.getString("StayOpenGate");
@@ -19049,7 +19064,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         String ScreenNameForHours = jsonObject.getString("ScreenNameForHours");
                         String ScreenNameForDepartment = jsonObject.getString("ScreenNameForDepartment");
 
-                        SharedPreferences prefkb = WelcomeActivity.this.getSharedPreferences(AppConstants.sharedPref_KeyboardType, Context.MODE_PRIVATE);
+                        SharedPreferences prefkb = WelcomeActivity.this.getSharedPreferences(AppConstants.PREF_KEYBOARD_TYPE, Context.MODE_PRIVATE);
                         SharedPreferences.Editor editorkb = prefkb.edit();
                         editorkb.putString("ScreenNameForVehicle", ScreenNameForVehicle);
                         editorkb.putString("ScreenNameForPersonnel", ScreenNameForPersonnel);
@@ -19094,7 +19109,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                 String LinkCommunicationType = c.getString("HubLinkCommunication");
                                 String BTLinkCommType = c.getString("BTLinkCommType");
                                 if (!LinkCommunicationType.equalsIgnoreCase("BT")) {
-                                    AppConstants.isAllLinksAreBTLinks = false;
+                                    AppConstants.IS_ALL_LINKS_ARE_BT_LINKS = false;
                                 }
                                 String IsTankEmpty = c.getString("IsTankEmpty");
                                 String IsLinkFlagged = c.getString("IsLinkFlagged");
@@ -19131,11 +19146,11 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                 editor1.putString("BLEFileLocation", BLEFileLocation);
                                 editor1.commit();
 
-                                AppConstants.UP_FilePath = FilePath;
+                                AppConstants.UP_FILE_PATH = FilePath;
                                 AppConstants.BT_READER_NAME = BluetoothCardReaderHF;
 
                                 //Current Fs wifi password
-                                Constants.CurrFsPass = Password;
+                                Constants.CURRENT_FS_PASSWORD = Password;
 
                                 //For schedule reboot
                                 String dayForReboot = jsonObject.getString("RebootDay");
@@ -19184,21 +19199,21 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                 if (ResponceMessage.equalsIgnoreCase("success")) {
                                     if (isNotNULL(SiteId) && isNotNULL(HoseId) && isNotNULL(WifiSSId)) {
                                         serverSSIDList.add(map);
-                                        AppConstants.DetailsServerSSIDList = serverSSIDList;
+                                        AppConstants.DETAILS_SERVER_SSID_LIST = serverSSIDList;
                                         BackgroundServiceKeepDataTransferAlive.SSIDList = serverSSIDList;
                                         BackgroundServiceKeepAliveBT.SSIDList = serverSSIDList;
                                     }
                                 } else {
-                                    if (AppConstants.GenerateLogs)
-                                        AppConstants.WriteinFile(TAG + "GetSSIDDetailsForSingleHose ResponseText: " + ResponceText);
+                                    if (AppConstants.GENERATE_LOGS)
+                                        AppConstants.writeInFile(TAG + "GetSSIDDetailsForSingleHose ResponseText: " + ResponceText);
                                 }
                             }
-                            AppConstants.temp_serverSSIDList = serverSSIDList;
+                            AppConstants.TEMP_SERVER_SSID_LIST = serverSSIDList;
                         }
                     } else if (ResponseMessageSite.equalsIgnoreCase("fail")) {
                         String ResponseTextSite = jsonObjectSite.getString(AppConstants.RES_TEXT);
-                        if (AppConstants.GenerateLogs)
-                            AppConstants.WriteinFile(TAG + "GetSSIDDetailsForSingleHose SSIDData response fail. Error: " + ResponseTextSite);
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(TAG + "GetSSIDDetailsForSingleHose SSIDData response fail. Error: " + ResponseTextSite);
                     }
                 } else {
                     if (OfflineConstants.isOfflineAccess(WelcomeActivity.this)) {
@@ -19213,12 +19228,12 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     }
                 }
                 if (serverSSIDList.size() == 0) {
-                    serverSSIDList = AppConstants.temp_serverSSIDList;
+                    serverSSIDList = AppConstants.TEMP_SERVER_SSID_LIST;
                 }
                 ProceedWithSingleHoseSelection();
                 CommonUtils.LogMessage(TAG, " GetSSIDDetailsForSingleHose :" + result, e);
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "GetSSIDDetailsForSingleHose onPostExecute --Exception: " + e.getMessage());
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(TAG + "GetSSIDDetailsForSingleHose onPostExecute --Exception: " + e.getMessage());
                 if (OfflineConstants.isOfflineAccess(WelcomeActivity.this)) {
                     AppConstants.NETWORK_STRENGTH = false;
                 }
@@ -19239,9 +19254,9 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 txtnTypeForLog = AppConstants.LOG_TXTN_HTTP;
             }
 
-            if (AppConstants.isTestTransaction) {
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(txtnTypeForLog + "-" + TAG + "~~~~~TEST TRANSACTION~~~~~");
+            if (AppConstants.IS_TEST_TRANSACTION) {
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(txtnTypeForLog + "-" + TAG + "~~~~~TEST TRANSACTION~~~~~");
             }
             String BTLinkCommTypeForLog = "";
             if (LinkCommunicationType.equalsIgnoreCase("BT")) {
@@ -19249,13 +19264,13 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     BTLinkCommTypeForLog = " (" + LinkCommunicationType + "-" + BTLinkCommType + ")";
                 }
             }
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(txtnTypeForLog + "-" + TAG + "Customer select hose: " + selSSID + BTLinkCommTypeForLog);
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(txtnTypeForLog + "-" + TAG + "Customer select hose: " + selSSID + BTLinkCommTypeForLog);
 
             GoButtonFunctionalityForSingleLink(LinkCommunicationType);
         } catch (Exception ex) {
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "ProceedWithSingleHoseSelection Exception " + ex.getMessage());
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + "ProceedWithSingleHoseSelection Exception " + ex.getMessage());
         }
     }
 

@@ -54,7 +54,7 @@ public class BackgroundServiceDownloadFirmware extends BackgroundService {
         com.squareup.okhttp.Request request = new com.squareup.okhttp.Request.Builder()
                 .post(body)
                 .addHeader("Authorization", authString)
-                .url(AppConstants.webURL)
+                .url(AppConstants.WEB_URL)
                 .build();
 
         httpClient.newCall(request).enqueue(new Callback() {
@@ -62,8 +62,8 @@ public class BackgroundServiceDownloadFirmware extends BackgroundService {
             @Override
             public void onFailure(com.squareup.okhttp.Request request, IOException e) {
                 Log.e(TAG, "error in getting response using async okhttp call");
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "  error in getting response using async okhttp call");
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(TAG + "  error in getting response using async okhttp call");
             }
 
             @SuppressLint("LongLogTag")
@@ -71,7 +71,7 @@ public class BackgroundServiceDownloadFirmware extends BackgroundService {
             public void onResponse(com.squareup.okhttp.Response response) throws IOException {
 
                 ResponseBody responseBody = response.body();
-                //if (AppConstants.GenerateLogs)AppConstants.WriteinFile(TAG + "  FsvmDataAsyncCall "+response);
+                //if (AppConstants.GENERATE_LOGS)AppConstants.writeInFile(TAG + "  FsvmDataAsyncCall "+response);
                 if (!response.isSuccessful()) {
                     throw new IOException("Error response " + response);
                 } else {
@@ -222,13 +222,13 @@ public class BackgroundServiceDownloadFirmware extends BackgroundService {
                 jsonData = params[0];
                 authString = params[1];
 
-                response = serverHandler.PostTextData(ctx, AppConstants.webURL, jsonData, authString);
+                response = serverHandler.PostTextData(ctx, AppConstants.WEB_URL, jsonData, authString);
 
 
             } catch (Exception e) {
                 Log.i(TAG, " SaveTLDDataToServer doInBackground " + e);
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + "  SaveTLDDataToServer doInBackground " + e);
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(TAG + "  SaveTLDDataToServer doInBackground " + e);
             }
 
             return response;
@@ -239,8 +239,8 @@ public class BackgroundServiceDownloadFirmware extends BackgroundService {
         protected void onPostExecute(String resp) {
 
             Log.i(TAG, " SaveTLDDataToServer Response: " + resp);
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " SaveTLDDataToServer Response: " + resp);
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + " SaveTLDDataToServer Response: " + resp);
 
         }
     }
@@ -316,11 +316,11 @@ public class BackgroundServiceDownloadFirmware extends BackgroundService {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                if (AppConstants.GenerateLogs) AppConstants.WriteinFile(TAG + "upgrade bin file downloaded:"+f_url[1]);
+                if (AppConstants.GENERATE_LOGS) AppConstants.writeInFile(TAG + "upgrade bin file downloaded:"+f_url[1]);
 
             } catch (Exception e) {
                 Log.e("Error in Firmware file download: ", e.getMessage());
-                if (AppConstants.GenerateLogs) AppConstants.WriteinFile(TAG + " Error in Firmware file download: "+e.getMessage());
+                if (AppConstants.GENERATE_LOGS) AppConstants.writeInFile(TAG + " Error in Firmware file download: "+e.getMessage());
 
             }
 

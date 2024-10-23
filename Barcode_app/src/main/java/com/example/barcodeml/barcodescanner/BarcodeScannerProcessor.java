@@ -102,7 +102,7 @@ public class BarcodeScannerProcessor extends VisionProcessorBase<List<Barcode>> 
 
                     CurrBarcode = barcode.getRawValue();
 
-                    WriteinFile("barcode display value: " + CurrBarcode);
+                    writeInFile("barcode display value: " + CurrBarcode);
 
 
                     if (PrevBarcode.equalsIgnoreCase(CurrBarcode)) {
@@ -172,7 +172,7 @@ public class BarcodeScannerProcessor extends VisionProcessorBase<List<Barcode>> 
     }
 
 
-    public static void WriteinFile(String str) {
+    public static void writeInFile(String str) {
         try {
             System.out.println(str);
 

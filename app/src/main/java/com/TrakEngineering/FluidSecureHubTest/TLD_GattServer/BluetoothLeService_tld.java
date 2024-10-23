@@ -48,16 +48,16 @@ public class BluetoothLeService_tld extends Service {
     public int cnt123 = 0;
 
 
-//    private String UUID_service = "0000180a-0000-1000-8000-00805f9b34fb"; //ACS_UUID_char
-//    private String UUID_char = "00002a23-0000-1000-8000-00805f9b34fb"; //ACS_UUID_char
+//    private String UUID_SERVICE = "0000180a-0000-1000-8000-00805f9b34fb"; //ACS_UUID_char
+//    private String UUID_CHAR = "00002a23-0000-1000-8000-00805f9b34fb"; //ACS_UUID_char
 
     //Used to change the target link
-    private String UUID_service="000000ee-0000-1000-8000-00805f9b34fb"; //first service UUID
-    private String UUID_char="0000ee01-0000-1000-8000-00805f9b34fb"; //first characteristic UUID
+    private String UUID_SERVICE="000000ee-0000-1000-8000-00805f9b34fb"; //first service UUID
+    private String UUID_CHAR="0000ee01-0000-1000-8000-00805f9b34fb"; //first characteristic UUID
 
     //Used to manage over the air updates.
-//    private String UUID_service="000000ff-0000-1000-8000-00805f9b34fb"; //Second service UUID
-//    private String UUID_char="0000ff01-0000-1000-8000-00805f9b34fb"; //Second characteristic UUID
+//    private String UUID_SERVICE="000000ff-0000-1000-8000-00805f9b34fb"; //Second service UUID
+//    private String UUID_CHAR="0000ff01-0000-1000-8000-00805f9b34fb"; //Second characteristic UUID
 
     private BluetoothLeService_tld mBluetoothLeServicePin;
     private BluetoothManager mBluetoothManager;
@@ -316,33 +316,33 @@ public class BluetoothLeService_tld extends Service {
                 return;
             }
             /*check if the service is available on the device*/
-            BluetoothGattService mCustomService = mBluetoothGatt.getService(UUID.fromString(UUID_service));
+            BluetoothGattService mCustomService = mBluetoothGatt.getService(UUID.fromString(UUID_SERVICE));
             if (mCustomService == null) {
                 Log.w(TAG, "Custom BLE Service not found");
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile("BluetoothLeService_tld ~~~~~~~~~" + "readCustomCharacteristic Custom BLE Service not found");
-                //  Toast.makeText(getApplicationContext(),"Not found: "+UUID_char, Toast.LENGTH_LONG).show();
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile("BluetoothLeService_tld ~~~~~~~~~" + "readCustomCharacteristic Custom BLE Service not found");
+                //  Toast.makeText(getApplicationContext(),"Not found: "+UUID_CHAR, Toast.LENGTH_LONG).show();
                 return;
             }
             /*get the read characteristic from the service*/
-            BluetoothGattCharacteristic mReadCharacteristic = mCustomService.getCharacteristic(UUID.fromString(UUID_char));
+            BluetoothGattCharacteristic mReadCharacteristic = mCustomService.getCharacteristic(UUID.fromString(UUID_CHAR));
             if (mBluetoothGatt.readCharacteristic(mReadCharacteristic) == false) {
                 Log.w(TAG, "Failed to read characteristic");
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile("BluetoothLeService_tld ~~~~~~~~~" + "readCustomCharacteristic Failed to read characteristic");
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile("BluetoothLeService_tld ~~~~~~~~~" + "readCustomCharacteristic Failed to read characteristic");
                 // Toast.makeText(getApplicationContext(),"Failed to Read Characteristics: ", Toast.LENGTH_LONG).show();
 
 
             } else {
                 Log.w(TAG, "Read Characteristics successfully");
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile("BluetoothLeService_tld ~~~~~~~~~" + "Read Characteristics successfully");
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile("BluetoothLeService_tld ~~~~~~~~~" + "Read Characteristics successfully");
                 //  Toast.makeText(getApplicationContext(),"Read Characteristics successfully!", Toast.LENGTH_LONG).show();
             }
 
         } catch (Exception e) {
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile("BluetoothLeService_tld ~~~~~~~~~" + "Read Characteristics Ex-" + e.getMessage());
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile("BluetoothLeService_tld ~~~~~~~~~" + "Read Characteristics Ex-" + e.getMessage());
 
         }
     }
@@ -353,16 +353,16 @@ public class BluetoothLeService_tld extends Service {
             return;
         }
         /*check if the service is available on the device*/
-        BluetoothGattService mCustomService = mBluetoothGatt.getService(UUID.fromString(UUID_service));//"00001110-0000-1000-8000-00805f9b34fb"
+        BluetoothGattService mCustomService = mBluetoothGatt.getService(UUID.fromString(UUID_SERVICE));//"00001110-0000-1000-8000-00805f9b34fb"
         if (mCustomService == null) {
-            Toast.makeText(getApplicationContext(), "Not found: " + UUID_char, Toast.LENGTH_LONG).show();
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile("BluetoothLeService_tld ~~~~~~~~~" + "writeCustomCharacteristic Char Not found:" + UUID_char);
+            Toast.makeText(getApplicationContext(), "Not found: " + UUID_CHAR, Toast.LENGTH_LONG).show();
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile("BluetoothLeService_tld ~~~~~~~~~" + "writeCustomCharacteristic Char Not found:" + UUID_CHAR);
             return;
         }
 
 
-        BluetoothGattCharacteristic mWriteCharacteristic = mCustomService.getCharacteristic(UUID.fromString(UUID_char));
+        BluetoothGattCharacteristic mWriteCharacteristic = mCustomService.getCharacteristic(UUID.fromString(UUID_CHAR));
         mWriteCharacteristic.setValue(value, BluetoothGattCharacteristic.FORMAT_UINT8, 0);
 
         try {
@@ -393,10 +393,10 @@ public class BluetoothLeService_tld extends Service {
 
             }
 
-            mWriteCharacteristic = mCustomService.getCharacteristic(UUID.fromString(UUID_char));
+            mWriteCharacteristic = mCustomService.getCharacteristic(UUID.fromString(UUID_CHAR));
             mWriteCharacteristic.setValue(data);
 
-            //mWriteCharacteristic = mCustomService.getCharacteristic(UUID.fromString(UUID_char));
+            //mWriteCharacteristic = mCustomService.getCharacteristic(UUID.fromString(UUID_CHAR));
             //mWriteCharacteristic.setValue(bleString);
 
 
@@ -406,12 +406,12 @@ public class BluetoothLeService_tld extends Service {
 
         if (mBluetoothGatt.writeCharacteristic(mWriteCharacteristic)) {
             // Toast.makeText(getApplicationContext(),"Write Characteristics successfully!", Toast.LENGTH_LONG).show();
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile("BluetoothLeService_tld ~~~~~~~~~" + "Write Characteristics successfully!");
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile("BluetoothLeService_tld ~~~~~~~~~" + "Write Characteristics successfully!");
         } else {
             // Toast.makeText(getApplicationContext(),"Failed to write Characteristics", Toast.LENGTH_LONG).show();
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile("BluetoothLeService_tld ~~~~~~~~~" + "Failed to write Characteristics");
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile("BluetoothLeService_tld ~~~~~~~~~" + "Failed to write Characteristics");
         }
     }
 

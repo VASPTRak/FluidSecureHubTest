@@ -215,7 +215,7 @@ public class SplashActivity extends AppCompatActivity { // implements GoogleApiC
                 if (checkPermissionTask.isValue) {
 
                     Log.i(TAG, "SplashActivity executeTask OnCreate");
-                    AppConstants.WriteinFile(TAG + "SplashActivity executeTask OnCreate");
+                    AppConstants.writeInFile(TAG + "SplashActivity executeTask OnCreate");
 
                     executeTask();
                 }
@@ -246,15 +246,15 @@ public class SplashActivity extends AppCompatActivity { // implements GoogleApiC
             getBaseContext().getResources().updateConfiguration(conf, dm);
 
         } catch (Exception e) {
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + "Exception occurred in StoreLanguageSettings: " + e.getMessage());
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + "Exception occurred in StoreLanguageSettings: " + e.getMessage());
         }
     }
 
     /*public void turnGPSOn() {
 
         try {
-            AppConstants.WriteinFile(TAG + "SplashActivity In turnGPSOn");
+            AppConstants.writeInFile(TAG + "SplashActivity In turnGPSOn");
             @SuppressLint("RestrictedApi") LocationRequest mLocationRequest = new LocationRequest();
             //mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 
@@ -383,7 +383,7 @@ public class SplashActivity extends AppCompatActivity { // implements GoogleApiC
                             if (checkPermissionTask.isValue) {
 
                                 Log.i(TAG, "SplashActivity executeTask L1");
-                                AppConstants.WriteinFile(TAG + "SplashActivity executeTask L1");
+                                AppConstants.writeInFile(TAG + "SplashActivity executeTask L1");
 
                                 executeTask();
                             }
@@ -406,7 +406,7 @@ public class SplashActivity extends AppCompatActivity { // implements GoogleApiC
                             if (checkPermissionTask.isValue) {
 
                                 Log.i(TAG, "SplashActivity executeTask L2");
-                                AppConstants.WriteinFile(TAG + "SplashActivity executeTask L2");
+                                AppConstants.writeInFile(TAG + "SplashActivity executeTask L2");
 
                                 executeTask();
                             }
@@ -439,14 +439,14 @@ public class SplashActivity extends AppCompatActivity { // implements GoogleApiC
                     longitude = 0;
                 } else {
                     latitude = mLastLocation.getLatitude();
-                    Constants.Latitude = mLastLocation.getLatitude();
+                    Constants.LATITUDE = mLastLocation.getLatitude();
                     longitude = mLastLocation.getLongitude();
-                    Constants.Longitude = mLastLocation.getLongitude();
+                    Constants.LONGITUDE = mLastLocation.getLongitude();
                 }
 
            *//*
             if (latitude == 0 && longitude == 0) {
-                AppConstants.AlertDialogFinish(WelcomeActivity.this, "Unable to get current location.\nPlease try again later!");
+                AppConstants.alertDialogFinish(WelcomeActivity.this, "Unable to get current location.\nPlease try again later!");
             }
             *//*
             }
@@ -604,7 +604,7 @@ public class SplashActivity extends AppCompatActivity { // implements GoogleApiC
                     String IsNonValidatePerson = jsonObject.getString("IsNonValidatePerson");
                     String CompanyName = jsonObject.getString("CompanyName");
 
-                    AppConstants.AccessCode = AccessCode;
+                    AppConstants.ACCESS_CODE = AccessCode;
                     String IsLoginRequire = jsonObject.getString("IsLoginRequire");
                     String IsDepartmentRequire = jsonObject.getString("IsDepartmentRequireForHUB"); // IsDepartmentRequire
                     String IsPersonnelPINRequire = jsonObject.getString("IsPersonnelPINRequire");
@@ -664,7 +664,7 @@ public class SplashActivity extends AppCompatActivity { // implements GoogleApiC
                         }
                     }
 
-                    SharedPreferences prefkb = SplashActivity.this.getSharedPreferences(AppConstants.sharedPref_KeyboardType, Context.MODE_PRIVATE);
+                    SharedPreferences prefkb = SplashActivity.this.getSharedPreferences(AppConstants.PREF_KEYBOARD_TYPE, Context.MODE_PRIVATE);
                     SharedPreferences.Editor editorkb = prefkb.edit();
                     editorkb.putString("KeyboardTypeVehicle", KeyboardTypeVehicle);
                     editorkb.putString("KeyboardTypePerson", KeyboardTypePerson);
@@ -688,7 +688,7 @@ public class SplashActivity extends AppCompatActivity { // implements GoogleApiC
                     String QRCodeReaderForBarcode = jsonObject.getString("QRCodeReaderForBarcode");//"30:AE:A4:24:D1:4E";
                     String QRCodeBluetoothMacAddressForBarcode = jsonObject.getString("QRCodeBluetoothMacAddressForBarcode");//"30:AE:A4:24:D1:4E";
                     boolean ColloectServerLog = jsonObject.getBoolean("ColloectServerLog");
-                    AppConstants.ServerCallLogs = ColloectServerLog;
+                    AppConstants.SERVER_CALL_LOGS = ColloectServerLog;
                     boolean ACS_Reader;
 
                     if (BluetoothCardReader != null && BluetoothCardReader.startsWith("ACR") && (DisableFOBReadingForPin.equalsIgnoreCase("N") || DisableFOBReadingForVehicle.equalsIgnoreCase("N"))) {
@@ -702,7 +702,7 @@ public class SplashActivity extends AppCompatActivity { // implements GoogleApiC
                     String QueueNameForTLD = jsonObject.getString("QueueNameForTLD");
                     String QueueConnectionStringValue = jsonObject.getString("QueueConnectionStringValue");
 
-                    SharedPreferences pref = SplashActivity.this.getSharedPreferences(AppConstants.sharedPref_AzureQueueDetails, Context.MODE_PRIVATE);
+                    SharedPreferences pref = SplashActivity.this.getSharedPreferences(AppConstants.PREF_AZURE_QUEUE_DETAILS, Context.MODE_PRIVATE);
                     SharedPreferences.Editor editor = pref.edit();
                     editor.putString("QueueName", QueueName);
                     editor.putString("QueueNameForTLD", QueueNameForTLD);
@@ -730,7 +730,7 @@ public class SplashActivity extends AppCompatActivity { // implements GoogleApiC
                     CommonUtils.SaveHotSpotDetailsInPref(SplashActivity.this, HotSpotSSID, HotSpotPassword);
 
                     // Save Subscription Key for Azure Map
-                    SharedPreferences prefMap = SplashActivity.this.getSharedPreferences(AppConstants.sharedPref_AzureMapDetails, Context.MODE_PRIVATE);
+                    SharedPreferences prefMap = SplashActivity.this.getSharedPreferences(AppConstants.PREF_AZURE_MAP_DETAILS, Context.MODE_PRIVATE);
                     SharedPreferences.Editor edMap = prefMap.edit();
                     edMap.putString("SubscriptionKey", "FJ29LaayVFiy20Hp29hEe5mG7F6QTbhfyV6wuWwG7Sg"); // Change here when this key is received from server
                     edMap.commit();
@@ -744,8 +744,8 @@ public class SplashActivity extends AppCompatActivity { // implements GoogleApiC
                                 AllowAccessDeviceORManualEntryForVehicle, CompanyName);
 
                         if (IsLoginRequire.trim().equalsIgnoreCase("True")) {
-                            AppConstants.Login_Email = userEmail;
-                            AppConstants.Login_IMEI = IMEI_UDID;
+                            AppConstants.LOGIN_EMAIL = userEmail;
+                            AppConstants.LOGIN_IMEI = IMEI_UDID;
                             startActivity(new Intent(SplashActivity.this, Login.class));
                             finish();
                         } else {
@@ -774,7 +774,7 @@ public class SplashActivity extends AppCompatActivity { // implements GoogleApiC
                             }
                         }
                     } else {
-                        AppConstants.WriteinFile( "CheckApproved: " + getResources().getString(R.string.RegistrationNotApproved));
+                        AppConstants.writeInFile( "CheckApproved: " + getResources().getString(R.string.RegistrationNotApproved));
                         CommonUtils.showMessageDilaog(SplashActivity.this, "Error Message", getResources().getString(R.string.RegistrationNotApproved));
                     }
                 } catch (Exception ex) {
@@ -790,25 +790,25 @@ public class SplashActivity extends AppCompatActivity { // implements GoogleApiC
                     finish();
 
                 } else if (ResponceText.equalsIgnoreCase("notapproved")) {
-                    AppConstants.WriteinFile( "CheckApproved: " + getResources().getString(R.string.regiNotApproved));
+                    AppConstants.writeInFile( "CheckApproved: " + getResources().getString(R.string.regiNotApproved));
                     AlertDialogBox(SplashActivity.this, getResources().getString(R.string.regiNotApproved));
 
                 } else if (ResponceText.equalsIgnoreCase("IMEI not exists")) {
-                    AppConstants.WriteinFile( "CheckApproved: " + ResponceText);
-                    AppConstants.AlertDialogFinish(SplashActivity.this, ResponceText);
+                    AppConstants.writeInFile( "CheckApproved: " + ResponceText);
+                    AppConstants.alertDialogFinish(SplashActivity.this, ResponceText);
 
                 } else if (ResponceText.equalsIgnoreCase("No data found")) {
-                    AppConstants.WriteinFile( "CheckApproved: " + ResponceText);
-                    AppConstants.AlertDialogFinish(SplashActivity.this, ResponceText);
+                    AppConstants.writeInFile( "CheckApproved: " + ResponceText);
+                    AppConstants.alertDialogFinish(SplashActivity.this, ResponceText);
 
                 } else {
-                    AppConstants.WriteinFile( "CheckApproved: " + ResponceText);
-                    AppConstants.AlertDialogFinish(SplashActivity.this, ResponceText);
+                    AppConstants.writeInFile( "CheckApproved: " + ResponceText);
+                    AppConstants.alertDialogFinish(SplashActivity.this, ResponceText);
                 }
 
             } else {
-                AppConstants.WriteinFile( "CheckApproved: No Internet");
-                AppConstants.AlertDialogFinishWithTitle(SplashActivity.this, "", "No Internet");
+                AppConstants.writeInFile( "CheckApproved: No Internet");
+                AppConstants.alertDialogFinishWithTitle(SplashActivity.this, "", "No Internet");
             }
 
 
@@ -833,7 +833,7 @@ public class SplashActivity extends AppCompatActivity { // implements GoogleApiC
                 String imieNumber = AppConstants.getIMEI(SplashActivity.this);
                 RequestBody body = RequestBody.create(TEXT, "Authenticate:A");
                 Request request = new Request.Builder()
-                        .url(AppConstants.webURL)
+                        .url(AppConstants.WEB_URL)
                         .post(body)
                         .addHeader("Authorization", "Basic " + AppConstants.convertStingToBase64(param[0] + ":abc:Other" + AppConstants.LANG_PARAM))
                         .build();
@@ -842,7 +842,7 @@ public class SplashActivity extends AppCompatActivity { // implements GoogleApiC
                 resp = response.body().string();
             } catch (Exception e) {
                 e.printStackTrace();
-                AppConstants.WriteinFile(TAG + "Exception in CheckApproved: " + e.getMessage());
+                AppConstants.writeInFile(TAG + "Exception in CheckApproved: " + e.getMessage());
             }
             return resp;
         }
@@ -854,10 +854,10 @@ public class SplashActivity extends AppCompatActivity { // implements GoogleApiC
             } else {
                 if (OfflineConstants.isOfflineAccess(SplashActivity.this)) {
                     AppConstants.NETWORK_STRENGTH = false;
-                    AppConstants.WriteinFile(TAG + "Server response null ~Switching to offline mode!!");
+                    AppConstants.writeInFile(TAG + "Server response null ~Switching to offline mode!!");
                     ContinueWithOfflineMode();
                 } else {
-                    AppConstants.WriteinFile(TAG + getResources().getString(R.string.server_connection_problem) + "; response: " + response);
+                    AppConstants.writeInFile(TAG + getResources().getString(R.string.server_connection_problem) + "; response: " + response);
                     RetryAlertDialogButtonClicked(getString(R.string.server_connection_problem));
                 }
             }
@@ -1092,15 +1092,15 @@ public class SplashActivity extends AppCompatActivity { // implements GoogleApiC
     }
 
 
-    public static void setUrlFromSharedPref(Context ctx) {
+    /*public static void setUrlFromSharedPref(Context ctx) {
         SharedPreferences sharedPref = ctx.getSharedPreferences("storeAppTxtURL", Context.MODE_PRIVATE);
         String appLink = sharedPref.getString("appLink", "https://www.fluidsecure.net/");
         if (appLink.trim().contains("http")) {
-            AppConstants.webIP = "https://www.fluidsecure.net/";//appLink.trim();
-            AppConstants.webURL = AppConstants.webIP + "HandlerTrak.ashx";
-            AppConstants.LoginURL = AppConstants.webIP + "LoginHandler.ashx";
+            AppConstants.SERVER_BASE_URL = "https://www.fluidsecure.net/";//appLink.trim();
+            AppConstants.WEB_URL = AppConstants.SERVER_BASE_URL + "HandlerTrak.ashx";
+            AppConstants.LOGIN_URL = AppConstants.SERVER_BASE_URL + "LoginHandler.ashx";
         }
-    }
+    }*/
 
     public void otherServerCall() {
         try {
@@ -1161,7 +1161,7 @@ public class SplashActivity extends AppCompatActivity { // implements GoogleApiC
             bufferWritter.close();
 
         } catch (Exception e) {
-            AppConstants.WriteinFile("writeIMEI_UUIDInFile- " + e.getMessage());
+            AppConstants.writeInFile("writeIMEI_UUIDInFile- " + e.getMessage());
         }
     }
 
@@ -1205,7 +1205,7 @@ public class SplashActivity extends AppCompatActivity { // implements GoogleApiC
             file_content = text.toString();
 
         } catch (Exception e) {
-            AppConstants.WriteinFile( "readIMEIMobileNumFile- " + e.getMessage());
+            AppConstants.writeInFile( "readIMEIMobileNumFile- " + e.getMessage());
         }
 
         return file_content;

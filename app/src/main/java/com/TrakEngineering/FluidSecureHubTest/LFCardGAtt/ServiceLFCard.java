@@ -58,7 +58,7 @@ public class ServiceLFCard extends Service {
     public IBinder onBind(Intent intent) {
         // TODO: Return the communication channel to the service.
 
-        AppConstants.RebootHF_reader = false;
+        AppConstants.REBOOT_HF_READER = false;
         if (mBluetoothLeService != null) {
             final boolean result = mBluetoothLeService.connect(mDeviceAddress);
             Log.d(TAG, "Connect request result=" + result);
@@ -106,7 +106,7 @@ public class ServiceLFCard extends Service {
             final String action = intent.getAction();
             if (LeServiceLFCard.ACTION_GATT_CONNECTED.equals(action)) {
                 mConnected = true;
-                Constants.LF_ReaderStatus = "LF Connected";
+                Constants.LF_READER_STATUS = "LF Connected";
                 System.out.println("ACTION_GATT_LF_CONNECTED");
                 timerLF = new Timer();
 
@@ -115,7 +115,7 @@ public class ServiceLFCard extends Service {
                     public void run() {
 
                         //Execute below code only if LF reader is  connected
-                        if (Constants.LF_ReaderStatus.equalsIgnoreCase("LF Connected") || Constants.LF_ReaderStatus.equalsIgnoreCase("LF Discovered")) {
+                        if (Constants.LF_READER_STATUS.equalsIgnoreCase("LF Connected") || Constants.LF_READER_STATUS.equalsIgnoreCase("LF Discovered")) {
                             //BLE Upgrade
                             if ((IsLFUpdate.trim().equalsIgnoreCase("Y")) && bleVersionCallCount == 0) {
                                 try {
@@ -149,19 +149,19 @@ public class ServiceLFCard extends Service {
 
             } else if (LeServiceLFCard.ACTION_GATT_DISCONNECTED.equals(action)) {
                 mConnected = false;
-                Constants.LF_ReaderStatus = "LF Disconnected";
+                Constants.LF_READER_STATUS = "LF Disconnected";
                 System.out.println("ACTION_GATT_LF_DISCONNECTED");
             } else if (LeServiceLFCard.ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
-                Constants.LF_ReaderStatus = "LF Discovered";
+                Constants.LF_READER_STATUS = "LF Discovered";
                 System.out.println("ACTION_GATT_LF_DISCOVERED");
 
             } else if (LeServiceLFCard.ACTION_DATA_AVAILABLE.equals(action)) {
 
                 System.out.println("ACTION_GATT_LF_DATA_AVAILABLE");
-                Constants.LF_ReaderStatus = "LF Connected";
+                Constants.LF_READER_STATUS = "LF Connected";
                 displayData(intent.getStringExtra(LeServiceLFCard.EXTRA_DATA));
             } else {
-                Constants.LF_ReaderStatus = "LF Disconnected";
+                Constants.LF_READER_STATUS = "LF Disconnected";
             }
         }
     };
@@ -255,7 +255,7 @@ public class ServiceLFCard extends Service {
                 success = folder.mkdirs();
             }
             if (!success) {
-                AppConstants.AlertDialogBox(ServiceLFCard.this, "Please check File is present in FSCardReader_LF Folder in Internal(Device) Storage");
+                AppConstants.alertDialogBox(ServiceLFCard.this, "Please check File is present in FSCardReader_LF Folder in Internal(Device) Storage");
             }
 
             if (BLEFileLocation != null) {
@@ -264,16 +264,16 @@ public class ServiceLFCard extends Service {
                 File f = new File(CheckVersionFileLocation);
                 if (f.exists()) {
                     Log.e(TAG, " BLF Upgrade File already downloaded. skip downloading..");
-                    if (AppConstants.GenerateLogs)
-                        AppConstants.WriteinFile(TAG + " File already downloaded. skip downloading..");
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(TAG + " File already downloaded. skip downloading..");
                 } else {
                     new BackgroundServiceDownloadFirmware.DownloadLinkAndReaderFirmware().execute(BLEFileLocation, "FSCardReader.bin", "BLEUpdate");
                 }
 
             } else {
                 Log.e(TAG, "BLE reader upgrade File path null");
-                if (AppConstants.GenerateLogs)
-                    AppConstants.WriteinFile(TAG + " BLE reader upgrade File path null");
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(TAG + " BLE reader upgrade File path null");
             }
 
 
@@ -296,12 +296,12 @@ public class ServiceLFCard extends Service {
 
     private void readFobKey() {
 
-        if (AppConstants.RebootHF_reader) {
+        if (AppConstants.REBOOT_HF_READER) {
             System.out.println("ACTION_GATT_LF_Reboot cmd");
             mBluetoothLeService.writeRebootCharacteristic();
-            AppConstants.RebootHF_reader = false;
+            AppConstants.REBOOT_HF_READER = false;
         } else {
-            AppConstants.RebootHF_reader = false;
+            AppConstants.REBOOT_HF_READER = false;
             mBluetoothLeService.readCustomCharacteristic(false);
         }
 

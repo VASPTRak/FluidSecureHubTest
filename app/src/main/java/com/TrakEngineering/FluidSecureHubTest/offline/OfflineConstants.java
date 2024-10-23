@@ -70,7 +70,6 @@ public class OfflineConstants {
         editor.apply();
     }
 
-
     public static EntityOffTranz getCurrentTransaction(Context ctx) {
 
         SharedPreferences sharedPref = ctx.getSharedPreferences("storeCurrentTransaction", Context.MODE_PRIVATE);
@@ -91,7 +90,6 @@ public class OfflineConstants {
 
         return eot;
     }
-
 
     public static void storeFuelLimit(Context ctx, String vehicleId, String vehicleFuelLimitPerTxn, String vehicleFuelLimitPerDay, String CheckFuelLimitPerMonth,
                                       String vehicleFuelLimitPerMonth, String FuelQuantityOfVehiclePerMonth, String personId, String personFuelLimitPerTxn,
@@ -118,7 +116,6 @@ public class OfflineConstants {
 
         if (!FuelQuantityOfVehiclePerMonth.trim().isEmpty())
             editor.putString("FuelQuantityOfVehiclePerMonth", FuelQuantityOfVehiclePerMonth);
-
 
         if (!personId.trim().isEmpty())
             editor.putString("personId", personId);
@@ -212,11 +209,11 @@ public class OfflineConstants {
                     FinalCalculatedFuelLimit = limitPerMonth;
                 }
             }
-            //AppConstants.WriteinFile(TAG + " limitPerMonth: " + limitPerMonth + "; FinalCalculatedFuelLimit: " + FinalCalculatedFuelLimit);
+            //AppConstants.writeInFile(TAG + " limitPerMonth: " + limitPerMonth + "; FinalCalculatedFuelLimit: " + FinalCalculatedFuelLimit);
         } catch (Exception ex) {
             ex.printStackTrace();
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " getFuelLimit Exception: " + ex.getMessage());
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + " getFuelLimit Exception: " + ex.getMessage());
         }
         return FinalCalculatedFuelLimit;
     }
@@ -235,8 +232,8 @@ public class OfflineConstants {
             if (CheckFuelLimitPerMonth != null) {
                 if (CheckFuelLimitPerMonth.trim().equalsIgnoreCase("true")) {
                     //sync offline transactions
-                    OffDBController offcontroller = new OffDBController(ctx);
-                    String off_json = offcontroller.getAllOfflineTransactionJSON(ctx);
+                    OffDBController offController = new OffDBController(ctx);
+                    String off_json = offController.getAllOfflineTransactionJSON(ctx);
                     JSONObject jObj = new JSONObject(off_json);
                     String offTransactionArray = jObj.getString("TransactionsModelsObj");
 
@@ -264,8 +261,8 @@ public class OfflineConstants {
                 }
             }
         } catch (Exception ex) {
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " getFuelLimitPerMonth Exception: " + ex.getMessage());
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + " getFuelLimitPerMonth Exception: " + ex.getMessage());
         }
         return FinalMonthLimit;
     }
@@ -280,8 +277,8 @@ public class OfflineConstants {
             double vehicleFuelLimitPerDay = InitVehicleFuelLimitPerDay;
 
             //sync offline transactions
-            OffDBController offcontroller = new OffDBController(ctx);
-            String off_json = offcontroller.getAllOfflineTransactionJSON(ctx);
+            OffDBController offController = new OffDBController(ctx);
+            String off_json = offController.getAllOfflineTransactionJSON(ctx);
             JSONObject jObj = new JSONObject(off_json);
             String offTransactionArray = jObj.getString("TransactionsModelsObj");
 
@@ -307,8 +304,8 @@ public class OfflineConstants {
 
             FinalDayLimit = vehicleFuelLimitPerDay;
         } catch (Exception ex) {
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " getVehicleFuelLimitPerDay Exception: " + ex.getMessage());
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + " getVehicleFuelLimitPerDay Exception: " + ex.getMessage());
         }
         return FinalDayLimit;
     }
@@ -323,8 +320,8 @@ public class OfflineConstants {
             double personFuelLimitPerDay = InitPersonFuelLimitPerDay;
 
             //sync offline transactions
-            OffDBController offcontroller = new OffDBController(ctx);
-            String off_json = offcontroller.getAllOfflineTransactionJSON(ctx);
+            OffDBController offController = new OffDBController(ctx);
+            String off_json = offController.getAllOfflineTransactionJSON(ctx);
             JSONObject jObj = new JSONObject(off_json);
             String offTransactionArray = jObj.getString("TransactionsModelsObj");
 
@@ -350,8 +347,8 @@ public class OfflineConstants {
 
             FinalDayLimit = personFuelLimitPerDay;
         } catch (Exception ex) {
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " getPersonFuelLimitPerDay Exception: " + ex.getMessage());
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + " getPersonFuelLimitPerDay Exception: " + ex.getMessage());
         }
         return FinalDayLimit;
     }
@@ -369,8 +366,8 @@ public class OfflineConstants {
             double personFuelLimitPerDay = InitPersonFuelLimitPerDay;
 
             //sync offline transactions
-            OffDBController offcontroller = new OffDBController(ctx);
-            String off_json = offcontroller.getAllOfflineTransactionJSON(ctx);
+            OffDBController offController = new OffDBController(ctx);
+            String off_json = offController.getAllOfflineTransactionJSON(ctx);
             JSONObject jObj = new JSONObject(off_json);
             String offTransactionArray = jObj.getString("TransactionsModelsObj");
 
@@ -426,14 +423,13 @@ public class OfflineConstants {
                 }
             }
         } catch (Exception ex) {
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " getCommonFuelLimitPerDay Exception: " + ex.getMessage());
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + " getCommonFuelLimitPerDay Exception: " + ex.getMessage());
         }
         return FinalDayLimit;
     }
 
     public static void storeOfflineAccess(Context ctx, String isTotalOffline, String isOffline, String OFFLineDataDwnldFreq, int OfflineDataDownloadDay, int OfflineDataDownloadTimeInHrs, int OfflineDataDownloadTimeInMin) {
-
 
         Log.i(TAG, "Scheduled offline download: " + OFFLineDataDwnldFreq + ":(" + OfflineDataDownloadDay + ") HourOfDay:" + OfflineDataDownloadTimeInHrs + " Minute:" + OfflineDataDownloadTimeInMin);
 
@@ -453,12 +449,10 @@ public class OfflineConstants {
         SharedPreferences sharedPref = ctx.getSharedPreferences("storeOfflineAccess", Context.MODE_PRIVATE);
         String isOffline = sharedPref.getString("isOffline", "");
 
-
         if (isOffline.trim().equalsIgnoreCase("True"))
             return true;
         else
             return false;
-
     }
 
     public static boolean isTotalOfflineEnabled(Context ctx) {
@@ -466,20 +460,18 @@ public class OfflineConstants {
         SharedPreferences sharedPref = ctx.getSharedPreferences("storeOfflineAccess", Context.MODE_PRIVATE);
         String isTotalOffline = sharedPref.getString("isTotalOffline", "");
 
-
         if (isTotalOffline.trim().equalsIgnoreCase("True"))
             return true;
         else
             return false;
-
     }
 
     public static void setAlarmManagerToStartDownloadOfflineData(Context ctx) {
 
         try {
             Log.i(TAG, " setAlarmManagerToStartDownloadOfflineData _templog");
-            /*if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " setAlarmManagerToStartDownloadOfflineData _templog");*/
+            /*if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + " setAlarmManagerToStartDownloadOfflineData _templog");*/
 
             SharedPreferences sharedPref = ctx.getSharedPreferences("storeOfflineAccess", Context.MODE_PRIVATE);
             String isOffline = sharedPref.getString("isOffline", "");
@@ -502,26 +494,21 @@ public class OfflineConstants {
 
         } catch (Exception e) {
             Log.i(TAG, " setAlarmManagerToStartDownloadOfflineData Exception:" + e.toString());
-            if (AppConstants.GenerateLogs)
-                AppConstants.WriteinFile(TAG + " setAlarmManagerToStartDownloadOfflineData Exception:" + e.toString());
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + " setAlarmManagerToStartDownloadOfflineData Exception:" + e.toString());
         }
     }
 
-
-    private static int getRandomNum(int min, int max) {
-
+    /*private static int getRandomNum(int min, int max) {
         if (min >= max) {
             throw new IllegalArgumentException("max must be greater than min");
         }
 
         Random r = new Random();
         return r.nextInt((max - min) + 1) + min;
-    }
+    }*/
 
-
-    public static String GetOfflineDatabaseSize(Context myctx) {
-
-
+    public static String getOfflineDatabaseSize(Context myctx) {
         String Size = "";
 
         File f = myctx.getDatabasePath("FSHubOffline.db");
@@ -539,6 +526,5 @@ public class OfflineConstants {
         }
 
         return Size;
-
     }
 }

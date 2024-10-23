@@ -17,7 +17,7 @@ android {
         targetSdkVersion 28
         //targetSdkVersion 31
         versionCode 49
-        versionName "0.62(2544)"
+        versionName "0.63(2724)"
         multiDexEnabled true
 
         ndk {
@@ -39,7 +39,6 @@ android {
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-
 
     implementation 'androidx.multidex:multidex:2.0.1'
     implementation 'com.google.code.gson:gson:2.8.5'
@@ -104,5 +103,7 @@ dependencies {
     implementation 'com.github.xizzhu:simple-tool-tip:0.7.0'
 
     implementation 'com.azure.android:azure-maps-control:1.0.0'
+    implementation 'com.google.guava:guava:29.0-android'
+    implementation "androidx.work:work-runtime:2.7.1"
 
 }
