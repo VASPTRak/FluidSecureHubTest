@@ -181,17 +181,27 @@ public class ServiceHFCard extends Service {
                     last_val = Seperate[Seperate.length - 1];
                 }
 
-                if (!last_val.equals("00 00 00 ") && !last_val.equalsIgnoreCase("00 00 00 00 00 00 00 00 00")) {
+
+                last_val = last_val.replace("\\n", "");
+
+                last_val = last_val.replace(" ","").trim();
+
+                if (!last_val.equals("00 00 00 ") && !last_val.equalsIgnoreCase("00 00 00 00 00 00 00 00 00") && CommonUtils.ValidateFobkey(last_val)) {
+
+                    //if (AppConstants.GENERATE_LOGS)AppConstants.writeInFile(TAG + "HF Reader Display Data 1:");
                     sendHFDetailsToActivity(last_val);
+
+                    SharedPreferences sharedPre = ServiceHFCard.this.getSharedPreferences("BLEUpgradeFlag", Context.MODE_PRIVATE);
+                    String SRUdate = sharedPre.getString("bleHFUpdateSuccessFlag", "N");
+                    if (SRUdate.equalsIgnoreCase("Y")) {
+                        //if (AppConstants.GENERATE_LOGS)AppConstants.writeInFile(TAG + "HF Reader Display Data 2:");
+                        mBluetoothLeService.writeCustomCharacteristic(0x01, "", true);
+                    }
+                    //if (AppConstants.GENERATE_LOGS)AppConstants.writeInFile(TAG + "HF Reader Display Data 3:");
+                    mBluetoothLeService.writeCustomCharacteristic(0x01, "", false);  //Temp commented for issue #1667
                 }
 
-                SharedPreferences sharedPre = ServiceHFCard.this.getSharedPreferences("BLEUpgradeFlag", Context.MODE_PRIVATE);
-                String SRUdate = sharedPre.getString("bleHFUpdateSuccessFlag", "N");
-                if (SRUdate.equalsIgnoreCase("Y")) {
-                    mBluetoothLeService.writeCustomCharacteristic(0x01, "", true);
-                }
 
-                mBluetoothLeService.writeCustomCharacteristic(0x01, "", false);
 
             } catch (Exception ex) {
                 System.out.println(ex);

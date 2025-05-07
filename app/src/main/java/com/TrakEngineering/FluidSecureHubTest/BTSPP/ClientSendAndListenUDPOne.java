@@ -2,10 +2,8 @@ package com.TrakEngineering.FluidSecureHubTest.BTSPP;
 
 import android.content.Context;
 import android.content.Intent;
-import android.text.SpannableStringBuilder;
 import android.util.Log;
 
-import com.TrakEngineering.FluidSecureHubTest.AppConstants;
 import com.TrakEngineering.FluidSecureHubTest.Constants;
 
 import java.io.IOException;

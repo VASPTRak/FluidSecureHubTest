@@ -1,9 +1,9 @@
 package com.TrakEngineering.FluidSecureHubTest;
 
-import static com.azure.android.maps.control.options.AnimationOptions.animationDuration;
+/*import static com.azure.android.maps.control.options.AnimationOptions.animationDuration;
 import static com.azure.android.maps.control.options.AnimationOptions.animationType;
 import static com.azure.android.maps.control.options.CameraOptions.center;
-import static com.azure.android.maps.control.options.CameraOptions.zoom;
+import static com.azure.android.maps.control.options.CameraOptions.zoom;*/
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -15,6 +15,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
@@ -37,6 +38,14 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
+import android.webkit.ConsoleMessage;
+import android.webkit.JavascriptInterface;
+import android.webkit.WebChromeClient;
+import android.webkit.WebResourceError;
+import android.webkit.WebResourceRequest;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
@@ -59,7 +68,7 @@ import com.TrakEngineering.FluidSecureHubTest.entity.UpdateMacAddressClass;
 import com.TrakEngineering.FluidSecureHubTest.offline.OfflineConstants;
 import com.TrakEngineering.FluidSecureHubTest.retrofit.AzureMapApi;
 import com.TrakEngineering.FluidSecureHubTest.server.ServerHandler;
-import com.azure.android.maps.control.AzureMap;
+/*import com.azure.android.maps.control.AzureMap;
 import com.azure.android.maps.control.AzureMaps;
 import com.azure.android.maps.control.Control;
 import com.azure.android.maps.control.MapControl;
@@ -67,12 +76,12 @@ import com.azure.android.maps.control.controls.ZoomControl;
 import com.azure.android.maps.control.events.OnClick;
 import com.azure.android.maps.control.layer.SymbolLayer;
 import com.azure.android.maps.control.options.AnimationType;
-import com.azure.android.maps.control.source.DataSource;
+import com.azure.android.maps.control.source.DataSource;*/
 import com.github.xizzhu.simpletooltip.ToolTip;
 import com.github.xizzhu.simpletooltip.ToolTipView;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import com.mapbox.geojson.Point;
+//import com.mapbox.geojson.Point;
 import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
@@ -82,6 +91,11 @@ import com.squareup.okhttp.Response;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
+import java.io.Console;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -116,9 +130,9 @@ public class AddNewLinkToCloud extends AppCompatActivity implements LifecycleObs
     public int selectedProductPosition = 0;
     public boolean isLocationSelected = false;
     public Dialog addTankDialog;
-    private String SubscriptionKeyForAzureMap = "";
-    MapControl mapControl;
-    SymbolLayer layer;
+    private String subscriptionKeyForAzureMap = "";
+    //MapControl mapControl;
+    //SymbolLayer layer;
     public ArrayAdapter<String> autoAdapter;
     public AutoCompleteTextView tv_SearchAddress;
     ArrayList<String> searchResults = new ArrayList<>();
@@ -138,11 +152,10 @@ public class AddNewLinkToCloud extends AppCompatActivity implements LifecycleObs
     String HTTP_URL = "";
     String URL_INFO = "";
     String URL_UPDATE_FS_INFO = "";
-
     int TimeOutInMinutes = 3;
     boolean IsTimeout_Sec = true;
-
     int pulseRatioSelectionCount = 0, tankSelectionCount = 0;
+    WebView webView;
 
     /*static {
         AzureMaps.setSubscriptionKey("FJ29LaayVFiy20Hp29hEe5mG7F6QTbhfyV6wuWwG7Sg");
@@ -279,6 +292,7 @@ public class AddNewLinkToCloud extends AppCompatActivity implements LifecycleObs
         btn_done.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                CommonUtils.hideKeyboard(AddNewLinkToCloud.this);
                 IsTimeout_Sec = false;
                 //AlertDialogBox(AddNewLinkToCloud.this, "New success message");
                 if (validateData()) {
@@ -318,9 +332,9 @@ public class AddNewLinkToCloud extends AppCompatActivity implements LifecycleObs
         btnMap.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                CommonUtils.hideKeyboard(AddNewLinkToCloud.this);
                 IsTimeout_Sec = false;
-                SetSubscriptionKeyForAzureMap();
+                setSubscriptionKeyForAzureMap();
 
                 alertMapDialog();
             }
@@ -470,20 +484,20 @@ public class AddNewLinkToCloud extends AppCompatActivity implements LifecycleObs
         }
     }
 
-    private void SetSubscriptionKeyForAzureMap() {
+    private void setSubscriptionKeyForAzureMap() {
         try {
             SharedPreferences sharedPref = this.getSharedPreferences(AppConstants.PREF_AZURE_MAP_DETAILS, Context.MODE_PRIVATE);
-            SubscriptionKeyForAzureMap = sharedPref.getString("SubscriptionKey", "");
+            subscriptionKeyForAzureMap = sharedPref.getString("SubscriptionKey", "");
 
-            AzureMaps.setSubscriptionKey(SubscriptionKeyForAzureMap);
+            //AzureMaps.setSubscriptionKey(SubscriptionKeyForAzureMap);
 
             //Set the language to be used by Azure Maps.
             if (!AppConstants.LANG_PARAM.isEmpty()) {
-                AzureMaps.setLanguage(AppConstants.LANG_PARAM.replace(":", ""));
+                //AzureMaps.setLanguage(AppConstants.LANG_PARAM.replace(":", ""));
             }
         } catch (Exception ex) {
             if (AppConstants.GENERATE_LOGS)
-                AppConstants.writeInFile(TAG + " SetSubscriptionKeyForAzureMap Exception: " + ex.getMessage());
+                AppConstants.writeInFile(TAG + " setSubscriptionKeyForAzureMap Exception: " + ex.getMessage());
         }
     }
 
@@ -576,10 +590,19 @@ public class AddNewLinkToCloud extends AppCompatActivity implements LifecycleObs
             dialog.setContentView(R.layout.dialog_map);
             dialog.setCancelable(false);
 
-            dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+            Window window = dialog.getWindow();
+            if (window != null) {
+                window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+                window.setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.MATCH_PARENT);
+                window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+                window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+            }
 
-            mapControl = dialog.findViewById(R.id.map_control);
-            mapControl.onCreate(mySavedInstanceState);
+            //mapControl = dialog.findViewById(R.id.map_control);
+            //mapControl.onCreate(mySavedInstanceState);
+            webView = dialog.findViewById((R.id.map_control));
+
+            loadHtmlWithReplacement(webView, this);
 
             // Address search functionality
             tv_SearchAddress = dialog.findViewById(R.id.tv_SearchAddress);
@@ -609,8 +632,31 @@ public class AddNewLinkToCloud extends AppCompatActivity implements LifecycleObs
             });
             //=================================================
 
+            Button btnSaveMap = (Button) dialog.findViewById(R.id.btnSaveMap);
+            Button btnCancelMap = (Button) dialog.findViewById(R.id.btnCancelMap);
+
+            btnSaveMap.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    AppConstants.LATITUDE = selectedLatitude;
+                    AppConstants.LONGITUDE = selectedLongitude;
+                    isLocationSelected = true;
+                    GetAddressByLatLng(Double.parseDouble(AppConstants.LATITUDE), Double.parseDouble(AppConstants.LONGITUDE));
+                    webView.destroy();
+                    dialog.dismiss();
+                }
+            });
+
+            btnCancelMap.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    webView.destroy();
+                    dialog.dismiss();
+                }
+            });
+            webView.onResume();
             //Wait until the map resources are ready.
-            mapControl.onReady(map -> {
+            /*mapControl.onReady(map -> {
                 if (AppConstants.GENERATE_LOGS)
                     AppConstants.writeInFile(TAG + " <map resources are ready.>");
                 InitializeMap(map);
@@ -636,31 +682,28 @@ public class AddNewLinkToCloud extends AppCompatActivity implements LifecycleObs
                     }
                 });
             });
+            mapControl.onResume();*/
 
-            Button btnSaveMap = (Button) dialog.findViewById(R.id.btnSaveMap);
-            Button btnCancelMap = (Button) dialog.findViewById(R.id.btnCancelMap);
-
-            btnSaveMap.setOnClickListener(new View.OnClickListener() {
+            tv_SearchAddress.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
-                public void onClick(View v) {
-                    AppConstants.LATITUDE = selectedLatitude;
-                    AppConstants.LONGITUDE = selectedLongitude;
-                    isLocationSelected = true;
-                    GetAddressByLatLng(Double.parseDouble(AppConstants.LATITUDE), Double.parseDouble(AppConstants.LONGITUDE));
-                    mapControl.onDestroy();
-                    dialog.dismiss();
+                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                    //Log.d(TAG, "Selected address is " + searchResults.get(position).toString());
+                    selectedAddressFromMap = searchResults.get(position).toString();
+                    //isAddressSelected = false;
+                    tv_SearchAddress.dismissDropDown();
+
+                    if (listOfPositions != null) {
+                        if (!listOfPositions.isEmpty()) {
+                            String latitude = listOfPositions.get(position).get("latitude");
+                            String longitude = listOfPositions.get(position).get("longitude");
+                            if (latitude != null && longitude != null) {
+                                updateMapLocation(Double.parseDouble(latitude), Double.parseDouble(longitude));
+                            }
+                        }
+                    }
                 }
             });
 
-            btnCancelMap.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    mapControl.onDestroy();
-                    dialog.dismiss();
-                }
-            });
-
-            mapControl.onResume();
             dialog.show();
         } catch (Exception ex) {
             if (AppConstants.GENERATE_LOGS)
@@ -668,17 +711,79 @@ public class AddNewLinkToCloud extends AppCompatActivity implements LifecycleObs
         }
     }
 
-    private void InitializeMap(AzureMap map) {
+    private void loadHtmlWithReplacement(WebView webView, Context context) {
+        try {
+            InputStream inputStream = context.getAssets().open("map.html");
+            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+            StringBuilder htmlBuilder = new StringBuilder();
+            String line;
+
+            while ((line = reader.readLine()) != null) {
+                htmlBuilder.append(line);
+            }
+
+            reader.close();
+            inputStream.close();
+
+            String modifiedHtml = htmlBuilder.toString().replace("SUBSCRIPTION_KEY", subscriptionKeyForAzureMap);
+            modifiedHtml = modifiedHtml.replace("strLng", String.valueOf(Double.parseDouble(AppConstants.LONGITUDE)));
+            modifiedHtml = modifiedHtml.replace("strLat", String.valueOf(Double.parseDouble(AppConstants.LATITUDE)));
+            String languageParam = "en-US";
+            if (!AppConstants.LANG_PARAM.isEmpty()) {
+                languageParam = AppConstants.LANG_PARAM.replace(":", "");
+            }
+            modifiedHtml = modifiedHtml.replace("languageParam", languageParam);
+
+            WebSettings webSettings = webView.getSettings();
+            webSettings.setJavaScriptEnabled(true);
+            webSettings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
+            webView.setWebViewClient(new WebViewClient());
+            webView.setWebChromeClient(new WebChromeClient());
+            webView.addJavascriptInterface(new MapInterface(this), "Android");
+
+            //Log.d(TAG, "loadHtmlWithReplacement: modifiedHtml: " + modifiedHtml);
+            //webView.loadUrl("file:///android_asset/map.html");
+            //webView.loadData(modifiedHtml, "text/html", "UTF-8");
+            webView.loadDataWithBaseURL(null, modifiedHtml, "text/html", "UTF-8", null);
+            //webView.loadDataWithBaseURL(null, "<html><body><h1>Hello World</h1></body></html>", "text/html", "UTF-8", null);
+
+        } catch (Exception e) {
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + " loadHtmlWithReplacement Exception: " + e.getMessage());
+        }
+    }
+
+    private void updateMapLocation(double lat, double lon) {
+        String js = "updateMapLocation(" + lat + ", " + lon + ")";
+        webView.evaluateJavascript(js, null);
+    }
+
+    public class MapInterface {
+        Context mContext;
+
+        MapInterface(Context c) {
+            mContext = c;
+        }
+
+        @JavascriptInterface
+        public void sendCoordinates(double lng, double lat) {
+            Log.d("AzureMap", "Longitude: " + lng + ", Latitude: " + lat);
+            selectedLatitude = String.valueOf(lat);
+            selectedLongitude = String.valueOf(lng);
+        }
+    }
+
+    /*private void InitializeMap(AzureMap map) {
         try {
             AddSymbolLayerToMap(map, Double.parseDouble(AppConstants.LONGITUDE), Double.parseDouble(AppConstants.LATITUDE));
 
-            /*//Set the camera of the map.
+            *//*Set the camera of the map.
             map.setCamera(
                     center(Point.fromLngLat(Double.parseDouble(AppConstants.LONGITUDE), Double.parseDouble(AppConstants.LATITUDE))),
                     zoom(15),
                     animationType(AnimationType.FLY),
                     animationDuration(2000)
-            );*/
+            );*//*
 
             // Add controls on MAP
             map.controls.add(
@@ -698,9 +803,9 @@ public class AddNewLinkToCloud extends AppCompatActivity implements LifecycleObs
             if (AppConstants.GENERATE_LOGS)
                 AppConstants.writeInFile(TAG + " InitializeMap Exception: " + ex.getMessage());
         }
-    }
+    }*/
 
-    private void AddSymbolLayerToMap(AzureMap map, double longitude, double latitude) {
+    /*private void AddSymbolLayerToMap(AzureMap map, double longitude, double latitude) {
         try {
             selectedLatitude = String.valueOf(latitude);
             selectedLongitude = String.valueOf(longitude);
@@ -725,7 +830,7 @@ public class AddNewLinkToCloud extends AppCompatActivity implements LifecycleObs
             if (AppConstants.GENERATE_LOGS)
                 AppConstants.writeInFile(TAG + " AddSymbolLayerToMap Exception: " + ex.getMessage());
         }
-    }
+    }*/
 
     private void SetToolTips() {
         try {
@@ -850,6 +955,8 @@ public class AddNewLinkToCloud extends AppCompatActivity implements LifecycleObs
     }
 
     private boolean validateData() {
+        String pumpOnTime = edt_pumpOnTime.getText().toString().trim();
+        String pumpOffTime = edt_pumpOffTime.getText().toString().trim();
 
         if (edt_linkname.getText().toString().trim().isEmpty()) {
             showCustomMessageDialog(AddNewLinkToCloud.this, getResources().getString(R.string.LinkNameRequired), "");
@@ -860,24 +967,18 @@ public class AddNewLinkToCloud extends AppCompatActivity implements LifecycleObs
         } else if (!validateLinkNameForMac(edt_linkname.getText().toString().trim())) {
             showCustomMessageDialog(AddNewLinkToCloud.this, getResources().getString(R.string.LinkNameInvalid), " (Entered Link Name: " + edt_linkname.getText().toString() + ")");
             return false;
-        } else if (edt_pumpOnTime.getText().toString().trim().isEmpty()) {
+        } else if (pumpOnTime.isEmpty()) {
             showCustomMessageDialog(AddNewLinkToCloud.this, getResources().getString(R.string.PumpOnTimeRequired), "");
             return false;
-        } else if (edt_pumpOffTime.getText().toString().trim().isEmpty()) {
+        } else if (Integer.parseInt(pumpOnTime) < 30) {
+            showCustomMessageDialog(AddNewLinkToCloud.this, getResources().getString(R.string.PumpOnTimeMinLimit), "");
+            return false;
+        } else if (pumpOffTime.isEmpty()) {
             showCustomMessageDialog(AddNewLinkToCloud.this, getResources().getString(R.string.PumpOffTimeRequired), "");
             return false;
-        /*} else if (edt_username.getText().toString().trim().isEmpty()) {
-            edt_username.setError("Enter valid data");
+        } else if (Integer.parseInt(pumpOffTime) < 10) {
+            showCustomMessageDialog(AddNewLinkToCloud.this, getResources().getString(R.string.PumpOffTimeMinLimit), "");
             return false;
-        } else if (edt_enter_password.getText().toString().trim().isEmpty()) {
-            edt_enter_password.setError("Enter valid data");
-            return false;*/
-        /*} else if (edt_UnitsMeasured.getText().toString().trim().isEmpty()) {
-            edt_UnitsMeasured.setError("Enter valid data");
-            return false;
-        } else if (edt_Pulses.getText().toString().trim().isEmpty()) {
-            edt_Pulses.setError("Enter valid data");
-            return false;*/
         } else if (!edt_LinkNewName.getText().toString().trim().isEmpty()) {
             if (!edt_LinkNewName.getText().toString().trim().matches(expression)) {
                 showCustomMessageDialog(AddNewLinkToCloud.this, getResources().getString(R.string.NewNameInvalid), " (Entered New Name: " + edt_LinkNewName.getText().toString() + ")");
@@ -890,6 +991,18 @@ public class AddNewLinkToCloud extends AppCompatActivity implements LifecycleObs
             showCustomMessageDialog(AddNewLinkToCloud.this, getResources().getString(R.string.LocationRequired), "");
             return false;
         }
+        /*} else if (edt_username.getText().toString().trim().isEmpty()) {
+            edt_username.setError("Enter valid data");
+            return false;
+        } else if (edt_enter_password.getText().toString().trim().isEmpty()) {
+            edt_enter_password.setError("Enter valid data");
+            return false;*/
+        /*} else if (edt_UnitsMeasured.getText().toString().trim().isEmpty()) {
+            edt_UnitsMeasured.setError("Enter valid data");
+            return false;
+        } else if (edt_Pulses.getText().toString().trim().isEmpty()) {
+            edt_Pulses.setError("Enter valid data");
+            return false;*/
         /*else if (edt_StreetAddress.getText().toString().trim().isEmpty()) {
             showCustomMessageDialog(AddNewLinkToCloud.this, getResources().getString(R.string.AddressRequired));
             return false;
@@ -1278,7 +1391,7 @@ public class AddNewLinkToCloud extends AppCompatActivity implements LifecycleObs
         AzureMapApi apiInterface;
         apiInterface = retrofit.create(AzureMapApi.class);
 
-        Call<JsonObject> call = apiInterface.GetAddressByLatLng("1.0", SubscriptionKeyForAzureMap, Latitude.toString() + ',' + Longitude.toString(), AppConstants.LANG_PARAM.replace(":", ""));
+        Call<JsonObject> call = apiInterface.GetAddressByLatLng("1.0", subscriptionKeyForAzureMap, Latitude.toString() + ',' + Longitude.toString(), AppConstants.LANG_PARAM.replace(":", ""));
 
         call.enqueue(new Callback<JsonObject>() {
             @Override
@@ -1355,7 +1468,7 @@ public class AddNewLinkToCloud extends AppCompatActivity implements LifecycleObs
         AzureMapApi apiInterface;
         apiInterface = retrofit.create(AzureMapApi.class);
 
-        Call<JsonObject> call = apiInterface.GetAddressSuggestions("true", SubscriptionKeyForAzureMap, "1.0", query,
+        Call<JsonObject> call = apiInterface.GetAddressSuggestions("true", subscriptionKeyForAzureMap, "1.0", query,
                 AppConstants.LANG_PARAM.replace(":", ""), AppConstants.LONGITUDE, AppConstants.LATITUDE, "", "Auto");
 
         call.enqueue(new Callback<JsonObject>() {
@@ -1565,7 +1678,7 @@ public class AddNewLinkToCloud extends AppCompatActivity implements LifecycleObs
     }
 
     private void BackToWelcomeActivity() {
-
+        CommonUtils.hideKeyboard(AddNewLinkToCloud.this);
         int waitingTime = 100;
         if(enableHotspotAfterNewLinkConfigure) {
             waitingTime = 2000;

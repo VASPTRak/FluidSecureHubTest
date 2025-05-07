@@ -7,6 +7,7 @@ import android.app.ActivityManager;
 import android.app.AlarmManager;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.app.DownloadManager;
 import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.app.admin.DevicePolicyManager;
@@ -27,6 +28,7 @@ import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.content.res.Configuration;
 import android.content.res.Resources;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -88,6 +90,7 @@ import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
 import androidx.work.WorkRequest;
 
+import com.TrakEngineering.FluidSecureHubTest.BTBLE.BS_BLE_BTOne;
 import com.TrakEngineering.FluidSecureHubTest.BTBLE.BTBLE_LinkOne.BLEServiceCodeOne;
 import com.TrakEngineering.FluidSecureHubTest.BTBLE.BTBLE_LinkTwo.BLEServiceCodeTwo;
 import com.TrakEngineering.FluidSecureHubTest.BTBLE.BTBLE_LinkThree.BLEServiceCodeThree;
@@ -103,12 +106,14 @@ import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkThree.SerialServic
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkFour.SerialServiceFour;
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkFive.SerialServiceFive;
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.BTSPP_LinkSix.SerialServiceSix;
+import com.TrakEngineering.FluidSecureHubTest.BTSPP.BackgroundService_BTOne;
 import com.TrakEngineering.FluidSecureHubTest.BTSPP.CommonFunctions;
 import com.TrakEngineering.FluidSecureHubTest.EddystoneScanner.EddystoneScannerService;
 import com.TrakEngineering.FluidSecureHubTest.EddystoneScanner.SampleBeacon;
 import com.TrakEngineering.FluidSecureHubTest.MagV2GAtt.ServiceMagV2;
 import com.TrakEngineering.FluidSecureHubTest.QRCodeGAtt.ServiceQRCode;
 import com.TrakEngineering.FluidSecureHubTest.TLD_GattServer.DeviceControlActivity_tld;
+import com.TrakEngineering.FluidSecureHubTest.entity.SwitchTimeBounce;
 import com.TrakEngineering.FluidSecureHubTest.wifihotspot.WifiApManager;
 import com.TrakEngineering.FluidSecureHubTest.entity.AuthEntityClass;
 import com.TrakEngineering.FluidSecureHubTest.entity.RenameHose;
@@ -142,10 +147,10 @@ import com.squareup.okhttp.Response;
 import com.squareup.okhttp.ResponseBody;
 import com.squareup.picasso.Picasso;
 import com.thanosfisherman.wifiutils.WifiUtils;
-import com.thin.downloadmanager.DefaultRetryPolicy;
+/*import com.thin.downloadmanager.DefaultRetryPolicy;
 import com.thin.downloadmanager.DownloadRequest;
 import com.thin.downloadmanager.DownloadStatusListenerV1;
-import com.thin.downloadmanager.ThinDownloadManager;
+import com.thin.downloadmanager.ThinDownloadManager;*/
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -176,6 +181,7 @@ import java.net.URLConnection;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -417,6 +423,9 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
     public int downloadedFileProgress = 0;
     public long lengthOfFile = 0;
     public long downloadedFileLength = 0;
+    private DownloadManager fileDownloadManager;
+    private Handler fileDownloadHandler = new Handler(Looper.getMainLooper());
+    private Runnable progressRunnable;
     //=========================================
     public Handler BTConnectionHandler = new Handler(Looper.getMainLooper());
     public int delayMillis = 100;
@@ -454,6 +463,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
     TimerTask timerTaskForUpgrade;
     Timer timerForUpgrade;
     //======================================================//
+    public String versionNumberOfLink = "";
 
     //============ Bluetooth reader Gatt end==============
 
@@ -1231,10 +1241,27 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
     public void cancelThinDownloadManager() {
         try {
             if (OfflineConstants.isOfflineAccess(WelcomeActivity.this)) {
-                //AppConstants.writeInFile(TAG + " cancelThinDownloadManager Execute///");
+                /*//AppConstants.writeInFile(TAG + " cancelThinDownloadManager Execute///");
                 ThinDownloadManager downloadManager = new ThinDownloadManager();
-                downloadManager.cancelAll();
+                downloadManager.cancelAll();*/
                 AppConstants.OFFLINE_DOWNLOAD_IDS.clear();
+                fileDownloadManager = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
+                DownloadManager.Query query = new DownloadManager.Query();
+                query.setFilterByStatus(DownloadManager.STATUS_RUNNING | DownloadManager.STATUS_PENDING | DownloadManager.STATUS_PAUSED);
+
+                if (fileDownloadManager != null) {
+                    Cursor cursor = fileDownloadManager.query(query);
+                    if (cursor != null) {
+                        try {
+                            while (cursor.moveToNext()) {
+                                long downloadId = cursor.getLong(cursor.getColumnIndex(DownloadManager.COLUMN_ID));
+                                fileDownloadManager.remove(downloadId); // Cancel the download
+                            }
+                        } finally {
+                            cursor.close();
+                        }
+                    }
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -3561,7 +3588,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                                     AppConstants.REPLACEABLE_WIFI_NAME_FS1 = ReplaceableHoseName;
                                                 }
 
-                                                Constants.PERSONNEL_PIN_FS2 = "";
+                                                Constants.PERSONNEL_PIN_FS1 = "";
                                                 tvSSIDName.setText(selSSID);
                                                 AppConstants.FS1_CONNECTED_SSID = selSSID;
                                                 Constants.CURRENT_SELECTED_HOSE = "FS1";
@@ -3618,7 +3645,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                                     AppConstants.REPLACEABLE_WIFI_NAME_FS3 = ReplaceableHoseName;
                                                 }
 
-                                                Constants.PERSONNEL_PIN_FS2 = "";
+                                                Constants.PERSONNEL_PIN_FS3 = "";
                                                 tvSSIDName.setText(selSSID);
                                                 AppConstants.FS3_CONNECTED_SSID = selSSID;
                                                 Constants.CURRENT_SELECTED_HOSE = "FS3";
@@ -3646,7 +3673,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                                     AppConstants.REPLACEABLE_WIFI_NAME_FS4 = ReplaceableHoseName;
                                                 }
 
-                                                Constants.PERSONNEL_PIN_FS2 = "";
+                                                Constants.PERSONNEL_PIN_FS4 = "";
                                                 tvSSIDName.setText(selSSID);
                                                 AppConstants.FS4_CONNECTED_SSID = selSSID;
                                                 Constants.CURRENT_SELECTED_HOSE = "FS4";
@@ -3673,7 +3700,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                                     AppConstants.REPLACEABLE_WIFI_NAME_FS5 = ReplaceableHoseName;
                                                 }
 
-                                                Constants.PERSONNEL_PIN_FS2 = "";
+                                                Constants.PERSONNEL_PIN_FS5 = "";
                                                 tvSSIDName.setText(selSSID);
                                                 AppConstants.FS5_CONNECTED_SSID = selSSID;
                                                 Constants.CURRENT_SELECTED_HOSE = "FS5";
@@ -3699,7 +3726,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                                     AppConstants.REPLACEABLE_WIFI_NAME_FS6 = ReplaceableHoseName;
                                                 }
 
-                                                Constants.PERSONNEL_PIN_FS2 = "";
+                                                Constants.PERSONNEL_PIN_FS6 = "";
                                                 tvSSIDName.setText(selSSID);
                                                 AppConstants.FS6_CONNECTED_SSID = selSSID;
                                                 Constants.CURRENT_SELECTED_HOSE = "FS6";
@@ -3807,7 +3834,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                     if (Constants.FS_1_STATUS.equalsIgnoreCase("FREE")) {
                                         // linear_fs_1.setBackgroundColor(getResources().getColor(android.R.color.holo_red_light));
 
-                                        Constants.PERSONNEL_PIN_FS2 = "";
+                                        Constants.PERSONNEL_PIN_FS1 = "";
                                         tvSSIDName.setText(selSSID);
                                         AppConstants.FS1_CONNECTED_SSID = selSSID;
                                         Constants.CURRENT_SELECTED_HOSE = "FS1";
@@ -3843,7 +3870,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                     if (Constants.FS_3_STATUS.equalsIgnoreCase("FREE")) {
                                         // linear_fs_1.setBackgroundColor(getResources().getColor(android.R.color.holo_red_light));
 
-                                        Constants.PERSONNEL_PIN_FS2 = "";
+                                        Constants.PERSONNEL_PIN_FS3 = "";
                                         tvSSIDName.setText(selSSID);
                                         AppConstants.FS3_CONNECTED_SSID = selSSID;
                                         Constants.CURRENT_SELECTED_HOSE = "FS3";
@@ -3861,7 +3888,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                     if (Constants.FS_4_STATUS.equalsIgnoreCase("FREE")) {
                                         // linear_fs_1.setBackgroundColor(getResources().getColor(android.R.color.holo_red_light));
 
-                                        Constants.PERSONNEL_PIN_FS2 = "";
+                                        Constants.PERSONNEL_PIN_FS4 = "";
                                         tvSSIDName.setText(selSSID);
                                         AppConstants.FS4_CONNECTED_SSID = selSSID;
                                         Constants.CURRENT_SELECTED_HOSE = "FS4";
@@ -3878,7 +3905,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                     AppConstants.LastSelectedHose = String.valueOf(position);
                                     if (Constants.FS_5_STATUS.equalsIgnoreCase("FREE")) {
 
-                                        Constants.PERSONNEL_PIN_FS2 = "";
+                                        Constants.PERSONNEL_PIN_FS5 = "";
                                         tvSSIDName.setText(selSSID);
                                         AppConstants.FS5_CONNECTED_SSID = selSSID;
                                         Constants.CURRENT_SELECTED_HOSE = "FS5";
@@ -3895,7 +3922,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                     AppConstants.LastSelectedHose = String.valueOf(position);
                                     if (Constants.FS_6_STATUS.equalsIgnoreCase("FREE")) {
 
-                                        Constants.PERSONNEL_PIN_FS2 = "";
+                                        Constants.PERSONNEL_PIN_FS6 = "";
                                         tvSSIDName.setText(selSSID);
                                         AppConstants.FS6_CONNECTED_SSID = selSSID;
                                         Constants.CURRENT_SELECTED_HOSE = "FS6";
@@ -7542,7 +7569,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         AppConstants.REPLACEABLE_WIFI_NAME_FS1 = ReplaceableHoseName;
                     }
 
-                    Constants.PERSONNEL_PIN_FS2 = "";
+                    Constants.PERSONNEL_PIN_FS1 = "";
                     tvSSIDName.setText(selSSID);
                     AppConstants.FS1_CONNECTED_SSID = selSSID;
                     Constants.CURRENT_SELECTED_HOSE = "FS1";
@@ -7593,7 +7620,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         AppConstants.REPLACEABLE_WIFI_NAME_FS3 = ReplaceableHoseName;
                     }
 
-                    Constants.PERSONNEL_PIN_FS2 = "";
+                    Constants.PERSONNEL_PIN_FS3 = "";
                     tvSSIDName.setText(selSSID);
                     AppConstants.FS3_CONNECTED_SSID = selSSID;
                     Constants.CURRENT_SELECTED_HOSE = "FS3";
@@ -7619,7 +7646,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         AppConstants.REPLACEABLE_WIFI_NAME_FS4 = ReplaceableHoseName;
                     }
 
-                    Constants.PERSONNEL_PIN_FS2 = "";
+                    Constants.PERSONNEL_PIN_FS4 = "";
                     tvSSIDName.setText(selSSID);
                     AppConstants.FS4_CONNECTED_SSID = selSSID;
                     Constants.CURRENT_SELECTED_HOSE = "FS4";
@@ -7642,7 +7669,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         AppConstants.REPLACEABLE_WIFI_NAME_FS5 = ReplaceableHoseName;
                     }
 
-                    Constants.PERSONNEL_PIN_FS2 = "";
+                    Constants.PERSONNEL_PIN_FS5 = "";
                     tvSSIDName.setText(selSSID);
                     AppConstants.FS5_CONNECTED_SSID = selSSID;
                     Constants.CURRENT_SELECTED_HOSE = "FS5";
@@ -7665,7 +7692,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         AppConstants.REPLACEABLE_WIFI_NAME_FS6 = ReplaceableHoseName;
                     }
 
-                    Constants.PERSONNEL_PIN_FS2 = "";
+                    Constants.PERSONNEL_PIN_FS6 = "";
                     tvSSIDName.setText(selSSID);
                     AppConstants.FS6_CONNECTED_SSID = selSSID;
                     Constants.CURRENT_SELECTED_HOSE = "FS6";
@@ -10808,11 +10835,11 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         String ote = AppConstants.SELECTED_SSID_FOR_MANUAL;
         String otePass = Constants.CURRENT_FS_PASSWORD;
 
-        WifiUtils.withContext(WelcomeActivity.this)
+        /*WifiUtils.withContext(WelcomeActivity.this)
                 .connectWith(ote, otePass)
                 .setTimeout(6000)
                 .onConnectionResult(WelcomeActivity.this::checkResultCountdownTimer)
-                .start();
+                .start();*/
 
     }
 
@@ -10852,11 +10879,11 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         String ote = AppConstants.SELECTED_SSID_FOR_MANUAL;
         String otePass = Constants.CURRENT_FS_PASSWORD;
 
-        WifiUtils.withContext(WelcomeActivity.this)
+        /*WifiUtils.withContext(WelcomeActivity.this)
                 .connectWith(ote, otePass)
                 .setTimeout(7000)
                 .onConnectionResult(WelcomeActivity.this::checkResult)
-                .start();
+                .start();*/
 
 
     }
@@ -11035,11 +11062,11 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         String ote = AppConstants.SELECTED_SSID_FOR_MANUAL;
         String otePass = Constants.CURRENT_FS_PASSWORD;
 
-        WifiUtils.withContext(WelcomeActivity.this)
+        /*WifiUtils.withContext(WelcomeActivity.this)
                 .connectWith(ote, otePass)
                 .setTimeout(7000)
                 .onConnectionResult(WelcomeActivity.this::checkResult2Attempt)
-                .start();
+                .start();*/
 
         new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
             @Override
@@ -11119,11 +11146,11 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         String ote = AppConstants.SELECTED_SSID_FOR_MANUAL;
         String otePass = Constants.CURRENT_FS_PASSWORD;
 
-        WifiUtils.withContext(WelcomeActivity.this)
+        /*WifiUtils.withContext(WelcomeActivity.this)
                 .connectWith(ote, otePass)
                 .setTimeout(7000)
                 .onConnectionResult(WelcomeActivity.this::checkResult3Attempt)
-                .start();
+                .start();*/
 
         new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
             @Override
@@ -14509,7 +14536,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
         BTLinkReGainConnection(0);
         // linear_fs_1.setBackgroundColor(getResources().getColor(android.R.color.holo_red_light));
-        Constants.PERSONNEL_PIN_FS2 = "";
+        Constants.PERSONNEL_PIN_FS1 = "";
         tvSSIDName.setText(selSSID);
         AppConstants.FS1_CONNECTED_SSID = selSSID;
         Constants.CURRENT_SELECTED_HOSE = "FS1";
@@ -14614,7 +14641,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
         BTLinkReGainConnection(2);
         // linear_fs_1.setBackgroundColor(getResources().getColor(android.R.color.holo_red_light));
-        Constants.PERSONNEL_PIN_FS2 = "";
+        Constants.PERSONNEL_PIN_FS3 = "";
         tvSSIDName.setText(selSSID);
         AppConstants.FS3_CONNECTED_SSID = selSSID;
         Constants.CURRENT_SELECTED_HOSE = "FS3";
@@ -14666,7 +14693,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
         BTLinkReGainConnection(3);
         // linear_fs_1.setBackgroundColor(getResources().getColor(android.R.color.holo_red_light));
-        Constants.PERSONNEL_PIN_FS2 = "";
+        Constants.PERSONNEL_PIN_FS4 = "";
         tvSSIDName.setText(selSSID);
         AppConstants.FS4_CONNECTED_SSID = selSSID;
         Constants.CURRENT_SELECTED_HOSE = "FS4";
@@ -14717,7 +14744,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
     private void RedirectBtLinkFiveToNextScreen(String selSSID) {
 
         BTLinkReGainConnection(4);
-        Constants.PERSONNEL_PIN_FS2 = "";
+        Constants.PERSONNEL_PIN_FS5 = "";
         tvSSIDName.setText(selSSID);
         AppConstants.FS5_CONNECTED_SSID = selSSID;
         Constants.CURRENT_SELECTED_HOSE = "FS5";
@@ -14768,7 +14795,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
     private void RedirectBtLinkSixToNextScreen(String selSSID) {
 
         BTLinkReGainConnection(5);
-        Constants.PERSONNEL_PIN_FS2 = "";
+        Constants.PERSONNEL_PIN_FS6 = "";
         tvSSIDName.setText(selSSID);
         AppConstants.FS6_CONNECTED_SSID = selSSID;
         Constants.CURRENT_SELECTED_HOSE = "FS6";
@@ -15889,6 +15916,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
     public void LinkUpgradeFunctionality(String linkType, int linkPosition, String btLinkCommType) {
         try {
+            versionNumberOfLink = "";
             if (AppConstants.UP_UPGRADE && !AppConstants.IS_TEST_TRANSACTION) {
                 btnGo.setClickable(false);
                 if (linkType.equalsIgnoreCase("BT")) {
@@ -15896,15 +15924,16 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 }
                 new FirmwareFileCheckAndDownload().execute(linkType, String.valueOf(linkPosition), btLinkCommType);
             } else {
-                ContinueToTheTransaction();
+                ContinueToTheTransaction(linkType, linkPosition, btLinkCommType);
             }
         } catch (Exception ex) {
-            ex.printStackTrace();
-            ContinueToTheTransaction();
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + "LinkUpgradeFunctionality Exception:>> " + ex.getMessage() + "; LinkType: " + linkType + "; LinkPosition: " + linkPosition + "; BTLinkCommType: " + btLinkCommType);
+            ContinueToTheTransaction(linkType, linkPosition, btLinkCommType);
         }
     }
 
-    private void ContinueToTheTransaction() {
+    private void ContinueToTheTransaction(String linkType, int linkPosition, String btLinkCommType) {
         AppConstants.IS_BT_LINK_UPGRADE_IN_PROGRESS = false;
         if (isBroadcastReceiverRegistered) {
             isBroadcastReceiverRegistered = false;
@@ -15915,7 +15944,645 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 pdUpgradeProcess.dismiss();
             }
         }
+
+        // Check for the p_type before continue to the transaction
+        if (linkType.equalsIgnoreCase("BT")) {
+            String isResetSwitchTimeBounce = serverSSIDList.get(linkPosition).get("IsResetSwitchTimeBounce");
+            String pulserTimingAdjust = serverSSIDList.get(linkPosition).get("PulserTimingAdjust");
+
+            if (isResetSwitchTimeBounce.trim().equalsIgnoreCase("1") && !pulserTimingAdjust.isEmpty() && Arrays.asList(BTConstants.P_TYPES).contains(pulserTimingAdjust) && !CommonUtils.CheckDataStoredInSharedPref(WelcomeActivity.this, "storeSwitchTimeBounceFlag" + (linkPosition + 1))) {
+                if (versionNumberOfLink.isEmpty()) {
+                    // Send info command and get version number of the LINK
+                    if (btLinkCommType.equalsIgnoreCase("SPP")) {
+                        RegisterBTReceiver(linkPosition);
+                        checkBTSPPLinkStatus(linkPosition, "info");
+                    } else {
+                        startBTBLEServicesAndRegisterReceiver(linkPosition);
+                        try {
+                            Thread.sleep(2000);
+                        } catch (Exception e) { e.printStackTrace(); }
+                        checkBTBLELinkStatus(linkPosition, "info");
+                    }
+                } else {
+                    if (CommonUtils.checkBTVersionCompatibility(versionNumberOfLink, BTConstants.SUPPORTED_LINK_VERSION_FOR_P_TYPE)) { // Set P_Type command supported from this version onwards
+                        if (btLinkCommType.equalsIgnoreCase("SPP")) {
+                            RegisterBTReceiver(linkPosition);
+                            checkBTSPPLinkStatus(linkPosition, "ptype");
+                        } else {
+                            startBTBLEServicesAndRegisterReceiver(linkPosition);
+                            try {
+                                Thread.sleep(2000);
+                            } catch (Exception e) { e.printStackTrace(); }
+                            checkBTBLELinkStatus(linkPosition, "ptype");
+                        }
+                    } else {
+                        proceedToTransaction();
+                    }
+                }
+            } else {
+                proceedToTransaction();
+            }
+        } else {
+            proceedToTransaction();
+        }
+    }
+
+    private void proceedToTransaction() {
+        if (isBroadcastReceiverRegistered) {
+            isBroadcastReceiverRegistered = false;
+            UnregisterReceiver();
+        }
+        if (pdUpgradeProcess != null) {
+            if (pdUpgradeProcess.isShowing()) {
+                pdUpgradeProcess.dismiss();
+            }
+        }
         goButtonAction(null);
+    }
+
+    //region "PType - SPP"
+    private void checkBTSPPLinkStatus(int linkPosition, String nextCommand) {
+        try {
+            ShowUpgradeProcessLoader(getResources().getString(R.string.PleaseWaitSeveralSeconds));
+            new CountDownTimer(10000, 2000) {
+                public void onTick(long millisUntilFinished) {
+                    if (getBTStatusStr(linkPosition).equalsIgnoreCase("Connected")) {
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(TAG + getBTLinkIndexByPosition(linkPosition) + " Link is connected.");
+                        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (nextCommand.equalsIgnoreCase("info")) {
+                                    infoCommandBeforePType(linkPosition);
+                                } else {
+                                    pTypeCommand(linkPosition);
+                                }
+                            }
+                        }, 1000);
+                        cancel();
+                    } else {
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(TAG + getBTLinkIndexByPosition(linkPosition) + " Checking Connection Status...");
+                    }
+                }
+
+                public void onFinish() {
+                    if (getBTStatusStr(linkPosition).equalsIgnoreCase("Connected")) {
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(TAG + getBTLinkIndexByPosition(linkPosition) + " Link is connected.");
+                        RegisterBTReceiver(linkPosition);
+                        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (nextCommand.equalsIgnoreCase("info")) {
+                                    infoCommandBeforePType(linkPosition);
+                                } else {
+                                    pTypeCommand(linkPosition);
+                                }
+                            }
+                        }, 1000);
+                    } else {
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(TAG + getBTLinkIndexByPosition(linkPosition) + " Link not connected.");
+                        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                proceedToTransaction();
+                            }
+                        }, 100);
+                    }
+                }
+            }.start();
+        } catch (Exception e) {
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + getBTLinkIndexByPosition(linkPosition) + " checkBTBLELinkStatus Exception:>>" + e.getMessage());
+            proceedToTransaction();
+        }
+    }
+
+    private void infoCommandBeforePType(int linkPosition) {
+        try {
+            //Execute info command before p_type to get link version
+            upRequest = "";
+            upResponse = "";
+            String linkName = "";
+            if (serverSSIDList != null && serverSSIDList.size() > 0) {
+                linkName = serverSSIDList.get(linkPosition).get("WifiSSId");
+            }
+            versionNumberOfLink = "";
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + getBTLinkIndexByPosition(linkPosition) + " Sending Info command (before p_type) to Link: " + linkName);
+            SendBTCommands(linkPosition, BTConstants.INFO_COMMAND);
+
+            new CountDownTimer(5000, 1000) {
+                public void onTick(long millisUntilFinished) {
+                    long attempt = (5 - (millisUntilFinished / 1000));
+                    if (attempt > 0) {
+                        if (upRequest.equalsIgnoreCase(BTConstants.INFO_COMMAND) && !upResponse.equalsIgnoreCase("")) {
+                            boolean proceedToPType = false;
+                            //Info command (before p_type) success.
+                            if (upResponse.contains("mac_address")) {
+                                if (AppConstants.GENERATE_LOGS)
+                                    AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Checking Info command response (before p_type). Response: true");
+
+                                try {
+                                    String versionFromLink = "";
+                                    JSONObject jsonObject = new JSONObject(upResponse.trim());
+                                    JSONObject versionJsonObj = jsonObject.getJSONObject("version");
+                                    versionFromLink = versionJsonObj.getString("version");
+                                    if (AppConstants.GENERATE_LOGS)
+                                        AppConstants.writeInFile(TAG + getBTLinkIndexByPosition(linkPosition) + " LINK Version (Before p_type) >> " + versionFromLink);
+                                    versionNumberOfLink = CommonUtils.getVersionFromLink(versionFromLink);
+                                } catch (Exception e) {
+                                    if (AppConstants.GENERATE_LOGS)
+                                        AppConstants.writeInFile(TAG + getBTLinkIndexByPosition(linkPosition) + " getVersionFromLinkResponse (Before p_type) Exception:>>" + e.getMessage());
+                                }
+                                upResponse = "";
+
+                                if (CommonUtils.checkBTVersionCompatibility(versionNumberOfLink, BTConstants.SUPPORTED_LINK_VERSION_FOR_P_TYPE)) { // Set P_Type command supported from this version onwards
+                                    proceedToPType = true;
+                                }
+                            }
+
+                            if (proceedToPType) {
+                                new Handler().postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        pTypeCommand(linkPosition);
+                                    }
+                                }, 1000);
+                            } else {
+                                new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        if (AppConstants.GENERATE_LOGS)
+                                            AppConstants.writeInFile(TAG + getBTLinkIndexByPosition(linkPosition) + " VersionNumberOfLink: " + versionNumberOfLink);
+                                        proceedToTransaction();
+                                    }
+                                }, 100);
+                            }
+                            cancel();
+                        } else {
+                            if (AppConstants.GENERATE_LOGS)
+                                AppConstants.writeInFile(TAG + getBTLinkIndexByPosition(linkPosition) + " Checking Info command response. Response: false");
+                        }
+                    }
+                }
+
+                public void onFinish() {
+                    if (upRequest.equalsIgnoreCase(BTConstants.INFO_COMMAND) && !upResponse.equalsIgnoreCase("")) {
+                        boolean proceedToPType = false;
+                        //Info command (before p_type) success.
+                        if (upResponse.contains("mac_address")) {
+                            if (AppConstants.GENERATE_LOGS)
+                                AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Checking Info command response (before p_type). Response: true");
+
+                            try {
+                                String versionFromLink = "";
+                                JSONObject jsonObject = new JSONObject(upResponse.trim());
+                                JSONObject versionJsonObj = jsonObject.getJSONObject("version");
+                                versionFromLink = versionJsonObj.getString("version");
+                                if (AppConstants.GENERATE_LOGS)
+                                    AppConstants.writeInFile(TAG + getBTLinkIndexByPosition(linkPosition) + " LINK Version (Before p_type) >> " + versionFromLink);
+                                versionNumberOfLink = CommonUtils.getVersionFromLink(versionFromLink);
+                            } catch (Exception e) {
+                                if (AppConstants.GENERATE_LOGS)
+                                    AppConstants.writeInFile(TAG + getBTLinkIndexByPosition(linkPosition) + " getVersionFromLinkResponse (Before p_type) Exception:>>" + e.getMessage());
+                            }
+                            upResponse = "";
+
+                            if (CommonUtils.checkBTVersionCompatibility(versionNumberOfLink, BTConstants.SUPPORTED_LINK_VERSION_FOR_P_TYPE)) { // Set P_Type command supported from this version onwards
+                                proceedToPType = true;
+                            }
+                        }
+
+                        if (proceedToPType) {
+                            new Handler().postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    pTypeCommand(linkPosition);
+                                }
+                            }, 1000);
+                        } else {
+                            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    if (AppConstants.GENERATE_LOGS)
+                                        AppConstants.writeInFile(TAG + getBTLinkIndexByPosition(linkPosition) + " VersionNumberOfLink: " + versionNumberOfLink);
+                                    proceedToTransaction();
+                                }
+                            }, 100);
+                        }
+                    } else {
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(TAG + getBTLinkIndexByPosition(linkPosition) + " Checking Info command response (before p_type). Response: false.");
+                        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                proceedToTransaction();
+                            }
+                        }, 100);
+                    }
+                }
+            }.start();
+        } catch (Exception ex) {
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + getBTLinkIndexByPosition(linkPosition) + " infoCommandBeforePType Exception:>> " + ex.getMessage() + "; LinkPosition: " + linkPosition);
+            proceedToTransaction();
+        }
+    }
+
+    private void pTypeCommand(int linkPosition) {
+        try {
+            //Execute p_type Command
+            String linkName = "";
+            String pulserTimingAdjust = "";
+            if (serverSSIDList != null && serverSSIDList.size() > 0) {
+                linkName = serverSSIDList.get(linkPosition).get("WifiSSId");
+                pulserTimingAdjust = serverSSIDList.get(linkPosition).get("PulserTimingAdjust");
+            }
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + getBTLinkIndexByPosition(linkPosition) + " Sending p_type (" + pulserTimingAdjust + ") command to Link: " + linkName);
+            SendBTCommands(linkPosition, BTConstants.P_TYPE_COMMAND + pulserTimingAdjust);
+
+            new CountDownTimer(4000, 1000) {
+                public void onTick(long millisUntilFinished) {
+                    long attempt = (4 - (millisUntilFinished / 1000));
+                    if (attempt > 0) {
+                        if (upRequest.contains(BTConstants.P_TYPE_COMMAND) && upResponse.contains("pulser_type")) {
+                            if (AppConstants.GENERATE_LOGS)
+                                AppConstants.writeInFile(TAG + getBTLinkIndexByPosition(linkPosition) + " Checking set p_type command response:>> " + upResponse);
+                            updateSwitchTimeBounceForLink(linkPosition);
+                            proceedToTransaction(); // set p_type command success
+                            cancel();
+                        } else {
+                            if (AppConstants.GENERATE_LOGS)
+                                AppConstants.writeInFile(TAG + getBTLinkIndexByPosition(linkPosition) + " Checking set p_type command response. Response: false");
+                        }
+                    }
+                }
+
+                public void onFinish() {
+                    if (upRequest.contains(BTConstants.P_TYPE_COMMAND) && upResponse.contains("pulser_type")) {
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(TAG + getBTLinkIndexByPosition(linkPosition) + " Checking set p_type command response:>> " + upResponse);
+                        updateSwitchTimeBounceForLink(linkPosition);
+                    }
+                    proceedToTransaction(); // set p_type command finish
+                }
+            }.start();
+        } catch (Exception ex) {
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + getBTLinkIndexByPosition(linkPosition) + " pTypeCommand Exception:>> " + ex.getMessage() + "; LinkPosition: " + linkPosition);
+            proceedToTransaction();
+        }
+    }
+    //endregion
+
+    //region "PType - BLE"
+    private void checkBTBLELinkStatus(int linkPosition, String nextCommand) {
+        try {
+            ShowUpgradeProcessLoader(getResources().getString(R.string.PleaseWaitSeveralSeconds));
+            new CountDownTimer(10000, 2000) {
+                public void onTick(long millisUntilFinished) {
+                    if (getBTBLELinkStatusStrByPosition(linkPosition).equalsIgnoreCase("Connected") && getBTBLELinkNotifyFlagByPosition(linkPosition)) {
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(TAG + getBTBLELinkIndexByPosition(linkPosition) + " Link is connected.");
+                        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (nextCommand.equalsIgnoreCase("info")) {
+                                    infoCommandBeforePTypeBLE(linkPosition);
+                                } else {
+                                    pTypeCommandBLE(linkPosition);
+                                }
+                            }
+                        }, 1000);
+                        cancel();
+                    } else {
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(TAG + getBTBLELinkIndexByPosition(linkPosition) + " Checking Connection Status...");
+                    }
+                }
+
+                public void onFinish() {
+                    if (getBTBLELinkStatusStrByPosition(linkPosition).equalsIgnoreCase("Connected")) {
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(TAG + getBTBLELinkIndexByPosition(linkPosition) + " Link is connected.");
+                        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (nextCommand.equalsIgnoreCase("info")) {
+                                    infoCommandBeforePTypeBLE(linkPosition);
+                                } else {
+                                    pTypeCommandBLE(linkPosition);
+                                }
+                            }
+                        }, 1000);
+                    } else {
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(TAG + getBTBLELinkIndexByPosition(linkPosition) + " Link not connected.");
+                        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                unbindBTBLEServicesAndUnregisterReceiver(linkPosition);
+                                proceedToTransaction();
+                            }
+                        }, 100);
+                    }
+                }
+            }.start();
+        } catch (Exception e) {
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + getBTBLELinkIndexByPosition(linkPosition) + " checkBTBLELinkStatus Exception:>>" + e.getMessage());
+            unbindBTBLEServicesAndUnregisterReceiver(linkPosition);
+            proceedToTransaction();
+        }
+    }
+
+    private void infoCommandBeforePTypeBLE(int linkPosition) {
+        try {
+            //Execute info command before p_type to get link version
+            String linkName = "";
+            if (serverSSIDList != null && serverSSIDList.size() > 0) {
+                linkName = serverSSIDList.get(linkPosition).get("WifiSSId");
+            }
+            versionNumberOfLink = "";
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + getBTBLELinkIndexByPosition(linkPosition) + " Sending Info command (before p_type) to Link: " + linkName);
+            SendBTBLECommandsByPosition(linkPosition, BTConstants.INFO_COMMAND);
+
+            new CountDownTimer(5000, 1000) {
+                public void onTick(long millisUntilFinished) {
+                    long attempt = (5 - (millisUntilFinished / 1000));
+                    if (attempt > 0) {
+                        if (BLE_Request.equalsIgnoreCase(BTConstants.INFO_COMMAND) && !BLE_Response.equalsIgnoreCase("")) {
+                            boolean proceedToPType = false;
+                            //Info command (before p_type) success.
+                            if (BLE_Response.contains("mac_address")) {
+                                if (AppConstants.GENERATE_LOGS)
+                                    AppConstants.writeInFile(TAG + getBTBLELinkIndexByPosition(linkPosition) + " Checking Info command response (before p_type). Response: true");
+
+                                try {
+                                    String versionFromLink = "";
+                                    JSONObject jsonObject = new JSONObject(BLE_Response.trim());
+                                    JSONObject versionJsonObj = jsonObject.getJSONObject("version");
+                                    versionFromLink = versionJsonObj.getString("version");
+                                    if (AppConstants.GENERATE_LOGS)
+                                        AppConstants.writeInFile(TAG + getBTBLELinkIndexByPosition(linkPosition) + " LINK Version (Before p_type) >> " + versionFromLink);
+                                    versionNumberOfLink = CommonUtils.getVersionFromLink(versionFromLink);
+                                } catch (Exception e) {
+                                    if (AppConstants.GENERATE_LOGS)
+                                        AppConstants.writeInFile(TAG + getBTBLELinkIndexByPosition(linkPosition) + " getVersionFromBLELinkResponse (Before p_type) Exception:>>" + e.getMessage());
+                                }
+                                BLE_Response = "";
+
+                                if (CommonUtils.checkBTVersionCompatibility(versionNumberOfLink, BTConstants.SUPPORTED_LINK_VERSION_FOR_P_TYPE)) { // Set P_Type command supported from this version onwards
+                                    proceedToPType = true;
+                                }
+                            }
+
+                            if (proceedToPType) {
+                                new Handler().postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        pTypeCommandBLE(linkPosition);
+                                    }
+                                }, 1000);
+                            } else {
+                                new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        if (AppConstants.GENERATE_LOGS)
+                                            AppConstants.writeInFile(TAG + getBTBLELinkIndexByPosition(linkPosition) + " VersionNumberOfLink: " + versionNumberOfLink);
+                                        unbindBTBLEServicesAndUnregisterReceiver(linkPosition);
+                                        proceedToTransaction();
+                                    }
+                                }, 100);
+                            }
+                            cancel();
+                        } else {
+                            if (AppConstants.GENERATE_LOGS)
+                                AppConstants.writeInFile(TAG + getBTBLELinkIndexByPosition(linkPosition) + " Checking Info command response. Response: false");
+                        }
+                    }
+                }
+
+                public void onFinish() {
+                    if (BLE_Request.equalsIgnoreCase(BTConstants.INFO_COMMAND) && !BLE_Response.equalsIgnoreCase("")) {
+                        boolean proceedToPType = false;
+                        //Info command (before p_type) success.
+                        if (BLE_Response.contains("mac_address")) {
+                            if (AppConstants.GENERATE_LOGS)
+                                AppConstants.writeInFile(TAG + getBTBLELinkIndexByPosition(linkPosition) + " Checking Info command response (before p_type). Response: true");
+
+                            try {
+                                String versionFromLink = "";
+                                JSONObject jsonObject = new JSONObject(BLE_Response.trim());
+                                JSONObject versionJsonObj = jsonObject.getJSONObject("version");
+                                versionFromLink = versionJsonObj.getString("version");
+                                if (AppConstants.GENERATE_LOGS)
+                                    AppConstants.writeInFile(TAG + getBTBLELinkIndexByPosition(linkPosition) + " LINK Version (Before p_type) >> " + versionFromLink);
+                                versionNumberOfLink = CommonUtils.getVersionFromLink(versionFromLink);
+                            } catch (Exception e) {
+                                if (AppConstants.GENERATE_LOGS)
+                                    AppConstants.writeInFile(TAG + getBTBLELinkIndexByPosition(linkPosition) + " getVersionFromBLELinkResponse (Before p_type) Exception:>>" + e.getMessage());
+                            }
+                            BLE_Response = "";
+
+                            if (CommonUtils.checkBTVersionCompatibility(versionNumberOfLink, BTConstants.SUPPORTED_LINK_VERSION_FOR_P_TYPE)) { // Set P_Type command supported from this version onwards
+                                proceedToPType = true;
+                            }
+                        }
+
+                        if (proceedToPType) {
+                            new Handler().postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    pTypeCommandBLE(linkPosition);
+                                }
+                            }, 1000);
+                        } else {
+                            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    if (AppConstants.GENERATE_LOGS)
+                                        AppConstants.writeInFile(TAG + getBTBLELinkIndexByPosition(linkPosition) + " VersionNumberOfLink: " + versionNumberOfLink);
+                                    unbindBTBLEServicesAndUnregisterReceiver(linkPosition);
+                                    proceedToTransaction();
+                                }
+                            }, 100);
+                        }
+                    } else {
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(TAG + getBTBLELinkIndexByPosition(linkPosition) + " Checking Info command response (before p_type). Response: false.");
+                        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                unbindBTBLEServicesAndUnregisterReceiver(linkPosition);
+                                proceedToTransaction();
+                            }
+                        }, 100);
+                    }
+                }
+            }.start();
+        } catch (Exception ex) {
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + getBTBLELinkIndexByPosition(linkPosition) + " infoCommandBeforePTypeBLE Exception:>> " + ex.getMessage() + "; LinkPosition: " + linkPosition);
+            unbindBTBLEServicesAndUnregisterReceiver(linkPosition);
+            proceedToTransaction();
+        }
+    }
+
+    private void pTypeCommandBLE(int linkPosition) {
+        try {
+            //Execute p_type Command
+            String linkName = "";
+            String pulserTimingAdjust = "";
+            if (serverSSIDList != null && serverSSIDList.size() > 0) {
+                linkName = serverSSIDList.get(linkPosition).get("WifiSSId");
+                pulserTimingAdjust = serverSSIDList.get(linkPosition).get("PulserTimingAdjust");
+            }
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + getBTBLELinkIndexByPosition(linkPosition) + " Sending p_type (" + pulserTimingAdjust + ") command to Link: " + linkName);
+            SendBTBLECommandsByPosition(linkPosition, BTConstants.P_TYPE_COMMAND + pulserTimingAdjust);
+
+            new CountDownTimer(4000, 1000) {
+                public void onTick(long millisUntilFinished) {
+                    long attempt = (4 - (millisUntilFinished / 1000));
+                    if (attempt > 0) {
+                        if (BLE_Request.contains(BTConstants.P_TYPE_COMMAND) && BLE_Response.contains("pulser_type")) {
+                            if (AppConstants.GENERATE_LOGS)
+                                AppConstants.writeInFile(TAG + getBTBLELinkIndexByPosition(linkPosition) + " Checking set p_type command response:>> " + BLE_Response);
+                            updateSwitchTimeBounceForLink(linkPosition);
+                            unbindBTBLEServicesAndUnregisterReceiver(linkPosition);
+                            proceedToTransaction(); // set p_type command success
+                            cancel();
+                        } else {
+                            if (AppConstants.GENERATE_LOGS)
+                                AppConstants.writeInFile(TAG + getBTBLELinkIndexByPosition(linkPosition) + " Checking set p_type command response. Response: false");
+                        }
+                    }
+                }
+
+                public void onFinish() {
+                    if (BLE_Request.contains(BTConstants.P_TYPE_COMMAND) && BLE_Response.contains("pulser_type")) {
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(TAG + getBTBLELinkIndexByPosition(linkPosition) + " Checking set p_type command response:>> " + BLE_Response);
+                        updateSwitchTimeBounceForLink(linkPosition);
+                    }
+                    unbindBTBLEServicesAndUnregisterReceiver(linkPosition);
+                    proceedToTransaction(); // set p_type command finish
+                }
+            }.start();
+        } catch (Exception ex) {
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + getBTBLELinkIndexByPosition(linkPosition) + " pTypeCommandBLE Exception:>> " + ex.getMessage() + "; LinkPosition: " + linkPosition);
+            unbindBTBLEServicesAndUnregisterReceiver(linkPosition);
+            proceedToTransaction();
+        }
+    }
+    //endregion
+
+    private void updateSwitchTimeBounceForLink(int linkPosition) {
+        try {
+            String siteId = "", sharedPrefName = "";
+            switch (linkPosition) {
+                case 0://Link 1
+                    siteId = BTConstants.BT1SITE_ID;
+                    sharedPrefName = "storeSwitchTimeBounceFlag1";
+                    break;
+                case 1://Link 2
+                    siteId = BTConstants.BT2SITE_ID;
+                    sharedPrefName = "storeSwitchTimeBounceFlag2";
+                    break;
+                case 2://Link 3
+                    siteId = BTConstants.BT3SITE_ID;
+                    sharedPrefName = "storeSwitchTimeBounceFlag3";
+                    break;
+                case 3://Link 4
+                    siteId = BTConstants.BT4SITE_ID;
+                    sharedPrefName = "storeSwitchTimeBounceFlag4";
+                    break;
+                case 4://Link 5
+                    siteId = BTConstants.BT5SITE_ID;
+                    sharedPrefName = "storeSwitchTimeBounceFlag5";
+                    break;
+                case 5://Link 6
+                    siteId = BTConstants.BT6SITE_ID;
+                    sharedPrefName = "storeSwitchTimeBounceFlag6";
+                    break;
+            }
+
+            if (!siteId.trim().isEmpty()) {
+                String userEmail = CommonUtils.getCustomerDetails(WelcomeActivity.this).PersonEmail;
+
+                String authString = "Basic " + AppConstants.convertStingToBase64(AppConstants.getIMEI(WelcomeActivity.this) + ":" + userEmail + ":" + "UpdateSwitchTimeBounceForLink" + AppConstants.LANG_PARAM);
+
+                SwitchTimeBounce switchTimeBounce = new SwitchTimeBounce();
+                switchTimeBounce.SiteId = siteId;
+                switchTimeBounce.IsResetSwitchTimeBounce = "0";
+
+                Gson gson = new Gson();
+                String jsonData = gson.toJson(switchTimeBounce);
+
+                SharedPreferences sharedPref = this.getSharedPreferences(sharedPrefName, Context.MODE_PRIVATE);
+                SharedPreferences.Editor editor = sharedPref.edit();
+                editor.putString("jsonData", jsonData);
+                editor.putString("authString", authString);
+                editor.commit();
+
+                if (cd.isConnectingToInternet() && AppConstants.NETWORK_STRENGTH) {
+                    new SetSwitchTimeBounceFlag().execute(jsonData, authString, sharedPrefName);
+                }
+            } else {
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(TAG + "updateSwitchTimeBounceForLink Failed (SiteId is empty). ; LinkPosition: " + linkPosition);
+            }
+        } catch (Exception ex) {
+            if (AppConstants.GENERATE_LOGS)
+                AppConstants.writeInFile(TAG + "updateSwitchTimeBounceForLink Exception:>> " + ex.getMessage() + "; LinkPosition: " + linkPosition);
+        }
+    }
+
+    public class SetSwitchTimeBounceFlag extends AsyncTask<String, Void, String> {
+        String prefName = "";
+        protected String doInBackground(String... param) {
+            String resp = "";
+            prefName = param[2];
+
+            try {
+                OkHttpClient client = new OkHttpClient();
+                MediaType TEXT = MediaType.parse("application/text;charset=UTF-8");
+
+                RequestBody body = RequestBody.create(TEXT, param[0]);
+                Request request = new Request.Builder()
+                        .url(AppConstants.WEB_URL)
+                        .post(body)
+                        .addHeader("Authorization", param[1])
+                        .build();
+
+                Response response = client.newCall(request).execute();
+                resp = response.body().string();
+            } catch (Exception e) {
+                Log.d("Ex", e.getMessage());
+            }
+            return resp;
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            try {
+                if (result.contains("success") && !prefName.isEmpty()) {
+                    SharedPreferences preferences = getSharedPreferences(prefName, Context.MODE_PRIVATE);
+                    SharedPreferences.Editor editor = preferences.edit();
+                    editor.clear();
+                    editor.commit();
+                }
+            } catch (Exception e) {
+                System.out.println("onPostExecute" + e);
+            }
+        }
     }
 
     public class FirmwareFileCheckAndDownload extends AsyncTask<String, Void, Boolean> {
@@ -16021,14 +16688,13 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     } else {
                         if (AppConstants.GENERATE_LOGS)
                             AppConstants.writeInFile(logUpgrade + "-" + TAG + "Link upgrade File path null. Upgrade process skipped.");
-                        ContinueToTheTransaction();
+                        ContinueToTheTransaction(linkType, linkPosition, btLinkCommType);
                     }
                 }
             } catch (Exception ex) {
-                ex.printStackTrace();
                 if (AppConstants.GENERATE_LOGS)
                     AppConstants.writeInFile(logUpgrade + "-" + TAG + "FirmwareFileCheckAndDownload Exception:>>" + ex.getMessage() + "; Upgrade process skipped.");
-                ContinueToTheTransaction();
+                ContinueToTheTransaction(linkType, linkPosition, btLinkCommType);
             }
         }
     }
@@ -16072,7 +16738,86 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                             AppConstants.writeInFile(TAG + "Error occurred while getting size of the file. Exception is: " + e.getMessage());
                     }
 
-                    ThinDownloadManager downloadManager = new ThinDownloadManager();
+                    fileDownloadHandler.removeCallbacks(progressRunnable);
+
+                    fileDownloadManager = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
+
+                    Uri downloadUri = Uri.parse(downloadUrl);
+                    File file = new File(filePath + "/" + fileName);
+                    Uri destinationUri = Uri.fromFile(file);
+
+                    DownloadManager.Request request = new DownloadManager.Request(downloadUri);
+                    request.setTitle("Downloading " + fileName);
+                    request.setDescription("Please wait...");
+                    request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE);
+                    request.setDestinationUri(destinationUri);
+
+                    long downloadId = fileDownloadManager.enqueue(request);
+
+                    progressRunnable = new Runnable() {
+                        @Override
+                        public void run() {
+                            DownloadManager.Query query = new DownloadManager.Query();
+                            query.setFilterById(downloadId);
+                            Cursor cursor = fileDownloadManager.query(query);
+                            if (cursor != null && cursor.moveToFirst()) {
+                                int bytesDownloaded = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR));
+                                int bytesTotal = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES));
+                                int status = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS));
+                                String errorMessage = cursor.getString(cursor.getColumnIndex(DownloadManager.COLUMN_REASON));
+
+                                if (bytesTotal > 0) {
+                                    int progress = (int) ((bytesDownloaded * 100L) / bytesTotal);
+                                    downloadedFileProgress = progress;
+                                    downloadedFileLength = bytesDownloaded;
+                                    runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            if (pdUpgradeFileDownloadProcess != null) {
+                                                if (pdUpgradeFileDownloadProcess.isShowing()) {
+                                                    pdUpgradeFileDownloadProcess.setProgress(progress);
+                                                }
+                                            }
+                                        }
+                                    });
+                                }
+
+                                if (status == DownloadManager.STATUS_FAILED) {
+                                    if (AppConstants.GENERATE_LOGS)
+                                        AppConstants.writeInFile(TAG + "<Download Failed. Size of the downloaded file: " + downloadedFileLength + "; Error: " + errorMessage + ">");
+                                    runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                                                proceedAfterDownload(filePath, fileName, linkType, linkPosition, btLinkCommType);
+                                            }, 2000);
+                                        }
+                                    });
+                                    cursor.close();
+                                    return;
+                                } else if (status == DownloadManager.STATUS_SUCCESSFUL) {
+                                    if (AppConstants.GENERATE_LOGS)
+                                        AppConstants.writeInFile(TAG + "<Download Complete. Size of the downloaded file: " + downloadedFileLength + ">");
+                                    runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                                                proceedAfterDownload(filePath, fileName, linkType, linkPosition, btLinkCommType);
+                                            }, 2000);
+                                        }
+                                    });
+                                    cursor.close();
+                                    return;
+                                }
+
+                                cursor.close();
+                                fileDownloadHandler.postDelayed(this, 1000); // repeat every 1s
+                            }
+                        }
+                    };
+                    fileDownloadHandler.post(progressRunnable);
+
+                    /*ThinDownloadManager downloadManager = new ThinDownloadManager();
                     Uri downloadUri = Uri.parse(downloadUrl);
                     Uri destinationUri = Uri.parse(filePath + "/" + fileName);
                     DownloadRequest downloadRequest = new DownloadRequest(downloadUri)
@@ -16087,7 +16832,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                     runOnUiThread(new Runnable() {
                                         @Override
                                         public void run() {
-                                            ProceedAfterDownload(filePath, fileName, linkType, linkPosition, btLinkCommType);
+                                            proceedAfterDownload(filePath, fileName, linkType, linkPosition, btLinkCommType);
                                         }
                                     });
                                 }
@@ -16099,7 +16844,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                     runOnUiThread(new Runnable() {
                                         @Override
                                         public void run() {
-                                            ProceedAfterDownload(filePath, fileName, linkType, linkPosition, btLinkCommType);
+                                            proceedAfterDownload(filePath, fileName, linkType, linkPosition, btLinkCommType);
                                         }
                                     });
                                 }
@@ -16120,7 +16865,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                     });
                                 }
                             });
-                    int downloadId = downloadManager.add(downloadRequest);
+                    int downloadId = downloadManager.add(downloadRequest);*/
                 } catch (Exception e) {
                     Log.e("Error: ", e.getMessage());
                     if (AppConstants.GENERATE_LOGS)
@@ -16128,7 +16873,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            ProceedAfterDownload(filePath, fileName, linkType, linkPosition, btLinkCommType);
+                            proceedAfterDownload(filePath, fileName, linkType, linkPosition, btLinkCommType);
                         }
                     });
                 }
@@ -16136,7 +16881,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         }).start();
     }
 
-    private void ProceedAfterDownload(String filePath, String fileName, String linkType, int linkPosition, String btLinkCommType) {
+    private void proceedAfterDownload(String filePath, String fileName, String linkType, int linkPosition, String btLinkCommType) {
         try {
             if (pdUpgradeFileDownloadProcess != null) {
                 if (pdUpgradeFileDownloadProcess.isShowing()) {
@@ -16144,7 +16889,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 }
             }
             if (downloadedFileLength < lengthOfFile || lengthOfFile == 0) {
-                DeleteDownloadedFileAndContinueToTxn(filePath, fileName);
+                DeleteDownloadedFileAndContinueToTxn(filePath, fileName, linkType, linkPosition, btLinkCommType);
             } else {
                 new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                     @Override
@@ -16168,9 +16913,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 }, 100);
             }
         } catch (Exception e) {
-            Log.e("Error: ", e.getMessage());
             if (AppConstants.GENERATE_LOGS)
-                AppConstants.writeInFile(TAG + "ProceedAfterDownload Exception: " + e.getMessage());
+                AppConstants.writeInFile(TAG + "proceedAfterDownload Exception: " + e.getMessage());
         }
     }
 
@@ -16289,7 +17033,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         }
     }*/
 
-    private void DeleteDownloadedFileAndContinueToTxn(String filePath, String fileName) {
+    private void DeleteDownloadedFileAndContinueToTxn(String filePath, String fileName, String linkType, int linkPosition, String btLinkCommType) {
         try {
             File binFileFolder = new File(filePath);
             if (!binFileFolder.exists()) binFileFolder.mkdirs();
@@ -16300,7 +17044,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             }
             if (AppConstants.GENERATE_LOGS)
                 AppConstants.writeInFile(TAG + "The complete file was not downloaded. Upgrade process skipped.");
-            ContinueToTheTransaction();
+            ContinueToTheTransaction(linkType, linkPosition, btLinkCommType);
         } catch (Exception e) {
             if (AppConstants.GENERATE_LOGS)
                 AppConstants.writeInFile(TAG + "DeleteDownloadedFileAndContinueToTxn Exception:>>" + e.getMessage());
@@ -16313,9 +17057,9 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         try {
             ShowUpgradeProcessLoader(getResources().getString(R.string.PleaseWaitSeveralSeconds));
 
-            String LinkName = "", selMacAddress = "";
+            String linkName = "", selMacAddress = "";
             if (serverSSIDList != null && serverSSIDList.size() > 0) {
-                LinkName = serverSSIDList.get(linkPosition).get("WifiSSId");
+                linkName = serverSSIDList.get(linkPosition).get("WifiSSId");
                 selMacAddress = serverSSIDList.get(linkPosition).get("MacAddress");
             }
             String ipAddress = "";
@@ -16326,7 +17070,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
                     if (selMacAddress.equalsIgnoreCase(MA_ConnectedDevices)) {
                         if (AppConstants.GENERATE_LOGS)
-                            AppConstants.writeInFile(AppConstants.LOG_UPGRADE_HTTP + "-" + TAG + "Selected LINK (" + LinkName + " <==> " + selMacAddress + ") is connected to hotspot.");
+                            AppConstants.writeInFile(AppConstants.LOG_UPGRADE_HTTP + "-" + TAG + "Selected LINK (" + linkName + " <==> " + selMacAddress + ") is connected to hotspot.");
                         ipAddress = AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.get(i).get("ipAddress");
                         isMacConnected = true;
                         break;
@@ -16336,7 +17080,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
             if (!isMacConnected) {
                 if (AppConstants.GENERATE_LOGS)
-                    AppConstants.writeInFile(AppConstants.LOG_UPGRADE_HTTP + "-" + TAG + "Selected LINK (" + LinkName + " <==> " + selMacAddress + ") is not found in connected devices. " + AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES);
+                    AppConstants.writeInFile(AppConstants.LOG_UPGRADE_HTTP + "-" + TAG + "Selected LINK (" + linkName + " <==> " + selMacAddress + ") is not found in connected devices. " + AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES);
 
                 if (AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES != null) {
                     for (int i = 0; i < AppConstants.DETAILS_LIST_OF_CONNECTED_DEVICES.size(); i++) {
@@ -16360,11 +17104,11 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
             if (!ipAddress.trim().isEmpty()) {
                 linkPositionForUpgrade = linkPosition;
-                HTTPLinkUpgradeFunctionality(LinkName, ipAddress);
+                HTTPLinkUpgradeFunctionality(linkName, linkPosition, ipAddress);
             } else {
                 if (AppConstants.GENERATE_LOGS)
                     AppConstants.writeInFile(TAG + "Upgrade process skipped.");
-                ContinueToTheTransaction();
+                ContinueToTheTransaction("HTTP", linkPosition, "");
             }
 
         } catch (Exception e) {
@@ -16375,10 +17119,11 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             }
             if (AppConstants.GENERATE_LOGS)
                 AppConstants.writeInFile(AppConstants.LOG_UPGRADE_HTTP + "-" + TAG + "CheckHTTPLinkStatusForUpgrade Exception:>>" + e.getMessage());
+            ContinueToTheTransaction("HTTP", linkPosition, "");
         }
     }
 
-    private void HTTPLinkUpgradeFunctionality(String LinkName, String ipAddress) {
+    private void HTTPLinkUpgradeFunctionality(String linkName, int linkPosition, String ipAddress) {
         try {
             String HTTP_URL = "http://" + ipAddress + ":80/";
             String URL_UPGRADE_START = HTTP_URL + "upgrade?command=start";
@@ -16395,10 +17140,10 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     String LocalPath = getApplicationContext().getExternalFilesDir(AppConstants.FOLDER_BIN) + "/" + AppConstants.UP_UPGRADE_FILE_NAME;
 
                     if (AppConstants.GENERATE_LOGS)
-                        AppConstants.writeInFile(AppConstants.LOG_UPGRADE_HTTP + "-" + TAG + "Sending UPGRADE START command to Link: " + LinkName);
+                        AppConstants.writeInFile(AppConstants.LOG_UPGRADE_HTTP + "-" + TAG + "Sending UPGRADE START command to Link: " + linkName);
                     new CommandsPOST().execute(URL_UPGRADE_START, "", "");
 
-                    new OkHttpFileUpload().execute(LocalPath, "application/binary", ipAddress, LinkName);
+                    new OkHttpFileUpload().execute(LocalPath, "application/binary", ipAddress, linkName);
                 }
             }, 1000);
         } catch (Exception ex) {
@@ -16406,7 +17151,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 AppConstants.writeInFile(AppConstants.LOG_UPGRADE_HTTP + "-" + TAG + "HTTPLinkUpgradeFunctionality Exception: " + ex.getMessage());
             if (AppConstants.GENERATE_LOGS)
                 AppConstants.writeInFile(TAG + "Upgrade process skipped.");
-            ContinueToTheTransaction();
+            ContinueToTheTransaction("HTTP", linkPosition, "");
         }
     }
 
@@ -16451,7 +17196,6 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 return response.body().string();
 
             } catch (Exception e) {
-                Log.d("Ex", e.getMessage());
                 if (AppConstants.GENERATE_LOGS)
                     AppConstants.writeInFile(AppConstants.LOG_UPGRADE_HTTP + "-" + TAG + "OkHttpFileUpload InBackground Exception: " + e.getMessage());
             }
@@ -16477,7 +17221,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         if (pd != null && pd.isShowing()) {
                             pd.dismiss();
                         }
-                        ContinueToTheTransaction();
+                        ContinueToTheTransaction("HTTP", linkPositionForUpgrade, "");
                     }
                 }, 12000);
 
@@ -16487,6 +17231,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 }
                 if (AppConstants.GENERATE_LOGS)
                     AppConstants.writeInFile(AppConstants.LOG_UPGRADE_HTTP + "-" + TAG + "OkHttpFileUpload onPostExecute Exception: " + e.getMessage());
+                ContinueToTheTransaction("HTTP", linkPositionForUpgrade, "");
             }
         }
     }
@@ -16748,7 +17493,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                 public void run() {
                                     if (AppConstants.GENERATE_LOGS)
                                         AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Upgrade process skipped.");
-                                    ContinueToTheTransaction();
+                                    ContinueToTheTransaction("BT", linkPosition, "SPP");
                                 }
                             }, 100);
                         } else {
@@ -16770,7 +17515,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " CheckBTLinkStatusForUpgrade Exception:>>" + e.getMessage());
             if (AppConstants.GENERATE_LOGS)
                 AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Upgrade process skipped.");
-            ContinueToTheTransaction();
+            ContinueToTheTransaction("BT", linkPosition, "SPP");
         }
     }
 
@@ -16855,7 +17600,6 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
                 }
             } catch (Exception e) {
-                e.printStackTrace();
                 if (AppConstants.GENERATE_LOGS)
                     AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(btLinkPosition) + " onReceive Exception: " + e.getMessage());
             }
@@ -17037,7 +17781,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                     public void run() {
                                         if (AppConstants.GENERATE_LOGS)
                                             AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Upgrade process skipped.");
-                                        ContinueToTheTransaction();
+                                        ContinueToTheTransaction("BT", linkPosition, "SPP");
                                     }
                                 }, 100);
                             }
@@ -17086,7 +17830,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                 public void run() {
                                     if (AppConstants.GENERATE_LOGS)
                                         AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Upgrade process skipped.");
-                                    ContinueToTheTransaction();
+                                    ContinueToTheTransaction("BT", linkPosition, "SPP");
                                 }
                             }, 100);
                         }
@@ -17098,17 +17842,16 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                             public void run() {
                                 if (AppConstants.GENERATE_LOGS)
                                     AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Upgrade process skipped.");
-                                ContinueToTheTransaction();
+                                ContinueToTheTransaction("BT", linkPosition, "SPP");
                             }
                         }, 100);
                     }
                 }
             }.start();
         } catch (Exception e) {
-            e.printStackTrace();
             if (AppConstants.GENERATE_LOGS)
                 AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " infoCommandBeforeUpgrade Exception:>>" + e.getMessage());
-            ContinueToTheTransaction();
+            ContinueToTheTransaction("BT", linkPosition, "SPP");
         }
     }
 
@@ -17140,6 +17883,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             if (!versionFromLink.isEmpty()) {
                 if (AppConstants.GENERATE_LOGS)
                     AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " LINK Version (" + beforeOrAfter + " Upgrade) >> " + versionFromLink);
+                versionNumberOfLink = CommonUtils.getVersionFromLink(versionFromLink);
             }
             if (beforeOrAfter.equalsIgnoreCase("Before")) {
                 if (versionFromLink.trim().equalsIgnoreCase(AppConstants.UP_FIRMWARE_VERSION.trim())) {
@@ -17150,7 +17894,6 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 storeUpgradeFSVersion(WelcomeActivity.this, linkPosition, versionFromLink, "BT");
             }
         } catch (Exception e) {
-            e.printStackTrace();
             if (AppConstants.GENERATE_LOGS)
                 AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " getVersionFromLinkResponse (" + beforeOrAfter + " Upgrade) Exception:>>" + e.getMessage());
         }
@@ -17224,7 +17967,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                             public void run() {
                                 if (AppConstants.GENERATE_LOGS)
                                     AppConstants.writeInFile(TAG + "Upgrade process skipped.");
-                                ContinueToTheTransaction();
+                                ContinueToTheTransaction("BT", linkPosition, "SPP");
                             }
                         }, 2000);
                     }
@@ -17234,6 +17977,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         } catch (Exception e) {
             if (AppConstants.GENERATE_LOGS)
                 AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " upgradeCommand Exception:>>" + e.getMessage());
+            ContinueToTheTransaction("BT", linkPosition, "SPP");
         }
     }
 
@@ -17393,7 +18137,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                     @Override
                                     public void run() {
                                         counter = 0;
-                                        ContinueToTheTransaction();
+                                        ContinueToTheTransaction("BT", linkPosition, "SPP");
                                     }
                                 }, 1000);
                             }
@@ -17413,7 +18157,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        ContinueToTheTransaction();
+                        ContinueToTheTransaction("BT", linkPosition, "SPP");
                     }
                 }, 1000);
             }
@@ -17593,7 +18337,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                             new Handler().postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
-                                    ContinueToTheTransaction();
+                                    ContinueToTheTransaction("BT", linkPosition, "SPP");
                                 }
                             }, 1000);
                             cancel();
@@ -17623,7 +18367,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         new Handler().postDelayed(new Runnable() {
                             @Override
                             public void run() {
-                                ContinueToTheTransaction();
+                                ContinueToTheTransaction("BT", linkPosition, "SPP");
                             }
                         }, 1000);
                     } else {
@@ -17634,17 +18378,16 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                             public void run() {
                                 if (AppConstants.GENERATE_LOGS)
                                     AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " Upgrade process skipped.");
-                                ContinueToTheTransaction();
+                                ContinueToTheTransaction("BT", linkPosition, "SPP");
                             }
                         }, 100);
                     }
                 }
             }.start();
         } catch (Exception e) {
-            e.printStackTrace();
             if (AppConstants.GENERATE_LOGS)
                 AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT + "-" + TAG + getBTLinkIndexByPosition(linkPosition) + " infoCommandAfterUpgrade Exception:>>" + e.getMessage());
-            ContinueToTheTransaction();
+            ContinueToTheTransaction("BT", linkPosition, "SPP");
         }
     }
     //endregion
@@ -18441,7 +19184,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                 if (AppConstants.GENERATE_LOGS)
                                     AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Upgrade process skipped.");
                                 unbindBTBLEServicesAndUnregisterReceiver(linkPosition);
-                                ContinueToTheTransaction();
+                                ContinueToTheTransaction("BT", linkPosition, "BLE");
                             }
                         }, 100);
                     }
@@ -18453,7 +19196,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             if (AppConstants.GENERATE_LOGS)
                 AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Upgrade process skipped.");
             unbindBTBLEServicesAndUnregisterReceiver(linkPosition);
-            ContinueToTheTransaction();
+            ContinueToTheTransaction("BT", linkPosition, "BLE");
         }
     }
 
@@ -18508,7 +19251,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                         if (AppConstants.GENERATE_LOGS)
                                             AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Upgrade process skipped.");
                                         unbindBTBLEServicesAndUnregisterReceiver(linkPosition);
-                                        ContinueToTheTransaction();
+                                        ContinueToTheTransaction("BT", linkPosition, "BLE");
                                     }
                                 }, 100);
                             }
@@ -18556,7 +19299,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                     if (AppConstants.GENERATE_LOGS)
                                         AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Upgrade process skipped.");
                                     unbindBTBLEServicesAndUnregisterReceiver(linkPosition);
-                                    ContinueToTheTransaction();
+                                    ContinueToTheTransaction("BT", linkPosition, "BLE");
                                 }
                             }, 100);
                         }
@@ -18569,7 +19312,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                 if (AppConstants.GENERATE_LOGS)
                                     AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Upgrade process skipped.");
                                 unbindBTBLEServicesAndUnregisterReceiver(linkPosition);
-                                ContinueToTheTransaction();
+                                ContinueToTheTransaction("BT", linkPosition, "BLE");
                             }
                         }, 100);
                     }
@@ -18577,11 +19320,10 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             }.start();
 
         } catch (Exception e) {
-            e.printStackTrace();
             if (AppConstants.GENERATE_LOGS)
                 AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " BLEInfoCommandBeforeUpgrade Exception:>>" + e.getMessage());
             unbindBTBLEServicesAndUnregisterReceiver(linkPosition);
-            ContinueToTheTransaction();
+            ContinueToTheTransaction("BT", linkPosition, "BLE");
         }
     }
 
@@ -18613,6 +19355,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             if (!versionFromLink.isEmpty()) {
                 if (AppConstants.GENERATE_LOGS)
                     AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " LINK Version (" + beforeOrAfter + " Upgrade) >> " + versionFromLink);
+                versionNumberOfLink = CommonUtils.getVersionFromLink(versionFromLink);
             }
             if (beforeOrAfter.equalsIgnoreCase("Before")) {
                 if (versionFromLink.trim().equalsIgnoreCase(AppConstants.UP_FIRMWARE_VERSION.trim())) {
@@ -18623,7 +19366,6 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 storeUpgradeFSVersion(WelcomeActivity.this, linkPosition, versionFromLink, "BT");
             }
         } catch (Exception e) {
-            e.printStackTrace();
             if (AppConstants.GENERATE_LOGS)
                 AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " getVersionFromBLELinkResponse (" + beforeOrAfter + " Upgrade) Exception:>>" + e.getMessage());
         }
@@ -18695,7 +19437,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                 if (AppConstants.GENERATE_LOGS)
                                     AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Upgrade process skipped.");
                                 unbindBTBLEServicesAndUnregisterReceiver(linkPosition);
-                                ContinueToTheTransaction();
+                                ContinueToTheTransaction("BT", linkPosition, "BLE");
                             }
                         }, 2000);
                     }
@@ -18706,7 +19448,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             if (AppConstants.GENERATE_LOGS)
                 AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " BTBLEUpgradeCommand Exception:>>" + e.getMessage());
             unbindBTBLEServicesAndUnregisterReceiver(linkPosition);
-            ContinueToTheTransaction();
+            ContinueToTheTransaction("BT", linkPosition, "BLE");
         }
     }
 
@@ -18841,7 +19583,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                     public void run() {
                                         counter = 0;
                                         unbindBTBLEServicesAndUnregisterReceiver(linkPosition);
-                                        ContinueToTheTransaction();
+                                        ContinueToTheTransaction("BT", linkPosition, "BLE");
                                     }
                                 }, 1000);
                             }
@@ -18862,7 +19604,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     @Override
                     public void run() {
                         unbindBTBLEServicesAndUnregisterReceiver(linkPosition);
-                        ContinueToTheTransaction();
+                        ContinueToTheTransaction("BT", linkPosition, "BLE");
                     }
                 }, 1000);
             }
@@ -18900,7 +19642,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                 @Override
                                 public void run() {
                                     unbindBTBLEServicesAndUnregisterReceiver(linkPosition);
-                                    ContinueToTheTransaction();
+                                    ContinueToTheTransaction("BT", linkPosition, "BLE");
                                 }
                             }, 1000);
                             cancel();
@@ -18929,7 +19671,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                             @Override
                             public void run() {
                                 unbindBTBLEServicesAndUnregisterReceiver(linkPosition);
-                                ContinueToTheTransaction();
+                                ContinueToTheTransaction("BT", linkPosition, "BLE");
                             }
                         }, 1000);
                     } else {
@@ -18941,18 +19683,17 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                 if (AppConstants.GENERATE_LOGS)
                                     AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " Upgrade process skipped.");
                                 unbindBTBLEServicesAndUnregisterReceiver(linkPosition);
-                                ContinueToTheTransaction();
+                                ContinueToTheTransaction("BT", linkPosition, "BLE");
                             }
                         }, 100);
                     }
                 }
             }.start();
         } catch (Exception e) {
-            e.printStackTrace();
             if (AppConstants.GENERATE_LOGS)
                 AppConstants.writeInFile(AppConstants.LOG_UPGRADE_BT_BLE + "-" + TAG + getBTBLELinkIndexByPosition(linkPosition) + " BLEInfoCommandAfterUpgrade Exception:>>" + e.getMessage());
             unbindBTBLEServicesAndUnregisterReceiver(linkPosition);
-            ContinueToTheTransaction();
+            ContinueToTheTransaction("BT", linkPosition, "BLE");
         }
     }
     //endregion

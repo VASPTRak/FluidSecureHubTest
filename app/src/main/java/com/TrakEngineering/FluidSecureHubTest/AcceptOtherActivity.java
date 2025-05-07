@@ -123,6 +123,7 @@ public class AcceptOtherActivity extends AppCompatActivity {
             @Override
             public void run() {
                 if (Istimeout_Sec) {
+                    CommonUtils.hideKeyboard(AcceptOtherActivity.this);
                     Istimeout_Sec = false;
                     AppConstants.clearEditTextFieldsOnBack(AcceptOtherActivity.this);
 
@@ -140,7 +141,11 @@ public class AcceptOtherActivity extends AppCompatActivity {
         String KeyboardType = myPrefkb.getString("KeyboardTypeOther", "1");
 
         try {
-            etOther.setInputType(Integer.parseInt(KeyboardType));
+            if (KeyboardType.equals("2")) {
+                etOther.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_CLASS_TEXT);
+            } else {
+                etOther.setInputType(Integer.parseInt(KeyboardType));
+            }
         } catch (Exception e) {
             System.out.println("keyboard exception");
             etOther.setInputType(InputType.TYPE_CLASS_TEXT);
@@ -223,7 +228,7 @@ public class AcceptOtherActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 int InputTyp = etOther.getInputType();
-                if (InputTyp == 3) {
+                if (InputTyp == 2 || InputTyp == 3) {
                     etOther.setInputType(InputType.TYPE_CLASS_TEXT);
                     tv_swipekeybord.setText(getResources().getString(R.string.PressFor123));
                 } else {
@@ -256,7 +261,7 @@ public class AcceptOtherActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-
+        CommonUtils.hideKeyboard(AcceptOtherActivity.this);
         // ActivityHandler.removeActivity(6);
         AppConstants.SERVER_CALL_IN_PROGRESS_FOR_PIN = false;
         AppConstants.SERVER_CALL_IN_PROGRESS_FOR_VEHICLE = false;

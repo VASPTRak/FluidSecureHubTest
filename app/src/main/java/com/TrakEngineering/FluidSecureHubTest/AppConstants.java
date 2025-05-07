@@ -400,7 +400,6 @@ public class AppConstants {
         return (double) tmp / factor;
     }
 
-
     public static String convertStingToBase64(String text) {
         String base64 = "";
         try {
@@ -409,14 +408,12 @@ public class AppConstants {
         } catch (Exception e) {
             System.out.println(e);
         }
-
         base64 = base64.replaceAll("\\n", "");
 
         return base64;
     }
 
     public static String getIMEI(Context ctx) {
-
         String storedUUIDIMEI = "";
         try {
             String encryptedIMEI = SplashActivity.readIMEIMobileNumFromFile(ctx).trim();
@@ -925,6 +922,7 @@ public class AppConstants {
             Constants.ODO_METER_FS3 = 0;
             Constants.DEPARTMENT_NUMBER_FS3 = "";
             Constants.PERSONNEL_PIN_FS3 = "";
+            Constants.OTHER_FS3 = "";
             Constants.VEHICLE_OTHER_FS3 = "";
             Constants.HOURS_FS3 = 0;
 

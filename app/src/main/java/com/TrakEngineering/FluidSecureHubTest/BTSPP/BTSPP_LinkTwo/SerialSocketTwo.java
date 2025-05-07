@@ -21,6 +21,7 @@ import java.util.concurrent.Executors;
 
 public class SerialSocketTwo implements Runnable {
 
+    static final String INTENT_ACTION_DISCONNECT = BuildConfig.APPLICATION_ID + ".Disconnect";
     private static final UUID BLUETOOTH_SPP = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
     private final BroadcastReceiver disconnectBroadcastReceiver;
     private static final String TAG = SerialSocketTwo.class.getSimpleName();
@@ -30,12 +31,6 @@ public class SerialSocketTwo implements Runnable {
     private BluetoothDevice device;
     private BluetoothSocket socket;
     private boolean connected;
-
-
-    static final String INTENT_ACTION_DISCONNECT = BuildConfig.APPLICATION_ID + ".Disconnect";
-    static final String NOTIFICATION_CHANNEL = BuildConfig.APPLICATION_ID + ".Channel";
-    static final String INTENT_CLASS_MAIN_ACTIVITY = BuildConfig.APPLICATION_ID + ".MainActivity";
-
 
     public SerialSocketTwo(Context context, BluetoothDevice device) {
         if (context instanceof Activity)

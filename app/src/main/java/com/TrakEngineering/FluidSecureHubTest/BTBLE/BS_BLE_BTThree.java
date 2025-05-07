@@ -569,13 +569,14 @@ public class BS_BLE_BTThree extends Service {
         imap.put("sqliteId", sqliteID + "");
 
         if (Pulses > 0 || fillqty > 0) {
-
             //in progress (transaction recently started, no new information): Transaction ongoing = 8  --non zero qty
             CommonUtils.upgradeTransactionStatusToSqlite(TransactionId, "8", BS_BLE_BTThree.this);
-            int rowseffected = controller.updateTransactions(imap);
-            System.out.println("rowseffected-" + rowseffected);
-            if (rowseffected == 0) {
-                controller.insertTransactions(imap);
+            int rowsAffected = controller.updateTransactions(imap);
+            System.out.println("rowsAffected-" + rowsAffected);
+            if (rowsAffected == 0) {
+                sqliteID = controller.insertTransactions(imap);
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(TAG + " <Transaction saved in local DB. LocalTxnId: " + sqliteID + "; LINK: " + LinkName + ">");
             }
         }
     }
@@ -1396,7 +1397,7 @@ public class BS_BLE_BTThree extends Service {
         // Free the link and continue to post transaction commands
         stopTransaction(true, false); // Free the link
         if (CommonUtils.checkBTVersionCompatibility(versionNumberOfLinkThree, BTConstants.SUPPORTED_LINK_VERSION_FOR_P_TYPE)) { // Set P_Type command supported from this version onwards
-            pTypeCommand();
+            getPulserTypeCommand(); //pTypeCommand();
         } else {
             closeTransaction(false); // proceedToPostTransactionCommands
         }
@@ -1439,7 +1440,7 @@ public class BS_BLE_BTThree extends Service {
     //endregion
 
     //region P_Type Command
-    private void pTypeCommand() {
+    /*private void pTypeCommand() {
         boolean isSetPTypeCommandSent = false;
         try {
             if (IsResetSwitchTimeBounce != null) {
@@ -1497,7 +1498,7 @@ public class BS_BLE_BTThree extends Service {
                 getPulserTypeCommand();
             }
         }
-    }
+    }*/
     //endregion
 
     //region Get P_Type Command
@@ -1661,6 +1662,8 @@ public class BS_BLE_BTThree extends Service {
         imap.put("authString", authString);
 
         sqliteID = controller.insertTransactions(imap);
+        if (AppConstants.GENERATE_LOGS)
+            AppConstants.writeInFile(TAG + " <Transaction saved in local DB. LocalTxnId: " + sqliteID + "; LINK: " + LinkName + ">");
         CommonUtils.addRemoveCurrentTransactionList(true, TransactionId);//Add transaction Id to list
     }
 
@@ -1821,7 +1824,7 @@ public class BS_BLE_BTThree extends Service {
                 String txtn = j.getString("txtn");
                 String pulse = j.getString("pulse");
 
-                if (!txtn.equalsIgnoreCase("N/A") && !pulse.equalsIgnoreCase("-1")) {
+                if (!txtn.equalsIgnoreCase("N/A") && !txtn.isEmpty() && !pulse.equalsIgnoreCase("-1") && !pulse.isEmpty()) {
                     saveLastBTTransactionInLocalDB(txtn, pulse);
                 }
             }

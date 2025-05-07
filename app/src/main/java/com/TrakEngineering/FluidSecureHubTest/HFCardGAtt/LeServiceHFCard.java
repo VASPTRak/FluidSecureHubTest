@@ -344,10 +344,14 @@ public class LeServiceHFCard extends Service {
             }
             /*get the read characteristic from the service*/
             BluetoothGattCharacteristic mReadCharacteristic = null;
-            if (!bleLFUpdateFlag)
+           /* if (!bleLFUpdateFlag)
                 mReadCharacteristic = mCustomService.getCharacteristic(UUID.fromString(bolong_UUID_char));
             else
-                mReadCharacteristic = mCustomService.getCharacteristic(UUID.fromString(BLE_char));
+                mReadCharacteristic = mCustomService.getCharacteristic(UUID.fromString(BLE_char));*/
+
+            mReadCharacteristic = mCustomService.getCharacteristic(UUID.fromString(bolong_UUID_char));
+
+
             if (mBluetoothGatt.readCharacteristic(mReadCharacteristic) == false) {
                 Log.w(TAG, "Failed to read characteristic");
                 //if (AppConstants.GENERATE_LOGS)AppConstants.writeInFile("LeServiceHFCard ~~~~~~~~~" + "readCustomCharacteristic Failed to read characteristic");

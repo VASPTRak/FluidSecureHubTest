@@ -290,7 +290,11 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
         });
 
         try {
-            editVehicleNumber.setInputType(Integer.parseInt(KeyboardType));
+            if (KeyboardType.equals("2")) {
+                editVehicleNumber.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_CLASS_TEXT);
+            } else {
+                editVehicleNumber.setInputType(Integer.parseInt(KeyboardType));
+            }
         } catch (Exception e) {
             System.out.println("keyboard exception");
             editVehicleNumber.setInputType(InputType.TYPE_CLASS_TEXT);
@@ -306,12 +310,12 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
             @Override
             public void onClick(View v) {
                 int InputTyp = editVehicleNumber.getInputType();
-                if (InputTyp == 2) {
+                if (InputTyp == 2 || InputTyp == 3) {
                     editVehicleNumber.setInputType(InputType.TYPE_CLASS_TEXT);
                     tv_swipekeybord.setText(getResources().getString(R.string.PressFor123));
                 } else {
 
-                    editVehicleNumber.setInputType(InputType.TYPE_CLASS_NUMBER);//| InputType.TYPE_CLASS_TEXT
+                    editVehicleNumber.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_CLASS_TEXT);
                     tv_swipekeybord.setText(getResources().getString(R.string.PressForABC));
                 }
 
@@ -1107,7 +1111,6 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
     }
 
     public void cancelAction(View v) {
-        CommonUtils.hideKeyboard(AcceptVehicleActivity_new.this);
         onBackPressed();
     }
 
@@ -2195,6 +2198,7 @@ public class AcceptVehicleActivity_new extends AppCompatActivity implements Serv
     @Override
     public void onBackPressed() {
 
+        CommonUtils.hideKeyboard(AcceptVehicleActivity_new.this);
         // ActivityHandler.removeActivity(1);
         AppConstants.clearEditTextFieldsOnBack(AcceptVehicleActivity_new.this);
         Istimeout_Sec = false;

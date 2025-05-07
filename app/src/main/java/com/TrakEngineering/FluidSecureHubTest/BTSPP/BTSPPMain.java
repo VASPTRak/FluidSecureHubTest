@@ -396,7 +396,7 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
                 BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
                 BluetoothDevice device = bluetoothAdapter.getRemoteDevice(BTConstants.DEVICE_ADDRESS_3);
                 status3("Connecting...");
-                //BTConstants.BT_LINK_TWO_STATUS = false;
+                //BTConstants.BT_LINK_THREE_STATUS = false;
                 SerialSocketThree socket = new SerialSocketThree(activity.getApplicationContext(), device);
                 service3.connect(socket);
             }
@@ -542,7 +542,7 @@ public class BTSPPMain implements SerialListenerOne, SerialListenerTwo, SerialLi
                 BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
                 BluetoothDevice device = bluetoothAdapter.getRemoteDevice(BTConstants.DEVICE_ADDRESS_4);
                 status4("Connecting...");
-                //BTConstants.BT_LINK_TWO_STATUS = false;
+                //BTConstants.BT_LINK_FOUR_STATUS = false;
                 SerialSocketFour socket = new SerialSocketFour(activity.getApplicationContext(), device);
                 service4.connect(socket);
             }

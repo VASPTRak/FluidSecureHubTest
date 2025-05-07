@@ -269,6 +269,8 @@ public class BackgroundService_FS_UNIT_6 extends Service {
                     imap.put("authString", authString);
 
                     sqliteID = controller.insertTransactions(imap);
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(TAG + "<Transaction saved in local DB. LocalTxnId: " + sqliteID + "; LINK: " + LinkName + ">");
                     CommonUtils.addRemoveCurrentTransactionList(true, TransactionId);//Add transaction Id to list
                     //////////////////////////////////////////////////////////////
 
@@ -898,7 +900,7 @@ public class BackgroundService_FS_UNIT_6 extends Service {
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                GetDetails();
+                getDetails();
                 transactionCompleteFunction();
                 proceedToPostTransactionCommands(); //finalLastStep
             }
@@ -1063,10 +1065,12 @@ public class BackgroundService_FS_UNIT_6 extends Service {
             imap.put("sqliteId", sqliteID + "");
 
             if (Pulses > 0 || fillqty > 0) {
-                int rowseffected = controller.updateTransactions(imap);
-                System.out.println("rowseffected-" + rowseffected);
-                if (rowseffected == 0) {
+                int rowsAffected = controller.updateTransactions(imap);
+                System.out.println("rowsAffected-" + rowsAffected);
+                if (rowsAffected == 0) {
                     sqliteID = controller.insertTransactions(imap);
+                    if (AppConstants.GENERATE_LOGS)
+                        AppConstants.writeInFile(TAG + "<Transaction saved in local DB. LocalTxnId: " + sqliteID + "; LINK: " + LinkName + ">");
                 }
             }
         } else {
@@ -1078,7 +1082,7 @@ public class BackgroundService_FS_UNIT_6 extends Service {
         }
     }
 
-    public void GetDetails() {
+    public void getDetails() {
         vehicleNumber = Constants.VEHICLE_NUMBER_FS6;
         odometerTenths = Constants.ODO_METER_FS6 + "";
         dNumber = Constants.DEPARTMENT_NUMBER_FS6;

@@ -161,12 +161,12 @@ public class AcceptDeptActivity extends AppCompatActivity {
 
         TimeOutinMinute = sharedPrefODO.getString(AppConstants.TIMEOUT, "1");
 
-        long screenTimeOut= Integer.parseInt(TimeOutinMinute) *60000;
+        long screenTimeOut= Integer.parseInt(TimeOutinMinute) * 60000;
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                if (Istimeout_Sec)
-                {
+                if (Istimeout_Sec) {
+                    CommonUtils.hideKeyboard(AcceptDeptActivity.this);
                     Istimeout_Sec = false;
                     AppConstants.clearEditTextFieldsOnBack(AcceptDeptActivity.this);
 
@@ -175,7 +175,6 @@ public class AcceptDeptActivity extends AppCompatActivity {
                     i.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
                     startActivity(i);
                 }
-
             }
         }, screenTimeOut);
 
@@ -219,7 +218,11 @@ public class AcceptDeptActivity extends AppCompatActivity {
         String KeyboardType = myPrefkb.getString("KeyboardTypeDepartment", "2");
 
         try {
-            etDeptNumber.setInputType(Integer.parseInt(KeyboardType));
+            if (KeyboardType.equals("2")) {
+                etDeptNumber.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_CLASS_TEXT);
+            } else {
+                etDeptNumber.setInputType(Integer.parseInt(KeyboardType));
+            }
         }catch (Exception e)
         {
             System.out.println("keyboard exception");
@@ -236,7 +239,7 @@ public class AcceptDeptActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 int InputTyp = etDeptNumber.getInputType();
-                if (InputTyp == 2) {
+                if (InputTyp == 2 || InputTyp == 3) {
                     etDeptNumber.setInputType(InputType.TYPE_CLASS_TEXT);
                     tv_swipekeybord.setText(getResources().getString(R.string.PressFor123));
                 } else {
@@ -320,7 +323,6 @@ public class AcceptDeptActivity extends AppCompatActivity {
                                 Istimeout_Sec = false;
                                 AppConstants.clearEditTextFieldsOnBack(AcceptDeptActivity.this);
 
-
                                 Intent i = new Intent(AcceptDeptActivity.this, WelcomeActivity.class);
                                 i.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
                                 startActivity(i);
@@ -386,7 +388,7 @@ public class AcceptDeptActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-
+        CommonUtils.hideKeyboard(AcceptDeptActivity.this);
         // ActivityHandler.removeActivity(4);
         AppConstants.SERVER_CALL_IN_PROGRESS_FOR_PIN = false;
         AppConstants.SERVER_CALL_IN_PROGRESS_FOR_VEHICLE = false;

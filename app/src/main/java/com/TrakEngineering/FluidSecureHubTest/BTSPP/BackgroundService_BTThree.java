@@ -96,7 +96,7 @@ public class BackgroundService_BTThree extends Service {
 
     SimpleDateFormat sdformat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
     ArrayList<HashMap<String, String>> quantityRecords = new ArrayList<>();
-    public String IsEleventhTransaction;
+    public String isEleventhTransaction;
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -140,7 +140,7 @@ public class BackgroundService_BTThree extends Service {
                 EnablePrinter = sharedPref.getString("EnablePrinter_FS3", "False");
                 PumpOnTime = sharedPref.getString("PumpOnTime_FS3", "0");
                 LimitReachedMessage = sharedPref.getString("LimitReachedMessage_FS3", "");
-                IsEleventhTransaction = sharedPref.getString("IsEleventhTransaction_FS3", "false");
+                isEleventhTransaction = sharedPref.getString("IsEleventhTransaction_FS3", "false");
 
                 numPulseRatio = Double.parseDouble(PulseRatio);
                 minFuelLimit = Double.parseDouble(MinLimit);
@@ -331,7 +331,7 @@ public class BackgroundService_BTThree extends Service {
                 BTSPPMain btspp = new BTSPPMain();
                 btspp.send3(BTConstants.INFO_COMMAND);
             }
-            
+
             new CountDownTimer(5000, 1000) {
                 public void onTick(long millisUntilFinished) {
                     long attempt = (5 - (millisUntilFinished / 1000));
@@ -578,7 +578,7 @@ public class BackgroundService_BTThree extends Service {
                 BTSPPMain btspp = new BTSPPMain();
                 btspp.send3(transaction_id_cmd);
             }
-            
+
             Thread.sleep(500);
             new CountDownTimer(4000, 1000) {
                 public void onTick(long millisUntilFinished) {
@@ -806,7 +806,7 @@ public class BackgroundService_BTThree extends Service {
     public void proceedToPostTransactionCommands() {
         // Free the link and continue to post transaction commands
         stopTransaction(true, false); // Free the link
-        if (CommonUtils.checkBTVersionCompatibility(versionNumberOfLinkThree, BTConstants.SUPPORTED_LINK_VERSION_FOR_LAST20) && IsEleventhTransaction.equalsIgnoreCase("true")) { // Last20 command supported from this version onwards
+        if (CommonUtils.checkBTVersionCompatibility(versionNumberOfLinkThree, BTConstants.SUPPORTED_LINK_VERSION_FOR_LAST20) && isEleventhTransaction.equalsIgnoreCase("true")) { // Last20 command supported from this version onwards
             last20Command();
         } else if (CommonUtils.checkBTVersionCompatibility(versionNumberOfLinkThree, BTConstants.SUPPORTED_LINK_VERSION_FOR_BYPASS_PUMP_RESET)) { // Bypass pump reset command supported from this version onwards
             bypassPumpResetCommand();
@@ -972,8 +972,8 @@ public class BackgroundService_BTThree extends Service {
     private void proceedToNextCommand() {
         if (CommonUtils.checkBTVersionCompatibility(versionNumberOfLinkThree, BTConstants.SUPPORTED_LINK_VERSION_FOR_MO_STATUS)) { // CheckMOStatus command supported from this version onwards
             checkMOStatusCommand();
-        } else if (CommonUtils.checkBTVersionCompatibility(versionNumberOfLinkThree, BTConstants.SUPPORTED_LINK_VERSION_FOR_P_TYPE)) { // Set P_Type command supported from this version onwards
-            pTypeCommand();
+        /*} else if (CommonUtils.checkBTVersionCompatibility(versionNumberOfLinkThree, BTConstants.SUPPORTED_LINK_VERSION_FOR_P_TYPE)) { // Set P_Type command supported from this version onwards
+            pTypeCommand();*/
         } else {
             closeTransaction(false); // proceedToNextCommand
         }
@@ -1062,7 +1062,7 @@ public class BackgroundService_BTThree extends Service {
                                     if (AppConstants.GENERATE_LOGS)
                                         AppConstants.writeInFile(TAG + " BTLink_3: Checking Reset MO Check Flag command response:>> " + Response);
                                     updateResetMOCheckFlagOfLink();
-                                    pTypeCommand();
+                                    getPulserTypeCommand(); //pTypeCommand();
                                     cancel();
                                 } else {
                                     if (AppConstants.GENERATE_LOGS)
@@ -1077,26 +1077,25 @@ public class BackgroundService_BTThree extends Service {
                                     AppConstants.writeInFile(TAG + " BTLink_3: Checking Reset MO Check Flag command response:>> " + Response);
                                 updateResetMOCheckFlagOfLink();
                             }
-                            pTypeCommand();
+                            getPulserTypeCommand(); //pTypeCommand();
                         }
                     }.start();
                 } else {
-                    pTypeCommand();
+                    getPulserTypeCommand(); //pTypeCommand();
                 }
             } else {
-                pTypeCommand();
+                getPulserTypeCommand(); //pTypeCommand();
             }
         } catch (Exception e) {
-            e.printStackTrace();
             if (AppConstants.GENERATE_LOGS)
                 AppConstants.writeInFile(TAG + " BTLink_3: Reset MO Check Flag Command Exception:>>" + e.getMessage());
-            pTypeCommand();
+            getPulserTypeCommand(); //pTypeCommand();
         }
     }
     //endregion
 
     //region P_Type Command
-    private void pTypeCommand() {
+    /*private void pTypeCommand() {
         boolean isSetPTypeCommandSent = false;
         try {
             if (IsResetSwitchTimeBounce != null) {
@@ -1158,7 +1157,7 @@ public class BackgroundService_BTThree extends Service {
                 getPulserTypeCommand();
             }
         }
-    }
+    }*/
     //endregion
 
     //region Get P_Type Command
@@ -1723,6 +1722,8 @@ public class BackgroundService_BTThree extends Service {
         imap.put("authString", authString);
 
         sqliteID = controller.insertTransactions(imap);
+        if (AppConstants.GENERATE_LOGS)
+            AppConstants.writeInFile(TAG + " BTLink_3: <Transaction saved in local DB. LocalTxnId: " + sqliteID + "; LINK: " + LinkName + ">");
         CommonUtils.addRemoveCurrentTransactionList(true, TransactionId);//Add transaction Id to list
     }
 
@@ -1755,13 +1756,14 @@ public class BackgroundService_BTThree extends Service {
         imap.put("sqliteId", sqliteID + "");
 
         if (Pulses > 0 || fillqty > 0) {
-
             //in progress (transaction recently started, no new information): Transaction ongoing = 8  --non zero qty
             CommonUtils.upgradeTransactionStatusToSqlite(TransactionId, "8", BackgroundService_BTThree.this);
-            int rowseffected = controller.updateTransactions(imap);
-            System.out.println("rowseffected-" + rowseffected);
-            if (rowseffected == 0) {
-                controller.insertTransactions(imap);
+            int rowsAffected = controller.updateTransactions(imap);
+            System.out.println("rowsAffected-" + rowsAffected);
+            if (rowsAffected == 0) {
+                sqliteID = controller.insertTransactions(imap);
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(TAG + " BTLink_3: <Transaction saved in local DB. LocalTxnId: " + sqliteID + "; LINK: " + LinkName + ">");
             }
         }
     }

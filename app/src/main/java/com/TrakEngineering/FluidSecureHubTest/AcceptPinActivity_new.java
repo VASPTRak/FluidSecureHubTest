@@ -24,6 +24,7 @@ import android.text.Html;
 import android.text.InputType;
 import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
+import android.text.method.DigitsKeyListener;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.RelativeSizeSpan;
 import android.util.DisplayMetrics;
@@ -457,7 +458,11 @@ public class AcceptPinActivity_new extends AppCompatActivity {
         });
 
         try {
-            etPersonnelPin.setInputType(Integer.parseInt(KeyboardType));
+            if (KeyboardType.equals("2")) {
+                etPersonnelPin.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_CLASS_TEXT);
+            } else {
+                etPersonnelPin.setInputType(Integer.parseInt(KeyboardType));
+            }
         } catch (Exception e) {
             System.out.println("keyboard exception");
             etPersonnelPin.setInputType(InputType.TYPE_CLASS_TEXT);
@@ -473,7 +478,7 @@ public class AcceptPinActivity_new extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 int InputTyp = etPersonnelPin.getInputType();
-                if (InputTyp == 2) {
+                if (InputTyp == 2 || InputTyp == 3) {
                     etBarcode.setInputType(InputType.TYPE_CLASS_TEXT);
                     etPersonnelPin.setInputType(InputType.TYPE_CLASS_TEXT);
                     tv_swipekeybord.setText(getResources().getString(R.string.PressFor123));
@@ -1127,12 +1132,12 @@ public class AcceptPinActivity_new extends AppCompatActivity {
 
     public void cancelAction(View v) {
 
-        CommonUtils.hideKeyboard(AcceptPinActivity_new.this);
         onBackPressed();
     }
 
     @Override
     public void onBackPressed() {
+        CommonUtils.hideKeyboard(AcceptPinActivity_new.this);
         if (IsGateHub.equalsIgnoreCase("True")) {
             AppConstants.GO_BUTTON_ALREADY_CLICKED = false;
         }

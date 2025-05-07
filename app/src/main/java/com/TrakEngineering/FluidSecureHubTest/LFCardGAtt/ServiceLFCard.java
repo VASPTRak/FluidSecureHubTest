@@ -179,18 +179,24 @@ public class ServiceLFCard extends Service {
                     last_val = Seperate[Seperate.length - 1];
                 }
 
-                if (!last_val.equals("00 00 00 ") && !last_val.equalsIgnoreCase("00 00 00 00 00 00 00 00 00")) {
+                last_val = last_val.replace("\\n", "");
+
+                last_val = last_val.replace(" ","").trim();
+
+                if (!last_val.equals("00 00 00 ") && !last_val.equalsIgnoreCase("00 00 00 00 00 00 00 00 00") && CommonUtils.ValidateFobkey(last_val)) {
                     sendLFDetailsToActivity(last_val);
+
+                    SharedPreferences sharedPre = ServiceLFCard.this.getSharedPreferences("BLEUpgradeFlag", Context.MODE_PRIVATE);
+                    String SRUdate = sharedPre.getString("bleLFUpdateSuccessFlag", "N");
+                    if (SRUdate.equalsIgnoreCase("Y")) {
+                        mBluetoothLeService.writeCustomCharacteristic(0x01, "", true);
+                    }
+
+                    mBluetoothLeService.writeCustomCharacteristic(0x01, "", false);
                 }
 
 
-                SharedPreferences sharedPre = ServiceLFCard.this.getSharedPreferences("BLEUpgradeFlag", Context.MODE_PRIVATE);
-                String SRUdate = sharedPre.getString("bleLFUpdateSuccessFlag", "N");
-                if (SRUdate.equalsIgnoreCase("Y")) {
-                    mBluetoothLeService.writeCustomCharacteristic(0x01, "", true);
-                }
 
-                mBluetoothLeService.writeCustomCharacteristic(0x01, "", false);
 
             } catch (Exception ex) {
                 System.out.println(ex);

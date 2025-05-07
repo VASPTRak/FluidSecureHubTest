@@ -254,15 +254,13 @@ public class AcceptOdoActivity extends AppCompatActivity {
             public void run() {
                 //do something
                 if (Istimeout_Sec) {
-
                     try {
-
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
+                                CommonUtils.hideKeyboard(AcceptOdoActivity.this);
                                 Istimeout_Sec = false;
                                 AppConstants.clearEditTextFieldsOnBack(AcceptOdoActivity.this);
-
 
                                 Intent i = new Intent(AcceptOdoActivity.this, WelcomeActivity.class);
                                 i.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -272,19 +270,12 @@ public class AcceptOdoActivity extends AppCompatActivity {
 
                         CancelTimerScreenOut();
                     } catch (Exception e) {
-
                         System.out.println(e);
                     }
-
                 }
-
             }
-
-            ;
         };
         ScreenOutTime.schedule(ttt, screenTimeOut, 500);
-
-
     }
 
     public void ResetTimeoutOdoScreen() {
@@ -710,6 +701,7 @@ public class AcceptOdoActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
+        CommonUtils.hideKeyboard(AcceptOdoActivity.this);
         //ActivityHandler.removeActivity(2);
         AppConstants.SERVER_CALL_IN_PROGRESS_FOR_PIN = false;
         AppConstants.SERVER_CALL_IN_PROGRESS_FOR_VEHICLE = false;

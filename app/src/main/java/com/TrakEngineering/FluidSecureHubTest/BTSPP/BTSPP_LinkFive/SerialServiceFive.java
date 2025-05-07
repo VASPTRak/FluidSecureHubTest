@@ -9,17 +9,11 @@ import android.os.Looper;
 
 import androidx.annotation.Nullable;
 
-import com.TrakEngineering.FluidSecureHubTest.BuildConfig;
-
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.Queue;
 
 public class SerialServiceFive extends Service implements SerialListenerFive {
-
-    static final String INTENT_ACTION_DISCONNECT = BuildConfig.APPLICATION_ID + ".Disconnect";
-    static final String NOTIFICATION_CHANNEL = BuildConfig.APPLICATION_ID + ".Channel";
-    static final String INTENT_CLASS_MAIN_ACTIVITY = BuildConfig.APPLICATION_ID + ".MainActivity";
 
     public class SerialBinder extends Binder {
         public SerialServiceFive getService() {
@@ -30,11 +24,11 @@ public class SerialServiceFive extends Service implements SerialListenerFive {
     private enum QueueType {Connect, ConnectError, Read, IoError}
 
     private class QueueItem {
-        SerialServiceFive.QueueType type;
+        QueueType type;
         byte[] data;
         Exception e;
 
-        QueueItem(SerialServiceFive.QueueType type, byte[] data, Exception e) {
+        QueueItem(QueueType type, byte[] data, Exception e) {
             this.type = type;
             this.data = data;
             this.e = e;
@@ -43,7 +37,7 @@ public class SerialServiceFive extends Service implements SerialListenerFive {
 
     private final Handler mainLooper;
     private final IBinder binder;
-    private final Queue<SerialServiceFive.QueueItem> queue1, queue2;
+    private final Queue<QueueItem> queue1, queue2;
 
     private SerialSocketFive socket;
     private SerialListenerFive listener;
@@ -54,7 +48,7 @@ public class SerialServiceFive extends Service implements SerialListenerFive {
      */
     public SerialServiceFive() {
         mainLooper = new Handler(Looper.getMainLooper());
-        binder = new SerialServiceFive.SerialBinder();
+        binder = new SerialBinder();
         queue1 = new LinkedList<>();
         queue2 = new LinkedList<>();
     }
@@ -166,11 +160,11 @@ public class SerialServiceFive extends Service implements SerialListenerFive {
                         if (listener != null) {
                             listener.onSerialConnectFive();
                         } else {
-                            queue1.add(new SerialServiceFive.QueueItem(SerialServiceFive.QueueType.Connect, null, null));
+                            queue1.add(new QueueItem(QueueType.Connect, null, null));
                         }
                     });
                 } else {
-                    queue2.add(new SerialServiceFive.QueueItem(SerialServiceFive.QueueType.Connect, null, null));
+                    queue2.add(new QueueItem(QueueType.Connect, null, null));
                 }
             }
         }
@@ -184,13 +178,13 @@ public class SerialServiceFive extends Service implements SerialListenerFive {
                         if (listener != null) {
                             listener.onSerialConnectErrorFive(e);
                         } else {
-                            queue1.add(new SerialServiceFive.QueueItem(SerialServiceFive.QueueType.ConnectError, null, e));
+                            queue1.add(new QueueItem(QueueType.ConnectError, null, e));
                             cancelNotification();
                             disconnect();
                         }
                     });
                 } else {
-                    queue2.add(new SerialServiceFive.QueueItem(SerialServiceFive.QueueType.ConnectError, null, e));
+                    queue2.add(new QueueItem(QueueType.ConnectError, null, e));
                     cancelNotification();
                     disconnect();
                 }
@@ -206,11 +200,11 @@ public class SerialServiceFive extends Service implements SerialListenerFive {
                         if (listener != null) {
                             listener.onSerialReadFive(data);
                         } else {
-                            queue1.add(new SerialServiceFive.QueueItem(SerialServiceFive.QueueType.Read, data, null));
+                            queue1.add(new QueueItem(QueueType.Read, data, null));
                         }
                     });
                 } else {
-                    queue2.add(new SerialServiceFive.QueueItem(SerialServiceFive.QueueType.Read, data, null));
+                    queue2.add(new QueueItem(QueueType.Read, data, null));
                 }
             }
         }
@@ -224,13 +218,13 @@ public class SerialServiceFive extends Service implements SerialListenerFive {
                         if (listener != null) {
                             listener.onSerialIoErrorFive(e, fromCode);
                         } else {
-                            queue1.add(new SerialServiceFive.QueueItem(SerialServiceFive.QueueType.IoError, null, e));
+                            queue1.add(new QueueItem(QueueType.IoError, null, e));
                             cancelNotification();
                             disconnect();
                         }
                     });
                 } else {
-                    queue2.add(new SerialServiceFive.QueueItem(SerialServiceFive.QueueType.IoError, null, e));
+                    queue2.add(new QueueItem(QueueType.IoError, null, e));
                     cancelNotification();
                     disconnect();
                 }

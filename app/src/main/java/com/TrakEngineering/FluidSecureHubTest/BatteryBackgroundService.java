@@ -41,7 +41,7 @@ public class BatteryBackgroundService extends Service {
 
             System.out.println(String.valueOf(level) + "%");
 
-            if (Constants.FS_1_STATUS.equalsIgnoreCase("FREE") && Constants.FS_1_STATUS.equalsIgnoreCase(Constants.FS_2_STATUS) && Constants.FS_3_STATUS.equalsIgnoreCase(Constants.FS_4_STATUS)) {
+            if (Constants.FS_1_STATUS.equalsIgnoreCase("FREE") && Constants.FS_2_STATUS.equalsIgnoreCase("FREE") && Constants.FS_3_STATUS.equalsIgnoreCase("FREE") && Constants.FS_4_STATUS.equalsIgnoreCase("FREE") && Constants.FS_5_STATUS.equalsIgnoreCase("FREE") && Constants.FS_6_STATUS.equalsIgnoreCase("FREE")) {
                 if (level < BATTERY_LEVEL_THRESHOLD) {
 
                     System.out.println("BatteryReceiver :: " + String.valueOf(level) + "%");
