@@ -465,6 +465,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
     //======================================================//
     public String versionNumberOfLink = "";
 
+    public int getSSIDCallRetryCounter = 0;
+
     //============ Bluetooth reader Gatt end==============
 
     //============ For Schedule Reboot ==========
@@ -3213,6 +3215,12 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 System.out.println("Ex" + e.getMessage());
                 if (AppConstants.GENERATE_LOGS)
                     AppConstants.writeInFile(TAG + "GetSSIDUsingLocation doInBackground --Exception: " + e.getMessage());
+                if (e.getMessage() != null) {
+                    if (e.getMessage().contains("Unable to resolve host") || e.getMessage().contains("failed to connect")) {
+                        resp = "RetrySSIDCall";
+                        getSSIDCallRetryCounter++;
+                    }
+                }
                 if (OfflineConstants.isOfflineAccess(WelcomeActivity.this)) {
                     AppConstants.NETWORK_STRENGTH = false;
                 }
@@ -3235,9 +3243,30 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 tvLatLng.setText(getResources().getString(R.string.HoseListIsNotAvailable));
                 System.out.println("GetSSIDUsingLocation...." + result);
 
-                oo_post_getssid(result);
+                if (result.equals("RetrySSIDCall")) {
+                    if (cd.isConnectingToInternet()) {
+                        if (getSSIDCallRetryCounter < 2) {
+                            if (AppConstants.GENERATE_LOGS)
+                                AppConstants.writeInFile(TAG + "Retrying GetSSIDUsingLocation...");
+                            new GetSSIDUsingLocation().execute();
+                        } else {
+                            if (AppConstants.GENERATE_LOGS)
+                                AppConstants.writeInFile(TAG + "GetSSIDUsingLocation Failed.");
+                            result = "";
+                            oo_post_getssid(result);
+                        }
+                    } else {
+                        if (AppConstants.GENERATE_LOGS)
+                            AppConstants.writeInFile(TAG + "GetSSIDUsingLocation PostExecute --No Internet Connection.");
+                        result = "";
+                        oo_post_getssid(result);
+                    }
+                } else {
+                    oo_post_getssid(result);
+                }
             } catch (Exception e) {
-                e.printStackTrace();
+                if (AppConstants.GENERATE_LOGS)
+                    AppConstants.writeInFile(TAG + "GetSSIDUsingLocation PostExecute --Exception: " + e.getMessage());
                 if (OfflineConstants.isOfflineAccess(WelcomeActivity.this)) {
                     AppConstants.NETWORK_STRENGTH = false;
                 }
@@ -11855,6 +11884,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     public void oo_post_getssid(String result) {
+        getSSIDCallRetryCounter = 0;
         linearHose.setClickable(true);//Enable hose Selection
         //tvLatLng.setText("Current Location :" + Constants.LATITUDE + "," + Constants.LONGITUDE); // #2005
         tvLatLng.setText(getResources().getString(R.string.HoseListIsNotAvailable));
