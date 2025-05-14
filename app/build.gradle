@@ -17,7 +17,7 @@ android {
         targetSdkVersion 28
         //targetSdkVersion 31
         versionCode 49
-        versionName "0.65(2872)"
+        versionName "0.66(2892)"
         multiDexEnabled true
 
         ndk {

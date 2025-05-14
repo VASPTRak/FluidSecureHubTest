@@ -543,7 +543,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         ConnectCount = 0;
         ReConnectBTReader();
 
-        tvSSIDName.setText(R.string.selectHose);
+        tvSSIDName.setText(getResources().getString(R.string.selectHose));
         CommonUtils.hideKeyboard(WelcomeActivity.this);
         SelectedItemPos = -1;
 
@@ -2055,7 +2055,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                 if (AppConstants.GENERATE_LOGS)
                                     AppConstants.writeInFile(TAG + getResources().getString(R.string.EmptyTankWarning));
                                 CommonUtils.AlertDialogAutoClose(WelcomeActivity.this, "", getResources().getString(R.string.EmptyTankWarning));
-                                tvSSIDName.setText(R.string.selectHose);
+                                tvSSIDName.setText(getResources().getString(R.string.selectHose));
                                 btnGo.setVisibility(View.GONE);
 
                             } else if (ReconfigureLink != null && ReconfigureLink.equalsIgnoreCase("true")) {
@@ -2067,7 +2067,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                                 if (AppConstants.GENERATE_LOGS)
                                     AppConstants.writeInFile(TAG + "Flagged Link: " + LinkFlaggedMessage);
                                 CommonUtils.AlertDialogAutoClose(WelcomeActivity.this, "", LinkFlaggedMessage);
-                                tvSSIDName.setText(R.string.selectHose);
+                                tvSSIDName.setText(getResources().getString(R.string.selectHose));
                                 btnGo.setVisibility(View.GONE);
 
                             } else {
@@ -3415,7 +3415,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                         if (AppConstants.GENERATE_LOGS)
                             AppConstants.writeInFile(TAG + getResources().getString(R.string.EmptyTankWarning));
                         CommonUtils.AlertDialogAutoClose(WelcomeActivity.this, "", getResources().getString(R.string.EmptyTankWarning));
-                        tvSSIDName.setText(R.string.selectHose);
+                        tvSSIDName.setText(getResources().getString(R.string.selectHose));
                         btnGo.setVisibility(View.GONE);
 
                     } else if (LinkCommunicationType.equalsIgnoreCase("BT")) {
@@ -6162,7 +6162,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             //Set "Tap here to select hose" message
             if (RestHoseinUse_FS1) {
                 RestHoseinUse_FS1 = false;
-                tvSSIDName.setText(R.string.selectHose);
+                tvSSIDName.setText(getResources().getString(R.string.selectHose));
                 SelectedItemPos = -1;
                 btnGo.setVisibility(View.VISIBLE);
             }
@@ -6327,7 +6327,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             //Set "Tap here to select hose" message
             if (RestHoseinUse_FS2) {
                 RestHoseinUse_FS2 = false;
-                tvSSIDName.setText(R.string.selectHose);
+                tvSSIDName.setText(getResources().getString(R.string.selectHose));
                 SelectedItemPos = -1;
                 btnGo.setVisibility(View.VISIBLE);
             }
@@ -6491,7 +6491,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             //Set "Tap here to select hose" message
             if (RestHoseinUse_FS3) {
                 RestHoseinUse_FS3 = false;
-                tvSSIDName.setText(R.string.selectHose);
+                tvSSIDName.setText(getResources().getString(R.string.selectHose));
                 SelectedItemPos = -1;
                 btnGo.setVisibility(View.VISIBLE);
             }
@@ -6655,7 +6655,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             //Set "Tap here to select hose" message
             if (RestHoseinUse_FS4) {
                 RestHoseinUse_FS4 = false;
-                tvSSIDName.setText(R.string.selectHose);
+                tvSSIDName.setText(getResources().getString(R.string.selectHose));
                 SelectedItemPos = -1;
                 btnGo.setVisibility(View.VISIBLE);
             }
@@ -6820,7 +6820,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             //Set "Tap here to select hose" message
             if (RestHoseinUse_FS5) {
                 RestHoseinUse_FS5 = false;
-                tvSSIDName.setText(R.string.selectHose);
+                tvSSIDName.setText(getResources().getString(R.string.selectHose));
                 SelectedItemPos = -1;
                 btnGo.setVisibility(View.VISIBLE);
             }
@@ -6984,7 +6984,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             //Set "Tap here to select hose" message
             if (RestHoseinUse_FS6) {
                 RestHoseinUse_FS6 = false;
-                tvSSIDName.setText(R.string.selectHose);
+                tvSSIDName.setText(getResources().getString(R.string.selectHose));
                 SelectedItemPos = -1;
                 btnGo.setVisibility(View.VISIBLE);
             }
@@ -14351,7 +14351,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 tvSSIDName.setText(selSSID);
                 OnHoseSelected_OnClick(Integer.toString(0));
             } else {
-                tvSSIDName.setText(R.string.selectHose);
+                tvSSIDName.setText(getResources().getString(R.string.selectHose));
             }
         } catch (Exception e) {
             if (AppConstants.GENERATE_LOGS)
@@ -14523,6 +14523,11 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 st = msg.replace("...", "");
                 ShowAnimatedStatus(msg, tvSSIDName);
             } else {
+                if (msg.equals(getResources().getString(R.string.HoseInUse))) {
+                    tvSSIDName.setTextSize(22f);
+                } else {
+                    tvSSIDName.setTextSize(30f);
+                }
                 tvSSIDName.setText(msg);
             }
             //tvSSIDName.setText(s); // uncomment this if the above code is not in use.
@@ -14532,7 +14537,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        tvSSIDName.setText(R.string.selectHose);
+                        tvSSIDName.setTextSize(30f);
+                        tvSSIDName.setText(getResources().getString(R.string.selectHose));
                         btnGo.setVisibility(View.GONE);
                     }
                 }, 6000);
